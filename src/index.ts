@@ -15,9 +15,6 @@ export function run(config?: Partial<McpServerConfig>): Promise<void> {
   const resolved: McpServerConfig = {
     name: BRANDING.MCP_SERVER_NAME,
     version: BRANDING.MCP_VERSION,
-    httpBridgePort: parseInt(process.env.HTTP_BRIDGE_PORT || "3042", 10),
-    httpBridgeHost: process.env.HTTP_BRIDGE_HOST || "localhost",
-    httpBridgePath: process.env.HTTP_BRIDGE_PATH || "/mcp-message",
     ...config,
   };
 

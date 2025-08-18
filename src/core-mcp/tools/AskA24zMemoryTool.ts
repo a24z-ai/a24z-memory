@@ -1,7 +1,7 @@
-import * as http from 'http';
 import { z } from 'zod';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
+import { getNotesForPath } from '../store/notesStore';
 
 export interface A24zMemoryConfig {
   llm: { model: string; temperature: number; systemPrompt: string; maxTokens: number };
@@ -48,41 +48,29 @@ export class AskA24zMemoryTool extends BaseTool {
     }
   }
 
-  private async fetchRelevantNotes(filePath: string, query: string, taskContext?: string): Promise<TribalNote[]> {
-    return new Promise((resolve) => {
-      const bridgeHost = process.env.MCP_BRIDGE_HOST || 'localhost';
-      const bridgePort = parseInt(process.env.MCP_BRIDGE_PORT || '3042');
-      const postData = JSON.stringify({ path: filePath, query, taskContext, config: this.defaultConfig.noteFetching });
-      const options: http.RequestOptions = { hostname: bridgeHost, port: bridgePort, path: '/mcp-a24z-memory-query-notes', method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(postData) }, timeout: 10000 };
-      const req = http.request(options, res => {
-        let data = '';
-        res.on('data', chunk => { data += chunk; });
-        res.on('end', () => {
-          try { const response = JSON.parse(data); resolve(response.success ? (response.notes || []) : []); } catch { resolve([]); }
-        });
-      });
-      req.on('error', () => resolve([]));
-      req.on('timeout', () => { req.destroy(); resolve([]); });
-      req.write(postData); req.end();
-    });
+  private async fetchRelevantNotes(filePath: string): Promise<TribalNote[]> {
+    const notes = getNotesForPath(filePath, true, this.defaultConfig.noteFetching.maxNotesPerQuery);
+    return notes.map(n => ({ id: n.id, anchors: n.anchors, tags: n.tags, content: n.note, context: { when: new Date(n.timestamp), confidence: n.confidence, type: n.type }, relevanceScore: Math.max(0, 1 - (n.pathDistance || 0) / 10) }));
   }
 
-  private async generateA24zMemoryResponse(query: string, filePath: string, taskContext: string, notes: TribalNote[]): Promise<string> {
-    return new Promise((resolve) => {
-      const bridgeHost = process.env.MCP_BRIDGE_HOST || 'localhost';
-      const bridgePort = parseInt(process.env.MCP_BRIDGE_PORT || '3042');
-      const formattedNotes = notes.map(n => ({ anchors: n.anchors.join(', '), tags: n.tags.join(', '), content: n.content, confidence: n.context.confidence, type: n.context.type, relevance: n.relevanceScore || 0 }));
-      const postData = JSON.stringify({ query, filePath, taskContext, notes: formattedNotes, config: this.defaultConfig });
-      const options: http.RequestOptions = { hostname: bridgeHost, port: bridgePort, path: '/mcp-a24z-memory-generate', method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(postData) }, timeout: 30000 };
-      const req = http.request(options, res => {
-        let data = '';
-        res.on('data', chunk => { data += chunk; });
-        res.on('end', () => { try { const response = JSON.parse(data); resolve(response.success ? response.message : this.generateFallbackResponse(query, filePath, notes)); } catch { resolve(this.generateFallbackResponse(query, filePath, notes)); } });
-      });
-      req.on('error', () => resolve(this.generateFallbackResponse(query, filePath, notes)));
-      req.on('timeout', () => { req.destroy(); resolve(this.generateFallbackResponse(query, filePath, notes)); });
-      req.write(postData); req.end();
-    });
+  private async generateA24zMemoryResponse(query: string, filePath: string, _taskContext: string, notes: TribalNote[]): Promise<string> {
+    // Simple local synthesis: summarize tags and recent notes.
+    const topNotes = notes.sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0)).slice(0, 5);
+    const tagCounts = new Map<string, number>();
+    for (const n of topNotes) for (const t of n.tags) tagCounts.set(t, (tagCounts.get(t) || 0) + 1);
+    const topTags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([t]) => t);
+    let response = `Context-aware guidance for ${filePath}:\n`;
+    response += `Question: ${query}\n\n`;
+    if (topTags.length > 0) response += `Relevant tags: ${topTags.join(', ')}\n\n`;
+    if (topNotes.length > 0) {
+      response += `Recent related notes:\n`;
+      for (const n of topNotes) {
+        response += `- (${n.context.type}/${n.context.confidence}) ${n.content}\n`;
+      }
+    } else {
+      response += `No prior notes found. Consider documenting findings once done.`;
+    }
+    return response;
   }
 
   private generateFallbackResponse(query: string, filePath: string, notes: TribalNote[]): string {

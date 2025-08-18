@@ -41,10 +41,6 @@ function installCursor(): void {
   config.mcpServers["a24z-memory"] = {
     command: "npx",
     args: ["a24z-memory"],
-    env: {
-      MCP_BRIDGE_HOST: process.env.MCP_BRIDGE_HOST || "localhost",
-      MCP_BRIDGE_PORT: process.env.MCP_BRIDGE_PORT || "3042"
-    }
   };
 
   writeFileEnsured(configPath, JSON.stringify(config, null, 2));
@@ -78,10 +74,6 @@ function installClaude(): void {
   config.mcpServers["a24z-memory"] = {
     command: "npx",
     args: ["a24z-memory"],
-    env: {
-      MCP_BRIDGE_HOST: process.env.MCP_BRIDGE_HOST || "localhost",
-      MCP_BRIDGE_PORT: process.env.MCP_BRIDGE_PORT || "3042"
-    }
   };
 
   writeFileEnsured(target, JSON.stringify(config, null, 2));

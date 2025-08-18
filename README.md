@@ -14,11 +14,6 @@ npm i -g a24z-memory
 a24z-memory start
 ```
 
-Environment:
-
-- `MCP_BRIDGE_HOST` (default: `localhost`)
-- `MCP_BRIDGE_PORT` (default: `3042`)
-
 ## One-click installs
 
 Cursor:
@@ -43,7 +38,6 @@ Cursor (`~/.cursor/mcp.json`):
     "a24z-memory": {
       "command": "npx",
       "args": ["a24z-memory"],
-      "env": { "MCP_BRIDGE_HOST": "localhost", "MCP_BRIDGE_PORT": "3042" }
     }
   }
 }
@@ -57,7 +51,6 @@ Windsurf (Settings → Cascade → Manage Plugins → VIEW RAW CONFIG):
     "a24z-memory": {
       "command": "npx",
       "args": ["a24z-memory"],
-      "env": { "MCP_BRIDGE_HOST": "localhost", "MCP_BRIDGE_PORT": "3042" }
     }
   }
 }
@@ -71,7 +64,6 @@ Claude Code/Desktop (`~/.claude.json` or `~/.config/claude/config.json`):
     "a24z-memory": {
       "command": "npx",
       "args": ["a24z-memory"],
-      "env": { "MCP_BRIDGE_HOST": "localhost", "MCP_BRIDGE_PORT": "3042" }
     }
   }
 }
@@ -85,7 +77,6 @@ Gemini CLI (`~/.gemini/settings.json`):
     "a24z-memory": {
       "command": "npx",
       "args": ["a24z-memory"],
-      "env": { "MCP_BRIDGE_HOST": "localhost", "MCP_BRIDGE_PORT": "3042" }
     }
   }
 }

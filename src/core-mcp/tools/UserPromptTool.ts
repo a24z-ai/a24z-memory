@@ -1,7 +1,8 @@
-import * as http from 'http';
 import { z } from 'zod';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
+import * as readline from 'node:readline/promises';
+import * as process from 'node:process';
 
 export class UserPromptTool extends BaseTool {
   name = 'user_prompt';
@@ -20,25 +21,39 @@ export class UserPromptTool extends BaseTool {
   });
 
   async execute(input: z.infer<typeof this.schema>): Promise<McpToolResult> {
-    return new Promise(resolve => {
-      const bridgeHost = process.env.MCP_BRIDGE_HOST || 'localhost';
-      const bridgePort = parseInt(process.env.MCP_BRIDGE_PORT || '3042');
-      const promptId = `prompt-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-      const requestData = { id: promptId, filePath: input.filePath, title: input.title || 'MCP Prompt', message: input.message, type: input.type || 'text', options: input.options, defaultValue: input.defaultValue, placeholder: input.placeholder, required: input.required || false, timeout: input.timeout };
-      const postData = JSON.stringify(requestData);
-      const options: http.RequestOptions = { hostname: bridgeHost, port: bridgePort, path: '/mcp-prompt', method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(postData) }, timeout: input.timeout || 60000 };
-      const req = http.request(options, res => {
-        let data = '';
-        res.on('data', c => { data += c; });
-        res.on('end', () => {
-          try { const response = JSON.parse(data); resolve(response.success ? { content: [{ type: 'text', text: JSON.stringify({ success: true, value: response.value, promptId: response.id }, null, 2) }] } : { content: [{ type: 'text', text: JSON.stringify({ success: false, error: response.cancelled ? 'User cancelled the prompt' : (response.error || 'Failed to get user response'), cancelled: response.cancelled || false, promptId: response.id }, null, 2) }], isError: !response.cancelled }); } catch (e) { resolve({ content: [{ type: 'text', text: JSON.stringify({ success: false, error: `Invalid response from MCP Bridge: ${data}` }, null, 2) }], isError: true }); }
-        });
-      });
-      req.on('error', (err: Error) => resolve({ content: [{ type: 'text', text: JSON.stringify({ success: false, error: err.message }, null, 2) }], isError: true }));
-      req.on('timeout', () => { req.destroy(); resolve({ content: [{ type: 'text', text: JSON.stringify({ success: false, error: 'Request timed out' }, null, 2) }], isError: true }); });
-      req.write(postData); req.end();
-    });
+    // For standalone stdio servers, we fallback to terminal input for prompts.
+    const rl = readline.createInterface({ input: process.stdin, output: process.stderr });
+    const ask = async (query: string): Promise<string> => rl.question(query);
+    try {
+      let value: string | boolean | undefined;
+      const title = input.title || 'MCP Prompt';
+      switch (input.type || 'text') {
+        case 'confirm':
+          {
+            const ans = (await ask(`${title} [y/N]: ${input.message} `)).trim().toLowerCase();
+            value = ans === 'y' || ans === 'yes';
+          }
+          break;
+        case 'select':
+          {
+            const opts = (input.options || []).map((o, i) => `${i + 1}) ${o}`).join('\n');
+            const ans = await ask(`${title}: ${input.message}\n${opts}\nSelect number: `);
+            const idx = Math.max(1, Math.min(parseInt(ans, 10) || 1, (input.options || []).length));
+            value = (input.options || [])[idx - 1];
+          }
+          break;
+        case 'multiline':
+          value = await ask(`${title}: ${input.message}\n> `);
+          break;
+        case 'text':
+        default:
+          value = await ask(`${title}: ${input.message} `);
+      }
+      rl.close();
+      return { content: [{ type: 'text', text: JSON.stringify({ success: true, value }, null, 2) }] };
+    } catch (e) {
+      rl.close();
+      return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: (e as Error).message }, null, 2) }], isError: true };
+    }
   }
 }
-
-

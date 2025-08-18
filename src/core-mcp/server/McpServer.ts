@@ -19,13 +19,11 @@ import {
   GetRepositoryNotesTool,
   GetRepositoryTagsTool,
 } from '../tools';
-import { HttpBridgeClient } from '../transport';
 import { McpServerConfig, McpTool, McpResource } from '../types';
 
 export class McpServer {
   private server: any;
   private config: McpServerConfig;
-  private httpClient: HttpBridgeClient;
   private tools: Map<string, McpTool> = new Map();
   private resources: Map<string, McpResource> = new Map();
   private messageQueue: any[] = [];
@@ -44,12 +42,6 @@ export class McpServer {
         },
       },
     );
-
-    this.httpClient = new HttpBridgeClient({
-      host: config.httpBridgeHost,
-      port: config.httpBridgePort,
-      path: config.httpBridgePath,
-    });
 
     this.setupDefaultTools();
     this.setupDefaultResources();

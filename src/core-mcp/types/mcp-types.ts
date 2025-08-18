@@ -24,12 +24,4 @@ export interface McpResource {
 export interface McpServerConfig {
   name: string;
   version: string;
-  httpBridgePort?: number;
-  httpBridgeHost?: string;
-  httpBridgePath?: string;
 }
-
-export interface HttpBridgeRequest { type: string; [key: string]: unknown }
-export interface HttpBridgeResponse { success: boolean; data?: unknown; error?: string; message?: string }
-
-
