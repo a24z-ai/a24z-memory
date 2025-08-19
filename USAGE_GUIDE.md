@@ -50,15 +50,6 @@ Get available tags for categorizing notes in a repository path.
   - `includeUsedTags`: (Optional) Include tags already used in this path (default: true).
   - `includeSuggestedTags`: (Optional) Include tags suggested for this path (default: true).
 
-#### `mcp__a24z-memory__user_prompt`
-Request input from the user through a dialog when you need clarification.
-
-- **When to use**: When implementation details are ambiguous or you need user preferences.
-- **Parameters**:
-  - `message`: Question for the user.
-  - `type`: 'text', 'confirm', 'select', or 'multiline'.
-  - `options`: For 'select' type prompts.
-
 ### Best Practices
 
 1.  **Check for existing notes first**: Before starting work on any file or directory, use `askA24zMemory` with a general query to understand existing context and requirements.
