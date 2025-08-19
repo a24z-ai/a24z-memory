@@ -1,6 +1,6 @@
 {
   "name": "a24z-memory",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": false,
   "description": "Standalone a24z Memory MCP server",
   "bin": {
