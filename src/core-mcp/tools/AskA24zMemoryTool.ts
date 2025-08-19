@@ -48,7 +48,7 @@ export class AskA24zMemoryTool extends BaseTool {
     }
   }
 
-  private async fetchRelevantNotes(filePath: string): Promise<TribalNote[]> {
+  private async fetchRelevantNotes(filePath: string, query?: string, taskContext?: string): Promise<TribalNote[]> {
     const notes = getNotesForPath(filePath, true, this.defaultConfig.noteFetching.maxNotesPerQuery);
     return notes.map(n => ({ id: n.id, anchors: n.anchors, tags: n.tags, content: n.note, context: { when: new Date(n.timestamp), confidence: n.confidence, type: n.type }, relevanceScore: Math.max(0, 1 - (n.pathDistance || 0) / 10) }));
   }

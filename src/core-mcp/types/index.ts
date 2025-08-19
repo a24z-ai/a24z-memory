@@ -1,3 +1,3 @@
-export type { McpTool, McpToolResult, McpResource, McpServerConfig, HttpBridgeRequest, HttpBridgeResponse } from './mcp-types';
+export type { McpTool, McpToolResult, McpResource, McpServerConfig } from './mcp-types';
 
 

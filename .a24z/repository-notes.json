@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "notes": [
+    {
+      "note": "This is a test note to verify repository-specific storage is working correctly. The note should be saved in the .a24z directory within this git repository.",
+      "directoryPath": "/Users/griever/Developer/a24z-Memory",
+      "anchors": [
+        "/Users/griever/Developer/a24z-Memory/src/core-mcp/store"
+      ],
+      "tags": [
+        "test",
+        "repository-storage",
+        "mcp-verification"
+      ],
+      "confidence": "high",
+      "type": "explanation",
+      "metadata": {
+        "toolVersion": "2.0.0",
+        "createdBy": "repository_note_tool"
+      },
+      "id": "note-1755587444977-n5xt92k4q",
+      "timestamp": 1755587444977
+    },
+    {
+      "note": "Debug note to check working directory. Process cwd: \" + process.cwd()",
+      "directoryPath": "/Users/griever/Developer/a24z-Memory",
+      "anchors": [
+        "/Users/griever/Developer/a24z-Memory"
+      ],
+      "tags": [
+        "debug",
+        "working-directory"
+      ],
+      "confidence": "medium",
+      "type": "explanation",
+      "metadata": {
+        "toolVersion": "2.0.0",
+        "createdBy": "repository_note_tool"
+      },
+      "id": "note-1755587737540-iab3bq4fb",
+      "timestamp": 1755587737540
+    }
+  ]
+}

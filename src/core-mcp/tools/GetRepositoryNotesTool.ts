@@ -14,7 +14,10 @@ export class GetRepositoryNotesTool extends BaseTool {
   });
 
   async execute(input: z.infer<typeof this.schema>): Promise<McpToolResult> {
+    console.log('[GetRepositoryNotesTool] DEBUG: input path =', input.path);
+    console.log('[GetRepositoryNotesTool] DEBUG: process.cwd() =', process.cwd());
     const notes = getNotesForPath(input.path, input.includeParentNotes ?? true, input.maxResults ?? 50);
+    console.log('[GetRepositoryNotesTool] DEBUG: found', notes.length, 'notes');
     return {
       content: [{
         type: 'text',
