@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": false,
   "description": "Standalone a24z Memory MCP server",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
     "a24z-memory": "dist/cli.js"
   },
@@ -14,6 +16,10 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/a24z/a24z-memory.git"
+  },
   "keywords": [
     "mcp",
     "model-context-protocol",
@@ -22,6 +28,10 @@
   ],
   "author": "a24z Team",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/a24z/a24z-memory/issues"
+  },
+  "homepage": "https://github.com/a24z/a24z-memory#readme",
   "engines": {
     "node": ">=18"
   },
@@ -37,9 +47,9 @@
     "typescript": "^5.6.3"
   },
   "files": [
-    "dist/",
-    "bin/",
-    "README.md"
+    "dist",
+    "README.md",
+    "LICENSE"
   ]
 }
 
