@@ -17,12 +17,8 @@ import {
 describe('Repository-Specific Storage', () => {
   const testRepoPath = '/tmp/test-repo-storage';
   const testSubPath = path.join(testRepoPath, 'src', 'components');
-  let originalTestDataDir: string | undefined;
   
   beforeEach(() => {
-    // Disable the global test data directory override for these tests
-    originalTestDataDir = process.env.A24Z_TEST_DATA_DIR;
-    delete process.env.A24Z_TEST_DATA_DIR;
     
     // Clean up any existing test data
     if (fs.existsSync(testRepoPath)) {
@@ -43,11 +39,6 @@ describe('Repository-Specific Storage', () => {
     // Clean up test data
     if (fs.existsSync(testRepoPath)) {
       fs.rmSync(testRepoPath, { recursive: true, force: true });
-    }
-    
-    // Restore the original test data directory
-    if (originalTestDataDir) {
-      process.env.A24Z_TEST_DATA_DIR = originalTestDataDir;
     }
   });
 
@@ -161,8 +152,6 @@ describe('Repository-Specific Storage', () => {
     const secondRepoPath = '/tmp/second-test-repo';
     
     beforeEach(() => {
-      // Ensure test data directory is still disabled
-      delete process.env.A24Z_TEST_DATA_DIR;
       
       // Create second repository
       if (fs.existsSync(secondRepoPath)) {

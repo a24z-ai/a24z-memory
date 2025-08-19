@@ -14,9 +14,7 @@ import {
 
 import {
   /*AppInfoTool,*/ AskA24zMemoryTool,
-  UserPromptTool,
   RepositoryNoteTool,
-  GetRepositoryNotesTool,
   GetRepositoryTagsTool,
 } from '../tools';
 import { McpServerConfig, McpTool, McpResource } from '../types';
@@ -52,9 +50,7 @@ export class McpServer {
     // Add default tools
     // this.addTool(new AppInfoTool(this.config.name, this.config.version, this.config.version));
     this.addTool(new AskA24zMemoryTool());
-    this.addTool(new UserPromptTool());
     this.addTool(new RepositoryNoteTool());
-    this.addTool(new GetRepositoryNotesTool());
     this.addTool(new GetRepositoryTagsTool());
   }
 

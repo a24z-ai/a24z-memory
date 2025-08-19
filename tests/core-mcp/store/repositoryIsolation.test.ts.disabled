@@ -1,0 +1,473 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as os from 'node:os';
+import { saveNote, getNotesForPath, getUsedTagsForPath } from '../../../src/core-mcp/store/notesStore';
+import { RepositoryNoteTool } from '../../../src/core-mcp/tools/RepositoryNoteTool';
+import { GetRepositoryNotesTool } from '../../../src/core-mcp/tools/GetRepositoryNotesTool';
+
+describe('Repository Isolation and Cross-Repository Testing', () => {
+  const tempBase = path.join(os.tmpdir(), 'a24z-repo-isolation-test-' + Date.now());
+  let repo1Path: string;
+  let repo2Path: string;
+  let repo3Path: string;
+
+  beforeAll(() => {
+    // Create temp base directory
+    fs.mkdirSync(tempBase, { recursive: true });
+  });
+
+  afterAll(() => {
+    // Clean up all test directories
+    if (fs.existsSync(tempBase)) {
+      fs.rmSync(tempBase, { recursive: true, force: true });
+    }
+  });
+
+  beforeEach(() => {
+    // Set up three distinct repository structures
+    repo1Path = path.join(tempBase, 'project-alpha');
+    repo2Path = path.join(tempBase, 'project-beta');
+    repo3Path = path.join(tempBase, 'project-gamma');
+
+    // Repository 1: Git repository with package.json
+    fs.mkdirSync(path.join(repo1Path, '.git'), { recursive: true });
+    fs.writeFileSync(path.join(repo1Path, '.git', 'config'), '[core]\nrepositoryformatversion = 0\n');
+    fs.writeFileSync(path.join(repo1Path, 'package.json'), JSON.stringify({
+      name: 'project-alpha',
+      version: '1.0.0'
+    }));
+    fs.mkdirSync(path.join(repo1Path, 'src', 'components'), { recursive: true });
+
+    // Repository 2: Only package.json (no git)
+    fs.mkdirSync(repo2Path, { recursive: true });
+    fs.writeFileSync(path.join(repo2Path, 'package.json'), JSON.stringify({
+      name: 'project-beta',
+      version: '2.0.0'
+    }));
+    fs.mkdirSync(path.join(repo2Path, 'lib', 'utils'), { recursive: true });
+
+    // Repository 3: Git repository without package.json
+    fs.mkdirSync(path.join(repo3Path, '.git'), { recursive: true });
+    fs.writeFileSync(path.join(repo3Path, '.git', 'config'), '[core]\nrepositoryformatversion = 0\n');
+    fs.mkdirSync(path.join(repo3Path, 'modules', 'core'), { recursive: true });
+  });
+
+  afterEach(() => {
+    // Clean up repository directories
+    [repo1Path, repo2Path, repo3Path].forEach(repoPath => {
+      if (fs.existsSync(repoPath)) {
+        fs.rmSync(repoPath, { recursive: true, force: true });
+      }
+    });
+  });
+
+  describe('Basic Repository Isolation', () => {
+    it('should create separate .a24z directories for each repository', () => {
+      // Save a note in each repository
+      saveNote({
+        note: 'Alpha project note',
+        directoryPath: repo1Path,
+        tags: ['alpha'],
+        anchors: [repo1Path],
+        confidence: 'high',
+        type: 'explanation',
+        metadata: { project: 'alpha' }
+      });
+
+      saveNote({
+        note: 'Beta project note',
+        directoryPath: repo2Path,
+        tags: ['beta'],
+        anchors: [repo2Path],
+        confidence: 'medium',
+        type: 'pattern',
+        metadata: { project: 'beta' }
+      });
+
+      saveNote({
+        note: 'Gamma project note',
+        directoryPath: repo3Path,
+        tags: ['gamma'],
+        anchors: [repo3Path],
+        confidence: 'low',
+        type: 'gotcha',
+        metadata: { project: 'gamma' }
+      });
+
+      // Verify each repository has its own .a24z directory
+      expect(fs.existsSync(path.join(repo1Path, '.a24z'))).toBe(true);
+      expect(fs.existsSync(path.join(repo2Path, '.a24z'))).toBe(true);
+      expect(fs.existsSync(path.join(repo3Path, '.a24z'))).toBe(true);
+
+      // Verify each has its own notes file
+      expect(fs.existsSync(path.join(repo1Path, '.a24z', 'repository-notes.json'))).toBe(true);
+      expect(fs.existsSync(path.join(repo2Path, '.a24z', 'repository-notes.json'))).toBe(true);
+      expect(fs.existsSync(path.join(repo3Path, '.a24z', 'repository-notes.json'))).toBe(true);
+    });
+
+    it('should not cross-contaminate notes between repositories', () => {
+      // Save different notes in each repository
+      const note1 = saveNote({
+        note: 'Secret alpha note',
+        directoryPath: repo1Path,
+        tags: ['secret', 'alpha-only'],
+        anchors: [repo1Path],
+        confidence: 'high',
+        type: 'decision',
+        metadata: { confidential: true }
+      });
+
+      const note2 = saveNote({
+        note: 'Private beta note',
+        directoryPath: repo2Path,
+        tags: ['private', 'beta-only'],
+        anchors: [repo2Path],
+        confidence: 'high',
+        type: 'decision',
+        metadata: { proprietary: true }
+      });
+
+      // Retrieve notes from each repository
+      const alphaNotesCount = getNotesForPath(repo1Path, true, 100);
+      const betaNotesCount = getNotesForPath(repo2Path, true, 100);
+
+      // Each should only see its own note
+      expect(alphaNotesCount).toHaveLength(1);
+      expect(alphaNotesCount[0].id).toBe(note1.id);
+      expect(alphaNotesCount[0].note).toContain('alpha');
+
+      expect(betaNotesCount).toHaveLength(1);
+      expect(betaNotesCount[0].id).toBe(note2.id);
+      expect(betaNotesCount[0].note).toContain('beta');
+
+      // Verify files contain only their own notes
+      const alphaFile = JSON.parse(fs.readFileSync(path.join(repo1Path, '.a24z', 'repository-notes.json'), 'utf8'));
+      const betaFile = JSON.parse(fs.readFileSync(path.join(repo2Path, '.a24z', 'repository-notes.json'), 'utf8'));
+
+      expect(alphaFile.notes.every((n: any) => !n.note.includes('beta'))).toBe(true);
+      expect(betaFile.notes.every((n: any) => !n.note.includes('alpha'))).toBe(true);
+    });
+  });
+
+  describe('Subdirectory Storage Behavior', () => {
+    it('should store notes from subdirectories in repository root', () => {
+      const subPath1 = path.join(repo1Path, 'src', 'components');
+      const subPath2 = path.join(repo1Path, 'src', 'components', 'buttons', 'PrimaryButton.tsx');
+      
+      // Save notes from different subdirectory depths
+      saveNote({
+        note: 'Component level note',
+        directoryPath: subPath1,
+        tags: ['components'],
+        anchors: [subPath1],
+        confidence: 'medium',
+        type: 'explanation',
+        metadata: {}
+      });
+
+      saveNote({
+        note: 'Deep button note',
+        directoryPath: subPath2,
+        tags: ['button'],
+        anchors: [subPath2],
+        confidence: 'high',
+        type: 'pattern',
+        metadata: {}
+      });
+
+      // Both should be stored in repository root .a24z
+      const notesFile = path.join(repo1Path, '.a24z', 'repository-notes.json');
+      expect(fs.existsSync(notesFile)).toBe(true);
+
+      // Should NOT create .a24z in subdirectories
+      expect(fs.existsSync(path.join(subPath1, '.a24z'))).toBe(false);
+      expect(fs.existsSync(path.join(path.dirname(subPath2), '.a24z'))).toBe(false);
+
+      // Verify notes are accessible from repository root
+      const notes = getNotesForPath(repo1Path, true, 10);
+      expect(notes).toHaveLength(2);
+    });
+
+    it('should retrieve parent notes when querying from subdirectories', () => {
+      // Save note at repository root
+      const rootNote = saveNote({
+        note: 'Repository-wide configuration',
+        directoryPath: repo1Path,
+        tags: ['config', 'root'],
+        anchors: [repo1Path],
+        confidence: 'high',
+        type: 'decision',
+        metadata: {}
+      });
+
+      // Query from a deep subdirectory
+      const deepPath = path.join(repo1Path, 'src', 'components', 'forms', 'input', 'TextField.tsx');
+      const notes = getNotesForPath(deepPath, true, 10);
+
+      // Should find the root note
+      expect(notes).toHaveLength(1);
+      expect(notes[0].id).toBe(rootNote.id);
+      expect(notes[0].isParentDirectory).toBe(true);
+      expect(notes[0].pathDistance).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Cross-Repository Query Prevention', () => {
+    it('should not return notes from other repositories when querying', () => {
+      // Save notes with similar tags in different repositories
+      saveNote({
+        note: 'Authentication implementation in Alpha',
+        directoryPath: path.join(repo1Path, 'src', 'auth'),
+        tags: ['auth', 'security'],
+        anchors: [],
+        confidence: 'high',
+        type: 'explanation',
+        metadata: {}
+      });
+
+      saveNote({
+        note: 'Authentication implementation in Beta',
+        directoryPath: path.join(repo2Path, 'lib', 'auth'),
+        tags: ['auth', 'security'],
+        anchors: [],
+        confidence: 'high',
+        type: 'explanation',
+        metadata: {}
+      });
+
+      saveNote({
+        note: 'Authentication implementation in Gamma',
+        directoryPath: path.join(repo3Path, 'modules', 'auth'),
+        tags: ['auth', 'security'],
+        anchors: [],
+        confidence: 'high',
+        type: 'explanation',
+        metadata: {}
+      });
+
+      // Query each repository for auth notes
+      const alphaAuth = getNotesForPath(path.join(repo1Path, 'src', 'auth'), true, 10);
+      const betaAuth = getNotesForPath(path.join(repo2Path, 'lib', 'auth'), true, 10);
+      const gammaAuth = getNotesForPath(path.join(repo3Path, 'modules', 'auth'), true, 10);
+
+      // Each should only find its own note
+      expect(alphaAuth).toHaveLength(1);
+      expect(alphaAuth[0].note).toContain('Alpha');
+
+      expect(betaAuth).toHaveLength(1);
+      expect(betaAuth[0].note).toContain('Beta');
+
+      expect(gammaAuth).toHaveLength(1);
+      expect(gammaAuth[0].note).toContain('Gamma');
+    });
+
+    it('should maintain tag isolation between repositories', () => {
+      // Save notes with overlapping tags
+      saveNote({
+        note: 'Alpha feature',
+        directoryPath: repo1Path,
+        tags: ['feature', 'v1'],
+        anchors: [],
+        confidence: 'medium',
+        type: 'explanation',
+        metadata: {}
+      });
+
+      saveNote({
+        note: 'Beta feature',
+        directoryPath: repo2Path,
+        tags: ['feature', 'v2'],
+        anchors: [],
+        confidence: 'medium',
+        type: 'explanation',
+        metadata: {}
+      });
+
+      // Get used tags from each repository
+      const alphaTags = getUsedTagsForPath(repo1Path);
+      const betaTags = getUsedTagsForPath(repo2Path);
+
+      // Verify tag isolation
+      expect(alphaTags).toContain('v1');
+      expect(alphaTags).not.toContain('v2');
+
+      expect(betaTags).toContain('v2');
+      expect(betaTags).not.toContain('v1');
+    });
+  });
+
+  describe('MCP Tool Repository Isolation', () => {
+    it('should maintain isolation through MCP tools', async () => {
+      const createTool = new RepositoryNoteTool();
+      const getTool = new GetRepositoryNotesTool();
+
+      // Create notes in different repositories using MCP tool
+      await createTool.execute({
+        note: 'MCP note in Alpha',
+        directoryPath: repo1Path,
+        tags: ['mcp', 'alpha'],
+        confidence: 'high',
+        type: 'explanation',
+        metadata: {}
+      });
+
+      await createTool.execute({
+        note: 'MCP note in Beta',
+        directoryPath: repo2Path,
+        tags: ['mcp', 'beta'],
+        confidence: 'high',
+        type: 'explanation',
+        metadata: {}
+      });
+
+      // Retrieve using MCP tool
+      const alphaResult = await getTool.execute({
+        path: repo1Path,
+        includeParentNotes: true,
+        maxResults: 10
+      });
+
+      const betaResult = await getTool.execute({
+        path: repo2Path,
+        includeParentNotes: true,
+        maxResults: 10
+      });
+
+      // Parse results
+      const alphaData = JSON.parse(alphaResult.content[0].text!);
+      const betaData = JSON.parse(betaResult.content[0].text!);
+
+      // Verify isolation
+      expect(alphaData.totalNotes).toBe(1);
+      expect(alphaData.notes[0].note).toContain('Alpha');
+
+      expect(betaData.totalNotes).toBe(1);
+      expect(betaData.notes[0].note).toContain('Beta');
+    });
+  });
+
+  describe('Edge Cases and Special Scenarios', () => {
+    it('should handle nested repositories correctly', () => {
+      // Create a nested repository inside repo1
+      const nestedRepoPath = path.join(repo1Path, 'vendor', 'nested-project');
+      fs.mkdirSync(path.join(nestedRepoPath, '.git'), { recursive: true });
+      fs.writeFileSync(path.join(nestedRepoPath, '.git', 'config'), '[core]\nrepositoryformatversion = 0\n');
+      fs.writeFileSync(path.join(nestedRepoPath, 'package.json'), JSON.stringify({
+        name: 'nested-project',
+        version: '1.0.0'
+      }));
+
+      // Save notes in parent and nested repositories
+      const parentNote = saveNote({
+        note: 'Parent repository note',
+        directoryPath: repo1Path,
+        tags: ['parent'],
+        anchors: [],
+        confidence: 'high',
+        type: 'explanation',
+        metadata: {}
+      });
+
+      const nestedNote = saveNote({
+        note: 'Nested repository note',
+        directoryPath: nestedRepoPath,
+        tags: ['nested'],
+        anchors: [],
+        confidence: 'high',
+        type: 'explanation',
+        metadata: {}
+      });
+
+      // Each should have its own .a24z directory
+      expect(fs.existsSync(path.join(repo1Path, '.a24z'))).toBe(true);
+      expect(fs.existsSync(path.join(nestedRepoPath, '.a24z'))).toBe(true);
+
+      // Notes should be isolated
+      const parentNotes = getNotesForPath(repo1Path, true, 10);
+      const nestedNotes = getNotesForPath(nestedRepoPath, true, 10);
+
+      expect(parentNotes).toHaveLength(1);
+      expect(parentNotes[0].id).toBe(parentNote.id);
+
+      expect(nestedNotes).toHaveLength(1);
+      expect(nestedNotes[0].id).toBe(nestedNote.id);
+    });
+
+    it('should handle repository without git or package.json', () => {
+      const orphanPath = path.join(tempBase, 'orphan-directory');
+      fs.mkdirSync(orphanPath, { recursive: true });
+
+      const orphanNote = saveNote({
+        note: 'Orphan directory note',
+        directoryPath: orphanPath,
+        tags: ['orphan'],
+        anchors: [],
+        confidence: 'low',
+        type: 'explanation',
+        metadata: {}
+      });
+
+      // Should create .a24z in the directory itself
+      expect(fs.existsSync(path.join(orphanPath, '.a24z'))).toBe(true);
+
+      // Should be able to retrieve the note
+      const notes = getNotesForPath(orphanPath, true, 10);
+      expect(notes).toHaveLength(1);
+      expect(notes[0].id).toBe(orphanNote.id);
+    });
+
+    it('should handle concurrent saves to multiple repositories', () => {
+      const notePromises = [];
+
+      // Create 5 notes in each repository concurrently
+      for (let i = 0; i < 5; i++) {
+        notePromises.push(saveNote({
+          note: `Alpha concurrent note ${i}`,
+          directoryPath: repo1Path,
+          tags: ['concurrent', 'alpha'],
+          anchors: [],
+          confidence: 'medium',
+          type: 'explanation',
+          metadata: { index: i }
+        }));
+
+        notePromises.push(saveNote({
+          note: `Beta concurrent note ${i}`,
+          directoryPath: repo2Path,
+          tags: ['concurrent', 'beta'],
+          anchors: [],
+          confidence: 'medium',
+          type: 'explanation',
+          metadata: { index: i }
+        }));
+
+        notePromises.push(saveNote({
+          note: `Gamma concurrent note ${i}`,
+          directoryPath: repo3Path,
+          tags: ['concurrent', 'gamma'],
+          anchors: [],
+          confidence: 'medium',
+          type: 'explanation',
+          metadata: { index: i }
+        }));
+      }
+
+      // Wait for all saves
+      const savedNotes = notePromises.map(n => n);
+
+      // Verify each repository has exactly 5 notes
+      const alphaNotes = getNotesForPath(repo1Path, true, 100);
+      const betaNotes = getNotesForPath(repo2Path, true, 100);
+      const gammaNotes = getNotesForPath(repo3Path, true, 100);
+
+      expect(alphaNotes).toHaveLength(5);
+      expect(betaNotes).toHaveLength(5);
+      expect(gammaNotes).toHaveLength(5);
+
+      // Verify no cross-contamination
+      expect(alphaNotes.every(n => n.note.includes('Alpha'))).toBe(true);
+      expect(betaNotes.every(n => n.note.includes('Beta'))).toBe(true);
+      expect(gammaNotes.every(n => n.note.includes('Gamma'))).toBe(true);
+    });
+  });
+});

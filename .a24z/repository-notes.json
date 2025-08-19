@@ -39,6 +39,64 @@
       },
       "id": "note-1755587737540-iab3bq4fb",
       "timestamp": 1755587737540
+    },
+    {
+      "note": "# a24z-Memory MCP Server\n\nThis is a **Model Context Protocol (MCP) server** that provides tribal knowledge storage and retrieval capabilities.\n\n## Key Components\n\n- **McpServer**: Main server implementation in `src/core-mcp/server/McpServer.ts`\n- **NotesStore**: Storage layer in `src/core-mcp/store/notesStore.ts`\n- **CLI Interface**: Command-line interface in `src/cli.ts` with commands:\n  - `start` - Start the MCP server\n  - `install-cursor` - Add to Cursor configuration\n  - `install-claude` - Add to Claude configuration\n\n## Build Process\n\n```bash\nnpm run build  # Compiles TypeScript to dist/\nnpm pack       # Creates distributable tarball\n```\n\nThe server uses **stdio communication** for MCP protocol and stores repository-specific notes with tagging support.",
+      "directoryPath": "/Users/griever/Developer/a24z-Memory",
+      "anchors": [
+        "/Users/griever/Developer/a24z-Memory"
+      ],
+      "tags": [
+        "documentation",
+        "mcp",
+        "server",
+        "typescript"
+      ],
+      "confidence": "medium",
+      "type": "explanation",
+      "metadata": {
+        "toolVersion": "2.0.0",
+        "createdBy": "repository_note_tool"
+      },
+      "id": "note-1755630406440-dxoxobv4s",
+      "timestamp": 1755630406440
+    },
+    {
+      "note": "## Testing Note Storage\n\nThis is a test note to verify that the a24z-Memory MCP server is properly storing and retrieving notes.\n\n### Test Details\n- **Tool**: `mcp_a24z-memory_repository_note`  \n- **Purpose**: Verify note creation and storage\n- **Location**: Project root directory\n\nIf this note appears when retrieved, the storage system is working correctly.",
+      "directoryPath": "/Users/griever/Developer/a24z-Memory",
+      "anchors": [
+        "/Users/griever/Developer/a24z-Memory"
+      ],
+      "tags": [
+        "testing",
+        "verification"
+      ],
+      "confidence": "high",
+      "type": "explanation",
+      "metadata": {
+        "toolVersion": "2.0.0",
+        "createdBy": "repository_note_tool"
+      },
+      "id": "note-1755630483432-vhpvwouhu",
+      "timestamp": 1755630483432
+    },
+    {
+      "note": "Debug test note for retrieval",
+      "directoryPath": "/Users/griever/Developer/a24z-Memory",
+      "tags": [
+        "debug",
+        "retrieval"
+      ],
+      "anchors": [
+        "/Users/griever/Developer/a24z-Memory"
+      ],
+      "confidence": "high",
+      "type": "explanation",
+      "metadata": {
+        "debug": true
+      },
+      "id": "note-1755630800199-gvwl6ly9r",
+      "timestamp": 1755630800199
     }
   ]
 }

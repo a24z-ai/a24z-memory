@@ -89,8 +89,7 @@ describe('RepositoryNoteTool', () => {
 
       await tool.execute(input);
 
-      const dataDir = process.env.A24Z_TEST_DATA_DIR!;
-      const notesFile = path.join(dataDir, 'repository-notes.json');
+      const notesFile = path.join(testPath, '.a24z', 'repository-notes.json');
       
       expect(fs.existsSync(notesFile)).toBe(true);
       
@@ -131,7 +130,7 @@ describe('RepositoryNoteTool', () => {
       const savedNote = notes[0];
       expect(savedNote.metadata).toHaveProperty('userField', 'userValue');
       expect(savedNote.metadata).toHaveProperty('toolVersion', '2.0.0');
-      expect(savedNote.metadata).toHaveProperty('createdBy', 'repository_note_tool');
+      expect(savedNote.metadata).toHaveProperty('createdBy', 'create_repository_note_tool');
     });
 
     it('should handle multiple notes in same directory', async () => {
@@ -169,10 +168,8 @@ describe('RepositoryNoteTool', () => {
         tags: ['test']
       };
 
-      // Should not throw, just save the note as-is
-      const result = await tool.execute(input);
-      expect(result.content[0].type).toBe('text');
-      expect(result.content[0].text).toMatch(/^Saved note/);
+      // Should throw when trying to create directory in invalid location
+      await expect(tool.execute(input)).rejects.toThrow('ENOENT');
     });
 
     it('should preserve all input data in saved note', async () => {

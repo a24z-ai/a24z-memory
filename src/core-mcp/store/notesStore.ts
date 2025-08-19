@@ -25,11 +25,8 @@ interface NotesFileSchema {
 
 function getRepositoryDataDir(repositoryPath: string): string {
   console.log('[getRepositoryDataDir] DEBUG: repositoryPath =', repositoryPath);
-  console.log('[getRepositoryDataDir] DEBUG: A24Z_TEST_DATA_DIR =', process.env.A24Z_TEST_DATA_DIR);
-  if (process.env.A24Z_TEST_DATA_DIR) {
-    console.log('[getRepositoryDataDir] DEBUG: using test data dir =', process.env.A24Z_TEST_DATA_DIR);
-    return process.env.A24Z_TEST_DATA_DIR;
-  }
+  
+  // Always use repository-specific directory
   const result = path.join(repositoryPath, '.a24z');
   console.log('[getRepositoryDataDir] DEBUG: using repository-specific dir =', result);
   return result;
