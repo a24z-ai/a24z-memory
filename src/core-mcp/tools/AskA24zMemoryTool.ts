@@ -73,18 +73,6 @@ export class AskA24zMemoryTool extends BaseTool {
     return response;
   }
 
-  private generateFallbackResponse(query: string, filePath: string, notes: TribalNote[]): string {
-    if (notes.length === 0) { return this.getNoKnowledgeResponse(filePath, query); }
-    const patterns = notes.filter(n => n.context.type === 'pattern').slice(0, 3).map(n => `- ${n.content}`).join('\n');
-    const decisions = notes.filter(n => n.context.type === 'decision').slice(0, 2).map(n => `- ${n.content}`).join('\n');
-    const gotchas = notes.filter(n => n.context.type === 'gotcha').slice(0, 3).map(n => `- ${n.content}`).join('\n');
-    let response = `Based on our tribal knowledge:\n\n`;
-    if (patterns) response += `**Relevant Patterns:**\n${patterns}\n\n`;
-    if (decisions) response += `**Past Decisions:**\n${decisions}\n\n`;
-    if (gotchas) response += `**Watch Out For:**\n${gotchas}\n\n`;
-    return response;
-  }
-
   private getNoKnowledgeResponse(filePath: string, query: string): string {
     return `I don't have any tribal knowledge about this area yet.\n\nYour question: "${query}"\nWorking on: ${filePath}`;
   }
