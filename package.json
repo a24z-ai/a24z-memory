@@ -1,6 +1,6 @@
 {
   "name": "a24z-memory",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": false,
   "description": "Standalone a24z Memory MCP server",
   "main": "dist/index.js",
@@ -32,7 +32,7 @@
   "bugs": {
     "url": "https://github.com/a24z-ai/a24z-memory/issues"
   },
-  "homepage": "https://github.com/a24z-ai/a24z-memory#readme",
+  "homepage": "https://a24z.ai",
   "engines": {
     "node": ">=18"
   },
