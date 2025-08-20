@@ -17,6 +17,27 @@ export interface StoredNote {
   timestamp: number;
 }
 
+export interface RepositoryConfiguration {
+  version: number;
+  limits: {
+    noteMaxLength: number;
+    maxTagsPerNote: number;
+    maxTagLength: number;
+    maxAnchorsPerNote: number;
+  };
+  storage: {
+    backupOnMigration: boolean;
+    compressionEnabled: boolean;
+  };
+}
+
+export interface ValidationError {
+  field: string;
+  message: string;
+  limit?: number;
+  actual?: number;
+}
+
 interface NotesFileSchema {
   version: number;
   notes: StoredNote[];
@@ -55,6 +76,112 @@ function ensureNotesDir(repositoryPath: string, timestamp: number): void {
 
 function getGuidanceFile(repositoryPath: string): string {
   return path.join(getRepositoryDataDir(repositoryPath), 'note-guidance.md');
+}
+
+function getConfigurationFile(repositoryPath: string): string {
+  return path.join(getRepositoryDataDir(repositoryPath), 'configuration.json');
+}
+
+function getDefaultConfiguration(): RepositoryConfiguration {
+  return {
+    version: 1,
+    limits: {
+      noteMaxLength: 10000,
+      maxTagsPerNote: 10,
+      maxTagLength: 50,
+      maxAnchorsPerNote: 20
+    },
+    storage: {
+      backupOnMigration: true,
+      compressionEnabled: false
+    }
+  };
+}
+
+function readConfiguration(repositoryPath: string): RepositoryConfiguration {
+  try {
+    const configFile = getConfigurationFile(repositoryPath);
+    if (!fs.existsSync(configFile)) {
+      const defaultConfig = getDefaultConfiguration();
+      writeConfiguration(repositoryPath, defaultConfig);
+      return defaultConfig;
+    }
+    
+    const raw = fs.readFileSync(configFile, 'utf8');
+    const parsed = JSON.parse(raw) as Partial<RepositoryConfiguration>;
+    
+    // Merge with defaults to handle missing properties
+    const defaultConfig = getDefaultConfiguration();
+    const mergedConfig: RepositoryConfiguration = {
+      version: parsed.version || defaultConfig.version,
+      limits: {
+        ...defaultConfig.limits,
+        ...parsed.limits
+      },
+      storage: {
+        ...defaultConfig.storage,
+        ...parsed.storage
+      }
+    };
+    
+    return mergedConfig;
+  } catch {
+    return getDefaultConfiguration();
+  }
+}
+
+function writeConfiguration(repositoryPath: string, config: RepositoryConfiguration): void {
+  const configFile = getConfigurationFile(repositoryPath);
+  ensureDataDir(repositoryPath);
+  const tmp = `${configFile}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(config, null, 2), { encoding: 'utf8' });
+  fs.renameSync(tmp, configFile);
+}
+
+function validateNote(note: Omit<StoredNote, 'id' | 'timestamp'>, config: RepositoryConfiguration): ValidationError[] {
+  const errors: ValidationError[] = [];
+  
+  // Validate note length
+  if (note.note.length > config.limits.noteMaxLength) {
+    errors.push({
+      field: 'note',
+      message: `Note content exceeds maximum length of ${config.limits.noteMaxLength} characters`,
+      limit: config.limits.noteMaxLength,
+      actual: note.note.length
+    });
+  }
+  
+  // Validate number of tags
+  if (note.tags.length > config.limits.maxTagsPerNote) {
+    errors.push({
+      field: 'tags',
+      message: `Note has too many tags (${note.tags.length}). Maximum allowed: ${config.limits.maxTagsPerNote}`,
+      limit: config.limits.maxTagsPerNote,
+      actual: note.tags.length
+    });
+  }
+  
+  // Validate tag lengths
+  const longTags = note.tags.filter(tag => tag.length > config.limits.maxTagLength);
+  if (longTags.length > 0) {
+    errors.push({
+      field: 'tags',
+      message: `Some tags exceed maximum length of ${config.limits.maxTagLength} characters: ${longTags.join(', ')}`,
+      limit: config.limits.maxTagLength
+    });
+  }
+  
+  // Validate number of anchors
+  if (note.anchors.length > config.limits.maxAnchorsPerNote) {
+    errors.push({
+      field: 'anchors',
+      message: `Note has too many anchors (${note.anchors.length}). Maximum allowed: ${config.limits.maxAnchorsPerNote}`,
+      limit: config.limits.maxAnchorsPerNote,
+      actual: note.anchors.length
+    });
+  }
+  
+  return errors;
 }
 
 function ensureDataDir(repositoryPath: string): void {
@@ -168,6 +295,17 @@ export function saveNote(note: Omit<StoredNote, 'id' | 'timestamp'> & { director
   const repoRoot = normalizeRepositoryPath(note.directoryPath);
   const originalDirPath = path.resolve(note.directoryPath);
   
+  // Load configuration and validate the note
+  const config = readConfiguration(repoRoot);
+  const { directoryPath, ...noteWithoutDirectoryPath } = note;
+  
+  // Validate the note before processing
+  const validationErrors = validateNote(noteWithoutDirectoryPath, config);
+  if (validationErrors.length > 0) {
+    const errorMessages = validationErrors.map(err => err.message).join('; ');
+    throw new Error(`Note validation failed: ${errorMessages}`);
+  }
+  
   // Normalize anchors to be relative paths to the repository root
   const normalizedAnchors = note.anchors.map(anchor => {
     // If anchor is already absolute, make it relative to repo root
@@ -184,7 +322,6 @@ export function saveNote(note: Omit<StoredNote, 'id' | 'timestamp'> & { director
     }
   });
   
-  const { directoryPath, ...noteWithoutDirectoryPath } = note;
   const saved: StoredNote = { 
     ...noteWithoutDirectoryPath, 
     anchors: normalizedAnchors, // Use normalized anchors
@@ -307,6 +444,42 @@ export function migrateNotesIfNeeded(repositoryPath: string): boolean {
     return true;
   }
   return false;
+}
+
+export function getRepositoryConfiguration(repositoryPath: string): RepositoryConfiguration {
+  const repoRoot = normalizeRepositoryPath(repositoryPath);
+  return readConfiguration(repoRoot);
+}
+
+export function updateRepositoryConfiguration(repositoryPath: string, config: {
+  version?: number;
+  limits?: Partial<RepositoryConfiguration['limits']>;
+  storage?: Partial<RepositoryConfiguration['storage']>;
+}): RepositoryConfiguration {
+  const repoRoot = normalizeRepositoryPath(repositoryPath);
+  const currentConfig = readConfiguration(repoRoot);
+  
+  const updatedConfig: RepositoryConfiguration = {
+    ...currentConfig,
+    ...(config.version !== undefined && { version: config.version }),
+    limits: {
+      ...currentConfig.limits,
+      ...config.limits
+    },
+    storage: {
+      ...currentConfig.storage,
+      ...config.storage
+    }
+  };
+  
+  writeConfiguration(repoRoot, updatedConfig);
+  return updatedConfig;
+}
+
+export function validateNoteAgainstConfig(note: Omit<StoredNote, 'id' | 'timestamp'>, repositoryPath: string): ValidationError[] {
+  const repoRoot = normalizeRepositoryPath(repositoryPath);
+  const config = readConfiguration(repoRoot);
+  return validateNote(note, config);
 }
 
 export function getRepositoryGuidance(targetPath: string): string | null {

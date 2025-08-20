@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "limits": {
+    "noteMaxLength": 10000,
+    "maxTagsPerNote": 10,
+    "maxTagLength": 50,
+    "maxAnchorsPerNote": 20
+  },
+  "storage": {
+    "backupOnMigration": true,
+    "compressionEnabled": false
+  }
+}
