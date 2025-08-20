@@ -285,7 +285,6 @@ describe('RepositoryNoteTool', () => {
       const saved = notes[0];
 
       expect(saved.note).toBe(input.note);
-      expect(saved.directoryPath).toBe(input.directoryPath);
       expect(saved.tags).toEqual(input.tags);
       expect(saved.confidence).toBe(input.confidence);
       expect(saved.type).toBe(input.type);

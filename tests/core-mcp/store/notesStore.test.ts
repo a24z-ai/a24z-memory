@@ -146,8 +146,6 @@ describe('notesStore', () => {
       expect(saved.id).toMatch(/^note-\d+-[a-z0-9]+$/);
       expect(saved.timestamp).toBeCloseTo(Date.now(), -2); // Within 100ms
       expect(saved.note).toBe(testNote.note);
-      // directoryPath should be normalized to the project root
-      expect(saved.directoryPath).toBe(testNotePath);
     });
 
     it('should generate unique IDs for multiple notes', () => {

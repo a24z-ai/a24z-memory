@@ -247,6 +247,60 @@
       },
       "id": "note-1755662143709-40ingdb2x",
       "timestamp": 1755662143709
+    },
+    {
+      "note": "Test note without directoryPath",
+      "directoryPath": "/Users/griever/Developer/a24z-Memory",
+      "anchors": [
+        "test-file.ts"
+      ],
+      "tags": [
+        "test"
+      ],
+      "confidence": "medium",
+      "type": "explanation",
+      "metadata": {
+        "test": true
+      },
+      "id": "note-1755663676569-2pqrw5xq9",
+      "timestamp": 1755663676569
+    },
+    {
+      "note": "Test note without directoryPath - updated version",
+      "directoryPath": "/Users/griever/Developer/a24z-Memory",
+      "anchors": [
+        "test-file-updated.ts"
+      ],
+      "tags": [
+        "test",
+        "updated"
+      ],
+      "confidence": "medium",
+      "type": "explanation",
+      "metadata": {
+        "test": true,
+        "updated": true
+      },
+      "id": "note-1755663683906-8aa20kixu",
+      "timestamp": 1755663683906
+    },
+    {
+      "note": "Test note without directoryPath - final version",
+      "anchors": [
+        "test-file-final.ts"
+      ],
+      "tags": [
+        "test",
+        "final"
+      ],
+      "confidence": "medium",
+      "type": "explanation",
+      "metadata": {
+        "test": true,
+        "final": true
+      },
+      "id": "note-1755663699302-pfhpdf6u7",
+      "timestamp": 1755663699302
     }
   ]
 }

@@ -9,7 +9,6 @@ export type NoteType = 'decision' | 'pattern' | 'gotcha' | 'explanation';
 export interface StoredNote {
   id: string;
   note: string;
-  directoryPath: string;
   anchors: string[];
   tags: string[];
   confidence: NoteConfidence;
@@ -70,7 +69,7 @@ function writeAllNotes(repositoryPath: string, notes: StoredNote[]): void {
   fs.renameSync(tmp, notesFile);
 }
 
-export function saveNote(note: Omit<StoredNote, 'id' | 'timestamp'>): StoredNote {
+export function saveNote(note: Omit<StoredNote, 'id' | 'timestamp'> & { directoryPath: string }): StoredNote {
   const repoRoot = normalizeRepositoryPath(note.directoryPath);
   const originalDirPath = path.resolve(note.directoryPath);
   
@@ -91,10 +90,10 @@ export function saveNote(note: Omit<StoredNote, 'id' | 'timestamp'>): StoredNote
   });
   
   const existing = readAllNotes(repoRoot);
+  const { directoryPath, ...noteWithoutDirectoryPath } = note;
   const saved: StoredNote = { 
-    ...note, 
+    ...noteWithoutDirectoryPath, 
     anchors: normalizedAnchors, // Use normalized anchors
-    directoryPath: repoRoot, // Store the repo root as the directory path
     id: `note-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`, 
     timestamp: Date.now() 
   };
@@ -116,9 +115,11 @@ export function getNotesForPath(targetPath: string, includeParentNotes: boolean,
   const all = readAllNotes(normalizedRepo);
   const results = all
     .map((n: StoredNote) => {
-      // The note's directoryPath is the repo root, so we check if query is within it
-      const base = path.resolve(n.directoryPath);
-      // A note is a "parent directory" note if it matches ONLY because the query is within its directoryPath
+      // Since notes are stored in repository-specific .a24z directories,
+      // any note in the current repository is considered to have the repo root as its directory
+      const base = normalizedRepo;
+      
+      // A note is a "parent directory" note if it matches ONLY because the query is within its directory scope
       // We'll determine this after checking anchors
       let isParent = false;
       
@@ -133,7 +134,7 @@ export function getNotesForPath(targetPath: string, includeParentNotes: boolean,
                anchor.startsWith(`${queryRelative}${path.sep}`);
       });
       
-      // Check if the query path is within the note's directory (which is the repo root)
+      // Check if the query path is within the note's directory scope (which is the repo root)
       const queryInDirectory = normalized === base || normalized.startsWith(`${base}${path.sep}`);
       
       // If the note matches an anchor, it's not a parent directory note

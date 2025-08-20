@@ -7,11 +7,15 @@ describe('Minimal File Operations Test', () => {
   it('should create a note file on disk', async () => {
     const testPath = path.join(TEST_DIR, 'minimal-test');
     fs.mkdirSync(testPath, { recursive: true });
+    
+    // Create a .git directory to make this a git repository
+    fs.mkdirSync(path.join(testPath, '.git'), { recursive: true });
 
     const tool = new RepositoryNoteTool();
     const result = await tool.execute({
       note: 'Test note',
       directoryPath: testPath,
+      anchors: ['test-file.ts'],
       tags: ['test'],
       confidence: 'medium' as const,
       type: 'explanation' as const
@@ -20,9 +24,8 @@ describe('Minimal File Operations Test', () => {
     // Should succeed
     expect(result.content[0].text).toMatch(/^Saved note/);
 
-    // Should create file
-    const dataDir = process.env.A24Z_TEST_DATA_DIR!;
-    const notesFile = path.join(dataDir, 'repository-notes.json');
+    // Should create .a24z directory and notes file
+    const notesFile = path.join(testPath, '.a24z', 'repository-notes.json');
     expect(fs.existsSync(notesFile)).toBe(true);
 
     // Should contain our data
@@ -35,6 +38,9 @@ describe('Minimal File Operations Test', () => {
   it('should handle concurrent writes', async () => {
     const testPath = path.join(TEST_DIR, 'concurrent-test');
     fs.mkdirSync(testPath, { recursive: true });
+    
+    // Create a .git directory to make this a git repository
+    fs.mkdirSync(path.join(testPath, '.git'), { recursive: true });
 
     const tool = new RepositoryNoteTool();
     
@@ -43,6 +49,7 @@ describe('Minimal File Operations Test', () => {
       tool.execute({
         note: `Concurrent note ${i}`,
         directoryPath: testPath,
+        anchors: [`file-${i}.ts`],
         tags: ['concurrent'],
         confidence: 'medium' as const,
         type: 'explanation' as const
@@ -57,8 +64,7 @@ describe('Minimal File Operations Test', () => {
     });
 
     // All should be saved
-    const dataDir = process.env.A24Z_TEST_DATA_DIR!;
-    const notesFile = path.join(dataDir, 'repository-notes.json');
+    const notesFile = path.join(testPath, '.a24z', 'repository-notes.json');
     const data = JSON.parse(fs.readFileSync(notesFile, 'utf8'));
     expect(data.notes.length).toBeGreaterThanOrEqual(5);
   });
