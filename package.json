@@ -3,8 +3,8 @@
   "version": "0.1.4",
   "private": false,
   "description": "Standalone a24z Memory MCP server",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/lib.js",
+  "types": "dist/lib.d.ts",
   "bin": {
     "a24z-memory": "dist/cli.js"
   },
@@ -52,8 +52,10 @@
   },
   "files": [
     "dist",
+    "templates",
     "README.md",
     "USAGE_GUIDE.md",
+    "LIBRARY_USAGE.md",
     "LICENSE"
   ]
 }
