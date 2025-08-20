@@ -31,6 +31,28 @@ function getNotesFile(repositoryPath: string): string {
   return path.join(getRepositoryDataDir(repositoryPath), 'repository-notes.json');
 }
 
+function getNotesDir(repositoryPath: string): string {
+  return path.join(getRepositoryDataDir(repositoryPath), 'notes');
+}
+
+function getNoteFilePath(repositoryPath: string, noteId: string, timestamp: number): string {
+  const date = new Date(timestamp);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const noteDir = path.join(getNotesDir(repositoryPath), year.toString(), month);
+  return path.join(noteDir, `${noteId}.json`);
+}
+
+function ensureNotesDir(repositoryPath: string, timestamp: number): void {
+  const date = new Date(timestamp);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const noteDir = path.join(getNotesDir(repositoryPath), year.toString(), month);
+  if (!fs.existsSync(noteDir)) {
+    fs.mkdirSync(noteDir, { recursive: true });
+  }
+}
+
 function getGuidanceFile(repositoryPath: string): string {
   return path.join(getRepositoryDataDir(repositoryPath), 'note-guidance.md');
 }
@@ -42,10 +64,9 @@ function ensureDataDir(repositoryPath: string): void {
   }
 }
 
-function readAllNotes(repositoryPath: string): StoredNote[] {
+function readAllNotesFromLegacyFile(repositoryPath: string): StoredNote[] {
   try {
     const notesFile = getNotesFile(repositoryPath);
-    ensureDataDir(repositoryPath);
     if (!fs.existsSync(notesFile)) {
       return [];
     }
@@ -60,13 +81,87 @@ function readAllNotes(repositoryPath: string): StoredNote[] {
   }
 }
 
-function writeAllNotes(repositoryPath: string, notes: StoredNote[]): void {
-  const notesFile = getNotesFile(repositoryPath);
-  ensureDataDir(repositoryPath);
-  const payload: NotesFileSchema = { version: 1, notes };
-  const tmp = `${notesFile}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify(payload, null, 2), { encoding: 'utf8' });
-  fs.renameSync(tmp, notesFile);
+function readAllNotes(repositoryPath: string): StoredNote[] {
+  try {
+    ensureDataDir(repositoryPath);
+    const notesDir = getNotesDir(repositoryPath);
+    
+    // Check if migration is needed
+    const legacyFile = getNotesFile(repositoryPath);
+    if (fs.existsSync(legacyFile)) {
+      migrateNotesToFiles(repositoryPath);
+    }
+    
+    // Read all notes from individual files
+    const notes: StoredNote[] = [];
+    
+    if (!fs.existsSync(notesDir)) {
+      return [];
+    }
+    
+    // Recursively read all .json files in the notes directory
+    const readNotesRecursive = (dir: string): void => {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          readNotesRecursive(fullPath);
+        } else if (entry.isFile() && entry.name.endsWith('.json')) {
+          try {
+            const noteContent = fs.readFileSync(fullPath, 'utf8');
+            const note = JSON.parse(noteContent) as StoredNote;
+            if (note && typeof note === 'object' && note.id) {
+              notes.push(note);
+            }
+          } catch {
+            // Skip invalid note files
+          }
+        }
+      }
+    };
+    
+    readNotesRecursive(notesDir);
+    return notes;
+  } catch {
+    return [];
+  }
+}
+
+function writeNoteToFile(repositoryPath: string, note: StoredNote): void {
+  ensureNotesDir(repositoryPath, note.timestamp);
+  const notePath = getNoteFilePath(repositoryPath, note.id, note.timestamp);
+  const tmp = `${notePath}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(note, null, 2), { encoding: 'utf8' });
+  fs.renameSync(tmp, notePath);
+}
+
+function deleteNoteFile(repositoryPath: string, note: StoredNote): void {
+  const notePath = getNoteFilePath(repositoryPath, note.id, note.timestamp);
+  if (fs.existsSync(notePath)) {
+    fs.unlinkSync(notePath);
+  }
+}
+
+function migrateNotesToFiles(repositoryPath: string): void {
+  const legacyFile = getNotesFile(repositoryPath);
+  if (!fs.existsSync(legacyFile)) {
+    return;
+  }
+  
+  try {
+    const legacyNotes = readAllNotesFromLegacyFile(repositoryPath);
+    
+    // Write each note to its own file
+    for (const note of legacyNotes) {
+      writeNoteToFile(repositoryPath, note);
+    }
+    
+    // Backup and remove the legacy file
+    const backupPath = `${legacyFile}.backup-${Date.now()}`;
+    fs.renameSync(legacyFile, backupPath);
+  } catch (error) {
+    console.error('Failed to migrate notes to individual files:', error);
+  }
 }
 
 export function saveNote(note: Omit<StoredNote, 'id' | 'timestamp'> & { directoryPath: string }): StoredNote {
@@ -89,7 +184,6 @@ export function saveNote(note: Omit<StoredNote, 'id' | 'timestamp'> & { director
     }
   });
   
-  const existing = readAllNotes(repoRoot);
   const { directoryPath, ...noteWithoutDirectoryPath } = note;
   const saved: StoredNote = { 
     ...noteWithoutDirectoryPath, 
@@ -97,8 +191,9 @@ export function saveNote(note: Omit<StoredNote, 'id' | 'timestamp'> & { director
     id: `note-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`, 
     timestamp: Date.now() 
   };
-  existing.push(saved);
-  writeAllNotes(repoRoot, existing);
+  
+  // Write the note to its own file
+  writeNoteToFile(repoRoot, saved);
   return saved;
 }
 
@@ -203,6 +298,15 @@ export function getSuggestedTagsForPath(targetPath: string): Array<{ name: strin
   if (lower.includes('security') || lower.includes('authz')) suggestions.push({ name: 'security', reason: 'Security-related keywords' });
   if (lower.includes('ui') || lower.includes('component') || lower.includes('view')) suggestions.push({ name: 'ui', reason: 'UI component path' });
   return suggestions;
+}
+
+export function migrateNotesIfNeeded(repositoryPath: string): boolean {
+  const legacyFile = getNotesFile(repositoryPath);
+  if (fs.existsSync(legacyFile)) {
+    migrateNotesToFiles(repositoryPath);
+    return true;
+  }
+  return false;
 }
 
 export function getRepositoryGuidance(targetPath: string): string | null {

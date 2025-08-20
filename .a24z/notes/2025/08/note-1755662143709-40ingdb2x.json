@@ -1,0 +1,23 @@
+{
+  "note": "## Future Scalability and Extension Considerations\n\nWhile the current a24z-memory tool is focused and lightweight, there are several areas where it could be extended to handle larger repositories and more complex use cases.\n\n**Current limitations**:\n- **In-memory storage**: All notes loaded into memory on access\n- **Single file storage**: All notes stored in one JSON file\n- **Basic search**: Simple tag and anchor-based filtering\n- **No indexing**: No full-text search or advanced querying\n\n**Potential extensions**:\n1. **Database backend**: Replace JSON files with SQLite/PostgreSQL for large repositories\n2. **Search indexing**: Add full-text search using libraries like Lunr.js or Elasticsearch\n3. **Note relationships**: Support for note-to-note links and hierarchies\n4. **Rich media**: Support for images, code snippets, and attachments\n5. **Collaboration**: Multi-user editing with conflict resolution\n\n**Architecture considerations**:\n- **Plugin system**: Allow custom tools and storage backends\n- **Event system**: Notify other tools when notes change\n- **Caching layer**: Redis or in-memory cache for frequently accessed notes\n- **API endpoints**: REST/GraphQL API for external integrations\n\n**Performance optimizations**:\n- **Lazy loading**: Load notes on-demand instead of all at once\n- **Pagination**: Support for large result sets\n- **Background indexing**: Update search indexes asynchronously\n- **Compression**: Compress note content for storage efficiency\n\n**Integration opportunities**:\n- **Git hooks**: Automatically create notes for commits/PRs\n- **IDE plugins**: VS Code, IntelliJ, etc. integration\n- **CI/CD integration**: Generate notes from build/test results\n- **Documentation generators**: Auto-generate docs from notes\n\n**Files to consider for extension**:\n- `src/core-mcp/store/notesStore.ts` - Storage abstraction layer\n- `src/core-mcp/server/McpServer.ts` - Plugin/extension system\n- `src/core-mcp/types/index.ts` - Extended note schemas\n\n**Tags**: architecture, scalability, future, design",
+  "directoryPath": "/Users/griever/Developer/a24z-Memory",
+  "anchors": [
+    "src/core-mcp/store/notesStore.ts",
+    "src/core-mcp/server/McpServer.ts",
+    "src/core-mcp/types/index.ts"
+  ],
+  "tags": [
+    "architecture",
+    "scalability",
+    "future",
+    "design"
+  ],
+  "confidence": "medium",
+  "type": "decision",
+  "metadata": {
+    "toolVersion": "2.0.0",
+    "createdBy": "create_repository_note_tool"
+  },
+  "id": "note-1755662143709-40ingdb2x",
+  "timestamp": 1755662143709
+}

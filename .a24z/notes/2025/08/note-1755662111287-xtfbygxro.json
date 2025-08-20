@@ -1,0 +1,23 @@
+{
+  "note": "## MCP Protocol Integration and Schema Requirements\n\nThe a24z-memory tool integrates with the Model Context Protocol (MCP) by providing tools that can be called by MCP clients, requiring careful attention to protocol compliance and schema definitions.\n\n**MCP protocol requirements**:\n- **Tool listing**: Must respond to `tools/list` requests with tool metadata\n- **Tool execution**: Must handle `tools/call` requests with proper parameter validation\n- **Schema format**: Input schemas must be valid JSON Schema\n- **Error handling**: Errors must be returned in MCP-compatible format\n\n**Schema conversion pipeline**:\n```\nZod Schema → JSON Schema → MCP Protocol\n     ↓              ↓           ↓\n  Type-safe    MCP-compatible  Client\n  validation   parameter       execution\n```\n\n**Key MCP integration points**:\n1. **Server setup**: `McpServer` extends MCP SDK's `Server` class\n2. **Transport**: Uses `StdioServerTransport` for standard input/output communication\n3. **Request handling**: Implements MCP request schemas for tool operations\n4. **Response formatting**: Ensures all responses match MCP protocol expectations\n\n**Protocol quirks discovered**:\n- **Schema descriptions**: Must be preserved for user-friendly tool interfaces\n- **Error format**: Errors must include `isError: true` and proper content structure\n- **Parameter validation**: MCP clients expect detailed validation error messages\n\n**Files involved**:\n- `src/core-mcp/server/McpServer.ts` - MCP server implementation\n- `src/core-mcp/types/mcp-types.ts` - MCP type definitions\n- `src/core-mcp/tools/base-tool.ts` - Tool interface compliance\n\n**Tags**: mcp, integration, protocol, schema",
+  "directoryPath": "/Users/griever/Developer/a24z-Memory",
+  "anchors": [
+    "src/core-mcp/server/McpServer.ts",
+    "src/core-mcp/types/mcp-types.ts",
+    "src/core-mcp/tools/base-tool.ts"
+  ],
+  "tags": [
+    "mcp",
+    "integration",
+    "protocol",
+    "schema"
+  ],
+  "confidence": "high",
+  "type": "explanation",
+  "metadata": {
+    "toolVersion": "2.0.0",
+    "createdBy": "create_repository_note_tool"
+  },
+  "id": "note-1755662111287-xtfbygxro",
+  "timestamp": 1755662111287
+}

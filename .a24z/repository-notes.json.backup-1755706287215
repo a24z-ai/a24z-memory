@@ -1,0 +1,306 @@
+{
+  "version": 1,
+  "notes": [
+    {
+      "note": "## Repository Structure and .a24z Directory\n\nThe a24z-memory tool stores all repository-specific data in a `.a24z` directory at the repository root. This directory contains:\n\n- `repository-notes.json` - All notes stored for the repository\n- `note-guidance.md` - Custom guidance for note creation in that repository\n\n**Why this approach?**\n- **Repository isolation**: Each repository gets its own `.a24z` directory, preventing cross-contamination\n- **Git-friendly**: `.a24z` can be added to `.gitignore` or committed to version control as needed\n- **Self-contained**: Each repository has everything it needs for memory and guidance\n\n**Implementation details**:\n- The `notesStore.ts` automatically creates the `.a24z` directory if it doesn't exist\n- Path normalization ensures notes are always stored relative to the repository root\n- File operations use atomic writes (write to `.tmp` file, then rename) for data safety\n\n**Files involved**:\n- `src/core-mcp/store/notesStore.ts` - Directory creation and file management\n- `src/core-mcp/utils/pathNormalization.ts` - Repository root detection\n\n**Tags**: storage, decision, file-structure, repository-isolation",
+      "directoryPath": "/Users/griever/Developer/a24z-Memory",
+      "anchors": [
+        "src/core-mcp/store/notesStore.ts",
+        "src/core-mcp/utils/pathNormalization.ts"
+      ],
+      "tags": [
+        "storage",
+        "decision",
+        "file-structure",
+        "repository-isolation"
+      ],
+      "confidence": "high",
+      "type": "explanation",
+      "metadata": {
+        "toolVersion": "2.0.0",
+        "createdBy": "create_repository_note_tool"
+      },
+      "id": "note-1755662054292-x9uoshjws",
+      "timestamp": 1755662054292
+    },
+    {
+      "note": "## BaseTool Pattern for MCP Tools\n\nAll MCP tools in this repository inherit from `BaseTool`, which provides a consistent pattern for tool implementation and validation.\n\n**Key benefits**:\n- **Automatic validation**: Zod schemas are automatically validated before execution\n- **Error handling**: Built-in error handling for validation failures and execution errors\n- **Schema conversion**: Automatic conversion from Zod schemas to JSON Schema for MCP protocol\n\n**How it works**:\n1. Each tool defines a `schema` property using Zod\n2. The `inputSchema` getter converts Zod schema to JSON Schema using `zodToJsonSchema`\n3. The `handler` method validates input using the schema before calling `execute`\n4. Errors are automatically caught and formatted for MCP responses\n\n**Example usage**:\n```typescript\nexport class MyTool extends BaseTool<MyParams, MyResult> {\n  name = 'myTool';\n  description = 'Does something useful';\n  schema = z.object({\n    input: z.string().describe('The input string')\n  });\n\n  async execute(params: MyParams): Promise<McpToolResult<MyResult>> {\n    // Implementation here\n  }\n}\n```\n\n**Files involved**:\n- `src/core-mcp/tools/base-tool.ts` - Base class implementation\n- `src/core-mcp/utils/zod-to-json-schema.ts` - Schema conversion utility\n\n**Tags**: tools, pattern, validation, mcp",
+      "directoryPath": "/Users/griever/Developer/a24z-Memory",
+      "anchors": [
+        "src/core-mcp/tools/base-tool.ts",
+        "src/core-mcp/utils/zod-to-json-schema.ts"
+      ],
+      "tags": [
+        "tools",
+        "pattern",
+        "validation",
+        "mcp"
+      ],
+      "confidence": "high",
+      "type": "pattern",
+      "metadata": {
+        "toolVersion": "2.0.0",
+        "createdBy": "create_repository_note_tool"
+      },
+      "id": "note-1755662062972-ohn6p29r8",
+      "timestamp": 1755662062972
+    },
+    {
+      "note": "## Zod Schema Description Propagation Fix\n\n**Problem**: When using Zod schemas with `.describe()` for MCP tool parameters, descriptions weren't showing up in the final JSON Schema, making tools less user-friendly.\n\n**Root cause**: The original `zodToJsonSchema` function was stripping descriptions from nested schemas, particularly when dealing with `ZodOptional` and `ZodDefault` wrappers.\n\n**Solution**: Modified the schema converter to preserve descriptions at all levels:\n- Check for descriptions on the wrapper types themselves\n- Preserve descriptions when processing optional/default types\n- Ensure descriptions propagate through the entire schema tree\n\n**Before (descriptions lost)**:\n```typescript\nconst schema = z.object({\n  path: z.string().describe('File path to process').optional()\n});\n// Description was lost in JSON Schema\n```\n\n**After (descriptions preserved)**:\n```typescript\n// Description now appears in JSON Schema for the optional field\n```\n\n**Files involved**:\n- `src/core-mcp/utils/zod-to-json-schema.ts` - Schema converter with description preservation\n- `src/core-mcp/tools/base-tool.ts` - Uses converter via `inputSchema` getter\n\n**Tags**: mcp, schema, gotcha, tools",
+      "directoryPath": "/Users/griever/Developer/a24z-Memory",
+      "anchors": [
+        "src/core-mcp/utils/zod-to-json-schema.ts",
+        "src/core-mcp/tools/base-tool.ts"
+      ],
+      "tags": [
+        "mcp",
+        "schema",
+        "gotcha",
+        "tools"
+      ],
+      "confidence": "high",
+      "type": "gotcha",
+      "metadata": {
+        "toolVersion": "2.0.0",
+        "createdBy": "create_repository_note_tool"
+      },
+      "id": "note-1755662070270-x6st7k83a",
+      "timestamp": 1755662070270
+    },
+    {
+      "note": "## Path Normalization and Repository Isolation\n\nThe a24z-memory tool uses sophisticated path normalization to ensure notes are properly isolated by repository and stored with consistent relative paths.\n\n**Key challenges**:\n- **Repository detection**: Finding the actual git repository root from any subdirectory\n- **Path consistency**: Converting absolute paths to repository-relative paths\n- **Cross-platform compatibility**: Handling different path separators and formats\n\n**How it works**:\n1. **Repository root detection**: Walks up the directory tree looking for `.git` folder\n2. **Path normalization**: Converts all paths to be relative to the repository root\n3. **Anchor processing**: Handles both absolute and relative anchor paths correctly\n\n**Path handling examples**:\n```typescript\n// Input: /Users/user/projects/my-repo/src/file.ts\n// Output: src/file.ts (relative to repo root)\n\n// Input: ./src/file.ts (from /Users/user/projects/my-repo)\n// Output: src/file.ts (resolved and made relative)\n```\n\n**Benefits**:\n- **Portable notes**: Notes work regardless of where the repository is cloned\n- **Consistent storage**: All paths are stored relative to repo root\n- **Git-friendly**: Paths work correctly with git operations\n\n**Files involved**:\n- `src/core-mcp/utils/pathNormalization.ts` - Core path logic\n- `src/core-mcp/store/notesStore.ts` - Uses normalization for storage\n\n**Tags**: path-handling, repository-isolation, storage, decision",
+      "directoryPath": "/Users/griever/Developer/a24z-Memory",
+      "anchors": [
+        "src/core-mcp/utils/pathNormalization.ts",
+        "src/core-mcp/store/notesStore.ts"
+      ],
+      "tags": [
+        "path-handling",
+        "repository-isolation",
+        "storage",
+        "decision"
+      ],
+      "confidence": "high",
+      "type": "explanation",
+      "metadata": {
+        "toolVersion": "2.0.0",
+        "createdBy": "create_repository_note_tool"
+      },
+      "id": "note-1755662078509-75ohqvub3",
+      "timestamp": 1755662078509
+    },
+    {
+      "note": "## MCP Server Tool Registration Pattern\n\nThe MCP server uses a centralized tool registration system that makes it easy to add new tools and ensures consistent handling across all tool types.\n\n**Registration flow**:\n1. **Tool creation**: Tools inherit from `BaseTool` and implement required methods\n2. **Server setup**: `McpServer` constructor calls `setupDefaultTools()` to register built-in tools\n3. **Handler registration**: `registerHandlers()` sets up MCP protocol handlers for tool listing and execution\n4. **Tool execution**: Incoming MCP requests are routed to the appropriate tool's `handler` method\n\n**Current tools**:\n- `AskA24zMemoryTool` - Query existing notes\n- `RepositoryNoteTool` - Create new notes\n- `GetRepositoryTagsTool` - Get available tags\n- `GetRepositoryGuidanceTool` - Get note creation guidance\n- `CopyGuidanceTemplateTool` - Copy guidance templates\n\n**Adding new tools**:\n```typescript\n// 1. Create tool class extending BaseTool\n// 2. Add to setupDefaultTools() in McpServer\n// 3. Tool automatically gets MCP protocol support\n```\n\n**Benefits**:\n- **Consistent interface**: All tools follow the same pattern\n- **Automatic validation**: Input validation handled by BaseTool\n- **Error handling**: Centralized error handling for MCP responses\n- **Easy extension**: Adding new tools requires minimal boilerplate\n\n**Files involved**:\n- `src/core-mcp/server/McpServer.ts` - Server setup and tool registration\n- `src/core-mcp/tools/index.ts` - Tool exports\n- `src/core-mcp/tools/base-tool.ts` - Base tool implementation\n\n**Tags**: mcp, architecture, tools, integration",
+      "directoryPath": "/Users/griever/Developer/a24z-Memory",
+      "anchors": [
+        "src/core-mcp/server/McpServer.ts",
+        "src/core-mcp/tools/index.ts",
+        "src/core-mcp/tools/base-tool.ts"
+      ],
+      "tags": [
+        "mcp",
+        "architecture",
+        "tools",
+        "integration"
+      ],
+      "confidence": "high",
+      "type": "pattern",
+      "metadata": {
+        "toolVersion": "2.0.0",
+        "createdBy": "create_repository_note_tool"
+      },
+      "id": "note-1755662086734-9nz6roqxy",
+      "timestamp": 1755662086734
+    },
+    {
+      "note": "## Note Storage and Retrieval Architecture\n\nThe notes storage system uses a simple but robust JSON-based approach with atomic file operations and intelligent path handling.\n\n**Storage structure**:\n```json\n{\n  \"version\": 1,\n  \"notes\": [\n    {\n      \"id\": \"note-1234567890-abc123\",\n      \"note\": \"Markdown content...\",\n      \"directoryPath\": \"/path/to/repo/root\",\n      \"anchors\": [\"src/file.ts\", \"docs/README.md\"],\n      \"tags\": [\"architecture\", \"decision\"],\n      \"confidence\": \"high\",\n      \"type\": \"explanation\",\n      \"metadata\": {},\n      \"timestamp\": 1234567890\n    }\n  ]\n}\n```\n\n**Key features**:\n- **Atomic writes**: Uses temporary files and rename operations to prevent corruption\n- **Automatic ID generation**: Unique IDs with timestamp and random suffix\n- **Path normalization**: All paths stored relative to repository root\n- **Metadata support**: Extensible metadata field for future enhancements\n\n**Retrieval patterns**:\n- **By repository**: All notes for a specific repository\n- **By anchors**: Notes linked to specific files/directories\n- **By tags**: Notes with specific tags\n- **By type**: Notes of specific types (decision, pattern, gotcha, explanation)\n\n**Performance considerations**:\n- **In-memory loading**: Notes are loaded into memory on first access\n- **Lazy initialization**: `.a24z` directory created only when needed\n- **Error resilience**: Graceful fallbacks for corrupted or missing files\n\n**Files involved**:\n- `src/core-mcp/store/notesStore.ts` - Core storage logic\n- `src/core-mcp/types/index.ts` - Note type definitions\n\n**Tags**: storage, architecture, data-flow, performance",
+      "directoryPath": "/Users/griever/Developer/a24z-Memory",
+      "anchors": [
+        "src/core-mcp/store/notesStore.ts",
+        "src/core-mcp/types/index.ts"
+      ],
+      "tags": [
+        "storage",
+        "architecture",
+        "data-flow",
+        "performance"
+      ],
+      "confidence": "high",
+      "type": "explanation",
+      "metadata": {
+        "toolVersion": "2.0.0",
+        "createdBy": "create_repository_note_tool"
+      },
+      "id": "note-1755662094745-mah9zmjgq",
+      "timestamp": 1755662094745
+    },
+    {
+      "note": "## Testing Challenges with File System Operations\n\nTesting the a24z-memory tool presents unique challenges due to its heavy reliance on file system operations and repository detection.\n\n**Main testing difficulties**:\n1. **File system mocking**: Need to mock `fs`, `path`, and `os` modules for consistent test behavior\n2. **Repository detection**: Tests need to simulate different repository structures\n3. **Path normalization**: Cross-platform path handling makes test setup complex\n4. **Atomic file operations**: Testing the temporary file + rename pattern safely\n\n**Current test approach**:\n- **Disabled tests**: Many file operation tests are currently disabled (`*.test.ts.disabled`)\n- **Mock-based testing**: Using Jest mocks for file system operations\n- **Integration tests**: Separate test files for different aspects (storage, retrieval, etc.)\n\n**Test patterns used**:\n```typescript\n// Mock file system\njest.mock('node:fs');\njest.mock('node:path');\n\n// Mock repository detection\njest.mock('../utils/pathNormalization', () => ({\n  normalizeRepositoryPath: jest.fn(),\n  getRepositoryName: jest.fn()\n}));\n```\n\n**Why tests are challenging**:\n- **Real file system**: Tool needs to actually create/read files\n- **Repository context**: Tests must run in a git repository context\n- **Path resolution**: Complex path normalization logic hard to mock\n- **Cross-platform**: Tests need to work on Windows, macOS, and Linux\n\n**Files involved**:\n- `tests/setup.ts` - Test configuration\n- `tests/core-mcp/store/notesStore.test.ts` - Storage tests\n- `tests/core-mcp/tools/*.test.ts` - Tool tests\n\n**Tags**: testing, gotcha, file-operations, debugging",
+      "directoryPath": "/Users/griever/Developer/a24z-Memory",
+      "anchors": [
+        "tests/setup.ts",
+        "tests/core-mcp/store/notesStore.test.ts"
+      ],
+      "tags": [
+        "testing",
+        "gotcha",
+        "file-operations",
+        "debugging"
+      ],
+      "confidence": "high",
+      "type": "gotcha",
+      "metadata": {
+        "toolVersion": "2.0.0",
+        "createdBy": "create_repository_note_tool"
+      },
+      "id": "note-1755662102471-djct4l96s",
+      "timestamp": 1755662102471
+    },
+    {
+      "note": "## MCP Protocol Integration and Schema Requirements\n\nThe a24z-memory tool integrates with the Model Context Protocol (MCP) by providing tools that can be called by MCP clients, requiring careful attention to protocol compliance and schema definitions.\n\n**MCP protocol requirements**:\n- **Tool listing**: Must respond to `tools/list` requests with tool metadata\n- **Tool execution**: Must handle `tools/call` requests with proper parameter validation\n- **Schema format**: Input schemas must be valid JSON Schema\n- **Error handling**: Errors must be returned in MCP-compatible format\n\n**Schema conversion pipeline**:\n```\nZod Schema → JSON Schema → MCP Protocol\n     ↓              ↓           ↓\n  Type-safe    MCP-compatible  Client\n  validation   parameter       execution\n```\n\n**Key MCP integration points**:\n1. **Server setup**: `McpServer` extends MCP SDK's `Server` class\n2. **Transport**: Uses `StdioServerTransport` for standard input/output communication\n3. **Request handling**: Implements MCP request schemas for tool operations\n4. **Response formatting**: Ensures all responses match MCP protocol expectations\n\n**Protocol quirks discovered**:\n- **Schema descriptions**: Must be preserved for user-friendly tool interfaces\n- **Error format**: Errors must include `isError: true` and proper content structure\n- **Parameter validation**: MCP clients expect detailed validation error messages\n\n**Files involved**:\n- `src/core-mcp/server/McpServer.ts` - MCP server implementation\n- `src/core-mcp/types/mcp-types.ts` - MCP type definitions\n- `src/core-mcp/tools/base-tool.ts` - Tool interface compliance\n\n**Tags**: mcp, integration, protocol, schema",
+      "directoryPath": "/Users/griever/Developer/a24z-Memory",
+      "anchors": [
+        "src/core-mcp/server/McpServer.ts",
+        "src/core-mcp/types/mcp-types.ts",
+        "src/core-mcp/tools/base-tool.ts"
+      ],
+      "tags": [
+        "mcp",
+        "integration",
+        "protocol",
+        "schema"
+      ],
+      "confidence": "high",
+      "type": "explanation",
+      "metadata": {
+        "toolVersion": "2.0.0",
+        "createdBy": "create_repository_note_tool"
+      },
+      "id": "note-1755662111287-xtfbygxro",
+      "timestamp": 1755662111287
+    },
+    {
+      "note": "## Guidance Template System for Repository-Specific Note Creation\n\nThe a24z-memory tool provides a flexible guidance system that allows each repository to customize how notes should be created, with built-in templates for common project types.\n\n**Available templates**:\n- **Default**: General-purpose note creation guidance\n- **React TypeScript**: Frontend/React project specific patterns\n- **Node.js API**: Backend/API service patterns\n- **Python Data Science**: Data science/ML project patterns\n\n**How it works**:\n1. **Template selection**: Users can copy a template using `CopyGuidanceTemplateTool`\n2. **Repository customization**: Each repository gets its own `.a24z/note-guidance.md`\n3. **Context-aware suggestions**: Guidance includes repository-specific tag suggestions and patterns\n\n**Template structure**:\n```markdown\n# Repository Note Guidelines\n\n## Project Overview\n[Project-specific context]\n\n## Preferred Note Types\n[Types relevant to this project]\n\n## Key Areas to Document\n[Project-specific components]\n\n## Preferred Tags\n[Domain-specific tag suggestions]\n```\n\n**Benefits**:\n- **Consistent notes**: All team members follow the same patterns\n- **Project-specific**: Guidance tailored to the actual codebase\n- **Evolvable**: Teams can modify guidance as their needs change\n- **Onboarding**: New team members get immediate context\n\n**Implementation**:\n- Templates stored in `templates/` directory\n- `CopyGuidanceTemplateTool` copies templates to repository `.a24z` directory\n- `GetRepositoryGuidanceTool` retrieves custom guidance for note creation\n\n**Files involved**:\n- `templates/*.md` - Template files\n- `src/core-mcp/tools/CopyGuidanceTemplateTool.ts` - Template copying\n- `src/core-mcp/tools/GetRepositoryGuidanceTool.ts` - Guidance retrieval\n\n**Tags**: pattern, guidance, templates, onboarding",
+      "directoryPath": "/Users/griever/Developer/a24z-Memory",
+      "anchors": [
+        "templates/",
+        "src/core-mcp/tools/CopyGuidanceTemplateTool.ts",
+        "src/core-mcp/tools/GetRepositoryGuidanceTool.ts"
+      ],
+      "tags": [
+        "pattern",
+        "guidance",
+        "templates",
+        "onboarding"
+      ],
+      "confidence": "high",
+      "type": "pattern",
+      "metadata": {
+        "toolVersion": "2.0.0",
+        "createdBy": "create_repository_note_tool"
+      },
+      "id": "note-1755662120754-30hvao3q7",
+      "timestamp": 1755662120754
+    },
+    {
+      "note": "## Data Flow and Component Interaction Architecture\n\nThe a24z-memory tool follows a clean separation of concerns with well-defined data flow between components, making it easy to understand and extend.\n\n**Component hierarchy**:\n```\nMcpServer (top level)\n    ↓\nTools (AskA24zMemory, RepositoryNote, etc.)\n    ↓\nNotesStore (data persistence)\n    ↓\nFile System (.a24z directory)\n```\n\n**Data flow patterns**:\n1. **Tool execution**: MCP request → Tool.handler() → Tool.execute() → NotesStore\n2. **Data retrieval**: Tool → NotesStore.readAllNotes() → File system → Parsed JSON\n3. **Data persistence**: Tool → NotesStore.saveNote() → Atomic file write → .a24z directory\n\n**Key interfaces**:\n- **McpTool**: Defines tool contract with `name`, `description`, `schema`, `execute`\n- **NotesStore**: Provides `saveNote`, `readAllNotes`, `getNotesByAnchors` functions\n- **Path utilities**: Handle repository detection and path normalization\n\n**Cross-cutting concerns**:\n- **Validation**: Zod schemas validate all inputs at tool boundaries\n- **Error handling**: Centralized error handling in BaseTool and NotesStore\n- **Path normalization**: Consistent path handling across all components\n- **Schema conversion**: Zod to JSON Schema conversion for MCP protocol\n\n**Benefits of this architecture**:\n- **Testable**: Each component can be tested in isolation\n- **Extensible**: New tools can be added without modifying existing code\n- **Maintainable**: Clear separation makes debugging easier\n- **Reusable**: Components like NotesStore can be used by multiple tools\n\n**Files involved**:\n- `src/core-mcp/server/McpServer.ts` - Orchestrates components\n- `src/core-mcp/tools/base-tool.ts` - Defines tool interface\n- `src/core-mcp/store/notesStore.ts` - Manages data persistence\n\n**Tags**: architecture, data-flow, components, design",
+      "directoryPath": "/Users/griever/Developer/a24z-Memory",
+      "anchors": [
+        "src/core-mcp/server/McpServer.ts",
+        "src/core-mcp/tools/base-tool.ts",
+        "src/core-mcp/store/notesStore.ts"
+      ],
+      "tags": [
+        "architecture",
+        "data-flow",
+        "components",
+        "design"
+      ],
+      "confidence": "high",
+      "type": "explanation",
+      "metadata": {
+        "toolVersion": "2.0.0",
+        "createdBy": "create_repository_note_tool"
+      },
+      "id": "note-1755662131663-0fbjkoeil",
+      "timestamp": 1755662131663
+    },
+    {
+      "note": "## Future Scalability and Extension Considerations\n\nWhile the current a24z-memory tool is focused and lightweight, there are several areas where it could be extended to handle larger repositories and more complex use cases.\n\n**Current limitations**:\n- **In-memory storage**: All notes loaded into memory on access\n- **Single file storage**: All notes stored in one JSON file\n- **Basic search**: Simple tag and anchor-based filtering\n- **No indexing**: No full-text search or advanced querying\n\n**Potential extensions**:\n1. **Database backend**: Replace JSON files with SQLite/PostgreSQL for large repositories\n2. **Search indexing**: Add full-text search using libraries like Lunr.js or Elasticsearch\n3. **Note relationships**: Support for note-to-note links and hierarchies\n4. **Rich media**: Support for images, code snippets, and attachments\n5. **Collaboration**: Multi-user editing with conflict resolution\n\n**Architecture considerations**:\n- **Plugin system**: Allow custom tools and storage backends\n- **Event system**: Notify other tools when notes change\n- **Caching layer**: Redis or in-memory cache for frequently accessed notes\n- **API endpoints**: REST/GraphQL API for external integrations\n\n**Performance optimizations**:\n- **Lazy loading**: Load notes on-demand instead of all at once\n- **Pagination**: Support for large result sets\n- **Background indexing**: Update search indexes asynchronously\n- **Compression**: Compress note content for storage efficiency\n\n**Integration opportunities**:\n- **Git hooks**: Automatically create notes for commits/PRs\n- **IDE plugins**: VS Code, IntelliJ, etc. integration\n- **CI/CD integration**: Generate notes from build/test results\n- **Documentation generators**: Auto-generate docs from notes\n\n**Files to consider for extension**:\n- `src/core-mcp/store/notesStore.ts` - Storage abstraction layer\n- `src/core-mcp/server/McpServer.ts` - Plugin/extension system\n- `src/core-mcp/types/index.ts` - Extended note schemas\n\n**Tags**: architecture, scalability, future, design",
+      "directoryPath": "/Users/griever/Developer/a24z-Memory",
+      "anchors": [
+        "src/core-mcp/store/notesStore.ts",
+        "src/core-mcp/server/McpServer.ts",
+        "src/core-mcp/types/index.ts"
+      ],
+      "tags": [
+        "architecture",
+        "scalability",
+        "future",
+        "design"
+      ],
+      "confidence": "medium",
+      "type": "decision",
+      "metadata": {
+        "toolVersion": "2.0.0",
+        "createdBy": "create_repository_note_tool"
+      },
+      "id": "note-1755662143709-40ingdb2x",
+      "timestamp": 1755662143709
+    },
+    {
+      "note": "Test note without directoryPath",
+      "directoryPath": "/Users/griever/Developer/a24z-Memory",
+      "anchors": [
+        "test-file.ts"
+      ],
+      "tags": [
+        "test"
+      ],
+      "confidence": "medium",
+      "type": "explanation",
+      "metadata": {
+        "test": true
+      },
+      "id": "note-1755663676569-2pqrw5xq9",
+      "timestamp": 1755663676569
+    },
+    {
+      "note": "Test note without directoryPath - updated version",
+      "directoryPath": "/Users/griever/Developer/a24z-Memory",
+      "anchors": [
+        "test-file-updated.ts"
+      ],
+      "tags": [
+        "test",
+        "updated"
+      ],
+      "confidence": "medium",
+      "type": "explanation",
+      "metadata": {
+        "test": true,
+        "updated": true
+      },
+      "id": "note-1755663683906-8aa20kixu",
+      "timestamp": 1755663683906
+    },
+    {
+      "note": "Test note without directoryPath - final version",
+      "anchors": [
+        "test-file-final.ts"
+      ],
+      "tags": [
+        "test",
+        "final"
+      ],
+      "confidence": "medium",
+      "type": "explanation",
+      "metadata": {
+        "test": true,
+        "final": true
+      },
+      "id": "note-1755663699302-pfhpdf6u7",
+      "timestamp": 1755663699302
+    }
+  ]
+}
