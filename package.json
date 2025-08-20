@@ -1,6 +1,6 @@
 {
   "name": "a24z-memory",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": false,
   "description": "Standalone a24z Memory MCP server",
   "main": "dist/index.js",
@@ -19,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/a24z/a24z-memory.git"
+    "url": "git+https://github.com/a24z-ai/a24z-memory.git"
   },
   "keywords": [
     "mcp",
@@ -30,9 +30,9 @@
   "author": "a24z Team",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/a24z/a24z-memory/issues"
+    "url": "https://github.com/a24z-ai/a24z-memory/issues"
   },
-  "homepage": "https://github.com/a24z/a24z-memory#readme",
+  "homepage": "https://github.com/a24z-ai/a24z-memory#readme",
   "engines": {
     "node": ">=18"
   },
