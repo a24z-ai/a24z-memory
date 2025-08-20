@@ -11,10 +11,13 @@ describe('GetRepositoryTagsTool (Simple)', () => {
   beforeEach(() => {
     tool = new GetRepositoryTagsTool();
     fs.mkdirSync(testPath, { recursive: true });
+    
+    // Create a package.json to make it look like a proper project root
+    fs.writeFileSync(path.join(testPath, 'package.json'), '{}');
   });
 
   it('should return JSON response with common tags', async () => {
-    const result = await tool.execute({ path: testPath });
+    const result = await tool.handler({ path: testPath });
     
     expect(result.content[0].type).toBe('text');
     const data = JSON.parse(result.content[0].text!);
@@ -34,7 +37,7 @@ describe('GetRepositoryTagsTool (Simple)', () => {
       metadata: {}
     });
 
-    const result = await tool.execute({ path: testPath });
+    const result = await tool.handler({ path: testPath });
     const data = JSON.parse(result.content[0].text!);
     
     expect(data.usedTags).toContain('custom-tag');
@@ -44,10 +47,64 @@ describe('GetRepositoryTagsTool (Simple)', () => {
     const authPath = path.join(testPath, 'auth');
     fs.mkdirSync(authPath, { recursive: true });
 
-    const result = await tool.execute({ path: authPath });
+    const result = await tool.handler({ path: authPath });
     const data = JSON.parse(result.content[0].text!);
     
     expect(data.suggestedTags).toBeDefined();
     expect(data.suggestedTags.some((tag: any) => tag.name === 'authentication')).toBe(true);
+  });
+
+  it('should include repository guidance by default', async () => {
+    const result = await tool.handler({ path: testPath });
+    const data = JSON.parse(result.content[0].text!);
+    
+    // Should include either repositoryGuidance or guidanceNote
+    expect(data.repositoryGuidance || data.guidanceNote).toBeDefined();
+    
+    // Since no custom guidance exists, should have guidanceNote suggesting to create one
+    if (data.guidanceNote) {
+      expect(data.guidanceNote).toContain('No repository-specific guidance found');
+    }
+  });
+
+  it('should include custom repository guidance when it exists', async () => {
+    // Create custom guidance
+    const a24zDir = path.join(testPath, '.a24z');
+    fs.mkdirSync(a24zDir, { recursive: true });
+    const customGuidance = '# Custom Project Guidance\n\nThis is specific to our project.';
+    fs.writeFileSync(path.join(a24zDir, 'note-guidance.md'), customGuidance);
+
+    const result = await tool.handler({ path: testPath });
+    const data = JSON.parse(result.content[0].text!);
+    
+    expect(data.repositoryGuidance).toBe(customGuidance);
+    expect(data.guidanceNote).toBeUndefined();
+  });
+
+  it('should exclude guidance when includeGuidance is false', async () => {
+    const result = await tool.handler({ 
+      path: testPath, 
+      includeGuidance: false 
+    });
+    const data = JSON.parse(result.content[0].text!);
+    
+    expect(data.repositoryGuidance).toBeUndefined();
+    expect(data.guidanceNote).toBeUndefined();
+  });
+
+  it('should allow selective inclusion of tag types', async () => {
+    const result = await tool.handler({ 
+      path: testPath,
+      includeUsedTags: false,
+      includeSuggestedTags: false,
+      includeGuidance: false
+    });
+    const data = JSON.parse(result.content[0].text!);
+    
+    expect(data.usedTags).toBeUndefined();
+    expect(data.suggestedTags).toBeUndefined();
+    expect(data.repositoryGuidance).toBeUndefined();
+    expect(data.guidanceNote).toBeUndefined();
+    expect(data.commonTags).toBeDefined(); // Should always be included
   });
 });

@@ -16,6 +16,8 @@ import {
   /*AppInfoTool,*/ AskA24zMemoryTool,
   RepositoryNoteTool,
   GetRepositoryTagsTool,
+  GetRepositoryGuidanceTool,
+  CopyGuidanceTemplateTool,
 } from '../tools';
 import { McpServerConfig, McpTool, McpResource } from '../types';
 
@@ -52,6 +54,8 @@ export class McpServer {
     this.addTool(new AskA24zMemoryTool());
     this.addTool(new RepositoryNoteTool());
     this.addTool(new GetRepositoryTagsTool());
+    this.addTool(new GetRepositoryGuidanceTool());
+    this.addTool(new CopyGuidanceTemplateTool());
   }
 
   private setupDefaultResources() {
@@ -90,19 +94,21 @@ export class McpServer {
 
     // Handle tools/call request
     this.server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
-      console.log('[McpServer] DEBUG: tool call received, name =', request.params.name);
-      console.log('[McpServer] DEBUG: tool call args =', JSON.stringify(request.params.arguments, null, 2));
+      console.error('[McpServer] DEBUG: tool call received, name =', request.params.name);
+      console.error('[McpServer] DEBUG: tool call args =', JSON.stringify(request.params.arguments, null, 2));
+      console.error('[McpServer] DEBUG: current working directory:', process.cwd());
+      console.error('[McpServer] DEBUG: __dirname:', __dirname);
       const { name, arguments: args } = request.params;
       const tool = this.tools.get(name);
 
       if (!tool) {
-        console.log('[McpServer] DEBUG: tool not found, available tools:', Array.from(this.tools.keys()));
+        console.error('[McpServer] DEBUG: tool not found, available tools:', Array.from(this.tools.keys()));
         throw new Error(`Unknown tool: ${name}`);
       }
 
-      console.log('[McpServer] DEBUG: calling tool handler for', name);
+      console.error('[McpServer] DEBUG: calling tool handler for', name);
       const result = await tool.handler(args || {});
-      console.log('[McpServer] DEBUG: tool handler returned:', JSON.stringify(result, null, 2));
+      console.error('[McpServer] DEBUG: tool handler returned:', JSON.stringify(result, null, 2));
       return result as any;
     });
 
@@ -154,6 +160,8 @@ export class McpServer {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
     console.error(`✅ ${this.config.name} MCP server started successfully`);
+    console.error(`📁 MCP Server working directory: ${process.cwd()}`);
+    console.error(`📁 MCP Server __dirname: ${__dirname}`);
   }
 
   async stop() {

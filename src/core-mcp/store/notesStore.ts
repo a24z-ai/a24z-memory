@@ -24,16 +24,16 @@ interface NotesFileSchema {
 }
 
 function getRepositoryDataDir(repositoryPath: string): string {
-  console.log('[getRepositoryDataDir] DEBUG: repositoryPath =', repositoryPath);
-  
   // Always use repository-specific directory
-  const result = path.join(repositoryPath, '.a24z');
-  console.log('[getRepositoryDataDir] DEBUG: using repository-specific dir =', result);
-  return result;
+  return path.join(repositoryPath, '.a24z');
 }
 
 function getNotesFile(repositoryPath: string): string {
   return path.join(getRepositoryDataDir(repositoryPath), 'repository-notes.json');
+}
+
+function getGuidanceFile(repositoryPath: string): string {
+  return path.join(getRepositoryDataDir(repositoryPath), 'note-guidance.md');
 }
 
 function ensureDataDir(repositoryPath: string): void {
@@ -46,10 +46,8 @@ function ensureDataDir(repositoryPath: string): void {
 function readAllNotes(repositoryPath: string): StoredNote[] {
   try {
     const notesFile = getNotesFile(repositoryPath);
-    console.log('[readAllNotes] DEBUG: trying to read from =', notesFile);
     ensureDataDir(repositoryPath);
     if (!fs.existsSync(notesFile)) {
-      console.log('[readAllNotes] DEBUG: file does not exist =', notesFile);
       return [];
     }
     const raw = fs.readFileSync(notesFile, 'utf8');
@@ -73,42 +71,89 @@ function writeAllNotes(repositoryPath: string, notes: StoredNote[]): void {
 }
 
 export function saveNote(note: Omit<StoredNote, 'id' | 'timestamp'>): StoredNote {
-  const normalizedPath = normalizeRepositoryPath(note.directoryPath);
-  const existing = readAllNotes(normalizedPath);
+  const repoRoot = normalizeRepositoryPath(note.directoryPath);
+  const originalDirPath = path.resolve(note.directoryPath);
+  
+  // Normalize anchors to be relative paths to the repository root
+  const normalizedAnchors = note.anchors.map(anchor => {
+    // If anchor is already absolute, make it relative to repo root
+    if (path.isAbsolute(anchor)) {
+      return path.relative(repoRoot, anchor);
+    } else if (anchor.startsWith('./') || anchor.startsWith('../')) {
+      // Anchors starting with ./ or ../ are relative to the original directoryPath
+      // Resolve them first, then make relative to repo root
+      const resolved = path.resolve(originalDirPath, anchor);
+      return path.relative(repoRoot, resolved);
+    } else {
+      // Already relative to repo root, keep as-is
+      return anchor;
+    }
+  });
+  
+  const existing = readAllNotes(repoRoot);
   const saved: StoredNote = { 
     ...note, 
-    directoryPath: normalizedPath, // Use normalized path
+    anchors: normalizedAnchors, // Use normalized anchors
+    directoryPath: repoRoot, // Store the repo root as the directory path
     id: `note-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`, 
     timestamp: Date.now() 
   };
   existing.push(saved);
-  writeAllNotes(normalizedPath, existing);
+  writeAllNotes(repoRoot, existing);
   return saved;
 }
 
 export function getNotesForPath(targetPath: string, includeParentNotes: boolean, maxResults: number): Array<StoredNote & { isParentDirectory: boolean; pathDistance: number }> {
-  console.log('[getNotesForPath] DEBUG: targetPath =', targetPath);
+  // Resolve the path to absolute
   const normalized = path.resolve(targetPath);
-  console.log('[getNotesForPath] DEBUG: normalized =', normalized);
-  const normalizedRepo = normalizeRepositoryPath(targetPath);
-  console.log('[getNotesForPath] DEBUG: normalizedRepo =', normalizedRepo);
+  
+  // Use the resolved path for finding the repository
+  const normalizedRepo = normalizeRepositoryPath(normalized);
+  
+  // Convert the query path to be relative to the repo root for comparison
+  const queryRelative = path.relative(normalizedRepo, normalized);
+  
   const all = readAllNotes(normalizedRepo);
-  console.log('[getNotesForPath] DEBUG: readAllNotes returned', all.length, 'notes');
   const results = all
     .map((n: StoredNote) => {
+      // The note's directoryPath is the repo root, so we check if query is within it
       const base = path.resolve(n.directoryPath);
-      const isParent = normalized === base || normalized.startsWith(`${base}${path.sep}`);
-      if (!isParent && !n.anchors.some((a: string) => normalized.includes(path.basename(a)))) {
+      // A note is a "parent directory" note if it matches ONLY because the query is within its directoryPath
+      // We'll determine this after checking anchors
+      let isParent = false;
+      
+      // Check if the target path matches any anchor
+      // Anchors are stored as relative paths to the repo root
+      const matchesAnchor = n.anchors.some((anchor: string) => {
+        // Check if query path is the anchor itself or within the anchor directory
+        // Both queryRelative and anchor are relative to repo root
+        return queryRelative === anchor || 
+               queryRelative.startsWith(`${anchor}${path.sep}`) ||
+               // Also check if anchor is within the query (for directory queries)
+               anchor.startsWith(`${queryRelative}${path.sep}`);
+      });
+      
+      // Check if the query path is within the note's directory (which is the repo root)
+      const queryInDirectory = normalized === base || normalized.startsWith(`${base}${path.sep}`);
+      
+      // If the note matches an anchor, it's not a parent directory note
+      // If it doesn't match an anchor but the query is in its directory, it IS a parent directory note
+      if (matchesAnchor) {
+        isParent = false;
+      } else if (queryInDirectory) {
+        isParent = true;
+      } else {
+        // Doesn't match at all
         return null;
       }
-      const distance = isParent ? normalized.replace(base, '').split(path.sep).filter(Boolean).length : 9999;
+      
+      const distance = matchesAnchor ? 0 : (isParent ? normalized.replace(base, '').split(path.sep).filter(Boolean).length : 9999);
       return { ...n, isParentDirectory: isParent, pathDistance: distance };
     })
     .filter((x): x is StoredNote & { isParentDirectory: boolean; pathDistance: number } => x !== null)
-    .filter((x: StoredNote & { isParentDirectory: boolean; pathDistance: number }) => includeParentNotes ? true : !x.isParentDirectory || x.directoryPath === normalized)
+    .filter((x: StoredNote & { isParentDirectory: boolean; pathDistance: number }) => includeParentNotes ? true : !x.isParentDirectory)
     .sort((a: StoredNote & { isParentDirectory: boolean; pathDistance: number }, b: StoredNote & { isParentDirectory: boolean; pathDistance: number }) => a.pathDistance - b.pathDistance || b.timestamp - a.timestamp)
     .slice(0, Math.max(1, maxResults));
-  console.log('[getNotesForPath] DEBUG: returning', results.length, 'results');
   return results;
 }
 
@@ -157,4 +202,26 @@ export function getSuggestedTagsForPath(targetPath: string): Array<{ name: strin
   if (lower.includes('security') || lower.includes('authz')) suggestions.push({ name: 'security', reason: 'Security-related keywords' });
   if (lower.includes('ui') || lower.includes('component') || lower.includes('view')) suggestions.push({ name: 'ui', reason: 'UI component path' });
   return suggestions;
+}
+
+export function getRepositoryGuidance(targetPath: string): string | null {
+  try {
+    const normalizedRepo = normalizeRepositoryPath(targetPath);
+    const guidanceFile = getGuidanceFile(normalizedRepo);
+    
+    // Try to read repository-specific guidance first
+    if (fs.existsSync(guidanceFile)) {
+      return fs.readFileSync(guidanceFile, 'utf8');
+    }
+    
+    // Fall back to bundled default template
+    const defaultTemplatePath = path.join(__dirname, '../../../templates/default-note-guidance.md');
+    if (fs.existsSync(defaultTemplatePath)) {
+      return fs.readFileSync(defaultTemplatePath, 'utf8');
+    }
+    
+    return null;
+  } catch {
+    return null;
+  }
 }

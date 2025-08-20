@@ -11,6 +11,8 @@ describe('RepositoryNoteTool', () => {
   beforeEach(() => {
     tool = new RepositoryNoteTool();
     fs.mkdirSync(testPath, { recursive: true });
+    // Create a .git directory to make it a valid git repo
+    fs.mkdirSync(path.join(testPath, '.git'), { recursive: true });
   });
 
   describe('Schema Validation', () => {
@@ -18,6 +20,7 @@ describe('RepositoryNoteTool', () => {
       const validInput = {
         note: 'Test note content',
         directoryPath: testPath,
+        anchors: ['src/test.ts'],
         tags: ['test']
       };
 
@@ -28,16 +31,29 @@ describe('RepositoryNoteTool', () => {
       const invalidInput = {
         note: 'Test note',
         directoryPath: testPath,
+        anchors: ['src/test.ts'],
         tags: []
       };
 
       expect(() => tool.schema.parse(invalidInput)).toThrow('At least one tag is required');
+    });
+    
+    it('should require at least one anchor', () => {
+      const invalidInput = {
+        note: 'Test note',
+        directoryPath: testPath,
+        anchors: [],
+        tags: ['test']
+      };
+
+      expect(() => tool.schema.parse(invalidInput)).toThrow('At least one anchor path is required');
     });
 
     it('should set default values for optional fields', () => {
       const input = {
         note: 'Test note',
         directoryPath: testPath,
+        anchors: ['src/test.ts'],
         tags: ['test']
       };
 
@@ -50,6 +66,7 @@ describe('RepositoryNoteTool', () => {
       const input = {
         note: 'Test note',
         directoryPath: testPath,
+        anchors: ['src/test.ts'],
         tags: ['test'],
         confidence: 'high' as const,
         type: 'decision' as const
@@ -84,6 +101,7 @@ describe('RepositoryNoteTool', () => {
       const input = {
         note: 'File creation test',
         directoryPath: testPath,
+        anchors: ['src/test.ts'],
         tags: ['file-test']
       };
 
@@ -98,26 +116,31 @@ describe('RepositoryNoteTool', () => {
       expect(fileContent.notes[0].note).toBe('File creation test');
     });
 
-    it('should include directory path in anchors automatically', async () => {
+    it('should normalize anchors to relative paths', async () => {
       const input = {
         note: 'Anchor test',
         directoryPath: testPath,
         tags: ['anchor-test'],
-        anchors: ['custom-anchor']
+        anchors: ['custom-anchor', 'src/file.ts']
       };
 
       await tool.execute(input);
 
       const notes = getNotesForPath(testPath, true, 10);
       expect(notes).toHaveLength(1);
-      expect(notes[0].anchors).toContain(testPath);
-      expect(notes[0].anchors).toContain('custom-anchor');
+      // Anchors should be normalized to relative paths to repo root
+      expect(notes[0].anchors).toHaveLength(2);
+      expect(path.isAbsolute(notes[0].anchors[0])).toBe(false);
+      expect(path.isAbsolute(notes[0].anchors[1])).toBe(false);
+      expect(notes[0].anchors[0]).toBe('custom-anchor');
+      expect(notes[0].anchors[1]).toBe('src/file.ts');
     });
 
     it('should add metadata with tool information', async () => {
       const input = {
         note: 'Metadata test',
         directoryPath: testPath,
+        anchors: ['src/test.ts'],
         tags: ['metadata-test'],
         metadata: { userField: 'userValue' }
       };
@@ -133,16 +156,46 @@ describe('RepositoryNoteTool', () => {
       expect(savedNote.metadata).toHaveProperty('createdBy', 'create_repository_note_tool');
     });
 
+    it('should write notes to the git root .a24z directory', async () => {
+      // Create a subdirectory structure
+      const subDir = path.join(testPath, 'src', 'components');
+      fs.mkdirSync(subDir, { recursive: true });
+      
+      const input = {
+        note: 'Test note for git root storage',
+        directoryPath: testPath,  // Git root
+        anchors: ['src/components/Button.tsx'],
+        tags: ['test']
+      };
+
+      await tool.execute(input);
+
+      // Verify the note is stored in the git root's .a24z directory
+      const gitRootNotesFile = path.join(testPath, '.a24z', 'repository-notes.json');
+      expect(fs.existsSync(gitRootNotesFile)).toBe(true);
+      
+      // Verify no .a24z directory was created in subdirectories
+      const subDirA24z = path.join(subDir, '.a24z');
+      expect(fs.existsSync(subDirA24z)).toBe(false);
+      
+      // Verify the note content
+      const fileContent = JSON.parse(fs.readFileSync(gitRootNotesFile, 'utf8'));
+      expect(fileContent.notes).toHaveLength(1);
+      expect(fileContent.notes[0].note).toBe('Test note for git root storage');
+    });
+
     it('should handle multiple notes in same directory', async () => {
       const inputs = [
         {
           note: 'First note',
           directoryPath: testPath,
+          anchors: ['src/first.ts'],
           tags: ['first']
         },
         {
           note: 'Second note', 
           directoryPath: testPath,
+          anchors: ['src/second.ts'],
           tags: ['second']
         }
       ];
@@ -161,15 +214,54 @@ describe('RepositoryNoteTool', () => {
   });
 
   describe('Error Handling', () => {
-    it('should handle invalid directory paths gracefully', async () => {
+    it('should reject relative directory paths', async () => {
       const input = {
         note: 'Test note',
-        directoryPath: '/invalid/path/that/does/not/exist',
+        directoryPath: '.',
+        anchors: ['src/test.ts'],
         tags: ['test']
       };
 
-      // Should throw when trying to create directory in invalid location
-      await expect(tool.execute(input)).rejects.toThrow('ENOENT');
+      await expect(tool.execute(input)).rejects.toThrow('directoryPath must be an absolute path');
+    });
+
+    it('should reject non-existent directory paths', async () => {
+      const input = {
+        note: 'Test note',
+        directoryPath: '/invalid/path/that/does/not/exist',
+        anchors: ['src/test.ts'],
+        tags: ['test']
+      };
+
+      await expect(tool.execute(input)).rejects.toThrow('directoryPath does not exist');
+    });
+
+    it('should reject non-git-root paths', async () => {
+      const subDir = path.join(testPath, 'src');
+      fs.mkdirSync(subDir, { recursive: true });
+      
+      const input = {
+        note: 'Test note',
+        directoryPath: subDir,
+        anchors: ['test.ts'],
+        tags: ['test']
+      };
+
+      await expect(tool.execute(input)).rejects.toThrow('directoryPath must be the git repository root');
+    });
+
+    it('should reject paths outside git repositories', async () => {
+      const nonGitPath = path.join(TEST_DIR, 'non-git-repo');
+      fs.mkdirSync(nonGitPath, { recursive: true });
+      
+      const input = {
+        note: 'Test note',
+        directoryPath: nonGitPath,
+        anchors: ['test.ts'],
+        tags: ['test']
+      };
+
+      await expect(tool.execute(input)).rejects.toThrow('directoryPath is not within a git repository');
     });
 
     it('should preserve all input data in saved note', async () => {
@@ -197,11 +289,55 @@ describe('RepositoryNoteTool', () => {
       expect(saved.tags).toEqual(input.tags);
       expect(saved.confidence).toBe(input.confidence);
       expect(saved.type).toBe(input.type);
-      expect(saved.anchors).toContain(testPath);
       expect(saved.anchors).toContain('src/**/*.ts');
       expect(saved.anchors).toContain('docs/');
       expect(saved.metadata.author).toBe('test-user');
       expect(saved.metadata.complexity).toBe('high');
+    });
+    
+    it('should store notes in separate .a24z directories for different repositories', async () => {
+      // Create a second repository
+      const repo2Path = path.join(TEST_DIR, 'test-repo-2');
+      fs.mkdirSync(repo2Path, { recursive: true });
+      fs.mkdirSync(path.join(repo2Path, '.git'), { recursive: true });
+      
+      // Save note in first repository
+      const input1 = {
+        note: 'Note in repo 1',
+        directoryPath: testPath,
+        anchors: ['file1.ts'],
+        tags: ['repo1']
+      };
+      await tool.execute(input1);
+      
+      // Save note in second repository
+      const input2 = {
+        note: 'Note in repo 2',
+        directoryPath: repo2Path,
+        anchors: ['file2.ts'],
+        tags: ['repo2']
+      };
+      await tool.execute(input2);
+      
+      // Verify each repository has its own .a24z directory with the correct note
+      const repo1NotesFile = path.join(testPath, '.a24z', 'repository-notes.json');
+      const repo2NotesFile = path.join(repo2Path, '.a24z', 'repository-notes.json');
+      
+      expect(fs.existsSync(repo1NotesFile)).toBe(true);
+      expect(fs.existsSync(repo2NotesFile)).toBe(true);
+      
+      // Verify repo 1 has only its note
+      const repo1Content = JSON.parse(fs.readFileSync(repo1NotesFile, 'utf8'));
+      expect(repo1Content.notes).toHaveLength(1);
+      expect(repo1Content.notes[0].note).toBe('Note in repo 1');
+      
+      // Verify repo 2 has only its note
+      const repo2Content = JSON.parse(fs.readFileSync(repo2NotesFile, 'utf8'));
+      expect(repo2Content.notes).toHaveLength(1);
+      expect(repo2Content.notes[0].note).toBe('Note in repo 2');
+      
+      // Clean up
+      fs.rmSync(repo2Path, { recursive: true, force: true });
     });
   });
 });
