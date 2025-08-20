@@ -437,6 +437,15 @@ export function getSuggestedTagsForPath(targetPath: string): Array<{ name: strin
   return suggestions;
 }
 
+export interface MigrationResult {
+  success: boolean;
+  migrated: boolean;
+  notesCount?: number;
+  backupPath?: string;
+  error?: string;
+  message: string;
+}
+
 export function migrateNotesIfNeeded(repositoryPath: string): boolean {
   const legacyFile = getNotesFile(repositoryPath);
   if (fs.existsSync(legacyFile)) {
@@ -444,6 +453,110 @@ export function migrateNotesIfNeeded(repositoryPath: string): boolean {
     return true;
   }
   return false;
+}
+
+export function migrateRepository(repositoryPath: string, options?: { force?: boolean; verbose?: boolean }): MigrationResult {
+  const repoRoot = normalizeRepositoryPath(repositoryPath);
+  const legacyFile = getNotesFile(repoRoot);
+  const notesDir = getNotesDir(repoRoot);
+  
+  // Check if already migrated
+  if (!fs.existsSync(legacyFile) && fs.existsSync(notesDir)) {
+    const noteCount = countNotesInDirectory(notesDir);
+    return {
+      success: true,
+      migrated: false,
+      notesCount: noteCount,
+      message: `Repository already migrated. Found ${noteCount} notes in file-based storage.`
+    };
+  }
+  
+  // Check if legacy file exists
+  if (!fs.existsSync(legacyFile)) {
+    return {
+      success: true,
+      migrated: false,
+      message: 'No legacy notes file found. Repository is using file-based storage.'
+    };
+  }
+  
+  // Check if migration is already in progress (both exist)
+  if (fs.existsSync(legacyFile) && fs.existsSync(notesDir) && !options?.force) {
+    return {
+      success: false,
+      migrated: false,
+      error: 'Both legacy and new storage exist. Use force option to re-migrate.',
+      message: 'Migration may be incomplete. Use --force to retry migration.'
+    };
+  }
+  
+  try {
+    const legacyNotes = readAllNotesFromLegacyFile(repoRoot);
+    const noteCount = legacyNotes.length;
+    
+    if (options?.verbose) {
+      console.log(`Found ${noteCount} notes to migrate`);
+    }
+    
+    // Write each note to its own file
+    let migrated = 0;
+    for (const note of legacyNotes) {
+      writeNoteToFile(repoRoot, note);
+      migrated++;
+      if (options?.verbose && migrated % 10 === 0) {
+        console.log(`  Migrated ${migrated}/${noteCount} notes...`);
+      }
+    }
+    
+    // Get configuration for backup settings
+    const config = readConfiguration(repoRoot);
+    let backupPath: string | undefined;
+    
+    if (config.storage.backupOnMigration) {
+      // Backup the legacy file
+      backupPath = `${legacyFile}.backup-${Date.now()}`;
+      fs.renameSync(legacyFile, backupPath);
+    } else {
+      // Just remove the legacy file
+      fs.unlinkSync(legacyFile);
+    }
+    
+    return {
+      success: true,
+      migrated: true,
+      notesCount: noteCount,
+      backupPath,
+      message: `Successfully migrated ${noteCount} notes to file-based storage.${backupPath ? ` Backup saved to ${path.basename(backupPath)}` : ''}`
+    };
+  } catch (error) {
+    return {
+      success: false,
+      migrated: false,
+      error: error instanceof Error ? error.message : String(error),
+      message: `Migration failed: ${error instanceof Error ? error.message : String(error)}`
+    };
+  }
+}
+
+function countNotesInDirectory(notesDir: string): number {
+  let count = 0;
+  
+  const countRecursive = (dir: string): void => {
+    if (!fs.existsSync(dir)) return;
+    
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        countRecursive(fullPath);
+      } else if (entry.isFile() && entry.name.endsWith('.json')) {
+        count++;
+      }
+    }
+  };
+  
+  countRecursive(notesDir);
+  return count;
 }
 
 export function getRepositoryConfiguration(repositoryPath: string): RepositoryConfiguration {
