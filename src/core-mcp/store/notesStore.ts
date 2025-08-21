@@ -24,6 +24,7 @@ export interface RepositoryConfiguration {
     maxTagsPerNote: number;
     maxTagLength: number;
     maxAnchorsPerNote: number;
+    tagDescriptionMaxLength?: number;  // Maximum length for tag descriptions
   };
   storage: {
     backupOnMigration: boolean;
@@ -93,7 +94,8 @@ function getDefaultConfiguration(): RepositoryConfiguration {
       noteMaxLength: 10000,
       maxTagsPerNote: 10,
       maxTagLength: 50,
-      maxAnchorsPerNote: 20
+      maxAnchorsPerNote: 20,
+      tagDescriptionMaxLength: 500  // Default 500 characters for tag descriptions
     },
     storage: {
       backupOnMigration: true,
@@ -712,6 +714,11 @@ export interface StaleNote {
   validAnchors: string[];
 }
 
+export interface TagInfo {
+  name: string;
+  description?: string;
+}
+
 export function getAllowedTags(repositoryPath: string): { enforced: boolean; tags: string[] } {
   const normalizedRepo = normalizeRepositoryPath(repositoryPath);
   const config = readConfiguration(normalizedRepo);
@@ -753,4 +760,117 @@ export function checkStaleNotes(repositoryPath: string): StaleNote[] {
   }
   
   return staleNotes;
+}
+
+function getTagsFile(repositoryPath: string): string {
+  return path.join(getRepositoryDataDir(repositoryPath), 'tags.json');
+}
+
+export function getTagDescriptions(repositoryPath: string): Record<string, string> {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const tagsFile = getTagsFile(normalizedRepo);
+  
+  if (fs.existsSync(tagsFile)) {
+    try {
+      const content = fs.readFileSync(tagsFile, 'utf8');
+      const parsed = JSON.parse(content);
+      // Ensure we return a record of strings
+      const descriptions: Record<string, string> = {};
+      for (const [key, value] of Object.entries(parsed)) {
+        if (typeof value === 'string') {
+          descriptions[key] = value;
+        }
+      }
+      return descriptions;
+    } catch {
+      return {};
+    }
+  }
+  return {};
+}
+
+export function saveTagDescription(
+  repositoryPath: string,
+  tag: string,
+  description: string
+): void {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const config = readConfiguration(normalizedRepo);
+  const maxLength = config.limits.tagDescriptionMaxLength || 500;
+  
+  if (description.length > maxLength) {
+    throw new Error(
+      `Tag description exceeds maximum length of ${maxLength} characters. ` +
+      `Current length: ${description.length}`
+    );
+  }
+  
+  ensureDataDir(normalizedRepo);
+  const descriptions = getTagDescriptions(normalizedRepo);
+  descriptions[tag] = description;
+  
+  const tagsFile = getTagsFile(normalizedRepo);
+  const tmp = `${tagsFile}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(descriptions, null, 2), { encoding: 'utf8' });
+  fs.renameSync(tmp, tagsFile);
+}
+
+export function deleteTagDescription(repositoryPath: string, tag: string): boolean {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const descriptions = getTagDescriptions(normalizedRepo);
+  
+  if (!(tag in descriptions)) {
+    return false;
+  }
+  
+  delete descriptions[tag];
+  
+  const tagsFile = getTagsFile(normalizedRepo);
+  if (Object.keys(descriptions).length === 0) {
+    // Remove the file if no descriptions left
+    if (fs.existsSync(tagsFile)) {
+      fs.unlinkSync(tagsFile);
+    }
+  } else {
+    const tmp = `${tagsFile}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(descriptions, null, 2), { encoding: 'utf8' });
+    fs.renameSync(tmp, tagsFile);
+  }
+  
+  return true;
+}
+
+export function getTagsWithDescriptions(repositoryPath: string): TagInfo[] {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const config = readConfiguration(normalizedRepo);
+  const descriptions = getTagDescriptions(normalizedRepo);
+  const tags: TagInfo[] = [];
+  
+  // If tag restrictions are enforced, use allowed tags
+  if (config.tags?.enforceAllowedTags && config.tags?.allowedTags && config.tags.allowedTags.length > 0) {
+    for (const tagName of config.tags.allowedTags) {
+      tags.push({
+        name: tagName,
+        description: descriptions[tagName]
+      });
+    }
+  } else {
+    // Otherwise, return all tags that have descriptions
+    for (const [name, description] of Object.entries(descriptions)) {
+      tags.push({ name, description });
+    }
+    
+    // Also include common tags
+    const commonTags = getCommonTags();
+    for (const commonTag of commonTags) {
+      if (!tags.find(t => t.name === commonTag.name)) {
+        tags.push({
+          name: commonTag.name,
+          description: commonTag.description
+        });
+      }
+    }
+  }
+  
+  return tags;
 }

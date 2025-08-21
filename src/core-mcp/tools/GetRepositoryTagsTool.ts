@@ -1,7 +1,15 @@
 import { z } from 'zod';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
-import { getCommonTags, getSuggestedTagsForPath, getUsedTagsForPath, getRepositoryGuidance, getAllowedTags } from '../store/notesStore';
+import { 
+  getCommonTags, 
+  getSuggestedTagsForPath, 
+  getUsedTagsForPath, 
+  getRepositoryGuidance, 
+  getAllowedTags,
+  getTagDescriptions,
+  getTagsWithDescriptions
+} from '../store/notesStore';
 
 export class GetRepositoryTagsTool extends BaseTool {
   name = 'get_repository_tags';
@@ -17,12 +25,21 @@ export class GetRepositoryTagsTool extends BaseTool {
   async execute(input: z.infer<typeof this.schema>): Promise<McpToolResult> {
     const result: Record<string, unknown> = { success: true, path: input.path };
     
-    // Check for tag restrictions
+    // Get tag descriptions
+    const tagDescriptions = getTagDescriptions(input.path);
+    
+    // Check for tag restrictions and include descriptions
     const allowedTagsInfo = getAllowedTags(input.path);
     if (allowedTagsInfo.enforced && allowedTagsInfo.tags.length > 0) {
+      // Include descriptions with allowed tags
+      const allowedTagsWithDescriptions = allowedTagsInfo.tags.map(tagName => ({
+        name: tagName,
+        description: tagDescriptions[tagName]
+      }));
+      
       result.tagRestrictions = {
         enforced: true,
-        allowedTags: allowedTagsInfo.tags,
+        allowedTags: allowedTagsWithDescriptions,
         message: 'This repository enforces tag restrictions. Only the allowed tags listed above can be used for notes.'
       };
     } else {
@@ -33,12 +50,29 @@ export class GetRepositoryTagsTool extends BaseTool {
     }
     
     if (input.includeUsedTags !== false) {
-      result.usedTags = getUsedTagsForPath(input.path);
+      const usedTags = getUsedTagsForPath(input.path);
+      // Include descriptions for used tags
+      result.usedTags = usedTags.map(tagName => ({
+        name: tagName,
+        description: tagDescriptions[tagName]
+      }));
     }
+    
     if (input.includeSuggestedTags !== false) {
-      result.suggestedTags = getSuggestedTagsForPath(input.path);
+      const suggestedTags = getSuggestedTagsForPath(input.path);
+      // Enhance suggested tags with descriptions if available
+      result.suggestedTags = suggestedTags.map(suggestion => ({
+        ...suggestion,
+        description: tagDescriptions[suggestion.name]
+      }));
     }
-    result.commonTags = getCommonTags();
+    
+    // Include common tags with any custom descriptions
+    const commonTags = getCommonTags();
+    result.commonTags = commonTags.map(tag => ({
+      name: tag.name,
+      description: tagDescriptions[tag.name] || tag.description  // Use custom description if available
+    }));
     
     if (input.includeGuidance !== false) {
       const guidance = getRepositoryGuidance(input.path);

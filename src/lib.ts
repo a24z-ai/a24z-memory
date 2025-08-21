@@ -22,13 +22,19 @@ export {
   getNoteById,
   deleteNoteById,
   checkStaleNotes,
+  // Tag descriptions
+  getTagDescriptions,
+  saveTagDescription,
+  deleteTagDescription,
+  getTagsWithDescriptions,
   // Types
   type StoredNote,
   type NoteConfidence,
   type NoteType,
   type RepositoryConfiguration,
   type ValidationError,
-  type StaleNote
+  type StaleNote,
+  type TagInfo
 } from './core-mcp/store/notesStore';
 
 // Path utilities
@@ -77,12 +83,17 @@ import {
   getNoteById as getNoteByIdFunc,
   deleteNoteById as deleteNoteByIdFunc,
   checkStaleNotes as checkStaleNotesFunc,
+  getTagDescriptions as getTagDescriptionsFunc,
+  saveTagDescription as saveTagDescriptionFunc,
+  deleteTagDescription as deleteTagDescriptionFunc,
+  getTagsWithDescriptions as getTagsWithDescriptionsFunc,
   type StoredNote as StoredNoteType,
   type NoteConfidence as NoteConfidenceType,
   type NoteType as NoteTypeType,
   type RepositoryConfiguration as RepositoryConfigurationType,
   type ValidationError as ValidationErrorType,
-  type StaleNote as StaleNoteType
+  type StaleNote as StaleNoteType,
+  type TagInfo as TagInfoType
 } from './core-mcp/store/notesStore';
 
 import {
@@ -210,6 +221,34 @@ export class A24zMemory {
    */
   checkStaleNotes(): StaleNoteType[] {
     return checkStaleNotesFunc(this.repositoryPath);
+  }
+
+  /**
+   * Get all tag descriptions
+   */
+  getTagDescriptions(): Record<string, string> {
+    return getTagDescriptionsFunc(this.repositoryPath);
+  }
+
+  /**
+   * Save or update a tag description
+   */
+  saveTagDescription(tag: string, description: string): void {
+    return saveTagDescriptionFunc(this.repositoryPath, tag, description);
+  }
+
+  /**
+   * Delete a tag description
+   */
+  deleteTagDescription(tag: string): boolean {
+    return deleteTagDescriptionFunc(this.repositoryPath, tag);
+  }
+
+  /**
+   * Get all tags with their descriptions
+   */
+  getTagsWithDescriptions(): TagInfoType[] {
+    return getTagsWithDescriptionsFunc(this.repositoryPath);
   }
 }
 
