@@ -13,7 +13,7 @@ This stack means knowledge stays organized (tags), meaningful (notes), current (
 
 ```mermaid
 graph TD
-    A[Query: "Why is auth slow?"] --> B[Tag Layer]
+    A[Query: Why is auth slow?] --> B[Tag Layer]
     B --> C[Find performance + auth tagged notes]
     C --> D[Note Layer]
     D --> E[Read insights about auth performance]
@@ -29,15 +29,15 @@ Retrieval works backwards through the stack: query → tags → notes → anchor
 
 ```mermaid
 flowchart LR
-    subgraph "Knowledge Creation"
-        K1[Discover Issue] --> K2[Tag: 'gotcha']
-        K2 --> K3[Note: 'Auth breaks with null headers']
-        K3 --> K4[Anchor: 'src/auth/middleware.ts']
+    subgraph Knowledge Creation
+        K1[Discover Issue] --> K2[Tag: gotcha]
+        K2 --> K3[Note: Auth breaks with null headers]
+        K3 --> K4[Anchor: src/auth/middleware.ts]
         K4 --> K5[Git: Commit & Share]
     end
     
-    subgraph "Knowledge Retrieval"
-        R1[Ask: 'Auth problems?'] --> R2[Find 'gotcha' tags]
+    subgraph Knowledge Retrieval
+        R1[Ask: Auth problems?] --> R2[Find gotcha tags]
         R2 --> R3[Load relevant notes]
         R3 --> R4[Read anchored files]
         R4 --> R5[Fresh context + insights]
