@@ -53,7 +53,6 @@ export { RepositoryNoteTool } from './core-mcp/tools/RepositoryNoteTool';
 export { AskA24zMemoryTool } from './core-mcp/tools/AskA24zMemoryTool';
 export { GetRepositoryTagsTool } from './core-mcp/tools/GetRepositoryTagsTool';
 export { GetRepositoryGuidanceTool } from './core-mcp/tools/GetRepositoryGuidanceTool';
-export { CopyGuidanceTemplateTool } from './core-mcp/tools/CopyGuidanceTemplateTool';
 export { CheckStaleNotesTool } from './core-mcp/tools/CheckStaleNotesTool';
 export { DeleteNoteTool } from './core-mcp/tools/DeleteNoteTool';
 export { GetNoteByIdTool } from './core-mcp/tools/GetNoteByIdTool';
