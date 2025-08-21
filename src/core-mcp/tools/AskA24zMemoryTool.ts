@@ -21,7 +21,7 @@ interface TribalNote {
 
 export class AskA24zMemoryTool extends BaseTool {
   public name = 'askA24zMemory';
-  public description = 'Ask the a24z memory for contextual guidance based on tribal knowledge. Supports filtering by tags and note types for targeted searches.';
+  public description = 'Search and retrieve tribal knowledge, architectural decisions, patterns, and gotchas from the repository. Use this tool to understand existing context, get guidance on implementation approaches, and avoid repeating past mistakes. Supports filtering by tags and note types for targeted searches.';
 
   public schema = z.object({
     filePath: z.string().describe('The absolute path to the file or directory relevant to the query. Must be an absolute path starting with / (e.g., /Users/username/projects/my-repo/src/file.ts)'),
@@ -47,9 +47,10 @@ export class AskA24zMemoryTool extends BaseTool {
       // Validate that filePath is absolute
       if (!path.isAbsolute(filePath)) {
         throw new Error(
-          `filePath must be an absolute path. ` +
+          `❌ filePath must be an absolute path starting with '/'. ` +
           `Received relative path: "${filePath}". ` +
-          `Please provide the full absolute path to the file or directory (e.g., /Users/username/projects/my-repo/src/file.ts).`
+          `💡 Tip: Use absolute paths like /Users/username/projects/my-repo/src/file.ts or /home/user/project/src/component.tsx. ` +
+          `You can get the current working directory and build the absolute path from there.`
         );
       }
       
@@ -135,25 +136,31 @@ export class AskA24zMemoryTool extends BaseTool {
     for (const n of topNotes) for (const t of n.tags) tagCounts.set(t, (tagCounts.get(t) || 0) + 1);
     const topTags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([t]) => t);
     
-    let response = `Context-aware guidance for ${filePath}:\n`;
-    response += `Question: ${query}\n`;
-    
+    let response = `🎯 **Context-aware guidance for:** ${filePath}\n`;
+    response += `❓ **Your question:** ${query}\n`;
+
     // Show active filters
     if (filterTags && filterTags.length > 0) {
-      response += `Tag filters: ${filterTags.join(', ')}\n`;
+      response += `🏷️ **Tag filters applied:** ${filterTags.join(', ')}\n`;
     }
     if (filterTypes && filterTypes.length > 0) {
-      response += `Type filters: ${filterTypes.join(', ')}\n`;
+      response += `📋 **Type filters applied:** ${filterTypes.join(', ')}\n`;
     }
     response += '\n';
-    
-    if (topTags.length > 0) response += `Relevant tags found: ${topTags.join(', ')}\n\n`;
-    
+
+    if (topTags.length > 0) {
+      response += `🔑 **Most relevant tags in this area:** ${topTags.join(', ')}\n\n`;
+    }
+
     if (topNotes.length > 0) {
-      response += `Related notes (${notes.length} found, showing top ${topNotes.length}):\n`;
-      for (const n of topNotes) {
-        response += `- [${n.context.type}/${n.context.confidence}] ${n.content}\n`;
+      response += `📚 **Found ${notes.length} related notes** (showing top ${topNotes.length}):\n\n`;
+      for (let i = 0; i < topNotes.length; i++) {
+        const n = topNotes[i];
+        response += `**${i + 1}. ${n.context.type.toUpperCase()}** [${n.context.confidence} confidence]\n`;
+        response += `   ${n.content}\n\n`;
       }
+
+      response += `💡 **Pro tip:** Use this information to guide your implementation. If you discover something new or make a decision, consider documenting it with \`create_repository_note\` so future developers can benefit!\n`;
     } else {
       response += `No prior notes found matching criteria. Consider documenting findings once done.`;
     }
@@ -161,16 +168,30 @@ export class AskA24zMemoryTool extends BaseTool {
   }
 
   private getNoKnowledgeResponse(filePath: string, query: string, filterInfo?: string): string {
-    let response = `I don't have any tribal knowledge about this area`;
+    let response = `📝 **No existing knowledge found** for this area`;
     if (filterInfo) {
       response += ` matching your filters (${filterInfo})`;
     }
-    response += ` yet.\n\nYour question: "${query}"\nWorking on: ${filePath}`;
-    
+    response += `.\n\n**Your question:** "${query}"\n**Working on:** ${filePath}\n\n`;
+
     if (filterInfo) {
-      response += `\n\nTip: Try broadening your search by removing some filters or using different tags/types.`;
+      response += `💡 **Tip:** Try broadening your search by removing some filters or using different tags/types.\n`;
     }
-    
+
+    response += `🎯 **Suggestion:** After you work on this, consider documenting your findings using the \`create_repository_note\` tool so future developers (including yourself) can benefit from your experience!\n\n`;
+
+    response += `**Example of documenting your work:**\n`;
+    response += `\`\`\`javascript
+create_repository_note({
+  note: "Implemented [brief description of what you did]",
+  directoryPath: "/path/to/your/repository",
+  anchors: ["${filePath}"],
+  tags: ["relevant", "tags", "here"],
+  confidence: "high",
+  type: "pattern" // or "decision", "gotcha", "explanation"
+});
+\`\`\``;
+
     return response;
   }
   

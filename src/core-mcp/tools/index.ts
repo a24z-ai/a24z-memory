@@ -4,3 +4,4 @@ export { RepositoryNoteTool } from './RepositoryNoteTool';
 export { GetRepositoryTagsTool } from './GetRepositoryTagsTool';
 export { GetRepositoryGuidanceTool } from './GetRepositoryGuidanceTool';
 export { CopyGuidanceTemplateTool } from './CopyGuidanceTemplateTool';
+export { DiscoverToolsTool } from './DiscoverToolsTool';

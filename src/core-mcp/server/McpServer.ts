@@ -18,6 +18,7 @@ import {
   GetRepositoryTagsTool,
   GetRepositoryGuidanceTool,
   CopyGuidanceTemplateTool,
+  DiscoverToolsTool,
 } from '../tools';
 import { McpServerConfig, McpTool, McpResource } from '../types';
 
@@ -56,6 +57,7 @@ export class McpServer {
     this.addTool(new GetRepositoryTagsTool());
     this.addTool(new GetRepositoryGuidanceTool());
     this.addTool(new CopyGuidanceTemplateTool());
+    this.addTool(new DiscoverToolsTool());
   }
 
   private setupDefaultResources() {
