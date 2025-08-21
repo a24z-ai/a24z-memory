@@ -141,6 +141,15 @@ function writeConfiguration(repositoryPath: string, config: RepositoryConfigurat
 function validateNote(note: Omit<StoredNote, 'id' | 'timestamp'>, config: RepositoryConfiguration): ValidationError[] {
   const errors: ValidationError[] = [];
   
+  // Validate anchors are present
+  if (!note.anchors || !Array.isArray(note.anchors) || note.anchors.length === 0) {
+    errors.push({
+      field: 'anchors',
+      message: 'At least one anchor path is required',
+      actual: 0
+    });
+  }
+  
   // Validate note length
   if (note.note.length > config.limits.noteMaxLength) {
     errors.push({
@@ -171,8 +180,8 @@ function validateNote(note: Omit<StoredNote, 'id' | 'timestamp'>, config: Reposi
     });
   }
   
-  // Validate number of anchors
-  if (note.anchors.length > config.limits.maxAnchorsPerNote) {
+  // Validate number of anchors (only if anchors exist)
+  if (note.anchors && note.anchors.length > config.limits.maxAnchorsPerNote) {
     errors.push({
       field: 'anchors',
       message: `Note has too many anchors (${note.anchors.length}). Maximum allowed: ${config.limits.maxAnchorsPerNote}`,
@@ -292,8 +301,35 @@ function migrateNotesToFiles(repositoryPath: string): void {
 }
 
 export function saveNote(note: Omit<StoredNote, 'id' | 'timestamp'> & { directoryPath: string }): StoredNote {
-  const repoRoot = normalizeRepositoryPath(note.directoryPath);
-  const originalDirPath = path.resolve(note.directoryPath);
+  // Validate that directoryPath is absolute
+  if (!path.isAbsolute(note.directoryPath)) {
+    throw new Error(
+      `directoryPath must be an absolute path to a git repository root. ` +
+      `Received relative path: "${note.directoryPath}". ` +
+      `Please provide the full absolute path to the repository root directory.`
+    );
+  }
+  
+  // Validate that directoryPath exists
+  if (!fs.existsSync(note.directoryPath)) {
+    throw new Error(
+      `directoryPath does not exist: "${note.directoryPath}". ` +
+      `Please provide a valid absolute path to an existing git repository root.`
+    );
+  }
+  
+  // Validate that directoryPath is a git repository root (has .git directory)
+  const gitDir = path.join(note.directoryPath, '.git');
+  if (!fs.existsSync(gitDir)) {
+    throw new Error(
+      `directoryPath is not a git repository root: "${note.directoryPath}". ` +
+      `The directory must contain a .git folder. ` +
+      `Please provide the absolute path to the root of your git repository.`
+    );
+  }
+  
+  const repoRoot = note.directoryPath; // Use the validated path directly
+  const originalDirPath = note.directoryPath;
   
   // Load configuration and validate the note
   const config = readConfiguration(repoRoot);
@@ -304,6 +340,11 @@ export function saveNote(note: Omit<StoredNote, 'id' | 'timestamp'> & { director
   if (validationErrors.length > 0) {
     const errorMessages = validationErrors.map(err => err.message).join('; ');
     throw new Error(`Note validation failed: ${errorMessages}`);
+  }
+  
+  // Validate that anchors exist and are not empty
+  if (!note.anchors || !Array.isArray(note.anchors) || note.anchors.length === 0) {
+    throw new Error('Note validation failed: At least one anchor path is required');
   }
   
   // Normalize anchors to be relative paths to the repository root
