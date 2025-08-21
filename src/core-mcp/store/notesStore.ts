@@ -29,6 +29,10 @@ export interface RepositoryConfiguration {
     backupOnMigration: boolean;
     compressionEnabled: boolean;
   };
+  tags?: {
+    allowedTags?: string[];  // If set, only these tags are allowed
+    enforceAllowedTags?: boolean;  // Whether to enforce the allowed tags list
+  };
 }
 
 export interface ValidationError {
@@ -94,6 +98,10 @@ function getDefaultConfiguration(): RepositoryConfiguration {
     storage: {
       backupOnMigration: true,
       compressionEnabled: false
+    },
+    tags: {
+      allowedTags: [],  // Empty by default, meaning no restrictions
+      enforceAllowedTags: false  // Disabled by default
     }
   };
 }
@@ -121,6 +129,10 @@ function readConfiguration(repositoryPath: string): RepositoryConfiguration {
       storage: {
         ...defaultConfig.storage,
         ...parsed.storage
+      },
+      tags: {
+        ...defaultConfig.tags,
+        ...parsed.tags
       }
     };
     
@@ -178,6 +190,18 @@ function validateNote(note: Omit<StoredNote, 'id' | 'timestamp'>, config: Reposi
       message: `Some tags exceed maximum length of ${config.limits.maxTagLength} characters: ${longTags.join(', ')}`,
       limit: config.limits.maxTagLength
     });
+  }
+  
+  // Validate against allowed tags if configured
+  if (config.tags?.enforceAllowedTags && config.tags?.allowedTags && config.tags.allowedTags.length > 0) {
+    const allowedTags = config.tags.allowedTags;
+    const invalidTags = note.tags.filter(tag => !allowedTags.includes(tag));
+    if (invalidTags.length > 0) {
+      errors.push({
+        field: 'tags',
+        message: `The following tags are not in the allowed tags list: ${invalidTags.join(', ')}. Allowed tags are: ${allowedTags.join(', ')}`
+      });
+    }
   }
   
   // Validate number of anchors (only if anchors exist)
@@ -609,6 +633,7 @@ export function updateRepositoryConfiguration(repositoryPath: string, config: {
   version?: number;
   limits?: Partial<RepositoryConfiguration['limits']>;
   storage?: Partial<RepositoryConfiguration['storage']>;
+  tags?: Partial<RepositoryConfiguration['tags']>;
 }): RepositoryConfiguration {
   const repoRoot = normalizeRepositoryPath(repositoryPath);
   const currentConfig = readConfiguration(repoRoot);
@@ -623,6 +648,10 @@ export function updateRepositoryConfiguration(repositoryPath: string, config: {
     storage: {
       ...currentConfig.storage,
       ...config.storage
+    },
+    tags: {
+      ...currentConfig.tags,
+      ...config.tags
     }
   };
   
@@ -656,4 +685,72 @@ export function getRepositoryGuidance(targetPath: string): string | null {
   } catch {
     return null;
   }
+}
+
+export function getNoteById(repositoryPath: string, noteId: string): StoredNote | null {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const notes = readAllNotes(normalizedRepo);
+  return notes.find(note => note.id === noteId) || null;
+}
+
+export function deleteNoteById(repositoryPath: string, noteId: string): boolean {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const notes = readAllNotes(normalizedRepo);
+  const noteToDelete = notes.find(note => note.id === noteId);
+  
+  if (!noteToDelete) {
+    return false;
+  }
+  
+  deleteNoteFile(normalizedRepo, noteToDelete);
+  return true;
+}
+
+export interface StaleNote {
+  note: StoredNote;
+  staleAnchors: string[];
+  validAnchors: string[];
+}
+
+export function getAllowedTags(repositoryPath: string): { enforced: boolean; tags: string[] } {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const config = readConfiguration(normalizedRepo);
+  
+  return {
+    enforced: config.tags?.enforceAllowedTags || false,
+    tags: config.tags?.allowedTags || []
+  };
+}
+
+export function checkStaleNotes(repositoryPath: string): StaleNote[] {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const notes = readAllNotes(normalizedRepo);
+  const staleNotes: StaleNote[] = [];
+  
+  for (const note of notes) {
+    const staleAnchors: string[] = [];
+    const validAnchors: string[] = [];
+    
+    for (const anchor of note.anchors) {
+      // Anchors are stored as relative paths to the repo root
+      const anchorPath = path.join(normalizedRepo, anchor);
+      
+      if (fs.existsSync(anchorPath)) {
+        validAnchors.push(anchor);
+      } else {
+        staleAnchors.push(anchor);
+      }
+    }
+    
+    // Only include notes that have at least one stale anchor
+    if (staleAnchors.length > 0) {
+      staleNotes.push({
+        note,
+        staleAnchors,
+        validAnchors
+      });
+    }
+  }
+  
+  return staleNotes;
 }
