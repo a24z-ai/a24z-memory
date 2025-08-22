@@ -231,7 +231,7 @@ function readAllNotesFromLegacyFile(repositoryPath: string): StoredNote[] {
   }
 }
 
-function readAllNotes(repositoryPath: string): StoredNote[] {
+export function readAllNotes(repositoryPath: string): StoredNote[] {
   try {
     ensureDataDir(repositoryPath);
     const notesDir = getNotesDir(repositoryPath);
@@ -285,7 +285,7 @@ function writeNoteToFile(repositoryPath: string, note: StoredNote): void {
   fs.renameSync(tmp, notePath);
 }
 
-function deleteNoteFile(repositoryPath: string, note: StoredNote): void {
+export function deleteNoteFile(repositoryPath: string, note: StoredNote): void {
   const notePath = getNoteFilePath(repositoryPath, note.id, note.timestamp);
   if (fs.existsSync(notePath)) {
     fs.unlinkSync(notePath);

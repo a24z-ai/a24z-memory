@@ -1,0 +1,145 @@
+---
+title: "delete_note"
+description: "Delete a repository note by its ID"
+---
+
+# delete_note
+
+Delete a specific repository note from the knowledge base. Use with caution as deleted notes cannot be recovered.
+
+## Overview
+
+The `delete_note` tool allows you to remove notes that are outdated, incorrect, or no longer relevant. This helps maintain the quality and accuracy of the repository's knowledge base.
+
+<RequestExample>
+```json
+{
+  "noteId": "note-1734567890123-abc123def",
+  "directoryPath": "/Users/project/my-app"
+}
+```
+</RequestExample>
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `noteId` | string | Yes | Unique ID of the note to delete (format: note-timestamp-hash) |
+| `directoryPath` | string | Yes | Repository root path to identify the correct repository |
+
+## Response Format
+
+### Successful Deletion
+```json
+{
+  "success": true,
+  "message": "Note deleted successfully",
+  "noteId": "note-1734567890123-abc123def"
+}
+```
+
+### Note Not Found
+```json
+{
+  "success": false,
+  "error": "Note not found",
+  "noteId": "note-1734567890123-abc123def",
+  "suggestion": "Verify the note ID is correct and the note exists"
+}
+```
+
+## Usage Examples
+
+### Example 1: Remove Outdated Information
+```json
+{
+  "noteId": "note-1734567890123-abc123def",
+  "directoryPath": "/Users/project/my-app"
+}
+```
+
+**Use Case**: A note about a deprecated library or outdated practice that should be removed.
+
+### Example 2: Clean Up After Refactoring
+```json
+{
+  "noteId": "note-1734567890123-xyz789ghi",
+  "directoryPath": "/Users/project/my-app"
+}
+```
+
+**Use Case**: Remove notes about code patterns that have been refactored or replaced.
+
+## Best Practices
+
+### When to Delete Notes
+
+1. **Outdated Information**: Remove notes about deprecated technologies or practices
+2. **Incorrect Information**: Delete notes that contain factual errors
+3. **Redundant Information**: Remove duplicate notes (consider merging instead)
+4. **Irrelevant Information**: Delete notes no longer relevant to the project
+
+### When NOT to Delete Notes
+
+1. **Historical Context**: Keep notes about architectural decisions even if changed
+2. **Learning Opportunities**: Preserve notes about mistakes and their solutions
+3. **Migration Guides**: Keep notes about how systems were changed
+4. **Team Knowledge**: Maintain notes about team processes and conventions
+
+## Error Handling
+
+### Repository Not Found
+```json
+{
+  "success": false,
+  "error": "Repository not found at the specified path",
+  "suggestion": "Ensure the directoryPath points to a valid repository root"
+}
+```
+
+### Permission Denied
+```json
+{
+  "success": false,
+  "error": "Permission denied deleting note",
+  "suggestion": "Check file permissions for the repository directory"
+}
+```
+
+### Invalid Note ID
+```json
+{
+  "success": false,
+  "error": "Invalid note ID format",
+  "noteId": "invalid-id",
+  "suggestion": "Note IDs should have format: note-timestamp-hash"
+}
+```
+
+## Safety Considerations
+
+### Confirmation Recommended
+Always confirm with the user before deleting notes, especially:
+- High-confidence notes (may contain important institutional knowledge)
+- Notes with many tags or anchors (widely referenced)
+- Decision-type notes (document architectural choices)
+
+### Backup Strategy
+Consider backing up important notes before deletion by:
+1. Exporting note content to documentation
+2. Creating a summary note referencing the deletion
+3. Moving critical information to permanent documentation
+
+## Integration with AI Agents
+
+AI agents should:
+1. **Confirm deletions** with users for important notes
+2. **Check note usage** before deletion (search for references)
+3. **Document deletions** in a changelog or audit trail
+4. **Suggest alternatives** like updating rather than deleting
+
+## Related Tools
+
+- **[askA24zMemory](/api/askA24zMemory)** - Find notes to potentially delete
+- **[create_repository_note](/api/create-repository-note)** - Create updated versions
+- **[merge_notes](/api/merge-notes)** - Combine similar notes instead of deleting

@@ -1,0 +1,122 @@
+---
+title: "find_similar_notes"
+description: "Find notes similar to a given query or content"
+---
+
+# find_similar_notes
+
+Discover notes with similar content, tags, or context to help find related information and avoid duplication.
+
+## Overview
+
+The `find_similar_notes` tool uses semantic similarity to find related notes in the knowledge base. This helps discover relevant information and identify potential duplicates.
+
+<RequestExample>
+```json
+{
+  "query": "authentication error handling patterns",
+  "directoryPath": "/src/auth",
+  "limit": 5,
+  "minSimilarity": 0.7
+}
+```
+</RequestExample>
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `query` | string | No | Search query to find similar notes |
+| `content` | string | No | Content to compare similarity against |
+| `directoryPath` | string | Yes | Repository path to search in |
+| `limit` | number | No | Maximum number of results (default: 10) |
+| `minSimilarity` | number | No | Minimum similarity score (0-1, default: 0.5) |
+
+## Response Format
+
+```json
+{
+  "success": true,
+  "results": [
+    {
+      "noteId": "note-1734567890123-abc123def",
+      "similarity": 0.92,
+      "title": "JWT Authentication Error Handling",
+      "content": "When handling JWT authentication errors...",
+      "tags": ["authentication", "error-handling", "jwt"],
+      "anchors": ["/src/auth/jwtHandler.ts"],
+      "type": "pattern"
+    },
+    {
+      "noteId": "note-1734567890123-xyz789ghi",
+      "similarity": 0.78,
+      "title": "API Error Response Patterns",
+      "content": "Standard error response format for API endpoints...",
+      "tags": ["api", "error-handling", "patterns"],
+      "anchors": ["/src/api/errorHandler.ts"],
+      "type": "pattern"
+    }
+  ],
+  "totalFound": 15,
+  "queryUsed": "authentication error handling patterns"
+}
+```
+
+## Similarity Algorithm
+
+The tool uses multiple factors to determine similarity:
+
+1. **Semantic Similarity**: Vector-based comparison of content meaning
+2. **Tag Overlap**: Common tags between notes
+3. **Anchor Similarity**: Related file paths
+4. **Content Keywords**: Shared important terms
+
+## Use Cases
+
+### Avoiding Duplication
+```json
+{
+  "content": "New note about error handling in authentication",
+  "directoryPath": "/src/auth"
+}
+```
+
+### Finding Related Information
+```json
+{
+  "query": "how to implement form validation",
+  "directoryPath": "/src/components"
+}
+```
+
+### Research Preparation
+```json
+{
+  "query": "performance optimization techniques",
+  "directoryPath": "."
+}
+```
+
+## Error Handling
+
+### Repository Not Found
+```json
+{
+  "success": false,
+  "error": "Repository not found at the specified path"
+}
+```
+
+### No Similar Notes
+```json
+{
+  "success": true,
+  "results": [],
+  "message": "No similar notes found with minimum similarity threshold"
+}
+```
+
+## Related Tools
+
+- **[askA24zMemory](/api/askA24zMemory)** - General knowledge queries
+- **[review_duplicates](/api/review-duplicates)** - Find exact duplicates

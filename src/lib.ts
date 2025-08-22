@@ -37,6 +37,17 @@ export {
   type TagInfo
 } from './core-mcp/store/notesStore';
 
+// Note similarity and deduplication
+export {
+  calculateNoteSimilarity,
+  findSimilarNotePairs,
+  clusterSimilarNotes,
+  isNoteStale,
+  DEFAULT_THRESHOLDS,
+  type NoteSimilarity,
+  type SimilarityThresholds
+} from './core-mcp/utils/noteSimilarity';
+
 // Path utilities
 export {
   normalizeRepositoryPath,
@@ -54,8 +65,11 @@ export { AskA24zMemoryTool } from './core-mcp/tools/AskA24zMemoryTool';
 export { GetRepositoryTagsTool } from './core-mcp/tools/GetRepositoryTagsTool';
 export { GetRepositoryGuidanceTool } from './core-mcp/tools/GetRepositoryGuidanceTool';
 export { CheckStaleNotesTool } from './core-mcp/tools/CheckStaleNotesTool';
-export { DeleteNoteTool } from './core-mcp/tools/DeleteNoteTool';
 export { GetNoteByIdTool } from './core-mcp/tools/GetNoteByIdTool';
+export { FindSimilarNotesTool } from './core-mcp/tools/FindSimilarNotesTool';
+export { MergeNotesTool } from './core-mcp/tools/MergeNotesTool';
+export { DeleteNoteTool } from './core-mcp/tools/DeleteNoteTool';
+export { ReviewDuplicatesTool } from './core-mcp/tools/ReviewDuplicatesTool';
 export { BaseTool } from './core-mcp/tools/base-tool';
 
 // Types

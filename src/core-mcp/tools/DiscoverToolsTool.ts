@@ -95,21 +95,126 @@ export class DiscoverToolsTool extends BaseTool {
         ]
       },
       {
-        name: 'copy_guidance_template',
-        category: 'guidance',
-        description: 'Copy note guidance templates to establish documentation standards.',
+        name: 'get_repository_note',
+        category: 'repository',
+        description: 'Retrieve a specific note by its unique ID for detailed information.',
         useCases: [
-          'Set up documentation standards for new repositories',
-          'Improve existing documentation practices',
-          'Get templates for different project types'
+          'Get detailed information about a specific note',
+          'Review note content and metadata',
+          'Check note anchors and related files'
         ],
         parameters: [
-          'path: Repository path where template should be copied',
-          'template: Template type (default, react-typescript, nodejs-api, python-data-science)',
-          'overwrite: Whether to overwrite existing guidance'
+          'noteId: Unique note ID (e.g., "note-1734567890123-abc123def")',
+          'directoryPath: Repository path (absolute)'
         ],
         examples: [
-          'copy_guidance_template({ path: "/Users/user/project", template: "react-typescript" })'
+          'get_repository_note({ noteId: "note-1734567890123-abc123def", directoryPath: "/Users/user/project" })'
+        ]
+      },
+      {
+        name: 'check_stale_notes',
+        category: 'repository',
+        description: 'Check for notes with stale anchors (file paths that no longer exist) in a repository.',
+        useCases: [
+          'Find notes that reference deleted or moved files',
+          'Maintain note accuracy and relevance',
+          'Clean up outdated documentation'
+        ],
+        parameters: [
+          'directoryPath: Repository path (absolute)'
+        ],
+        examples: [
+          'check_stale_notes({ directoryPath: "/Users/user/project" })'
+        ]
+      },
+      {
+        name: 'discover_a24z_tools',
+        category: 'guidance',
+        description: 'Discover all available a24z-Memory tools and their capabilities.',
+        useCases: [
+          'Understand what tools are available',
+          'Learn how to use tools effectively',
+          'Get tool usage examples and parameters'
+        ],
+        parameters: [
+          'category: Filter by category (all, knowledge, repository, guidance)'
+        ],
+        examples: [
+          'discover_a24z_tools({ category: "repository" })'
+        ]
+      },
+      {
+        name: 'delete_note',
+        category: 'repository',
+        description: 'Delete a specific note from the knowledge base.',
+        useCases: [
+          'Remove outdated or incorrect information',
+          'Clean up duplicate notes',
+          'Remove notes that are no longer relevant'
+        ],
+        parameters: [
+          'noteId: Unique note ID to delete',
+          'directoryPath: Repository path (absolute)'
+        ],
+        examples: [
+          'delete_note({ noteId: "note-1734567890123-abc123def", directoryPath: "/Users/user/project" })'
+        ]
+      },
+      {
+        name: 'find_similar_notes',
+        category: 'knowledge',
+        description: 'Find notes with similar content to avoid duplication and discover related information.',
+        useCases: [
+          'Check for existing content before creating new notes',
+          'Find related information and patterns',
+          'Identify potential duplicates to merge'
+        ],
+        parameters: [
+          'query: Search query for similar content',
+          'content: Content to compare similarity against',
+          'directoryPath: Repository path (absolute)',
+          'limit: Maximum number of results',
+          'minSimilarity: Minimum similarity score (0-1)'
+        ],
+        examples: [
+          'find_similar_notes({ query: "authentication error handling", directoryPath: "/Users/user/project", limit: 5 })'
+        ]
+      },
+      {
+        name: 'merge_notes',
+        category: 'repository',
+        description: 'Combine multiple related notes into a comprehensive note.',
+        useCases: [
+          'Consolidate duplicate information',
+          'Create comprehensive guides from fragments',
+          'Organize scattered knowledge'
+        ],
+        parameters: [
+          'noteIds: Array of note IDs to merge',
+          'directoryPath: Repository path (absolute)',
+          'newNote: Content for the merged note',
+          'deleteOriginals: Whether to delete original notes'
+        ],
+        examples: [
+          'merge_notes({ noteIds: ["note-123", "note-456"], directoryPath: "/Users/user/project", newNote: { note: "Comprehensive auth guide", tags: ["auth", "guide"] } })'
+        ]
+      },
+      {
+        name: 'review_duplicates',
+        category: 'repository',
+        description: 'Analyze the knowledge base to identify duplicate or highly similar notes.',
+        useCases: [
+          'Find duplicate content to consolidate',
+          'Identify similar notes for merging',
+          'Maintain knowledge base quality'
+        ],
+        parameters: [
+          'directoryPath: Repository path to analyze',
+          'similarityThreshold: Similarity threshold (0-1)',
+          'groupBy: Group by content or tags'
+        ],
+        examples: [
+          'review_duplicates({ directoryPath: "/Users/user/project", similarityThreshold: 0.9 })'
         ]
       }
     ];
