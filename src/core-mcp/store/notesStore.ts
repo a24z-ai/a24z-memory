@@ -205,6 +205,25 @@ function validateNote(note: Omit<StoredNote, 'id' | 'timestamp'>, config: Reposi
     });
   }
   
+  // Validate that anchors don't escape the repository
+  if (note.anchors) {
+    for (const anchor of note.anchors) {
+      // Skip validation for absolute paths - they'll be checked later
+      if (path.isAbsolute(anchor)) {
+        continue;
+      }
+      
+      // Check for path traversal attempts
+      const resolved = path.resolve(normalizedRepo, anchor);
+      if (!resolved.startsWith(normalizedRepo + path.sep) && resolved !== normalizedRepo) {
+        errors.push({
+          field: 'anchors',
+          message: `Anchor "${anchor}" references a path outside the repository. All anchors must be within the repository.`
+        });
+      }
+    }
+  }
+  
   return errors;
 }
 
@@ -364,18 +383,30 @@ export function saveNote(note: Omit<StoredNote, 'id' | 'timestamp'> & { director
   
   // Normalize anchors to be relative paths to the repository root
   const normalizedAnchors = note.anchors.map(anchor => {
-    // If anchor is already absolute, make it relative to repo root
+    let resolved: string;
+    
+    // If anchor is already absolute
     if (path.isAbsolute(anchor)) {
-      return path.relative(repoRoot, anchor);
+      resolved = anchor;
     } else if (anchor.startsWith('./') || anchor.startsWith('../')) {
       // Anchors starting with ./ or ../ are relative to the original directoryPath
-      // Resolve them first, then make relative to repo root
-      const resolved = path.resolve(originalDirPath, anchor);
-      return path.relative(repoRoot, resolved);
+      // Resolve them first
+      resolved = path.resolve(originalDirPath, anchor);
     } else {
-      // Already relative to repo root, keep as-is
-      return anchor;
+      // Already relative to repo root
+      resolved = path.resolve(repoRoot, anchor);
     }
+    
+    // Validate that the resolved path is within the repository
+    if (!resolved.startsWith(repoRoot + path.sep) && resolved !== repoRoot) {
+      throw new Error(
+        `Anchor "${anchor}" references a path outside the repository. ` +
+        `All anchors must be within the repository root.`
+      );
+    }
+    
+    // Convert to relative path from repo root
+    return path.relative(repoRoot, resolved);
   });
   
   const saved: StoredNote = { 

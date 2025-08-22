@@ -3,6 +3,9 @@ import * as path from 'node:path';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
 import { getNotesForPath } from '../store/notesStore';
+import { normalizeRepositoryPath } from '../utils/pathNormalization';
+import { LLMService, type LLMContext } from '../services/llm-service';
+import { readAnchorFiles, selectOptimalContent } from '../utils/fileReader';
 
 export interface A24zMemoryConfig {
   llm: { model: string; temperature: number; systemPrompt: string; maxTokens: number };
@@ -36,6 +39,15 @@ export class AskA24zMemoryTool extends BaseTool {
     noteFetching: { maxNotesPerQuery: 20, relevanceThreshold: 0.3, includeParentPaths: true, searchDepth: 3 },
     responseStyle: { acknowledgeLimitations: true, suggestNoteSaving: true, includeConfidence: true, conversationalTone: 'mentor' },
   };
+  
+  private llmService: LLMService;
+  
+  constructor() {
+    super();
+    // Initialize LLM service with config if available
+    const llmConfig = LLMService.loadConfig();
+    this.llmService = new LLMService(llmConfig);
+  }
 
   async execute(input: z.infer<typeof this.schema>): Promise<McpToolResult> {
     const { filePath, query, taskContext, filterTags, filterTypes } = input;
@@ -125,12 +137,88 @@ export class AskA24zMemoryTool extends BaseTool {
   private async generateA24zMemoryResponse(
     query: string, 
     filePath: string, 
-    _taskContext: string, 
+    taskContext: string, 
     notes: TribalNote[],
     filterTags?: string[],
     filterTypes?: Array<'decision' | 'pattern' | 'gotcha' | 'explanation'>
   ): Promise<string> {
-    // Simple local synthesis: summarize tags and recent notes.
+    // Try to get repository path for file reading
+    const repoPath = normalizeRepositoryPath(filePath);
+    
+    // Prepare notes with optional file contents for LLM
+    const notesWithContext = await Promise.all(notes.map(async (n) => {
+      const noteContext = {
+        id: n.id,
+        content: n.content,
+        type: n.context.type,
+        confidence: n.context.confidence,
+        tags: n.tags,
+        anchors: n.anchors,
+        anchorContents: undefined as any
+      };
+      
+      // Only try to read files if LLM config says to include them
+      const llmConfig = LLMService.loadConfig();
+      if (llmConfig?.includeFileContents) {
+        // Limit to first 3 anchors to avoid token explosion
+        const anchorsToRead = n.anchors.slice(0, 3);
+        
+        try {
+          const fileContents = await readAnchorFiles(anchorsToRead, repoPath, {
+            maxFileSize: 5 * 1024,   // 5KB per file
+            maxTotalSize: 15 * 1024, // 15KB total per note
+            maxFiles: 3
+          });
+          
+          // Select optimal content based on token budget
+          const tokenBudget = Math.floor((llmConfig.fileContentBudget || 2000) / notes.length);
+          const optimal = selectOptimalContent(fileContents, tokenBudget);
+          
+          if (optimal.length > 0) {
+            noteContext.anchorContents = optimal.map(f => ({
+              path: f.path,
+              content: f.content,
+              error: f.error
+            }));
+          }
+        } catch (error) {
+          // If file reading fails, continue without file contents
+          console.error('Failed to read anchor files:', error);
+        }
+      }
+      
+      return noteContext;
+    }));
+    
+    // Try to use LLM service first if available
+    const llmContext: LLMContext = {
+      query,
+      filePath,
+      taskContext: taskContext || undefined,
+      notes: notesWithContext
+    };
+    
+    const llmResponse = await this.llmService.synthesizeNotes(llmContext);
+    
+    if (llmResponse && llmResponse.content) {
+      // Got an LLM-enhanced response - include both synthesis and source notes
+      let enhancedResponse = `🤖 **AI-Enhanced Synthesis** (via ${llmResponse.provider})\n\n`;
+      enhancedResponse += llmResponse.content;
+      enhancedResponse += `\n\n---\n\n📚 **Source Notes Referenced:**\n\n`;
+      
+      // Include the actual notes with their paths for transparency
+      for (let i = 0; i < notes.length; i++) {
+        const note = notes[i];
+        enhancedResponse += `**[Note ${i + 1}]** \`${note.id}\`\n`;
+        enhancedResponse += `📁 Anchored to: ${note.anchors.map(a => `\`${a}\``).join(', ')}\n`;
+        enhancedResponse += `🏷️ Tags: ${note.tags.join(', ')} | Type: ${note.context.type} | Confidence: ${note.context.confidence}\n`;
+        enhancedResponse += `💡 ${note.content}\n\n`;
+      }
+      
+      return enhancedResponse;
+    }
+    
+    // Fall back to local synthesis
     const topNotes = notes.sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0)).slice(0, 5);
     const tagCounts = new Map<string, number>();
     for (const n of topNotes) for (const t of n.tags) tagCounts.set(t, (tagCounts.get(t) || 0) + 1);
