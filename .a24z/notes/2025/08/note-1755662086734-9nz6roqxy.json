@@ -1,0 +1,23 @@
+{
+  "note": "## MCP Server Tool Registration Pattern\n\nThe MCP server uses a centralized tool registration system that makes it easy to add new tools and ensures consistent handling across all tool types.\n\n**Registration flow**:\n1. **Tool creation**: Tools inherit from `BaseTool` and implement required methods\n2. **Server setup**: `McpServer` constructor calls `setupDefaultTools()` to register built-in tools\n3. **Handler registration**: `registerHandlers()` sets up MCP protocol handlers for tool listing and execution\n4. **Tool execution**: Incoming MCP requests are routed to the appropriate tool's `handler` method\n\n**Current tools**:\n- `AskA24zMemoryTool` - Query existing notes\n- `RepositoryNoteTool` - Create new notes\n- `GetRepositoryTagsTool` - Get available tags\n- `GetRepositoryGuidanceTool` - Get note creation guidance\n- `CopyGuidanceTemplateTool` - Copy guidance templates\n\n**Adding new tools**:\n```typescript\n// 1. Create tool class extending BaseTool\n// 2. Add to setupDefaultTools() in McpServer\n// 3. Tool automatically gets MCP protocol support\n```\n\n**Benefits**:\n- **Consistent interface**: All tools follow the same pattern\n- **Automatic validation**: Input validation handled by BaseTool\n- **Error handling**: Centralized error handling for MCP responses\n- **Easy extension**: Adding new tools requires minimal boilerplate\n\n**Files involved**:\n- `src/core-mcp/server/McpServer.ts` - Server setup and tool registration\n- `src/core-mcp/tools/index.ts` - Tool exports\n- `src/core-mcp/tools/base-tool.ts` - Base tool implementation\n\n**Tags**: mcp, architecture, tools, integration",
+  "directoryPath": "/Users/griever/Developer/a24z-Memory",
+  "anchors": [
+    "src/core-mcp/server/McpServer.ts",
+    "src/core-mcp/tools/index.ts",
+    "src/core-mcp/tools/base-tool.ts"
+  ],
+  "tags": [
+    "mcp",
+    "architecture",
+    "tools",
+    "integration"
+  ],
+  "confidence": "high",
+  "type": "pattern",
+  "metadata": {
+    "toolVersion": "2.0.0",
+    "createdBy": "create_repository_note_tool"
+  },
+  "id": "note-1755662086734-9nz6roqxy",
+  "timestamp": 1755662086734
+}

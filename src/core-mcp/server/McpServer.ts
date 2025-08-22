@@ -19,6 +19,9 @@ import {
   GetRepositoryGuidanceTool,
   CopyGuidanceTemplateTool,
   DiscoverToolsTool,
+  CheckStaleNotesTool,
+  DeleteNoteTool,
+  GetNoteByIdTool,
 } from '../tools';
 import { McpServerConfig, McpTool, McpResource } from '../types';
 
@@ -58,6 +61,9 @@ export class McpServer {
     this.addTool(new GetRepositoryGuidanceTool());
     this.addTool(new CopyGuidanceTemplateTool());
     this.addTool(new DiscoverToolsTool());
+    this.addTool(new CheckStaleNotesTool());
+    this.addTool(new DeleteNoteTool());
+    this.addTool(new GetNoteByIdTool());
   }
 
   private setupDefaultResources() {

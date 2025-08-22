@@ -17,6 +17,31 @@ export interface StoredNote {
   timestamp: number;
 }
 
+export interface RepositoryConfiguration {
+  version: number;
+  limits: {
+    noteMaxLength: number;
+    maxTagsPerNote: number;
+    maxAnchorsPerNote: number;
+    tagDescriptionMaxLength: number;  // Maximum length for tag description markdown files
+  };
+  storage: {
+    backupOnMigration: boolean;
+    compressionEnabled: boolean;
+  };
+  tags?: {
+    allowedTags?: string[];  // If set, only these tags are allowed
+    enforceAllowedTags?: boolean;  // Whether to enforce the allowed tags list
+  };
+}
+
+export interface ValidationError {
+  field: string;
+  message: string;
+  limit?: number;
+  actual?: number;
+}
+
 interface NotesFileSchema {
   version: number;
   notes: StoredNote[];
@@ -31,8 +56,155 @@ function getNotesFile(repositoryPath: string): string {
   return path.join(getRepositoryDataDir(repositoryPath), 'repository-notes.json');
 }
 
+function getNotesDir(repositoryPath: string): string {
+  return path.join(getRepositoryDataDir(repositoryPath), 'notes');
+}
+
+function getNoteFilePath(repositoryPath: string, noteId: string, timestamp: number): string {
+  const date = new Date(timestamp);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const noteDir = path.join(getNotesDir(repositoryPath), year.toString(), month);
+  return path.join(noteDir, `${noteId}.json`);
+}
+
+function ensureNotesDir(repositoryPath: string, timestamp: number): void {
+  const date = new Date(timestamp);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const noteDir = path.join(getNotesDir(repositoryPath), year.toString(), month);
+  if (!fs.existsSync(noteDir)) {
+    fs.mkdirSync(noteDir, { recursive: true });
+  }
+}
+
 function getGuidanceFile(repositoryPath: string): string {
   return path.join(getRepositoryDataDir(repositoryPath), 'note-guidance.md');
+}
+
+function getConfigurationFile(repositoryPath: string): string {
+  return path.join(getRepositoryDataDir(repositoryPath), 'configuration.json');
+}
+
+function getDefaultConfiguration(): RepositoryConfiguration {
+  return {
+    version: 1,
+    limits: {
+      noteMaxLength: 10000,
+      maxTagsPerNote: 10,
+      maxAnchorsPerNote: 20,
+      tagDescriptionMaxLength: 2000  // 2KB limit for tag description markdown files
+    },
+    storage: {
+      backupOnMigration: true,
+      compressionEnabled: false
+    },
+    tags: {
+      allowedTags: [],  // Empty by default, meaning no restrictions
+      enforceAllowedTags: false  // Disabled by default
+    }
+  };
+}
+
+function readConfiguration(repositoryPath: string): RepositoryConfiguration {
+  try {
+    const configFile = getConfigurationFile(repositoryPath);
+    if (!fs.existsSync(configFile)) {
+      const defaultConfig = getDefaultConfiguration();
+      writeConfiguration(repositoryPath, defaultConfig);
+      return defaultConfig;
+    }
+    
+    const raw = fs.readFileSync(configFile, 'utf8');
+    const parsed = JSON.parse(raw) as Partial<RepositoryConfiguration>;
+    
+    // Merge with defaults to handle missing properties
+    const defaultConfig = getDefaultConfiguration();
+    const mergedConfig: RepositoryConfiguration = {
+      version: parsed.version || defaultConfig.version,
+      limits: {
+        ...defaultConfig.limits,
+        ...parsed.limits
+      },
+      storage: {
+        ...defaultConfig.storage,
+        ...parsed.storage
+      },
+      tags: {
+        ...defaultConfig.tags,
+        ...parsed.tags
+      }
+    };
+    
+    return mergedConfig;
+  } catch {
+    return getDefaultConfiguration();
+  }
+}
+
+function writeConfiguration(repositoryPath: string, config: RepositoryConfiguration): void {
+  const configFile = getConfigurationFile(repositoryPath);
+  ensureDataDir(repositoryPath);
+  const tmp = `${configFile}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(config, null, 2), { encoding: 'utf8' });
+  fs.renameSync(tmp, configFile);
+}
+
+function validateNote(note: Omit<StoredNote, 'id' | 'timestamp'>, config: RepositoryConfiguration): ValidationError[] {
+  const errors: ValidationError[] = [];
+  
+  // Validate anchors are present
+  if (!note.anchors || !Array.isArray(note.anchors) || note.anchors.length === 0) {
+    errors.push({
+      field: 'anchors',
+      message: 'At least one anchor path is required',
+      actual: 0
+    });
+  }
+  
+  // Validate note length
+  if (note.note.length > config.limits.noteMaxLength) {
+    errors.push({
+      field: 'note',
+      message: `Note content exceeds maximum length of ${config.limits.noteMaxLength} characters`,
+      limit: config.limits.noteMaxLength,
+      actual: note.note.length
+    });
+  }
+  
+  // Validate number of tags
+  if (note.tags.length > config.limits.maxTagsPerNote) {
+    errors.push({
+      field: 'tags',
+      message: `Note has too many tags (${note.tags.length}). Maximum allowed: ${config.limits.maxTagsPerNote}`,
+      limit: config.limits.maxTagsPerNote,
+      actual: note.tags.length
+    });
+  }
+  
+  // Validate against allowed tags if configured
+  if (config.tags?.enforceAllowedTags && config.tags?.allowedTags && config.tags.allowedTags.length > 0) {
+    const allowedTags = config.tags.allowedTags;
+    const invalidTags = note.tags.filter(tag => !allowedTags.includes(tag));
+    if (invalidTags.length > 0) {
+      errors.push({
+        field: 'tags',
+        message: `The following tags are not in the allowed tags list: ${invalidTags.join(', ')}. Allowed tags are: ${allowedTags.join(', ')}`
+      });
+    }
+  }
+  
+  // Validate number of anchors (only if anchors exist)
+  if (note.anchors && note.anchors.length > config.limits.maxAnchorsPerNote) {
+    errors.push({
+      field: 'anchors',
+      message: `Note has too many anchors (${note.anchors.length}). Maximum allowed: ${config.limits.maxAnchorsPerNote}`,
+      limit: config.limits.maxAnchorsPerNote,
+      actual: note.anchors.length
+    });
+  }
+  
+  return errors;
 }
 
 function ensureDataDir(repositoryPath: string): void {
@@ -42,10 +214,9 @@ function ensureDataDir(repositoryPath: string): void {
   }
 }
 
-function readAllNotes(repositoryPath: string): StoredNote[] {
+function readAllNotesFromLegacyFile(repositoryPath: string): StoredNote[] {
   try {
     const notesFile = getNotesFile(repositoryPath);
-    ensureDataDir(repositoryPath);
     if (!fs.existsSync(notesFile)) {
       return [];
     }
@@ -60,18 +231,135 @@ function readAllNotes(repositoryPath: string): StoredNote[] {
   }
 }
 
-function writeAllNotes(repositoryPath: string, notes: StoredNote[]): void {
-  const notesFile = getNotesFile(repositoryPath);
-  ensureDataDir(repositoryPath);
-  const payload: NotesFileSchema = { version: 1, notes };
-  const tmp = `${notesFile}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify(payload, null, 2), { encoding: 'utf8' });
-  fs.renameSync(tmp, notesFile);
+function readAllNotes(repositoryPath: string): StoredNote[] {
+  try {
+    ensureDataDir(repositoryPath);
+    const notesDir = getNotesDir(repositoryPath);
+    
+    // Check if migration is needed
+    const legacyFile = getNotesFile(repositoryPath);
+    if (fs.existsSync(legacyFile)) {
+      migrateNotesToFiles(repositoryPath);
+    }
+    
+    // Read all notes from individual files
+    const notes: StoredNote[] = [];
+    
+    if (!fs.existsSync(notesDir)) {
+      return [];
+    }
+    
+    // Recursively read all .json files in the notes directory
+    const readNotesRecursive = (dir: string): void => {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          readNotesRecursive(fullPath);
+        } else if (entry.isFile() && entry.name.endsWith('.json')) {
+          try {
+            const noteContent = fs.readFileSync(fullPath, 'utf8');
+            const note = JSON.parse(noteContent) as StoredNote;
+            if (note && typeof note === 'object' && note.id) {
+              notes.push(note);
+            }
+          } catch {
+            // Skip invalid note files
+          }
+        }
+      }
+    };
+    
+    readNotesRecursive(notesDir);
+    return notes;
+  } catch {
+    return [];
+  }
+}
+
+function writeNoteToFile(repositoryPath: string, note: StoredNote): void {
+  ensureNotesDir(repositoryPath, note.timestamp);
+  const notePath = getNoteFilePath(repositoryPath, note.id, note.timestamp);
+  const tmp = `${notePath}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(note, null, 2), { encoding: 'utf8' });
+  fs.renameSync(tmp, notePath);
+}
+
+function deleteNoteFile(repositoryPath: string, note: StoredNote): void {
+  const notePath = getNoteFilePath(repositoryPath, note.id, note.timestamp);
+  if (fs.existsSync(notePath)) {
+    fs.unlinkSync(notePath);
+  }
+}
+
+function migrateNotesToFiles(repositoryPath: string): void {
+  const legacyFile = getNotesFile(repositoryPath);
+  if (!fs.existsSync(legacyFile)) {
+    return;
+  }
+  
+  try {
+    const legacyNotes = readAllNotesFromLegacyFile(repositoryPath);
+    
+    // Write each note to its own file
+    for (const note of legacyNotes) {
+      writeNoteToFile(repositoryPath, note);
+    }
+    
+    // Backup and remove the legacy file
+    const backupPath = `${legacyFile}.backup-${Date.now()}`;
+    fs.renameSync(legacyFile, backupPath);
+  } catch (error) {
+    console.error('Failed to migrate notes to individual files:', error);
+  }
 }
 
 export function saveNote(note: Omit<StoredNote, 'id' | 'timestamp'> & { directoryPath: string }): StoredNote {
-  const repoRoot = normalizeRepositoryPath(note.directoryPath);
-  const originalDirPath = path.resolve(note.directoryPath);
+  // Validate that directoryPath is absolute
+  if (!path.isAbsolute(note.directoryPath)) {
+    throw new Error(
+      `directoryPath must be an absolute path to a git repository root. ` +
+      `Received relative path: "${note.directoryPath}". ` +
+      `Please provide the full absolute path to the repository root directory.`
+    );
+  }
+  
+  // Validate that directoryPath exists
+  if (!fs.existsSync(note.directoryPath)) {
+    throw new Error(
+      `directoryPath does not exist: "${note.directoryPath}". ` +
+      `Please provide a valid absolute path to an existing git repository root.`
+    );
+  }
+  
+  // Validate that directoryPath is a git repository root (has .git directory)
+  const gitDir = path.join(note.directoryPath, '.git');
+  if (!fs.existsSync(gitDir)) {
+    throw new Error(
+      `directoryPath is not a git repository root: "${note.directoryPath}". ` +
+      `The directory must contain a .git folder. ` +
+      `Please provide the absolute path to the root of your git repository.`
+    );
+  }
+  
+  const repoRoot = note.directoryPath; // Use the validated path directly
+  const originalDirPath = note.directoryPath;
+  
+  // Load configuration and validate the note
+  const config = readConfiguration(repoRoot);
+  const { directoryPath, ...noteWithoutDirectoryPath } = note;
+  
+  // Validate the note before processing
+  const validationErrors = validateNote(noteWithoutDirectoryPath, config);
+  if (validationErrors.length > 0) {
+    const errorMessages = validationErrors.map(err => err.message).join('; ');
+    throw new Error(`Note validation failed: ${errorMessages}`);
+  }
+  
+  // Validate that anchors exist and are not empty
+  if (!note.anchors || !Array.isArray(note.anchors) || note.anchors.length === 0) {
+    throw new Error('Note validation failed: At least one anchor path is required');
+  }
   
   // Normalize anchors to be relative paths to the repository root
   const normalizedAnchors = note.anchors.map(anchor => {
@@ -89,16 +377,15 @@ export function saveNote(note: Omit<StoredNote, 'id' | 'timestamp'> & { director
     }
   });
   
-  const existing = readAllNotes(repoRoot);
-  const { directoryPath, ...noteWithoutDirectoryPath } = note;
   const saved: StoredNote = { 
     ...noteWithoutDirectoryPath, 
     anchors: normalizedAnchors, // Use normalized anchors
     id: `note-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`, 
     timestamp: Date.now() 
   };
-  existing.push(saved);
-  writeAllNotes(repoRoot, existing);
+  
+  // Write the note to its own file
+  writeNoteToFile(repoRoot, saved);
   return saved;
 }
 
@@ -205,6 +492,169 @@ export function getSuggestedTagsForPath(targetPath: string): Array<{ name: strin
   return suggestions;
 }
 
+export interface MigrationResult {
+  success: boolean;
+  migrated: boolean;
+  notesCount?: number;
+  backupPath?: string;
+  error?: string;
+  message: string;
+}
+
+export function migrateNotesIfNeeded(repositoryPath: string): boolean {
+  const legacyFile = getNotesFile(repositoryPath);
+  if (fs.existsSync(legacyFile)) {
+    migrateNotesToFiles(repositoryPath);
+    return true;
+  }
+  return false;
+}
+
+export function migrateRepository(repositoryPath: string, options?: { force?: boolean; verbose?: boolean }): MigrationResult {
+  const repoRoot = normalizeRepositoryPath(repositoryPath);
+  const legacyFile = getNotesFile(repoRoot);
+  const notesDir = getNotesDir(repoRoot);
+  
+  // Check if already migrated
+  if (!fs.existsSync(legacyFile) && fs.existsSync(notesDir)) {
+    const noteCount = countNotesInDirectory(notesDir);
+    return {
+      success: true,
+      migrated: false,
+      notesCount: noteCount,
+      message: `Repository already migrated. Found ${noteCount} notes in file-based storage.`
+    };
+  }
+  
+  // Check if legacy file exists
+  if (!fs.existsSync(legacyFile)) {
+    return {
+      success: true,
+      migrated: false,
+      message: 'No legacy notes file found. Repository is using file-based storage.'
+    };
+  }
+  
+  // Check if migration is already in progress (both exist)
+  if (fs.existsSync(legacyFile) && fs.existsSync(notesDir) && !options?.force) {
+    return {
+      success: false,
+      migrated: false,
+      error: 'Both legacy and new storage exist. Use force option to re-migrate.',
+      message: 'Migration may be incomplete. Use --force to retry migration.'
+    };
+  }
+  
+  try {
+    const legacyNotes = readAllNotesFromLegacyFile(repoRoot);
+    const noteCount = legacyNotes.length;
+    
+    if (options?.verbose) {
+      console.log(`Found ${noteCount} notes to migrate`);
+    }
+    
+    // Write each note to its own file
+    let migrated = 0;
+    for (const note of legacyNotes) {
+      writeNoteToFile(repoRoot, note);
+      migrated++;
+      if (options?.verbose && migrated % 10 === 0) {
+        console.log(`  Migrated ${migrated}/${noteCount} notes...`);
+      }
+    }
+    
+    // Get configuration for backup settings
+    const config = readConfiguration(repoRoot);
+    let backupPath: string | undefined;
+    
+    if (config.storage.backupOnMigration) {
+      // Backup the legacy file
+      backupPath = `${legacyFile}.backup-${Date.now()}`;
+      fs.renameSync(legacyFile, backupPath);
+    } else {
+      // Just remove the legacy file
+      fs.unlinkSync(legacyFile);
+    }
+    
+    return {
+      success: true,
+      migrated: true,
+      notesCount: noteCount,
+      backupPath,
+      message: `Successfully migrated ${noteCount} notes to file-based storage.${backupPath ? ` Backup saved to ${path.basename(backupPath)}` : ''}`
+    };
+  } catch (error) {
+    return {
+      success: false,
+      migrated: false,
+      error: error instanceof Error ? error.message : String(error),
+      message: `Migration failed: ${error instanceof Error ? error.message : String(error)}`
+    };
+  }
+}
+
+function countNotesInDirectory(notesDir: string): number {
+  let count = 0;
+  
+  const countRecursive = (dir: string): void => {
+    if (!fs.existsSync(dir)) return;
+    
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        countRecursive(fullPath);
+      } else if (entry.isFile() && entry.name.endsWith('.json')) {
+        count++;
+      }
+    }
+  };
+  
+  countRecursive(notesDir);
+  return count;
+}
+
+export function getRepositoryConfiguration(repositoryPath: string): RepositoryConfiguration {
+  const repoRoot = normalizeRepositoryPath(repositoryPath);
+  return readConfiguration(repoRoot);
+}
+
+export function updateRepositoryConfiguration(repositoryPath: string, config: {
+  version?: number;
+  limits?: Partial<RepositoryConfiguration['limits']>;
+  storage?: Partial<RepositoryConfiguration['storage']>;
+  tags?: Partial<RepositoryConfiguration['tags']>;
+}): RepositoryConfiguration {
+  const repoRoot = normalizeRepositoryPath(repositoryPath);
+  const currentConfig = readConfiguration(repoRoot);
+  
+  const updatedConfig: RepositoryConfiguration = {
+    ...currentConfig,
+    ...(config.version !== undefined && { version: config.version }),
+    limits: {
+      ...currentConfig.limits,
+      ...config.limits
+    },
+    storage: {
+      ...currentConfig.storage,
+      ...config.storage
+    },
+    tags: {
+      ...currentConfig.tags,
+      ...config.tags
+    }
+  };
+  
+  writeConfiguration(repoRoot, updatedConfig);
+  return updatedConfig;
+}
+
+export function validateNoteAgainstConfig(note: Omit<StoredNote, 'id' | 'timestamp'>, repositoryPath: string): ValidationError[] {
+  const repoRoot = normalizeRepositoryPath(repositoryPath);
+  const config = readConfiguration(repoRoot);
+  return validateNote(note, config);
+}
+
 export function getRepositoryGuidance(targetPath: string): string | null {
   try {
     const normalizedRepo = normalizeRepositoryPath(targetPath);
@@ -225,4 +675,201 @@ export function getRepositoryGuidance(targetPath: string): string | null {
   } catch {
     return null;
   }
+}
+
+export function getNoteById(repositoryPath: string, noteId: string): StoredNote | null {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const notes = readAllNotes(normalizedRepo);
+  return notes.find(note => note.id === noteId) || null;
+}
+
+export function deleteNoteById(repositoryPath: string, noteId: string): boolean {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const notes = readAllNotes(normalizedRepo);
+  const noteToDelete = notes.find(note => note.id === noteId);
+  
+  if (!noteToDelete) {
+    return false;
+  }
+  
+  deleteNoteFile(normalizedRepo, noteToDelete);
+  return true;
+}
+
+export interface StaleNote {
+  note: StoredNote;
+  staleAnchors: string[];
+  validAnchors: string[];
+}
+
+export interface TagInfo {
+  name: string;
+  description?: string;
+}
+
+export function getAllowedTags(repositoryPath: string): { enforced: boolean; tags: string[] } {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const config = readConfiguration(normalizedRepo);
+  
+  return {
+    enforced: config.tags?.enforceAllowedTags || false,
+    tags: config.tags?.allowedTags || []
+  };
+}
+
+export function checkStaleNotes(repositoryPath: string): StaleNote[] {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const notes = readAllNotes(normalizedRepo);
+  const staleNotes: StaleNote[] = [];
+  
+  for (const note of notes) {
+    const staleAnchors: string[] = [];
+    const validAnchors: string[] = [];
+    
+    for (const anchor of note.anchors) {
+      // Anchors are stored as relative paths to the repo root
+      const anchorPath = path.join(normalizedRepo, anchor);
+      
+      if (fs.existsSync(anchorPath)) {
+        validAnchors.push(anchor);
+      } else {
+        staleAnchors.push(anchor);
+      }
+    }
+    
+    // Only include notes that have at least one stale anchor
+    if (staleAnchors.length > 0) {
+      staleNotes.push({
+        note,
+        staleAnchors,
+        validAnchors
+      });
+    }
+  }
+  
+  return staleNotes;
+}
+
+function getTagsDirectory(repositoryPath: string): string {
+  return path.join(getRepositoryDataDir(repositoryPath), 'tags');
+}
+
+function getTagsFile(repositoryPath: string): string {
+  return path.join(getRepositoryDataDir(repositoryPath), 'tags.json');
+}
+
+export function getTagDescriptions(repositoryPath: string): Record<string, string> {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const tagsDir = getTagsDirectory(normalizedRepo);
+  const descriptions: Record<string, string> = {};
+  
+  // Read from the markdown files
+  if (fs.existsSync(tagsDir)) {
+    try {
+      const files = fs.readdirSync(tagsDir);
+      for (const file of files) {
+        if (file.endsWith('.md')) {
+          const tagName = file.slice(0, -3); // Remove .md extension
+          const filePath = path.join(tagsDir, file);
+          try {
+            const content = fs.readFileSync(filePath, 'utf8');
+            descriptions[tagName] = content.trim();
+          } catch (error) {
+            console.error(`Error reading tag description for ${tagName}:`, error);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error reading tags directory:', error);
+    }
+  }
+  
+  return descriptions;
+}
+
+export function saveTagDescription(
+  repositoryPath: string,
+  tag: string,
+  description: string
+): void {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const config = readConfiguration(normalizedRepo);
+  
+  // Check description length against tagDescriptionMaxLength
+  if (description.length > config.limits.tagDescriptionMaxLength) {
+    throw new Error(
+      `Tag description exceeds maximum length of ${config.limits.tagDescriptionMaxLength} characters. ` +
+      `Current length: ${description.length}`
+    );
+  }
+  
+  // Ensure .a24z/tags directory exists
+  ensureDataDir(normalizedRepo);
+  const tagsDir = getTagsDirectory(normalizedRepo);
+  if (!fs.existsSync(tagsDir)) {
+    fs.mkdirSync(tagsDir, { recursive: true });
+  }
+  
+  // Write the description to a markdown file
+  const tagFile = path.join(tagsDir, `${tag}.md`);
+  const tmp = `${tagFile}.tmp`;
+  fs.writeFileSync(tmp, description, { encoding: 'utf8' });
+  fs.renameSync(tmp, tagFile);
+}
+
+export function deleteTagDescription(repositoryPath: string, tag: string): boolean {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const tagsDir = getTagsDirectory(normalizedRepo);
+  const tagFile = path.join(tagsDir, `${tag}.md`);
+  
+  if (fs.existsSync(tagFile)) {
+    fs.unlinkSync(tagFile);
+    
+    // Clean up empty tags directory
+    if (fs.existsSync(tagsDir)) {
+      const files = fs.readdirSync(tagsDir);
+      if (files.length === 0) {
+        fs.rmdirSync(tagsDir);
+      }
+    }
+    
+    return true;
+  }
+  
+  return false;
+}
+
+export function getTagsWithDescriptions(repositoryPath: string): TagInfo[] {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const config = readConfiguration(normalizedRepo);
+  const descriptions = getTagDescriptions(normalizedRepo);
+  const tags: TagInfo[] = [];
+  
+  // If tag restrictions are enforced, use allowed tags
+  if (config.tags?.enforceAllowedTags && config.tags?.allowedTags && config.tags.allowedTags.length > 0) {
+    for (const tagName of config.tags.allowedTags) {
+      tags.push({
+        name: tagName,
+        description: descriptions[tagName]
+      });
+    }
+  } else {
+    // Otherwise, return all tags that have descriptions
+    for (const [name, description] of Object.entries(descriptions)) {
+      tags.push({ name, description });
+    }
+    
+    // Also include common tags
+    const commonTags = getCommonTags();
+    for (const commonTag of commonTags) {
+      if (!tags.find(t => t.name === commonTag.name)) {
+        tags.push({
+          name: commonTag.name,
+          description: commonTag.description
+        });
+      }
+    }
+  }
+  
+  return tags;
 }

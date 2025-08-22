@@ -38,7 +38,10 @@ describe('GetRepositoryGuidanceTool', () => {
   });
 
   describe('execute', () => {
-    it('should return repository-specific guidance when it exists', async () => {
+    it('should return comprehensive configuration including guidance', async () => {
+      // Create a .git directory to make it a valid repository
+      fs.mkdirSync(path.join(repoDir, '.git'), { recursive: true });
+      
       // Create a repository-specific guidance file
       const a24zDir = path.join(repoDir, '.a24z');
       fs.mkdirSync(a24zDir, { recursive: true });
@@ -50,29 +53,40 @@ describe('GetRepositoryGuidanceTool', () => {
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
-      expect(result.content[0].text).toBe(customGuidance);
+      
+      const text = result.content[0].text as string;
+      // Check for main sections
+      expect(text).toContain('# Repository Note Configuration');
+      expect(text).toContain('## Configuration Limits');
+      expect(text).toContain('## Tag Restrictions');
+      expect(text).toContain('## Note Guidance');
+      expect(text).toContain(customGuidance);
+      expect(text).toContain('## Summary');
     });
 
-    it('should return default guidance when repository-specific guidance does not exist', async () => {
+    it('should show configuration with default guidance when no custom exists', async () => {
+      // Create a .git directory to make it a valid repository
+      fs.mkdirSync(path.join(repoDir, '.git'), { recursive: true });
+      
       const result = await tool.handler({ path: repoDir });
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
-      // Should contain default guidance content
-      expect(result.content[0].text).toContain('Repository Note Guidelines');
-      expect(result.content[0].text).toContain('Architecture Decisions');
-    });
-
-    it('should return default guidance when no repository-specific guidance exists', async () => {
-      // Test without creating any custom guidance - should get default template
-      const result = await tool.handler({ path: repoDir });
-
-      expect(result.content).toHaveLength(1);
-      expect(result.content[0].type).toBe('text');
-      expect(result.content[0].text).toContain('Repository Note Guidelines');
+      
+      const text = result.content[0].text as string;
+      // Should still show configuration sections
+      expect(text).toContain('# Repository Note Configuration');
+      expect(text).toContain('## Configuration Limits');
+      expect(text).toContain('## Tag Restrictions');
+      expect(text).toContain('## Note Guidance');
+      // When no custom guidance exists, it shows the default template
+      expect(text).toContain('Repository Note Guidelines');
     });
 
     it('should work with nested paths within repository', async () => {
+      // Create a .git directory to make it a valid repository
+      fs.mkdirSync(path.join(repoDir, '.git'), { recursive: true });
+      
       // Create a nested directory structure
       const nestedDir = path.join(repoDir, 'src', 'components');
       fs.mkdirSync(nestedDir, { recursive: true });
@@ -87,29 +101,37 @@ describe('GetRepositoryGuidanceTool', () => {
       // Test with nested path
       const result = await tool.handler({ path: nestedDir });
 
-      expect(result.content[0].text).toBe(customGuidance);
+      const text = result.content[0].text as string;
+      expect(text).toContain('# Repository Note Configuration');
+      expect(text).toContain(customGuidance);
     });
 
-    it('should prioritize repository-specific guidance over default', async () => {
-      // Create guidance at repository root
-      const a24zDir = path.join(repoDir, '.a24z');
-      fs.mkdirSync(a24zDir, { recursive: true });
+    it('should include tag descriptions when available', async () => {
+      // Create a .git directory to make it a valid repository
+      fs.mkdirSync(path.join(repoDir, '.git'), { recursive: true });
       
-      const customGuidance = '# Custom Project Guidance\n\nThis should override default.';
-      fs.writeFileSync(path.join(a24zDir, 'note-guidance.md'), customGuidance);
+      // Create tag descriptions as markdown files
+      const a24zDir = path.join(repoDir, '.a24z');
+      const tagsDir = path.join(a24zDir, 'tags');
+      fs.mkdirSync(tagsDir, { recursive: true });
+      
+      fs.writeFileSync(path.join(tagsDir, 'feature.md'), 'New functionality');
+      fs.writeFileSync(path.join(tagsDir, 'bugfix.md'), 'Bug corrections');
 
       const result = await tool.handler({ path: repoDir });
 
-      expect(result.content[0].text).toBe(customGuidance);
-      // Should not contain default template content
-      expect(result.content[0].text).not.toContain('Repository Note Guidelines');
+      const text = result.content[0].text as string;
+      expect(text).toContain('feature');
+      expect(text).toContain('New functionality');
+      expect(text).toContain('bugfix');
+      expect(text).toContain('Bug corrections');
     });
   });
 
   describe('tool metadata', () => {
     it('should have correct name and description', () => {
       expect(tool.name).toBe('get_repository_guidance');
-      expect(tool.description).toBe('Get repository-specific guidance for creating effective notes');
+      expect(tool.description).toBe('Get comprehensive repository configuration including note guidance, tag restrictions, and tag descriptions');
     });
 
     it('should have proper schema structure', () => {

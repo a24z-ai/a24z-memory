@@ -1,0 +1,23 @@
+{
+  "note": "## Data Flow and Component Interaction Architecture\n\nThe a24z-memory tool follows a clean separation of concerns with well-defined data flow between components, making it easy to understand and extend.\n\n**Component hierarchy**:\n```\nMcpServer (top level)\n    ↓\nTools (AskA24zMemory, RepositoryNote, etc.)\n    ↓\nNotesStore (data persistence)\n    ↓\nFile System (.a24z directory)\n```\n\n**Data flow patterns**:\n1. **Tool execution**: MCP request → Tool.handler() → Tool.execute() → NotesStore\n2. **Data retrieval**: Tool → NotesStore.readAllNotes() → File system → Parsed JSON\n3. **Data persistence**: Tool → NotesStore.saveNote() → Atomic file write → .a24z directory\n\n**Key interfaces**:\n- **McpTool**: Defines tool contract with `name`, `description`, `schema`, `execute`\n- **NotesStore**: Provides `saveNote`, `readAllNotes`, `getNotesByAnchors` functions\n- **Path utilities**: Handle repository detection and path normalization\n\n**Cross-cutting concerns**:\n- **Validation**: Zod schemas validate all inputs at tool boundaries\n- **Error handling**: Centralized error handling in BaseTool and NotesStore\n- **Path normalization**: Consistent path handling across all components\n- **Schema conversion**: Zod to JSON Schema conversion for MCP protocol\n\n**Benefits of this architecture**:\n- **Testable**: Each component can be tested in isolation\n- **Extensible**: New tools can be added without modifying existing code\n- **Maintainable**: Clear separation makes debugging easier\n- **Reusable**: Components like NotesStore can be used by multiple tools\n\n**Files involved**:\n- `src/core-mcp/server/McpServer.ts` - Orchestrates components\n- `src/core-mcp/tools/base-tool.ts` - Defines tool interface\n- `src/core-mcp/store/notesStore.ts` - Manages data persistence\n\n**Tags**: architecture, data-flow, components, design",
+  "directoryPath": "/Users/griever/Developer/a24z-Memory",
+  "anchors": [
+    "src/core-mcp/server/McpServer.ts",
+    "src/core-mcp/tools/base-tool.ts",
+    "src/core-mcp/store/notesStore.ts"
+  ],
+  "tags": [
+    "architecture",
+    "data-flow",
+    "components",
+    "design"
+  ],
+  "confidence": "high",
+  "type": "explanation",
+  "metadata": {
+    "toolVersion": "2.0.0",
+    "createdBy": "create_repository_note_tool"
+  },
+  "id": "note-1755662131663-0fbjkoeil",
+  "timestamp": 1755662131663
+}

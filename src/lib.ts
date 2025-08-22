@@ -13,9 +13,28 @@ export {
   getCommonTags,
   getSuggestedTagsForPath,
   getRepositoryGuidance,
+  // Configuration management
+  getRepositoryConfiguration,
+  updateRepositoryConfiguration,
+  getAllowedTags,
+  validateNoteAgainstConfig,
+  // Note management
+  getNoteById,
+  deleteNoteById,
+  checkStaleNotes,
+  // Tag descriptions
+  getTagDescriptions,
+  saveTagDescription,
+  deleteTagDescription,
+  getTagsWithDescriptions,
+  // Types
   type StoredNote,
   type NoteConfidence,
-  type NoteType
+  type NoteType,
+  type RepositoryConfiguration,
+  type ValidationError,
+  type StaleNote,
+  type TagInfo
 } from './core-mcp/store/notesStore';
 
 // Path utilities
@@ -34,7 +53,9 @@ export { RepositoryNoteTool } from './core-mcp/tools/RepositoryNoteTool';
 export { AskA24zMemoryTool } from './core-mcp/tools/AskA24zMemoryTool';
 export { GetRepositoryTagsTool } from './core-mcp/tools/GetRepositoryTagsTool';
 export { GetRepositoryGuidanceTool } from './core-mcp/tools/GetRepositoryGuidanceTool';
-export { CopyGuidanceTemplateTool } from './core-mcp/tools/CopyGuidanceTemplateTool';
+export { CheckStaleNotesTool } from './core-mcp/tools/CheckStaleNotesTool';
+export { DeleteNoteTool } from './core-mcp/tools/DeleteNoteTool';
+export { GetNoteByIdTool } from './core-mcp/tools/GetNoteByIdTool';
 export { BaseTool } from './core-mcp/tools/base-tool';
 
 // Types
@@ -54,9 +75,24 @@ import {
   getUsedTagsForPath as getUsedTagsForPathFunc,
   getSuggestedTagsForPath as getSuggestedTagsForPathFunc,
   getRepositoryGuidance as getRepositoryGuidanceFunc,
+  getRepositoryConfiguration as getRepositoryConfigurationFunc,
+  updateRepositoryConfiguration as updateRepositoryConfigurationFunc,
+  getAllowedTags as getAllowedTagsFunc,
+  validateNoteAgainstConfig as validateNoteAgainstConfigFunc,
+  getNoteById as getNoteByIdFunc,
+  deleteNoteById as deleteNoteByIdFunc,
+  checkStaleNotes as checkStaleNotesFunc,
+  getTagDescriptions as getTagDescriptionsFunc,
+  saveTagDescription as saveTagDescriptionFunc,
+  deleteTagDescription as deleteTagDescriptionFunc,
+  getTagsWithDescriptions as getTagsWithDescriptionsFunc,
   type StoredNote as StoredNoteType,
   type NoteConfidence as NoteConfidenceType,
-  type NoteType as NoteTypeType
+  type NoteType as NoteTypeType,
+  type RepositoryConfiguration as RepositoryConfigurationType,
+  type ValidationError as ValidationErrorType,
+  type StaleNote as StaleNoteType,
+  type TagInfo as TagInfoType
 } from './core-mcp/store/notesStore';
 
 import {
@@ -130,6 +166,88 @@ export class A24zMemory {
    */
   getRepositoryPath(): string {
     return this.repositoryPath;
+  }
+
+  /**
+   * Get the repository configuration
+   */
+  getConfiguration(): RepositoryConfigurationType {
+    return getRepositoryConfigurationFunc(this.repositoryPath);
+  }
+
+  /**
+   * Update the repository configuration
+   */
+  updateConfiguration(config: {
+    version?: number;
+    limits?: Partial<RepositoryConfigurationType['limits']>;
+    storage?: Partial<RepositoryConfigurationType['storage']>;
+    tags?: Partial<RepositoryConfigurationType['tags']>;
+  }): RepositoryConfigurationType {
+    return updateRepositoryConfigurationFunc(this.repositoryPath, config);
+  }
+
+  /**
+   * Get allowed tags configuration
+   */
+  getAllowedTags(): { enforced: boolean; tags: string[] } {
+    return getAllowedTagsFunc(this.repositoryPath);
+  }
+
+  /**
+   * Validate a note against the repository configuration
+   */
+  validateNote(note: Omit<StoredNoteType, 'id' | 'timestamp'>): ValidationErrorType[] {
+    return validateNoteAgainstConfigFunc(note, this.repositoryPath);
+  }
+
+  /**
+   * Get a note by ID
+   */
+  getNoteById(noteId: string): StoredNoteType | null {
+    return getNoteByIdFunc(this.repositoryPath, noteId);
+  }
+
+  /**
+   * Delete a note by ID
+   */
+  deleteNoteById(noteId: string): boolean {
+    return deleteNoteByIdFunc(this.repositoryPath, noteId);
+  }
+
+  /**
+   * Check for notes with stale anchors
+   */
+  checkStaleNotes(): StaleNoteType[] {
+    return checkStaleNotesFunc(this.repositoryPath);
+  }
+
+  /**
+   * Get all tag descriptions
+   */
+  getTagDescriptions(): Record<string, string> {
+    return getTagDescriptionsFunc(this.repositoryPath);
+  }
+
+  /**
+   * Save or update a tag description
+   */
+  saveTagDescription(tag: string, description: string): void {
+    return saveTagDescriptionFunc(this.repositoryPath, tag, description);
+  }
+
+  /**
+   * Delete a tag description
+   */
+  deleteTagDescription(tag: string): boolean {
+    return deleteTagDescriptionFunc(this.repositoryPath, tag);
+  }
+
+  /**
+   * Get all tags with their descriptions
+   */
+  getTagsWithDescriptions(): TagInfoType[] {
+    return getTagsWithDescriptionsFunc(this.repositoryPath);
   }
 }
 
