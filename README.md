@@ -3,6 +3,10 @@
 
 # a24z-memory: Layered Knowledge Architecture
 
+
+[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=a24z-memory&config=eyJjb21tYW5kIjoibnB4IC15IGEyNHotbWVtb3J5In0%3D) [![Install in VS Code](https://img.shields.io/badge/Install%20in%20VS%20Code-0098FF?style=for-the-badge&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%7B%22name%22%3A%22a24z-memory%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22a24z-memory%22%5D%7D)
+[![Documentation](https://img.shields.io/badge/docs-a24z.ai-blue.svg)](https://docs.a24z.ai) 
+
 A retrieval-oriented memory system that prevents knowledge staleness through anchor-based context.
 
 ## The Knowledge Stack
@@ -128,7 +132,12 @@ When working on development tasks, you have access to a a24z-memory MCP server..
 #### create_repository_note
 #### get_repository_tags
 #### get_repository_guidance
-#### copy_guidance_template
+#### get_repository_note
+#### find_similar_notes
+#### merge_notes
+#### check_stale_notes
+#### delete_repository_note
+#### review_duplicates
 
 ### Best Practices
 1. Check existing knowledge before starting work
@@ -140,11 +149,15 @@ When working on development tasks, you have access to a a24z-memory MCP server..
 
 For detailed setup instructions, comprehensive troubleshooting, and complete system prompt examples:
 
-📖 **[Complete AI Agent Integration Guide](./USAGE_GUIDE.md)**
-- ✅ Complete system prompt with all 6 tools
+📖 **[Complete Documentation at docs.a24z.ai](https://docs.a24z.ai)**
+- ✅ Complete system prompt with all 11 tools
 - ✅ IDE-specific setup instructions
 - ✅ Troubleshooting checklist for common issues
 - ✅ Advanced configuration options
+- ✅ API reference and examples
+- ✅ Best practices and advanced usage
+
+📚 **[Local Documentation](./USAGE_GUIDE.md)** - Quick reference for local setup
 
 
 ## Troubleshooting
@@ -204,7 +217,12 @@ The MCP server provides these tools:
 - **`create_repository_note`** - Document insights and decisions
 - **`get_repository_tags`** - Manage note categorization tags
 - **`get_repository_guidance`** - Get repository-specific guidance
-- **`copy_guidance_template`** - Copy documentation templates
+- **`get_repository_note`** - Retrieve a specific note by ID
+- **`find_similar_notes`** - Find notes with similar content to avoid duplication
+- **`merge_notes`** - Combine multiple related notes into a consolidated note
+- **`check_stale_notes`** - Check for notes with stale anchors (file paths that no longer exist)
+- **`delete_repository_note`** - Delete a specific note from the knowledge base
+- **`review_duplicates`** - Analyze the knowledge base to identify duplicate or highly similar notes
 - **`discover_a24z_tools`** - Discover all available tools and capabilities
 
 ## Programmatic use
