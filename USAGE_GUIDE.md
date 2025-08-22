@@ -18,6 +18,11 @@ This is the **comprehensive guide** for connecting your AI agent (Cursor, VS Cod
 ## 🚀 **Quick Start (3 Steps)**
 
 ### 1. Install & Start Server
+
+**One-Click Installation (Recommended for Cursor users):**
+[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=a24z-memory&config=eyJjb21tYW5kIjoibnB4IC15IGEyNHotbWVtb3J5In0%3D)
+
+**Manual Installation:**
 ```bash
 npm install -g a24z-memory
 npx a24z-memory  # Keep this running
@@ -63,6 +68,41 @@ Get available tags for categorizing notes and understand existing categorization
 Get repository-specific guidance for creating effective notes.
 - **path**: **REQUIRED** - Any path within the repository
 
+#### `get_repository_note`
+Retrieve a specific note by its unique ID for detailed information.
+- **noteId**: **REQUIRED** - Unique note ID (e.g., "note-1734567890123-abc123def")
+- **directoryPath**: **REQUIRED** - Repository path (absolute)
+
+#### `check_stale_notes`
+Check for notes with stale anchors (file paths that no longer exist) in a repository.
+- **directoryPath**: **REQUIRED** - Repository path (absolute)
+
+#### `delete_note`
+Delete a specific note from the knowledge base.
+- **noteId**: **REQUIRED** - Unique note ID to delete
+- **directoryPath**: **REQUIRED** - Repository path (absolute)
+
+#### `find_similar_notes`
+Find notes with similar content to avoid duplication and discover related information.
+- **query**: (Optional) Search query for similar content
+- **content**: (Optional) Content to compare similarity against
+- **directoryPath**: **REQUIRED** - Repository path (absolute)
+- **limit**: (Optional) Maximum number of results
+- **minSimilarity**: (Optional) Minimum similarity score (0-1)
+
+#### `merge_notes`
+Combine multiple related notes into a comprehensive note.
+- **noteIds**: **REQUIRED** - Array of note IDs to merge
+- **directoryPath**: **REQUIRED** - Repository path (absolute)
+- **newNote**: **REQUIRED** - Content for the merged note
+- **deleteOriginals**: (Optional) Whether to delete original notes
+
+#### `review_duplicates`
+Analyze the knowledge base to identify duplicate or highly similar notes.
+- **directoryPath**: **REQUIRED** - Repository path to analyze
+- **similarityThreshold**: (Optional) Similarity threshold (0-1)
+- **groupBy**: (Optional) Group by content or tags
+
 #### `copy_guidance_template`
 Copy note guidance templates to establish documentation standards.
 - **path**: **REQUIRED** - Repository path where template should be copied
@@ -77,6 +117,10 @@ Copy note guidance templates to establish documentation standards.
 4. **Use absolute paths**: Always provide paths starting with `/`
 5. **Document insights**: Use `create_repository_note` after solving problems
 6. **Choose appropriate note types**: Use 'decision' for architecture, 'pattern' for reusable solutions, 'gotcha' for bugs/warnings, 'explanation' for general knowledge
+7. **Maintain knowledge quality**: Use `check_stale_notes` regularly to find outdated references
+8. **Avoid duplication**: Use `find_similar_notes` before creating new content
+9. **Consolidate when needed**: Use `merge_notes` to combine related information
+10. **Clean up duplicates**: Use `review_duplicates` to identify and consolidate similar notes
 ```
 
 ### 3. Test It
@@ -180,6 +224,12 @@ Before using your LLM, verify your system prompt contains:
 ✅ #### create_repository_note
 ✅ #### get_repository_tags
 ✅ #### get_repository_guidance
+✅ #### get_repository_note
+✅ #### check_stale_notes
+✅ #### delete_note
+✅ #### find_similar_notes
+✅ #### merge_notes
+✅ #### review_duplicates
 ✅ #### copy_guidance_template
 
 ✅ ### Best Practices
@@ -313,6 +363,53 @@ Get repository-specific guidance for creating effective notes.
 - **Parameters**:
   - path: **REQUIRED** - Any path within the repository
 
+#### get_repository_note
+Retrieve a specific note by its unique ID for detailed information.
+
+- **Parameters**:
+  - noteId: **REQUIRED** - Unique note ID (e.g., "note-1734567890123-abc123def")
+  - directoryPath: **REQUIRED** - Repository path (absolute)
+
+#### check_stale_notes
+Check for notes with stale anchors (file paths that no longer exist) in a repository.
+
+- **Parameters**:
+  - directoryPath: **REQUIRED** - Repository path (absolute)
+
+#### delete_note
+Delete a specific note from the knowledge base.
+
+- **Parameters**:
+  - noteId: **REQUIRED** - Unique note ID to delete
+  - directoryPath: **REQUIRED** - Repository path (absolute)
+
+#### find_similar_notes
+Find notes with similar content to avoid duplication and discover related information.
+
+- **Parameters**:
+  - query: (Optional) Search query for similar content
+  - content: (Optional) Content to compare similarity against
+  - directoryPath: **REQUIRED** - Repository path (absolute)
+  - limit: (Optional) Maximum number of results
+  - minSimilarity: (Optional) Minimum similarity score (0-1)
+
+#### merge_notes
+Combine multiple related notes into a comprehensive note.
+
+- **Parameters**:
+  - noteIds: **REQUIRED** - Array of note IDs to merge
+  - directoryPath: **REQUIRED** - Repository path (absolute)
+  - newNote: **REQUIRED** - Content for the merged note
+  - deleteOriginals: (Optional) Whether to delete original notes
+
+#### review_duplicates
+Analyze the knowledge base to identify duplicate or highly similar notes.
+
+- **Parameters**:
+  - directoryPath: **REQUIRED** - Repository path to analyze
+  - similarityThreshold: (Optional) Similarity threshold (0-1)
+  - groupBy: (Optional) Group by content or tags
+
 #### copy_guidance_template
 Copy note guidance templates to establish documentation standards.
 
@@ -327,6 +424,10 @@ Copy note guidance templates to establish documentation standards.
 2. Check for existing notes first: Use askA24zMemory before starting work
 3. Use absolute paths: Always provide paths starting with /
 4. Document learnings: Use create_repository_note after solving problems
+5. Maintain knowledge quality: Use check_stale_notes regularly to find outdated references
+6. Avoid duplication: Use find_similar_notes before creating new content
+7. Consolidate when needed: Use merge_notes to combine related information
+8. Clean up duplicates: Use review_duplicates to identify and consolidate similar notes
 ```
 
 ---
@@ -367,6 +468,12 @@ npx a24z-memory
 # - create_repository_note
 # - get_repository_tags
 # - get_repository_guidance
+# - get_repository_note
+# - check_stale_notes
+# - delete_note
+# - find_similar_notes
+# - merge_notes
+# - review_duplicates
 # - copy_guidance_template
 # - discover_a24z_tools
 ```

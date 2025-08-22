@@ -1,0 +1,76 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "A24z Memory MCP Server",
+  "description": "AI-native documentation for the A24z Memory MCP server",
+  "colors": {
+    "primary": "#3B82F6",
+    "light": "#F8FAFC",
+    "dark": "#0F172A"
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "icon": "book",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "index",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Usage Guide",
+            "pages": [
+              "usage/ai-agent-integration",
+              "usage/tools-overview",
+              "usage/best-practices"
+            ]
+          },
+          {
+            "group": "API Reference",
+            "pages": [
+              "api/askA24zMemory",
+              "api/create-repository-note",
+              "api/get-repository-tags",
+              "api/get-repository-guidance",
+              "api/check-stale-notes",
+              "api/discover-tools",
+              "api/get-note-by-id",
+              "api/delete-note",
+              "api/find-similar-notes",
+              "api/merge-notes",
+              "api/review-duplicates"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/a24z-ai/a24z-memory"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Get Started",
+      "href": "https://mintlify.com"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/a24z-ai/a24z-memory"
+    }
+  },
+  "integrations": {
+    "ga4": {
+      "measurementId": "G-EXAMPLE"
+    }
+  }
+}

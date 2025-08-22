@@ -1,0 +1,251 @@
+---
+title: "get_repository_tags"
+description: "Discover available tags for categorizing notes in the repository"
+---
+
+# get_repository_tags
+
+Get available tags and guidance for categorizing repository notes. This tool helps maintain consistency in tagging across the project.
+
+## Overview
+
+The `get_repository_tags` tool provides information about available tags for categorizing notes, along with repository-specific guidance on tagging practices.
+
+<RequestExample>
+```json
+{
+  "path": "/src/components/Button.tsx",
+  "includeUsedTags": true,
+  "includeSuggestedTags": true,
+  "includeGuidance": true
+}
+```
+</RequestExample>
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `path` | string | Yes | File or directory path to get tags for |
+| `includeUsedTags` | boolean | No | Include tags already used in this repository (default: true) |
+| `includeSuggestedTags` | boolean | No | Include AI-suggested tags based on file path (default: true) |
+| `includeGuidance` | boolean | No | Include repository-specific tagging guidance (default: true) |
+
+## Response Format
+
+### Complete Response
+```json
+{
+  "success": true,
+  "repositoryPath": "/Users/project/my-app",
+  "usedTags": {
+    "architecture": {
+      "description": "System design decisions and architectural patterns",
+      "usage_count": 15
+    },
+    "authentication": {
+      "description": "Login, security, and user management",
+      "usage_count": 8
+    },
+    "performance": {
+      "description": "Optimization and performance improvements",
+      "usage_count": 12
+    }
+  },
+  "suggestedTags": [
+    {
+      "tag": "react",
+      "description": "React-specific patterns and components",
+      "confidence": 0.95,
+      "reason": "File path contains .tsx extension"
+    },
+    {
+      "tag": "ui-components",
+      "description": "Reusable UI components and design system",
+      "confidence": 0.87,
+      "reason": "Located in components directory"
+    },
+    {
+      "tag": "styling",
+      "description": "CSS, styling, and visual design",
+      "confidence": 0.76,
+      "reason": "Component file likely involves styling"
+    }
+  ],
+  "guidance": {
+    "taggingBestPractices": "Use specific tags rather than generic ones. Prefer 'react-hooks' over 'code'.",
+    "commonTagPatterns": "Combine technology tags with purpose tags (e.g., 'react' + 'forms' + 'validation').",
+    "repositorySpecific": "This project uses 'micro-frontend' tag for module federation topics."
+  }
+}
+```
+
+### Minimal Response
+```json
+{
+  "success": true,
+  "repositoryPath": "/Users/project/my-app",
+  "usedTags": {
+    "database": { "description": "Database operations and schemas", "usage_count": 5 }
+  },
+  "suggestedTags": [],
+  "guidance": null
+}
+```
+
+## Tag Categories
+
+### Common Tag Types
+
+#### Technology Stack
+- `react`, `vue`, `angular` - Frontend frameworks
+- `nodejs`, `python`, `java` - Backend languages
+- `postgresql`, `mongodb`, `redis` - Database technologies
+- `docker`, `kubernetes` - Infrastructure tools
+
+#### Architecture & Design
+- `architecture` - System design decisions
+- `microservices`, `micro-frontends` - Architectural patterns
+- `api-design` - API structure and conventions
+- `security` - Authentication and authorization
+
+#### Development Practices
+- `testing` - Unit, integration, and e2e testing
+- `performance` - Optimization and performance tuning
+- `error-handling` - Exception handling patterns
+- `logging` - Logging and monitoring strategies
+
+#### Business Domains
+- `authentication`, `authorization` - User management
+- `payments`, `billing` - Financial operations
+- `notifications` - Email, SMS, push notifications
+- `analytics` - Data tracking and reporting
+
+## Best Practices
+
+### Tag Selection Guidelines
+
+1. **Be Specific**: Use `react-hooks` instead of `code`
+2. **Use Multiple Tags**: Combine technology + purpose (e.g., `react` + `forms` + `validation`)
+3. **Follow Repository Conventions**: Check existing patterns in your project
+4. **Consider Future Search**: Think about how others will search for this information
+
+### Effective Tagging Examples
+
+```
+❌ Bad: ["code", "stuff", "frontend"]
+✅ Good: ["react", "forms", "validation", "typescript"]
+```
+
+```
+❌ Bad: ["api"]
+✅ Good: ["api-design", "rest", "authentication", "error-handling"]
+```
+
+## Usage Examples
+
+### Example 1: New Component Development
+```json
+{
+  "path": "/src/components/UserProfile.tsx",
+  "includeUsedTags": true,
+  "includeSuggestedTags": true
+}
+```
+
+**Suggested Tags:**
+- `react` - React component
+- `ui-components` - Reusable UI component
+- `user-management` - User-related functionality
+- `typescript` - TypeScript implementation
+
+### Example 2: API Development
+```json
+{
+  "path": "/src/api/userService.ts",
+  "includeUsedTags": true,
+  "includeSuggestedTags": true
+}
+```
+
+**Suggested Tags:**
+- `api` - API-related functionality
+- `user-management` - User operations
+- `typescript` - TypeScript implementation
+- `error-handling` - API error management
+
+### Example 3: Database Operations
+```json
+{
+  "path": "/src/database/migrations",
+  "includeUsedTags": true,
+  "includeSuggestedTags": true
+}
+```
+
+**Suggested Tags:**
+- `database` - Database operations
+- `migrations` - Schema migrations
+- `postgresql` - Database technology
+- `data-modeling` - Data structure design
+
+## Integration with AI Agents
+
+AI agents should use this tool when:
+
+1. **Creating new notes** - To ensure consistent tagging
+2. **Searching for information** - To understand available tag filters
+3. **Understanding project structure** - To learn about technology stack and conventions
+
+## Repository-Specific Guidance
+
+The tool can provide custom guidance based on `.a24z-memory.json` configuration:
+
+```json
+{
+  "tags": {
+    "micro-frontend": "Module federation and micro-frontend architecture",
+    "shared-components": "Components shared across multiple applications",
+    "feature-flags": "Feature flag implementation and management"
+  },
+  "guidance": {
+    "taggingBestPractices": "Always include technology tags with business domain tags",
+    "commonTagPatterns": "Use 'frontend/backend/shared' prefixes for component location"
+  }
+}
+```
+
+## Error Handling
+
+### Repository Not Found
+```json
+{
+  "success": false,
+  "error": "No Git repository found at the specified path",
+  "suggestion": "Ensure the path is within a Git repository"
+}
+```
+
+### Permission Denied
+```json
+{
+  "success": false,
+  "error": "Permission denied accessing repository",
+  "suggestion": "Check file permissions for the repository directory"
+}
+```
+
+### Invalid Path
+```json
+{
+  "success": false,
+  "error": "Path does not exist or is not accessible",
+  "suggestion": "Verify the file or directory path is correct"
+}
+```
+
+## Related Tools
+
+- **[askA24zMemory](/api/askA24zMemory)** - Query notes with tag filters
+- **[create_repository_note](/api/create-repository-note)** - Create notes with tags
+- **[find_similar_notes](/api/find-similar-notes)** - Find related notes by tags

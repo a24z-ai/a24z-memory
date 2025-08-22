@@ -1,6 +1,6 @@
 {
   "name": "a24z-memory",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "private": false,
   "description": "Standalone a24z Memory MCP server",
   "main": "dist/lib.js",
@@ -37,6 +37,7 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@mintlify/mcp": "^1.1.216",
     "@modelcontextprotocol/sdk": "^1.0.4",
     "zod": "^3.25.76"
   },

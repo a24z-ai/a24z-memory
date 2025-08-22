@@ -21,6 +21,9 @@ import {
   CheckStaleNotesTool,
   DeleteNoteTool,
   GetNoteByIdTool,
+  ReviewDuplicatesTool,
+  FindSimilarNotesTool,
+  MergeNotesTool,
 } from '../tools';
 import { McpServerConfig, McpTool, McpResource } from '../types';
 
@@ -62,6 +65,9 @@ export class McpServer {
     this.addTool(new CheckStaleNotesTool());
     this.addTool(new DeleteNoteTool());
     this.addTool(new GetNoteByIdTool());
+    this.addTool(new FindSimilarNotesTool());
+    this.addTool(new MergeNotesTool());
+    this.addTool(new ReviewDuplicatesTool());
   }
 
   private setupDefaultResources() {

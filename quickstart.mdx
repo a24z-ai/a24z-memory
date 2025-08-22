@@ -1,0 +1,245 @@
+---
+title: "Quick Start"
+description: "Get up and running with A24z Memory MCP server in minutes"
+---
+
+# Quick Start Guide
+
+Get started with A24z Memory in just a few minutes. This guide will walk you through installation and your first interaction with the knowledge base.
+
+## Prerequisites
+
+Before you begin, ensure you have:
+- **Node.js** (version 18 or higher)
+- An AI coding assistant (Cursor, VS Code, Claude Code, etc.)
+
+## Step 1: Install A24z Memory
+
+### Option A: One-Click Installation (Recommended)
+
+**For Cursor Users:**
+[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=a24z-memory&config=eyJjb21tYW5kIjoibnB4IC15IGEyNHotbWVtb3J5In0%3D)
+
+**For Other Editors:**
+Install directly to your preferred editor:
+
+<Tabs>
+  <Tab title="Cursor">
+    <Card title="Install for Cursor" icon="cursor">
+      ```bash
+      npx a24z-memory install-cursor
+      ```
+      This adds A24z Memory to your Cursor MCP configuration.
+    </Card>
+  </Tab>
+
+  <Tab title="Claude Code">
+    <Card title="Install for Claude" icon="claude">
+      ```bash
+      npx a24z-memory install-claude
+      ```
+      This adds A24z Memory to your Claude configuration.
+    </Card>
+  </Tab>
+</Tabs>
+
+### Option B: Manual Installation
+
+If your editor isn't listed above, you can manually configure A24z Memory:
+
+1. **Create or edit your MCP configuration file:**
+
+   **Cursor**: `~/.cursor/mcp.json`
+   **Claude**: `~/.claude.json` or `~/.config/claude/config.json`
+   **Other editors**: Check your editor's MCP documentation
+
+2. **Add the A24z Memory configuration:**
+
+   ```json
+   {
+     "mcpServers": {
+       "a24z-memory": {
+         "command": "npx",
+         "args": ["-y", "a24z-memory"]
+       }
+     }
+   }
+   ```
+
+3. **Restart your editor** to load the new MCP server.
+
+## Step 2: Configure Your AI Agent
+
+To make A24z Memory tools available to your AI agent, add the following rules to your system prompt or custom instructions:
+
+```markdown
+When working on development tasks, you have access to a a24z-memory MCP server that serves as an expert development guide. Use it proactively to improve code quality and follow best practices.
+
+### Available Tools
+
+#### `discover_a24z_tools`
+Discover all available a24z-Memory tools and their capabilities. Use this to explore all available functions.
+
+#### `askA24zMemory`
+Ask the a24z memory for contextual guidance based on tribal knowledge. This tool retrieves relevant notes and synthesizes an answer.
+- **filePath**: **REQUIRED** - Absolute path to file or directory
+- **query**: **REQUIRED** - Your specific question about the code
+- **taskContext**: (Optional) Additional context about what you're trying to accomplish
+- **filterTags**: (Optional) Filter results by specific tags
+- **filterTypes**: (Optional) Filter by note types: 'decision', 'pattern', 'gotcha', 'explanation'
+
+#### `create_repository_note`
+Store important development insights and decisions for future reference.
+- **note**: **REQUIRED** - The insight or decision to document (Markdown format)
+- **directoryPath**: **REQUIRED** - Repository root path (absolute path starting with /)
+- **anchors**: **REQUIRED** - File/directory paths this note relates to
+- **tags**: **REQUIRED** - An array of semantic tags for categorization
+- **confidence**: (Optional) 'high', 'medium', or 'low'. Default is 'medium'
+- **type**: (Optional) 'decision', 'pattern', 'gotcha', or 'explanation'. Default is 'explanation'
+- **metadata**: (Optional) Additional context
+
+#### `get_repository_tags`
+Get available tags for categorizing notes and understand existing categorization patterns.
+- **path**: **REQUIRED** - File or directory path
+- **includeUsedTags**: (Optional) Include previously used tags. Default is true
+- **includeSuggestedTags**: (Optional) Include path-based tag suggestions. Default is true
+- **includeGuidance**: (Optional) Include repository guidance. Default is true
+
+#### `get_repository_guidance`
+Get repository-specific guidance for creating effective notes.
+- **path**: **REQUIRED** - Any path within the repository
+
+#### `get_repository_note`
+Retrieve a specific note by its unique ID for detailed information.
+- **noteId**: **REQUIRED** - Unique note ID (e.g., "note-1734567890123-abc123def")
+- **directoryPath**: **REQUIRED** - Repository path (absolute)
+
+#### `check_stale_notes`
+Check for notes with stale anchors (file paths that no longer exist) in a repository.
+- **directoryPath**: **REQUIRED** - Repository path (absolute)
+
+#### `delete_note`
+Delete a specific note from the knowledge base.
+- **noteId**: **REQUIRED** - Unique note ID to delete
+- **directoryPath**: **REQUIRED** - Repository path (absolute)
+
+#### `find_similar_notes`
+Find notes with similar content to avoid duplication and discover related information.
+- **query**: (Optional) Search query for similar content
+- **content**: (Optional) Content to compare similarity against
+- **directoryPath**: **REQUIRED** - Repository path (absolute)
+- **limit**: (Optional) Maximum number of results
+- **minSimilarity**: (Optional) Minimum similarity score (0-1)
+
+#### `merge_notes`
+Combine multiple related notes into a comprehensive note.
+- **noteIds**: **REQUIRED** - Array of note IDs to merge
+- **directoryPath**: **REQUIRED** - Repository path (absolute)
+- **newNote**: **REQUIRED** - Content for the merged note
+- **deleteOriginals**: (Optional) Whether to delete original notes
+
+#### `review_duplicates`
+Analyze the knowledge base to identify duplicate or highly similar notes.
+- **directoryPath**: **REQUIRED** - Repository path to analyze
+- **similarityThreshold**: (Optional) Similarity threshold (0-1)
+- **groupBy**: (Optional) Group by content or tags
+
+#### `copy_guidance_template`
+Copy note guidance templates to establish documentation standards.
+- **path**: **REQUIRED** - Repository path where template should be copied
+- **template**: (Optional) Template type: 'default', 'react-typescript', 'nodejs-api', 'python-data-science'
+- **overwrite**: (Optional) Whether to overwrite existing guidance. Default is false
+
+### Best Practices
+
+1. **Discover tools first**: Use `discover_a24z_tools` to understand what's available
+2. **Check existing knowledge**: Use `askA24zMemory` before starting work
+3. **Get tags before creating notes**: Use `get_repository_tags` for consistent categorization
+4. **Use absolute paths**: Always provide paths starting with `/`
+5. **Document insights**: Use `create_repository_note` after solving problems
+6. **Choose appropriate note types**: Use 'decision' for architecture, 'pattern' for reusable solutions, 'gotcha' for bugs/warnings, 'explanation' for general knowledge
+7. **Maintain knowledge quality**: Use `check_stale_notes` regularly to find outdated references
+8. **Avoid duplication**: Use `find_similar_notes` before creating new content
+9. **Consolidate when needed**: Use `merge_notes` to combine related information
+10. **Clean up duplicates**: Use `review_duplicates` to identify and consolidate similar notes
+```
+
+<Tip>
+  Save these instructions in your editor's system prompt or custom instructions. Most editors have a setting for this in their preferences or AI configuration section.
+</Tip>
+
+## Step 3: Your First Interaction
+
+Now let's test that everything is working. Open any code file in your project and ask your AI agent to use A24z Memory:
+
+### Example Query
+```
+I just opened this TypeScript file. Can you ask the a24z memory what insights exist about this project or file?
+```
+
+Your AI agent should respond by using the `mcp__a24z-memory__askA24zMemory` tool to query the knowledge base.
+
+### Expected Response
+Since this is a new repository, you'll likely see:
+```
+I've queried the a24z memory for this repository, but there are no notes yet. This is normal for a new project!
+
+Would you like me to help you create your first knowledge entry? For example, I could document:
+- Project setup decisions
+- Coding conventions
+- Architecture patterns
+- Common gotchas
+```
+
+## Step 4: Create Your First Note
+
+Let's create a useful note about your project. Ask your AI agent:
+
+```
+Can you create a note about the project structure and any important conventions I should know?
+```
+
+This will use the `mcp__a24z-memory__create_repository_note` tool to store information for future reference.
+
+## Step 5: Explore More Features
+
+Once you have some notes stored, try these advanced queries:
+
+- **Get repository tags**: Ask what tags are available for categorizing notes
+- **Find similar notes**: Search for existing solutions to similar problems
+- **Repository guidance**: Get help with documentation standards and practices
+
+## Troubleshooting
+
+### "Command not found" error
+Make sure Node.js and npm are installed:
+```bash
+node --version  # Should show v18 or higher
+npm --version
+```
+
+### AI agent doesn't recognize tools
+- Verify the MCP server is running
+- Check that the system prompt includes the tool definitions
+- Restart your editor after configuration changes
+
+### No notes found
+This is expected for new repositories. Start by creating notes about:
+- Project architecture decisions
+- Setup and configuration
+- Important conventions
+- Common patterns or gotchas
+
+## Next Steps
+
+<Card title="Explore the full documentation" icon="book" href="/usage/ai-agent-integration">
+  Learn about advanced usage patterns and best practices.
+</Card>
+
+<Card title="Check the API reference" icon="code" href="/api/askA24zMemory">
+  See all available tools and their parameters.
+</Card>
+
+<Card title="Join the community" icon="users" href="https://github.com/a24z-ai/a24z-memory/discussions">
+  Share your experiences and get help from other users.
+</Card>

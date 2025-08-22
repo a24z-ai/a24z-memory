@@ -1,0 +1,305 @@
+---
+title: "Installation"
+description: "Complete installation guide for A24z Memory MCP server"
+---
+
+# Installation Guide
+
+This guide covers all installation methods for the A24z Memory MCP server across different environments and editors.
+
+## Prerequisites
+
+- **Node.js**: Version 18 or higher
+- **npm**: Usually comes with Node.js
+- **Git**: Required for repository operations
+
+### Checking Prerequisites
+
+```bash
+# Check Node.js version
+node --version  # Should show v18.0.0 or higher
+
+# Check npm version
+npm --version
+
+# Check git version
+git --version
+```
+
+## Quick Install Methods
+
+### For Cursor Users
+
+The fastest way to get started with Cursor:
+
+```bash
+npx a24z-memory install-cursor
+```
+
+This command will:
+- ✅ Install A24z Memory globally
+- ✅ Add configuration to `~/.cursor/mcp.json`
+- ✅ Restart Cursor (if running)
+
+### For Claude Code Users
+
+```bash
+npx a24z-memory install-claude
+```
+
+This command will:
+- ✅ Install A24z Memory globally
+- ✅ Add configuration to `~/.claude.json` or `~/.config/claude/config.json`
+- ✅ Configure for Claude Code usage
+
+## Manual Installation
+
+If your editor isn't supported by the quick install commands, follow these steps:
+
+### Step 1: Install the Package
+
+```bash
+# Install globally via npm
+npm install -g a24z-memory
+
+# Or install via npx (recommended for testing)
+npx a24z-memory --version
+```
+
+### Step 2: Configure Your Editor
+
+#### Cursor Configuration
+
+1. Create or edit `~/.cursor/mcp.json`:
+   ```json
+   {
+     "mcpServers": {
+       "a24z-memory": {
+         "command": "npx",
+         "args": ["-y", "a24z-memory"]
+       }
+     }
+   }
+   ```
+
+2. Restart Cursor to load the configuration.
+
+#### Claude Configuration
+
+1. Create or edit `~/.claude.json` (or `~/.config/claude/config.json`):
+   ```json
+   {
+     "mcpServers": {
+       "a24z-memory": {
+         "command": "npx",
+         "args": ["-y", "a24z-memory"]
+       }
+     }
+   }
+   ```
+
+#### VS Code Configuration
+
+1. Install the MCP extension for VS Code
+2. Add to your VS Code settings:
+   ```json
+   {
+     "mcp.server.a24z-memory": {
+       "command": "npx",
+       "args": ["-y", "a24z-memory"]
+     }
+   }
+   ```
+
+#### Other Editors
+
+For editors like Windsurf, Gemini CLI, or Jules:
+
+1. Create an MCP configuration file (check your editor's documentation)
+2. Add the A24z Memory server:
+   ```json
+   {
+     "mcpServers": {
+       "a24z-memory": {
+         "command": "npx",
+         "args": ["-y", "a24z-memory"]
+       }
+     }
+   }
+   ```
+
+## Configuration Options
+
+### Environment Variables
+
+You can customize A24z Memory behavior with environment variables:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `A24Z_MEMORY_PORT` | Port for the MCP server | Auto-assigned |
+| `A24Z_MEMORY_LOG_LEVEL` | Logging verbosity | `info` |
+| `A24Z_MEMORY_STORAGE_PATH` | Custom storage location | `~/.a24z-memory` |
+
+Example:
+```bash
+A24Z_MEMORY_LOG_LEVEL=debug npx a24z-memory start
+```
+
+### Repository-Specific Configuration
+
+Create `.a24z-memory.json` in your project root:
+
+```json
+{
+  "tags": {
+    "architecture": "System design decisions",
+    "security": "Security-related patterns",
+    "performance": "Performance optimizations",
+    "testing": "Testing strategies"
+  },
+  "guidance": {
+    "noteCreation": "Always include code examples in technical notes",
+    "tagging": "Use specific tags rather than generic ones"
+  }
+}
+```
+
+## Verification
+
+After installation, verify everything is working:
+
+### Test MCP Connection
+
+```bash
+# Test if the server starts correctly
+npx a24z-memory start
+
+# Check version
+npx a24z-memory --version
+```
+
+### Test with Your Editor
+
+1. Open your editor
+2. Create a new file or open an existing one
+3. Ask your AI agent: "Can you check what notes exist for this project?"
+4. Your agent should use the `askA24zMemory` tool
+
+## Troubleshooting Installation Issues
+
+### Permission Errors
+
+If you get permission errors during installation:
+
+```bash
+# Use sudo (not recommended)
+sudo npm install -g a24z-memory
+
+# Or use a Node version manager
+nvm use 18
+npm install -g a24z-memory
+```
+
+### Path Issues
+
+If `npx` can't find the package:
+
+```bash
+# Check npm global path
+npm config get prefix
+
+# Add to PATH if needed
+export PATH="$PATH:$(npm config get prefix)/bin"
+```
+
+### Editor Not Recognizing MCP Server
+
+1. **Restart your editor** completely
+2. **Check the MCP configuration file** syntax
+3. **Verify the server path** is correct:
+   ```bash
+   which npx  # Should show a valid path
+   ```
+4. **Check editor logs** for MCP-related errors
+
+### Node.js Version Issues
+
+If you see Node.js version errors:
+
+```bash
+# Update Node.js to version 18+
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Or using nvm
+nvm install 18
+nvm use 18
+```
+
+## Advanced Installation
+
+### Docker Installation
+
+```dockerfile
+FROM node:18-alpine
+RUN npm install -g a24z-memory
+EXPOSE 3000
+CMD ["a24z-memory", "start"]
+```
+
+```bash
+# Build and run
+docker build -t a24z-memory .
+docker run -p 3000:3000 a24z-memory
+```
+
+### CI/CD Integration
+
+For automated environments:
+
+```yaml
+# GitHub Actions example
+- name: Install A24z Memory
+  run: npm install -g a24z-memory
+
+- name: Start MCP Server
+  run: a24z-memory start &
+```
+
+## Uninstallation
+
+To remove A24z Memory:
+
+```bash
+# Remove globally
+npm uninstall -g a24z-memory
+
+# Remove configuration files
+rm ~/.cursor/mcp.json  # If using Cursor
+rm ~/.claude.json      # If using Claude
+```
+
+## Getting Help
+
+If you encounter issues:
+
+1. **Check the logs**: Run with debug logging
+   ```bash
+   A24Z_MEMORY_LOG_LEVEL=debug npx a24z-memory start
+   ```
+
+2. **GitHub Issues**: [Report bugs](https://github.com/a24z-ai/a24z-memory/issues)
+
+3. **Discussions**: [Ask questions](https://github.com/a24z-ai/a24z-memory/discussions)
+
+4. **Documentation**: Check the troubleshooting sections in the usage guides
+
+## Next Steps
+
+<Card title="Configure your AI agent" icon="bot" href="/usage/ai-agent-integration">
+  Learn how to connect A24z Memory to your AI coding assistant.
+</Card>
+
+<Card title="Create your first note" icon="plus" href="/usage/tools-overview">
+  Start building your project's knowledge base.
+</Card>
