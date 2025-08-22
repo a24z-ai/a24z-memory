@@ -22,6 +22,22 @@ interface TribalNote {
   relevanceScore?: number;
 }
 
+export interface AskMemoryResponse {
+  response: string;
+  metadata: {
+    llmUsed: boolean;
+    llmProvider?: string;
+    notesFound: number;
+    notesUsed: number;
+    filesRead: number;
+    filters: {
+      tags?: string[];
+      types?: string[];
+    };
+  };
+  notes: TribalNote[];
+}
+
 export class AskA24zMemoryTool extends BaseTool {
   public name = 'askA24zMemory';
   public description = 'Search and retrieve tribal knowledge, architectural decisions, patterns, and gotchas from the repository. Use this tool to understand existing context, get guidance on implementation approaches, and avoid repeating past mistakes. Supports filtering by tags and note types for targeted searches.';
@@ -42,19 +58,22 @@ export class AskA24zMemoryTool extends BaseTool {
   
   private llmService: LLMService;
   
-  constructor() {
+  constructor(llmConfig?: any) {
     super();
     // Initialize LLM service with config if available
-    const llmConfig = LLMService.loadConfig();
-    this.llmService = new LLMService(llmConfig);
+    const config = llmConfig || LLMService.loadConfig();
+    this.llmService = new LLMService(config);
   }
 
   async execute(input: z.infer<typeof this.schema>): Promise<McpToolResult> {
+    const result = await this.executeWithMetadata(input);
+    // For MCP tool interface, just return the text response
+    return { content: [{ type: 'text', text: result.response }] };
+  }
+  
+  async executeWithMetadata(input: z.infer<typeof this.schema>): Promise<AskMemoryResponse> {
     const { filePath, query, taskContext, filterTags, filterTypes } = input;
     try {
-      console.error('[AskA24zMemoryTool] DEBUG: current working directory:', process.cwd());
-      console.error('[AskA24zMemoryTool] DEBUG: input filePath:', filePath);
-      console.error('[AskA24zMemoryTool] DEBUG: query:', query);
       
       // Validate that filePath is absolute
       if (!path.isAbsolute(filePath)) {
@@ -68,17 +87,29 @@ export class AskA24zMemoryTool extends BaseTool {
       
       const relevantNotes = await this.fetchRelevantNotes(filePath, query, taskContext, filterTags, filterTypes);
       
-      console.error('[AskA24zMemoryTool] DEBUG: relevantNotes.length:', relevantNotes.length);
       
       if (relevantNotes.length === 0) {
         const filterInfo = this.getFilterDescription(filterTags, filterTypes);
-        return { content: [{ type: 'text', text: this.getNoKnowledgeResponse(filePath, query, filterInfo) }] };
+        return {
+          response: this.getNoKnowledgeResponse(filePath, query, filterInfo),
+          metadata: {
+            llmUsed: false,
+            notesFound: 0,
+            notesUsed: 0,
+            filesRead: 0,
+            filters: {
+              tags: filterTags,
+              types: filterTypes
+            }
+          },
+          notes: []
+        };
       }
-      const response = await this.generateA24zMemoryResponse(query, filePath, taskContext || '', relevantNotes, filterTags, filterTypes);
-      return { content: [{ type: 'text', text: response }] };
+      
+      const result = await this.generateA24zMemoryResponseWithMetadata(query, filePath, taskContext || '', relevantNotes, filterTags, filterTypes);
+      return result;
     } catch (error) {
-      console.error('[AskA24zMemoryTool] DEBUG: error:', error);
-      return { content: [{ type: 'text', text: `Error: ${error instanceof Error ? error.message : 'Unknown'}` }], isError: true };
+      throw error;
     }
   }
 
@@ -94,12 +125,7 @@ export class AskA24zMemoryTool extends BaseTool {
       ? this.defaultConfig.noteFetching.maxNotesPerQuery * 3 
       : this.defaultConfig.noteFetching.maxNotesPerQuery;
     
-    console.error('[AskA24zMemoryTool] DEBUG: fetchLimit:', fetchLimit);
-    console.error('[AskA24zMemoryTool] DEBUG: calling getNotesForPath with filePath:', filePath);
-    
     const notes = getNotesForPath(filePath, true, fetchLimit);
-    
-    console.error('[AskA24zMemoryTool] DEBUG: raw notes.length:', notes.length);
     
     let filteredNotes = notes;
     
@@ -134,6 +160,154 @@ export class AskA24zMemoryTool extends BaseTool {
       }));
   }
 
+  private async generateA24zMemoryResponseWithMetadata(
+    query: string, 
+    filePath: string, 
+    taskContext: string, 
+    notes: TribalNote[],
+    filterTags?: string[],
+    filterTypes?: Array<'decision' | 'pattern' | 'gotcha' | 'explanation'>
+  ): Promise<AskMemoryResponse> {
+    // Try to get repository path for file reading
+    const repoPath = normalizeRepositoryPath(filePath);
+    let filesRead = 0;
+    let llmUsed = false;
+    let llmProvider: string | undefined;
+    
+    // Prepare notes with optional file contents for LLM
+    const notesWithContext = await Promise.all(notes.map(async (n) => {
+      const noteContext = {
+        id: n.id,
+        content: n.content,
+        type: n.context.type,
+        confidence: n.context.confidence,
+        tags: n.tags,
+        anchors: n.anchors,
+        anchorContents: undefined as any
+      };
+      
+      // Only try to read files if LLM config says to include them
+      const llmConfig = LLMService.loadConfig();
+      if (llmConfig?.includeFileContents) {
+        // Limit to first 3 anchors to avoid token explosion
+        const anchorsToRead = n.anchors.slice(0, 3);
+        
+        try {
+          const fileContents = await readAnchorFiles(anchorsToRead, repoPath, {
+            maxFileSize: 5 * 1024,   // 5KB per file
+            maxTotalSize: 15 * 1024, // 15KB total per note
+            maxFiles: 3
+          });
+          
+          filesRead += fileContents.filter(f => !f.error).length;
+          
+          // Select optimal content based on token budget
+          const tokenBudget = Math.floor((llmConfig.fileContentBudget || 2000) / notes.length);
+          const optimal = selectOptimalContent(fileContents, tokenBudget);
+          
+          if (optimal.length > 0) {
+            noteContext.anchorContents = optimal.map(f => ({
+              path: f.path,
+              content: f.content,
+              error: f.error
+            }));
+          }
+        } catch (error) {
+          // If file reading fails, continue without file contents
+          console.error('Failed to read anchor files:', error);
+        }
+      }
+      
+      return noteContext;
+    }));
+    
+    // Try to use LLM service first if available
+    const llmContext: LLMContext = {
+      query,
+      filePath,
+      taskContext: taskContext || undefined,
+      notes: notesWithContext
+    };
+    
+    const llmResponse = await this.llmService.synthesizeNotes(llmContext);
+    
+    let responseText: string;
+    
+    if (llmResponse && llmResponse.content) {
+      llmUsed = true;
+      llmProvider = llmResponse.provider;
+      
+      // Got an LLM-enhanced response - include both synthesis and source notes
+      let enhancedResponse = `🤖 **AI-Enhanced Synthesis** (via ${llmResponse.provider})\n\n`;
+      enhancedResponse += llmResponse.content;
+      enhancedResponse += `\n\n---\n\n📚 **Source Notes Referenced:**\n\n`;
+      
+      // Include the actual notes with their paths for transparency
+      for (let i = 0; i < notes.length; i++) {
+        const note = notes[i];
+        enhancedResponse += `**[Note ${i + 1}]** \`${note.id}\`\n`;
+        enhancedResponse += `📁 Anchored to: ${note.anchors.map(a => `\`${a}\``).join(', ')}\n`;
+        enhancedResponse += `🏷️ Tags: ${note.tags.join(', ')} | Type: ${note.context.type} | Confidence: ${note.context.confidence}\n`;
+        enhancedResponse += `💡 ${note.content}\n\n`;
+      }
+      
+      responseText = enhancedResponse;
+    } else {
+      // Fall back to local synthesis
+      const topNotes = notes.sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0)).slice(0, 5);
+      const tagCounts = new Map<string, number>();
+      for (const n of topNotes) for (const t of n.tags) tagCounts.set(t, (tagCounts.get(t) || 0) + 1);
+      const topTags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([t]) => t);
+      
+      let response = `🎯 **Context-aware guidance for:** ${filePath}\n`;
+      response += `❓ **Your question:** ${query}\n`;
+
+      // Show active filters
+      if (filterTags && filterTags.length > 0) {
+        response += `🏷️ **Tag filters applied:** ${filterTags.join(', ')}\n`;
+      }
+      if (filterTypes && filterTypes.length > 0) {
+        response += `📋 **Type filters applied:** ${filterTypes.join(', ')}\n`;
+      }
+      response += '\n';
+
+      if (topTags.length > 0) {
+        response += `🔑 **Most relevant tags in this area:** ${topTags.join(', ')}\n\n`;
+      }
+
+      if (topNotes.length > 0) {
+        response += `📚 **Found ${notes.length} related notes** (showing top ${topNotes.length}):\n\n`;
+        for (let i = 0; i < topNotes.length; i++) {
+          const n = topNotes[i];
+          response += `**${i + 1}. ${n.context.type.toUpperCase()}** [${n.context.confidence} confidence]\n`;
+          response += `   ${n.content}\n\n`;
+        }
+
+        response += `💡 **Pro tip:** Use this information to guide your implementation. If you discover something new or make a decision, consider documenting it with \`create_repository_note\` so future developers can benefit!\n`;
+      } else {
+        response += `No prior notes found matching criteria. Consider documenting findings once done.`;
+      }
+      
+      responseText = response;
+    }
+    
+    return {
+      response: responseText,
+      metadata: {
+        llmUsed,
+        llmProvider,
+        notesFound: notes.length,
+        notesUsed: Math.min(notes.length, 5), // We use top 5 for local synthesis, all for LLM
+        filesRead,
+        filters: {
+          tags: filterTags,
+          types: filterTypes
+        }
+      },
+      notes
+    };
+  }
+  
   private async generateA24zMemoryResponse(
     query: string, 
     filePath: string, 

@@ -39,8 +39,10 @@ The a24z-memory system uses a flexible configuration approach that keeps your te
     "compressionEnabled": false
   },
   "tags": {
-    "allowedTags": [],
     "enforceAllowedTags": false
+  },
+  "types": {
+    "enforceAllowedTypes": false
   }
 }
 ```
@@ -71,8 +73,14 @@ Optional tag restrictions:
 
 | Field | Default | Description |
 |-------|---------|-------------|
-| `allowedTags` | `[]` | List of allowed tags (when enforced) |
-| `enforceAllowedTags` | `false` | Whether to restrict tags to allowedTags list |
+| `enforceAllowedTags` | `false` | Whether to restrict tags to those with descriptions in `.a24z/tags/` |
+
+#### **Types Section**
+Optional type restrictions:
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `enforceAllowedTypes` | `false` | Whether to restrict types to those with descriptions in `.a24z/types/` |
 
 ## Tag Descriptions (`.a24z/tags/`)
 
@@ -103,6 +111,36 @@ Used for documenting known issues and their workarounds.
 - **Version controlled** - Track changes to tag definitions over time
 - **Easy to edit** - Use any text editor or IDE
 - **Composable** - Each tag has its own file, making it easy to add/remove tags
+
+## Type Descriptions (`.a24z/types/`)
+
+Type descriptions are stored as individual markdown files in the `.a24z/types/` directory. This allows teams to define custom note types beyond the built-in types.
+
+### Example: `.a24z/types/incident.md`
+
+```markdown
+# Incident Type
+
+For documenting production incidents and post-mortems.
+
+## When to Use
+- Production outages and their root causes
+- Performance degradations
+- Security incidents
+- Data corruption events
+
+## Required Information
+- Timeline of events
+- Root cause analysis
+- Remediation steps taken
+- Prevention measures implemented
+```
+
+### Benefits
+- **Custom Types** - Define types specific to your team's needs
+- **Rich Documentation** - Use markdown to explain when and how to use each type
+- **Enforcement** - Optionally restrict notes to only use documented types
+- **Flexibility** - Mix standard types (decision, pattern, gotcha, explanation) with custom ones
 
 ## Note Guidance (`.a24z/note-guidance.md`)
 
@@ -152,8 +190,10 @@ memory.updateConfiguration({
     tagDescriptionMaxLength: 3000
   },
   tags: { 
-    enforceAllowedTags: true,
-    allowedTags: ['bug', 'feature', 'security']
+    enforceAllowedTags: true
+  },
+  types: {
+    enforceAllowedTypes: true
   }
 });
 
@@ -161,6 +201,11 @@ memory.updateConfiguration({
 memory.saveTagDescription('security', '# Security Tag\n\nFor security-related issues...');
 memory.getTagDescriptions(); // Returns all descriptions
 memory.deleteTagDescription('deprecated-tag');
+
+// Manage type descriptions (stored as markdown files)
+memory.saveTypeDescription('incident', '# Incident Type\n\nFor production incidents...');
+memory.getTypeDescriptions(); // Returns all type descriptions
+memory.deleteTypeDescription('deprecated-type');
 ```
 
 ### Via MCP Tools
@@ -182,18 +227,21 @@ memory.deleteTagDescription('deprecated-tag');
 - Include examples of when to use each tag
 - Document any team-specific meanings
 
-### 3. Tag Enforcement (Optional)
+### 3. Tag & Type Enforcement (Optional)
 ```json
 {
   "tags": {
-    "allowedTags": ["bug", "feature", "gotcha", "pattern", "architecture"],
     "enforceAllowedTags": true
+  },
+  "types": {
+    "enforceAllowedTypes": true
   }
 }
 ```
 - Useful for larger teams to maintain consistency
-- Prevents tag proliferation
+- Prevents tag/type proliferation
 - Ensures everyone uses the same vocabulary
+- Tags/types are defined by creating description files in `.a24z/tags/` and `.a24z/types/`
 
 ### 4. Note Guidance
 - Document team-specific practices

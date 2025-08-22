@@ -48,6 +48,31 @@ const tags = memory.getUsedTags();
 
 // Get repository guidance
 const guidance = memory.getGuidance();
+
+// Ask questions with AI synthesis (new!)
+const response = await memory.askMemory({
+  filePath: '/path/to/src/auth.ts',
+  query: 'How is authentication handled in this file?',
+  taskContext: 'I need to add OAuth support',
+  filterTags: ['authentication'],  // Optional: filter by tags
+  filterTypes: ['pattern', 'decision'],  // Optional: filter by types
+  options: {
+    includeFileContents: true,  // Include anchor file contents in LLM context
+    maxNotes: 10,  // Limit number of notes to process
+    llmConfig: {  // Optional: override LLM settings
+      provider: 'ollama',
+      model: 'llama2',
+      endpoint: 'http://localhost:11434'
+    }
+  }
+});
+
+// Response includes metadata about synthesis
+console.log('Response:', response.response);
+console.log('LLM used:', response.metadata.llmUsed);
+console.log('Provider:', response.metadata.llmProvider);
+console.log('Notes found:', response.metadata.notesFound);
+console.log('Files read:', response.metadata.filesRead);
 ```
 
 ### Low-Level API
@@ -165,6 +190,32 @@ Notes are stored in a `.a24z` directory at the repository root:
 - `.a24z/note-guidance.md` - Custom guidance for note creation
 
 ## Advanced Usage
+
+### LLM Configuration
+
+Configure LLM settings for AI-enhanced note synthesis:
+
+```typescript
+// Configure LLM for the instance
+memory.configureLLM({
+  provider: 'ollama',  // 'ollama' | 'openai' | 'none'
+  endpoint: 'http://localhost:11434',
+  model: 'llama2',
+  temperature: 0.3,
+  maxTokens: 1000,
+  includeFileContents: true,  // Include file contents in synthesis
+  fileContentBudget: 2000     // Max tokens for file contents
+});
+
+// Check if LLM is available
+const isAvailable = await memory.isLLMAvailable();
+console.log('LLM available:', isAvailable);
+
+// Use environment variables for configuration
+process.env.A24Z_LLM_PROVIDER = 'ollama';
+process.env.A24Z_LLM_MODEL = 'llama2';
+process.env.A24Z_LLM_ENDPOINT = 'http://localhost:11434';
+```
 
 ### Custom Metadata
 

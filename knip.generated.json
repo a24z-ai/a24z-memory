@@ -1,0 +1,18 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "dist/lib.js",
+    "dist/cli.js"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx,js,jsx}"
+  ],
+  "ignore": [
+    "**/*.test.*",
+    "**/*.spec.*",
+    "dist/**",
+    "lib/**",
+    "build/**"
+  ],
+  "ignoreDependencies": []
+}

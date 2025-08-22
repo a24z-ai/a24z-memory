@@ -32,6 +32,9 @@ export interface RepositoryConfiguration {
   tags?: {
     enforceAllowedTags?: boolean;  // Whether to enforce allowed tags (based on tag descriptions)
   };
+  types?: {
+    enforceAllowedTypes?: boolean;  // Whether to enforce allowed types (based on type descriptions)
+  };
 }
 
 export interface ValidationError {
@@ -100,6 +103,9 @@ function getDefaultConfiguration(): RepositoryConfiguration {
     },
     tags: {
       enforceAllowedTags: false  // Disabled by default
+    },
+    types: {
+      enforceAllowedTypes: false  // Disabled by default
     }
   };
 }
@@ -131,6 +137,10 @@ function readConfiguration(repositoryPath: string): RepositoryConfiguration {
       tags: {
         ...defaultConfig.tags,
         ...parsed.tags
+      },
+      types: {
+        ...defaultConfig.types,
+        ...parsed.types
       }
     };
     
@@ -192,6 +202,18 @@ function validateNote(note: Omit<StoredNote, 'id' | 'timestamp'>, config: Reposi
           message: `The following tags are not allowed: ${invalidTags.join(', ')}. Allowed tags: ${allowedTags.join(', ')}`
         });
       }
+    }
+  }
+  
+  // Validate against allowed types if configured (based on type descriptions)
+  if (config.types?.enforceAllowedTypes) {
+    const typeDescriptions = getTypeDescriptions(normalizedRepo);
+    const allowedTypes = Object.keys(typeDescriptions);
+    if (allowedTypes.length > 0 && !allowedTypes.includes(note.type)) {
+      errors.push({
+        field: 'type',
+        message: `The type "${note.type}" is not allowed. Allowed types: ${allowedTypes.join(', ')}`
+      });
     }
   }
   
@@ -627,6 +649,7 @@ export function updateRepositoryConfiguration(repositoryPath: string, config: {
   limits?: Partial<RepositoryConfiguration['limits']>;
   storage?: Partial<RepositoryConfiguration['storage']>;
   tags?: Partial<RepositoryConfiguration['tags']>;
+  types?: Partial<RepositoryConfiguration['types']>;
 }): RepositoryConfiguration {
   const repoRoot = normalizeRepositoryPath(repositoryPath);
   const currentConfig = readConfiguration(repoRoot);
@@ -645,6 +668,10 @@ export function updateRepositoryConfiguration(repositoryPath: string, config: {
     tags: {
       ...currentConfig.tags,
       ...config.tags
+    },
+    types: {
+      ...currentConfig.types,
+      ...config.types
     }
   };
   
@@ -789,6 +816,10 @@ function getTagsFile(repositoryPath: string): string {
   return path.join(getRepositoryDataDir(repositoryPath), 'tags.json');
 }
 
+function getTypesDirectory(repositoryPath: string): string {
+  return path.join(getRepositoryDataDir(repositoryPath), 'types');
+}
+
 export function getTagDescriptions(repositoryPath: string): Record<string, string> {
   const normalizedRepo = normalizeRepositoryPath(repositoryPath);
   const tagsDir = getTagsDirectory(normalizedRepo);
@@ -905,4 +936,143 @@ export function getTagsWithDescriptions(repositoryPath: string): TagInfo[] {
   }
   
   return tags;
+}
+
+// Type Description Functions
+
+export interface TypeInfo {
+  name: string;
+  description?: string;
+}
+
+export function getTypeDescriptions(repositoryPath: string): Record<string, string> {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const typesDir = getTypesDirectory(normalizedRepo);
+  const descriptions: Record<string, string> = {};
+  
+  // Read from the markdown files
+  if (fs.existsSync(typesDir)) {
+    try {
+      const files = fs.readdirSync(typesDir);
+      for (const file of files) {
+        if (file.endsWith('.md')) {
+          const typeName = file.slice(0, -3); // Remove .md extension
+          const filePath = path.join(typesDir, file);
+          try {
+            const content = fs.readFileSync(filePath, 'utf8');
+            descriptions[typeName] = content.trim();
+          } catch (error) {
+            console.error(`Error reading type description for ${typeName}:`, error);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error reading types directory:', error);
+    }
+  }
+  
+  return descriptions;
+}
+
+export function saveTypeDescription(
+  repositoryPath: string,
+  type: string,
+  description: string
+): void {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const config = readConfiguration(normalizedRepo);
+  
+  // Check description length against tagDescriptionMaxLength (reuse the same limit)
+  if (description.length > config.limits.tagDescriptionMaxLength) {
+    throw new Error(
+      `Type description exceeds maximum length of ${config.limits.tagDescriptionMaxLength} characters. ` +
+      `Current length: ${description.length}`
+    );
+  }
+  
+  // Ensure .a24z/types directory exists
+  ensureDataDir(normalizedRepo);
+  const typesDir = getTypesDirectory(normalizedRepo);
+  if (!fs.existsSync(typesDir)) {
+    fs.mkdirSync(typesDir, { recursive: true });
+  }
+  
+  // Write the description to a markdown file
+  const typeFile = path.join(typesDir, `${type}.md`);
+  const tmp = `${typeFile}.tmp`;
+  fs.writeFileSync(tmp, description, { encoding: 'utf8' });
+  fs.renameSync(tmp, typeFile);
+}
+
+export function deleteTypeDescription(repositoryPath: string, type: string): boolean {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const typesDir = getTypesDirectory(normalizedRepo);
+  const typeFile = path.join(typesDir, `${type}.md`);
+  
+  if (fs.existsSync(typeFile)) {
+    fs.unlinkSync(typeFile);
+    
+    // Clean up empty types directory
+    if (fs.existsSync(typesDir)) {
+      const files = fs.readdirSync(typesDir);
+      if (files.length === 0) {
+        fs.rmdirSync(typesDir);
+      }
+    }
+    
+    return true;
+  }
+  
+  return false;
+}
+
+export function getTypesWithDescriptions(repositoryPath: string): TypeInfo[] {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const descriptions = getTypeDescriptions(normalizedRepo);
+  const types: TypeInfo[] = [];
+  
+  // Return all types that have descriptions (these are the available/allowed types)
+  for (const [name, description] of Object.entries(descriptions)) {
+    types.push({ name, description });
+  }
+  
+  return types;
+}
+
+export function getAllowedTypes(repositoryPath: string): { enforced: boolean; types: string[] } {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const config = readConfiguration(normalizedRepo);
+  const enforced = config.types?.enforceAllowedTypes || false;
+  
+  if (enforced) {
+    // Auto-populate from types directory
+    const typeDescriptions = getTypeDescriptions(normalizedRepo);
+    const types = Object.keys(typeDescriptions);
+    return { enforced, types };
+  }
+  
+  return { enforced, types: [] };
+}
+
+export function addAllowedType(repositoryPath: string, type: string, description?: string): void {
+  // Adding an allowed type means creating a type description
+  const desc = description || `Description for ${type} type`;
+  saveTypeDescription(repositoryPath, type, desc);
+}
+
+export function removeAllowedType(repositoryPath: string, type: string): boolean {
+  // Removing an allowed type means deleting the type description
+  return deleteTypeDescription(repositoryPath, type);
+}
+
+export function setEnforceAllowedTypes(repositoryPath: string, enforce: boolean): void {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const config = readConfiguration(normalizedRepo);
+  
+  if (!config.types) {
+    config.types = { enforceAllowedTypes: false };
+  }
+  
+  config.types.enforceAllowedTypes = enforce;
+  writeConfiguration(normalizedRepo, config);
 }

@@ -30,6 +30,15 @@ export {
   deleteTagDescription,
   getTagsWithDescriptions,
   removeTagFromNotes,
+  // Type descriptions
+  getTypeDescriptions,
+  saveTypeDescription,
+  deleteTypeDescription,
+  getTypesWithDescriptions,
+  getAllowedTypes as getAllowedTypesFunc,
+  addAllowedType as addAllowedTypeFunc,
+  removeAllowedType as removeAllowedTypeFunc,
+  setEnforceAllowedTypes as setEnforceAllowedTypesFunc,
   // Types
   type StoredNote,
   type NoteConfidence,
@@ -37,7 +46,8 @@ export {
   type RepositoryConfiguration,
   type ValidationError,
   type StaleNote,
-  type TagInfo
+  type TagInfo,
+  type TypeInfo
 } from './core-mcp/store/notesStore';
 
 // Note similarity and deduplication
@@ -64,7 +74,7 @@ export { zodToJsonSchema } from './core-mcp/utils/zod-to-json-schema';
 
 // Tool classes for direct use
 export { RepositoryNoteTool } from './core-mcp/tools/RepositoryNoteTool';
-export { AskA24zMemoryTool } from './core-mcp/tools/AskA24zMemoryTool';
+export { AskA24zMemoryTool, type AskMemoryResponse } from './core-mcp/tools/AskA24zMemoryTool';
 export { GetRepositoryTagsTool } from './core-mcp/tools/GetRepositoryTagsTool';
 export { GetRepositoryGuidanceTool } from './core-mcp/tools/GetRepositoryGuidanceTool';
 export { CheckStaleNotesTool } from './core-mcp/tools/CheckStaleNotesTool';
@@ -74,6 +84,9 @@ export { MergeNotesTool } from './core-mcp/tools/MergeNotesTool';
 export { DeleteNoteTool } from './core-mcp/tools/DeleteNoteTool';
 export { ReviewDuplicatesTool } from './core-mcp/tools/ReviewDuplicatesTool';
 export { BaseTool } from './core-mcp/tools/base-tool';
+
+// LLM Service exports
+export { LLMService, type LLMConfig, type LLMContext, type LLMResponse } from './core-mcp/services/llm-service';
 
 // Types
 export type {
@@ -120,11 +133,17 @@ import {
   normalizeRepositoryPath as normalizeRepositoryPathFunc
 } from './core-mcp/utils/pathNormalization';
 
+import { AskA24zMemoryTool, type AskMemoryResponse } from './core-mcp/tools/AskA24zMemoryTool';
+import { LLMService, type LLMConfig } from './core-mcp/services/llm-service';
+
 /**
  * High-level API for easy use
  */
 export class A24zMemory {
   private repositoryPath: string;
+  private llmConfig?: LLMConfig;
+  private askTool?: AskA24zMemoryTool;
+  private llmService?: LLMService;
 
   constructor(repositoryPath?: string) {
     this.repositoryPath = repositoryPath || normalizeRepositoryPathFunc(process.cwd());
@@ -298,6 +317,85 @@ export class A24zMemory {
    */
   getTagsWithDescriptions(): TagInfoType[] {
     return getTagsWithDescriptionsFunc(this.repositoryPath);
+  }
+
+  /**
+   * Ask the a24z memory system a question with enhanced metadata
+   */
+  async askMemory(params: {
+    filePath: string;
+    query: string;
+    taskContext?: string;
+    filterTags?: string[];
+    filterTypes?: Array<'decision' | 'pattern' | 'gotcha' | 'explanation'>;
+    options?: {
+      includeFileContents?: boolean;
+      maxNotes?: number;
+      llmConfig?: LLMConfig;
+    };
+  }): Promise<AskMemoryResponse> {
+    // Create or reuse the ask tool with the appropriate LLM config
+    const llmConfig = params.options?.llmConfig || this.llmConfig;
+    
+    // Recreate the tool if LLM config changed
+    if (!this.askTool || llmConfig !== this.llmConfig) {
+      this.askTool = new AskA24zMemoryTool(llmConfig);
+    }
+    
+    // If includeFileContents is specified, update the config
+    if (params.options?.includeFileContents !== undefined && llmConfig) {
+      const updatedConfig = { ...llmConfig, includeFileContents: params.options.includeFileContents };
+      this.askTool = new AskA24zMemoryTool(updatedConfig);
+    }
+    
+    // Execute with metadata
+    const result = await this.askTool.executeWithMetadata({
+      filePath: params.filePath,
+      query: params.query,
+      taskContext: params.taskContext,
+      filterTags: params.filterTags,
+      filterTypes: params.filterTypes
+    });
+    
+    return result;
+  }
+
+  /**
+   * Configure LLM settings for this instance
+   */
+  configureLLM(config: LLMConfig): void {
+    this.llmConfig = config;
+    this.llmService = new LLMService(config);
+    this.askTool = new AskA24zMemoryTool(config);
+  }
+
+  /**
+   * Check if LLM service is available
+   */
+  async isLLMAvailable(): Promise<boolean> {
+    if (!this.llmService) {
+      // Try to load default config and check
+      const config = LLMService.loadConfig();
+      if (!config || config.provider === 'none') {
+        return false;
+      }
+      this.llmService = new LLMService(config);
+    }
+    
+    // Check if the service is reachable
+    if (this.llmConfig?.provider === 'ollama') {
+      try {
+        const endpoint = this.llmConfig.endpoint || 'http://localhost:11434';
+        const response = await fetch(`${endpoint}/api/tags`, {
+          signal: AbortSignal.timeout(2000)
+        });
+        return response.ok;
+      } catch {
+        return false;
+      }
+    }
+    
+    return false;
   }
 }
 
