@@ -1,6 +1,6 @@
 {
   "name": "a24z-memory",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": false,
   "description": "Standalone a24z Memory MCP server",
   "main": "dist/lib.js",
