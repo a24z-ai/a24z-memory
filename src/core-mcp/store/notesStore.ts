@@ -22,9 +22,8 @@ export interface RepositoryConfiguration {
   limits: {
     noteMaxLength: number;
     maxTagsPerNote: number;
-    maxTagLength: number;
     maxAnchorsPerNote: number;
-    tagDescriptionMaxLength?: number;  // Maximum length for tag descriptions
+    tagDescriptionMaxLength: number;  // Maximum length for tag description markdown files
   };
   storage: {
     backupOnMigration: boolean;
@@ -93,9 +92,8 @@ function getDefaultConfiguration(): RepositoryConfiguration {
     limits: {
       noteMaxLength: 10000,
       maxTagsPerNote: 10,
-      maxTagLength: 50,
       maxAnchorsPerNote: 20,
-      tagDescriptionMaxLength: 500  // Default 500 characters for tag descriptions
+      tagDescriptionMaxLength: 2000  // 2KB limit for tag description markdown files
     },
     storage: {
       backupOnMigration: true,
@@ -181,16 +179,6 @@ function validateNote(note: Omit<StoredNote, 'id' | 'timestamp'>, config: Reposi
       message: `Note has too many tags (${note.tags.length}). Maximum allowed: ${config.limits.maxTagsPerNote}`,
       limit: config.limits.maxTagsPerNote,
       actual: note.tags.length
-    });
-  }
-  
-  // Validate tag lengths
-  const longTags = note.tags.filter(tag => tag.length > config.limits.maxTagLength);
-  if (longTags.length > 0) {
-    errors.push({
-      field: 'tags',
-      message: `Some tags exceed maximum length of ${config.limits.maxTagLength} characters: ${longTags.join(', ')}`,
-      limit: config.limits.maxTagLength
     });
   }
   
@@ -762,31 +750,41 @@ export function checkStaleNotes(repositoryPath: string): StaleNote[] {
   return staleNotes;
 }
 
+function getTagsDirectory(repositoryPath: string): string {
+  return path.join(getRepositoryDataDir(repositoryPath), 'tags');
+}
+
 function getTagsFile(repositoryPath: string): string {
   return path.join(getRepositoryDataDir(repositoryPath), 'tags.json');
 }
 
 export function getTagDescriptions(repositoryPath: string): Record<string, string> {
   const normalizedRepo = normalizeRepositoryPath(repositoryPath);
-  const tagsFile = getTagsFile(normalizedRepo);
+  const tagsDir = getTagsDirectory(normalizedRepo);
+  const descriptions: Record<string, string> = {};
   
-  if (fs.existsSync(tagsFile)) {
+  // Read from the markdown files
+  if (fs.existsSync(tagsDir)) {
     try {
-      const content = fs.readFileSync(tagsFile, 'utf8');
-      const parsed = JSON.parse(content);
-      // Ensure we return a record of strings
-      const descriptions: Record<string, string> = {};
-      for (const [key, value] of Object.entries(parsed)) {
-        if (typeof value === 'string') {
-          descriptions[key] = value;
+      const files = fs.readdirSync(tagsDir);
+      for (const file of files) {
+        if (file.endsWith('.md')) {
+          const tagName = file.slice(0, -3); // Remove .md extension
+          const filePath = path.join(tagsDir, file);
+          try {
+            const content = fs.readFileSync(filePath, 'utf8');
+            descriptions[tagName] = content.trim();
+          } catch (error) {
+            console.error(`Error reading tag description for ${tagName}:`, error);
+          }
         }
       }
-      return descriptions;
-    } catch {
-      return {};
+    } catch (error) {
+      console.error('Error reading tags directory:', error);
     }
   }
-  return {};
+  
+  return descriptions;
 }
 
 export function saveTagDescription(
@@ -796,48 +794,49 @@ export function saveTagDescription(
 ): void {
   const normalizedRepo = normalizeRepositoryPath(repositoryPath);
   const config = readConfiguration(normalizedRepo);
-  const maxLength = config.limits.tagDescriptionMaxLength || 500;
   
-  if (description.length > maxLength) {
+  // Check description length against tagDescriptionMaxLength
+  if (description.length > config.limits.tagDescriptionMaxLength) {
     throw new Error(
-      `Tag description exceeds maximum length of ${maxLength} characters. ` +
+      `Tag description exceeds maximum length of ${config.limits.tagDescriptionMaxLength} characters. ` +
       `Current length: ${description.length}`
     );
   }
   
+  // Ensure .a24z/tags directory exists
   ensureDataDir(normalizedRepo);
-  const descriptions = getTagDescriptions(normalizedRepo);
-  descriptions[tag] = description;
+  const tagsDir = getTagsDirectory(normalizedRepo);
+  if (!fs.existsSync(tagsDir)) {
+    fs.mkdirSync(tagsDir, { recursive: true });
+  }
   
-  const tagsFile = getTagsFile(normalizedRepo);
-  const tmp = `${tagsFile}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify(descriptions, null, 2), { encoding: 'utf8' });
-  fs.renameSync(tmp, tagsFile);
+  // Write the description to a markdown file
+  const tagFile = path.join(tagsDir, `${tag}.md`);
+  const tmp = `${tagFile}.tmp`;
+  fs.writeFileSync(tmp, description, { encoding: 'utf8' });
+  fs.renameSync(tmp, tagFile);
 }
 
 export function deleteTagDescription(repositoryPath: string, tag: string): boolean {
   const normalizedRepo = normalizeRepositoryPath(repositoryPath);
-  const descriptions = getTagDescriptions(normalizedRepo);
+  const tagsDir = getTagsDirectory(normalizedRepo);
+  const tagFile = path.join(tagsDir, `${tag}.md`);
   
-  if (!(tag in descriptions)) {
-    return false;
-  }
-  
-  delete descriptions[tag];
-  
-  const tagsFile = getTagsFile(normalizedRepo);
-  if (Object.keys(descriptions).length === 0) {
-    // Remove the file if no descriptions left
-    if (fs.existsSync(tagsFile)) {
-      fs.unlinkSync(tagsFile);
+  if (fs.existsSync(tagFile)) {
+    fs.unlinkSync(tagFile);
+    
+    // Clean up empty tags directory
+    if (fs.existsSync(tagsDir)) {
+      const files = fs.readdirSync(tagsDir);
+      if (files.length === 0) {
+        fs.rmdirSync(tagsDir);
+      }
     }
-  } else {
-    const tmp = `${tagsFile}.tmp`;
-    fs.writeFileSync(tmp, JSON.stringify(descriptions, null, 2), { encoding: 'utf8' });
-    fs.renameSync(tmp, tagsFile);
+    
+    return true;
   }
   
-  return true;
+  return false;
 }
 
 export function getTagsWithDescriptions(repositoryPath: string): TagInfo[] {
