@@ -37,12 +37,16 @@ describe('Configuration System', () => {
       limits: {
         noteMaxLength: 10000,
         maxTagsPerNote: 10,
-        maxTagLength: 50,
-        maxAnchorsPerNote: 20
+        maxAnchorsPerNote: 20,
+        tagDescriptionMaxLength: 2000
       },
       storage: {
         backupOnMigration: true,
         compressionEnabled: false
+      },
+      tags: {
+        allowedTags: [],
+        enforceAllowedTags: false
       }
     });
     
@@ -56,14 +60,12 @@ describe('Configuration System', () => {
       limits: {
         noteMaxLength: 5000,
         maxTagsPerNote: 5,
-        maxTagLength: 30,
         maxAnchorsPerNote: 10
       }
     });
     
     expect(updatedConfig.limits.noteMaxLength).toBe(5000);
     expect(updatedConfig.limits.maxTagsPerNote).toBe(5);
-    expect(updatedConfig.limits.maxTagLength).toBe(30);
     expect(updatedConfig.limits.maxAnchorsPerNote).toBe(10);
     
     // Verify persistence
@@ -107,25 +109,6 @@ describe('Configuration System', () => {
     };
     
     expect(() => saveNote(manyTagsNote)).toThrow('Note validation failed: Note has too many tags (4). Maximum allowed: 2');
-  });
-
-  it('should validate tag length', () => {
-    // Set a small tag length limit
-    updateRepositoryConfiguration(testRepoPath, {
-      limits: { maxTagLength: 10 }
-    });
-    
-    const longTagNote = {
-      note: 'Test note',
-      anchors: ['test.ts'],
-      tags: ['short', 'this-is-a-very-long-tag-name'],
-      confidence: 'high' as const,
-      type: 'explanation' as const,
-      metadata: {},
-      directoryPath: testRepoPath
-    };
-    
-    expect(() => saveNote(longTagNote)).toThrow('Note validation failed: Some tags exceed maximum length of 10 characters: this-is-a-very-long-tag-name');
   });
 
   it('should validate number of anchors', () => {

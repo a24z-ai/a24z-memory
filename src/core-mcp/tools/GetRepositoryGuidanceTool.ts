@@ -32,9 +32,8 @@ export class GetRepositoryGuidanceTool extends BaseTool {
     output.push('## Configuration Limits');
     output.push(`- Max note length: ${config.limits.noteMaxLength} characters`);
     output.push(`- Max tags per note: ${config.limits.maxTagsPerNote}`);
-    output.push(`- Max tag length: ${config.limits.maxTagLength} characters`);
+    output.push(`- Max tag description length: ${config.limits.tagDescriptionMaxLength} characters`);
     output.push(`- Max anchors per note: ${config.limits.maxAnchorsPerNote}`);
-    output.push(`- Max tag description length: ${config.limits.tagDescriptionMaxLength || 500} characters`);
     output.push('');
     
     // Tag Restrictions
@@ -78,7 +77,7 @@ export class GetRepositoryGuidanceTool extends BaseTool {
     output.push('## Summary');
     output.push('### Files Location');
     output.push('- Configuration: `.a24z/configuration.json`');
-    output.push('- Tag descriptions: `.a24z/tags.json`');
+    output.push('- Tag descriptions: `.a24z/tags/` (individual markdown files)');
     output.push('- Note guidance: `.a24z/note-guidance.md`');
     output.push('- Notes storage: `.a24z/notes/` (organized by year/month)');
     

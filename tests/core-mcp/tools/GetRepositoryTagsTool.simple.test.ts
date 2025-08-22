@@ -12,6 +12,9 @@ describe('GetRepositoryTagsTool (Simple)', () => {
     tool = new GetRepositoryTagsTool();
     fs.mkdirSync(testPath, { recursive: true });
     
+    // Create a .git directory to make it a valid repository
+    fs.mkdirSync(path.join(testPath, '.git'), { recursive: true });
+    
     // Create a package.json to make it look like a proper project root
     fs.writeFileSync(path.join(testPath, 'package.json'), '{}');
   });
@@ -40,7 +43,7 @@ describe('GetRepositoryTagsTool (Simple)', () => {
     const result = await tool.handler({ path: testPath });
     const data = JSON.parse(result.content[0].text!);
     
-    expect(data.usedTags).toContain('custom-tag');
+    expect(data.usedTags.some((tag: any) => tag.name === 'custom-tag')).toBe(true);
   });
 
   it('should suggest tags based on path', async () => {

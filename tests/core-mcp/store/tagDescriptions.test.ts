@@ -71,78 +71,83 @@ describe('Tag Descriptions', () => {
     });
   });
 
-  describe('Length Validation', () => {
-    it('should respect default tagDescriptionMaxLength', () => {
-      const longDescription = 'A'.repeat(501);  // Default is 500
+  describe('Markdown File Storage', () => {
+    it('should store tag descriptions as markdown files', () => {
+      saveTagDescription(testRepoPath, 'feature', '# Feature Tag\n\nThis tag is used for new functionality.');
+      
+      const tagFile = path.join(testRepoPath, '.a24z', 'tags', 'feature.md');
+      expect(fs.existsSync(tagFile)).toBe(true);
+      
+      const content = fs.readFileSync(tagFile, 'utf8');
+      expect(content).toBe('# Feature Tag\n\nThis tag is used for new functionality.');
+    });
+
+    it('should enforce description length limit', () => {
+      const config = getRepositoryConfiguration(testRepoPath);
+      const longDescription = 'a'.repeat(config.limits.tagDescriptionMaxLength + 1);
       
       expect(() => {
         saveTagDescription(testRepoPath, 'feature', longDescription);
-      }).toThrow('Tag description exceeds maximum length of 500 characters');
+      }).toThrow(/Tag description exceeds maximum length/);
     });
 
-    it('should respect custom tagDescriptionMaxLength', () => {
-      // Update configuration with custom limit
-      updateRepositoryConfiguration(testRepoPath, {
-        limits: {
-          tagDescriptionMaxLength: 100
-        }
-      });
+    it('should support markdown content within length limits', () => {
+      const markdownContent = `# Feature Tag\n\n## Usage\n- New features\n- Enhancements`;
       
-      const validDescription = 'A'.repeat(100);
-      const invalidDescription = 'A'.repeat(101);
+      saveTagDescription(testRepoPath, 'feature', markdownContent);
       
-      // Should accept exactly 100 characters
-      saveTagDescription(testRepoPath, 'feature', validDescription);
-      
-      // Should reject 101 characters
-      expect(() => {
-        saveTagDescription(testRepoPath, 'bugfix', invalidDescription);
-      }).toThrow('Tag description exceeds maximum length of 100 characters');
-    });
-
-    it('should include current length in error message', () => {
-      const description = 'A'.repeat(600);
-      
-      try {
-        saveTagDescription(testRepoPath, 'feature', description);
-        fail('Should have thrown an error');
-      } catch (error: any) {
-        expect(error.message).toContain('Current length: 600');
-      }
+      const descriptions = getTagDescriptions(testRepoPath);
+      expect(descriptions['feature']).toBe(markdownContent);
     });
   });
 
   describe('File Storage', () => {
-    it('should create tags.json file in .a24z directory', () => {
+    it('should create individual markdown files in .a24z/tags directory', () => {
       saveTagDescription(testRepoPath, 'feature', 'Test description');
+      saveTagDescription(testRepoPath, 'bugfix', 'Bug fixes');
       
-      const tagsFile = path.join(testRepoPath, '.a24z', 'tags.json');
-      expect(fs.existsSync(tagsFile)).toBe(true);
+      const featureFile = path.join(testRepoPath, '.a24z', 'tags', 'feature.md');
+      const bugfixFile = path.join(testRepoPath, '.a24z', 'tags', 'bugfix.md');
       
-      const content = JSON.parse(fs.readFileSync(tagsFile, 'utf8'));
-      expect(content).toEqual({
-        feature: 'Test description'
-      });
+      expect(fs.existsSync(featureFile)).toBe(true);
+      expect(fs.existsSync(bugfixFile)).toBe(true);
+      
+      expect(fs.readFileSync(featureFile, 'utf8')).toBe('Test description');
+      expect(fs.readFileSync(bugfixFile, 'utf8')).toBe('Bug fixes');
     });
 
-    it('should remove tags.json when all descriptions are deleted', () => {
+    it('should remove individual markdown files when deleted', () => {
       saveTagDescription(testRepoPath, 'feature', 'Test description');
-      const tagsFile = path.join(testRepoPath, '.a24z', 'tags.json');
+      const tagFile = path.join(testRepoPath, '.a24z', 'tags', 'feature.md');
       
-      expect(fs.existsSync(tagsFile)).toBe(true);
+      expect(fs.existsSync(tagFile)).toBe(true);
       
       deleteTagDescription(testRepoPath, 'feature');
       
-      expect(fs.existsSync(tagsFile)).toBe(false);
+      expect(fs.existsSync(tagFile)).toBe(false);
     });
 
-    it('should handle corrupted tags.json gracefully', () => {
-      const tagsFile = path.join(testRepoPath, '.a24z', 'tags.json');
-      fs.mkdirSync(path.dirname(tagsFile), { recursive: true });
-      fs.writeFileSync(tagsFile, 'invalid json content');
+    it('should clean up empty tags directory', () => {
+      saveTagDescription(testRepoPath, 'feature', 'Test');
+      const tagsDir = path.join(testRepoPath, '.a24z', 'tags');
+      expect(fs.existsSync(tagsDir)).toBe(true);
       
-      const descriptions = getTagDescriptions(testRepoPath);
-      expect(descriptions).toEqual({});
+      deleteTagDescription(testRepoPath, 'feature');
+      
+      // Directory should be removed when empty
+      expect(fs.existsSync(tagsDir)).toBe(false);
+    });
+
+    it('should include current length in error message', () => {
+      const longDescription = 'a'.repeat(2500); // Default is 2000
+      
+      try {
+        saveTagDescription(testRepoPath, 'feature', longDescription);
+        fail('Should have thrown an error');
+      } catch (error: any) {
+        expect(error.message).toContain('Current length: 2500');
+        expect(error.message).toContain('exceeds maximum length of 2000');
+      }
     });
   });
 

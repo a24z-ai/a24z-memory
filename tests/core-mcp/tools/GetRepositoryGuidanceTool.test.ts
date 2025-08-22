@@ -110,15 +110,13 @@ describe('GetRepositoryGuidanceTool', () => {
       // Create a .git directory to make it a valid repository
       fs.mkdirSync(path.join(repoDir, '.git'), { recursive: true });
       
-      // Create tag descriptions
+      // Create tag descriptions as markdown files
       const a24zDir = path.join(repoDir, '.a24z');
-      fs.mkdirSync(a24zDir, { recursive: true });
+      const tagsDir = path.join(a24zDir, 'tags');
+      fs.mkdirSync(tagsDir, { recursive: true });
       
-      const tagDescriptions = {
-        'feature': 'New functionality',
-        'bugfix': 'Bug corrections'
-      };
-      fs.writeFileSync(path.join(a24zDir, 'tags.json'), JSON.stringify(tagDescriptions, null, 2));
+      fs.writeFileSync(path.join(tagsDir, 'feature.md'), 'New functionality');
+      fs.writeFileSync(path.join(tagsDir, 'bugfix.md'), 'Bug corrections');
 
       const result = await tool.handler({ path: repoDir });
 
