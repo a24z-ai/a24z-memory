@@ -700,9 +700,9 @@ export function addAllowedTag(repositoryPath: string, tag: string, description?:
   saveTagDescription(repositoryPath, tag, desc);
 }
 
-export function removeAllowedTag(repositoryPath: string, tag: string): boolean {
-  // Removing an allowed tag means deleting the tag description
-  return deleteTagDescription(repositoryPath, tag);
+export function removeAllowedTag(repositoryPath: string, tag: string, removeFromNotes: boolean = true): boolean {
+  // Removing an allowed tag means deleting the tag description and optionally removing from notes
+  return deleteTagDescription(repositoryPath, tag, removeFromNotes);
 }
 
 export function setEnforceAllowedTags(repositoryPath: string, enforce: boolean): void {
@@ -817,10 +817,33 @@ export function saveTagDescription(
   fs.renameSync(tmp, tagFile);
 }
 
-export function deleteTagDescription(repositoryPath: string, tag: string): boolean {
+export function removeTagFromNotes(repositoryPath: string, tag: string): number {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const notes = readAllNotes(normalizedRepo);
+  let modifiedCount = 0;
+  
+  for (const note of notes) {
+    if (note.tags.includes(tag)) {
+      // Remove the tag from the note
+      note.tags = note.tags.filter(t => t !== tag);
+      // Save the updated note
+      writeNoteToFile(normalizedRepo, note);
+      modifiedCount++;
+    }
+  }
+  
+  return modifiedCount;
+}
+
+export function deleteTagDescription(repositoryPath: string, tag: string, removeFromNotes: boolean = false): boolean {
   const normalizedRepo = normalizeRepositoryPath(repositoryPath);
   const tagsDir = getTagsDirectory(normalizedRepo);
   const tagFile = path.join(tagsDir, `${tag}.md`);
+  
+  // Remove tag from notes if requested
+  if (removeFromNotes) {
+    removeTagFromNotes(normalizedRepo, tag);
+  }
   
   if (fs.existsSync(tagFile)) {
     fs.unlinkSync(tagFile);

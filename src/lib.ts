@@ -29,6 +29,7 @@ export {
   saveTagDescription,
   deleteTagDescription,
   getTagsWithDescriptions,
+  removeTagFromNotes,
   // Types
   type StoredNote,
   type NoteConfidence,
@@ -105,6 +106,7 @@ import {
   saveTagDescription as saveTagDescriptionFunc,
   deleteTagDescription as deleteTagDescriptionFunc,
   getTagsWithDescriptions as getTagsWithDescriptionsFunc,
+  removeTagFromNotes as removeTagFromNotesFunc,
   type StoredNote as StoredNoteType,
   type NoteConfidence as NoteConfidenceType,
   type NoteType as NoteTypeType,
@@ -223,8 +225,8 @@ export class A24zMemory {
   /**
    * Remove a tag from the allowed tags list
    */
-  removeAllowedTag(tag: string): boolean {
-    return removeAllowedTagFunc(this.repositoryPath, tag);
+  removeAllowedTag(tag: string, removeFromNotes: boolean = true): boolean {
+    return removeAllowedTagFunc(this.repositoryPath, tag, removeFromNotes);
   }
 
 
@@ -280,8 +282,15 @@ export class A24zMemory {
   /**
    * Delete a tag description
    */
-  deleteTagDescription(tag: string): boolean {
-    return deleteTagDescriptionFunc(this.repositoryPath, tag);
+  deleteTagDescription(tag: string, removeFromNotes: boolean = false): boolean {
+    return deleteTagDescriptionFunc(this.repositoryPath, tag, removeFromNotes);
+  }
+
+  /**
+   * Remove a tag from all notes in the repository
+   */
+  removeTagFromNotes(tag: string): number {
+    return removeTagFromNotesFunc(this.repositoryPath, tag);
   }
 
   /**
