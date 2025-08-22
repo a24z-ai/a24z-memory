@@ -19,14 +19,14 @@ describe('GetRepositoryTagsTool (Simple)', () => {
     fs.writeFileSync(path.join(testPath, 'package.json'), '{}');
   });
 
-  it('should return JSON response with common tags', async () => {
+  it('should return JSON response', async () => {
     const result = await tool.handler({ path: testPath });
     
     expect(result.content[0].type).toBe('text');
     const data = JSON.parse(result.content[0].text!);
     expect(data.success).toBe(true);
-    expect(data.commonTags).toBeDefined();
-    expect(Array.isArray(data.commonTags)).toBe(true);
+    expect(data.suggestedTags).toBeDefined();
+    expect(Array.isArray(data.suggestedTags)).toBe(true);
   });
 
   it('should include used tags when notes exist', async () => {
@@ -46,7 +46,7 @@ describe('GetRepositoryTagsTool (Simple)', () => {
     expect(data.usedTags.some((tag: any) => tag.name === 'custom-tag')).toBe(true);
   });
 
-  it('should suggest tags based on path', async () => {
+  it('should return empty suggested tags (user-managed)', async () => {
     const authPath = path.join(testPath, 'auth');
     fs.mkdirSync(authPath, { recursive: true });
 
@@ -54,7 +54,8 @@ describe('GetRepositoryTagsTool (Simple)', () => {
     const data = JSON.parse(result.content[0].text!);
     
     expect(data.suggestedTags).toBeDefined();
-    expect(data.suggestedTags.some((tag: any) => tag.name === 'authentication')).toBe(true);
+    expect(Array.isArray(data.suggestedTags)).toBe(true);
+    expect(data.suggestedTags).toHaveLength(0);
   });
 
   it('should include repository guidance by default', async () => {
@@ -105,9 +106,8 @@ describe('GetRepositoryTagsTool (Simple)', () => {
     const data = JSON.parse(result.content[0].text!);
     
     expect(data.usedTags).toBeUndefined();
-    expect(data.suggestedTags).toBeUndefined();
+    expect(data.suggestedTags).toBeUndefined(); // Excluded since includeSuggestedTags: false
     expect(data.repositoryGuidance).toBeUndefined();
     expect(data.guidanceNote).toBeUndefined();
-    expect(data.commonTags).toBeDefined(); // Should always be included
   });
 });

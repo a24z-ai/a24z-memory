@@ -153,22 +153,21 @@ describe('Tag Descriptions', () => {
 
   describe('Integration with Tag Restrictions', () => {
     it('should return tags with descriptions for allowed tags', () => {
-      // Set up tag restrictions
+      // Set up tag restrictions  
       updateRepositoryConfiguration(testRepoPath, {
         tags: {
-          allowedTags: ['feature', 'bugfix', 'security'],
           enforceAllowedTags: true
         }
       });
       
       // Add descriptions for some tags
       saveTagDescription(testRepoPath, 'feature', 'New features');
+      saveTagDescription(testRepoPath, 'bugfix', 'Bug fixes');
       saveTagDescription(testRepoPath, 'security', 'Security improvements');
-      saveTagDescription(testRepoPath, 'other', 'Should not appear');  // Not in allowed list
       
       const tagsWithDescriptions = getTagsWithDescriptions(testRepoPath);
       
-      // Should only include allowed tags
+      // Should include all tags with descriptions
       expect(tagsWithDescriptions).toHaveLength(3);
       expect(tagsWithDescriptions).toContainEqual({
         name: 'feature',
@@ -176,7 +175,7 @@ describe('Tag Descriptions', () => {
       });
       expect(tagsWithDescriptions).toContainEqual({
         name: 'bugfix',
-        description: undefined  // No description set
+        description: 'Bug fixes'
       });
       expect(tagsWithDescriptions).toContainEqual({
         name: 'security',
@@ -184,30 +183,31 @@ describe('Tag Descriptions', () => {
       });
     });
 
-    it('should include common tags when no restrictions', () => {
+    it('should only include tags with descriptions when no restrictions', () => {
       // No tag restrictions
       saveTagDescription(testRepoPath, 'custom', 'Custom tag description');
+      saveTagDescription(testRepoPath, 'feature', 'Feature description');
       
       const tagsWithDescriptions = getTagsWithDescriptions(testRepoPath);
+      
+      expect(tagsWithDescriptions).toHaveLength(2);
       
       // Should include custom tag
       const customTag = tagsWithDescriptions.find(t => t.name === 'custom');
       expect(customTag).toBeDefined();
       expect(customTag?.description).toBe('Custom tag description');
       
-      // Should also include common tags
+      // Should include user-defined feature tag
       const featureTag = tagsWithDescriptions.find(t => t.name === 'feature');
       expect(featureTag).toBeDefined();
-      expect(featureTag?.description).toBe('Feature work');  // Default from getCommonTags
+      expect(featureTag?.description).toBe('Feature description');
     });
 
-    it('should override common tag descriptions with custom ones', () => {
-      saveTagDescription(testRepoPath, 'feature', 'Custom feature description');
-      
+    it('should handle empty results when no descriptions exist', () => {
+      // No tag descriptions created
       const tagsWithDescriptions = getTagsWithDescriptions(testRepoPath);
       
-      const featureTag = tagsWithDescriptions.find(t => t.name === 'feature');
-      expect(featureTag?.description).toBe('Custom feature description');
+      expect(tagsWithDescriptions).toHaveLength(0);
     });
   });
 

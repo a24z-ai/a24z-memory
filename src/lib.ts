@@ -10,13 +10,15 @@ export {
   saveNote,
   getNotesForPath,
   getUsedTagsForPath,
-  getCommonTags,
   getSuggestedTagsForPath,
   getRepositoryGuidance,
   // Configuration management
   getRepositoryConfiguration,
   updateRepositoryConfiguration,
   getAllowedTags,
+  addAllowedTag,
+  removeAllowedTag,
+  setEnforceAllowedTags,
   validateNoteAgainstConfig,
   // Note management
   getNoteById,
@@ -78,6 +80,9 @@ import {
   getRepositoryConfiguration as getRepositoryConfigurationFunc,
   updateRepositoryConfiguration as updateRepositoryConfigurationFunc,
   getAllowedTags as getAllowedTagsFunc,
+  addAllowedTag as addAllowedTagFunc,
+  removeAllowedTag as removeAllowedTagFunc,
+  setEnforceAllowedTags as setEnforceAllowedTagsFunc,
   validateNoteAgainstConfig as validateNoteAgainstConfigFunc,
   getNoteById as getNoteByIdFunc,
   deleteNoteById as deleteNoteByIdFunc,
@@ -192,6 +197,28 @@ export class A24zMemory {
    */
   getAllowedTags(): { enforced: boolean; tags: string[] } {
     return getAllowedTagsFunc(this.repositoryPath);
+  }
+
+  /**
+   * Add a tag to the allowed tags list
+   */
+  addAllowedTag(tag: string): void {
+    return addAllowedTagFunc(this.repositoryPath, tag);
+  }
+
+  /**
+   * Remove a tag from the allowed tags list
+   */
+  removeAllowedTag(tag: string): boolean {
+    return removeAllowedTagFunc(this.repositoryPath, tag);
+  }
+
+
+  /**
+   * Enable or disable allowed tags enforcement
+   */
+  setEnforceAllowedTags(enforce: boolean): void {
+    return setEnforceAllowedTagsFunc(this.repositoryPath, enforce);
   }
 
   /**

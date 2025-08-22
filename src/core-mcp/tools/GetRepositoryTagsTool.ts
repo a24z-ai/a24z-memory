@@ -2,7 +2,6 @@ import { z } from 'zod';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
 import { 
-  getCommonTags, 
   getSuggestedTagsForPath, 
   getUsedTagsForPath, 
   getRepositoryGuidance, 
@@ -67,12 +66,7 @@ export class GetRepositoryTagsTool extends BaseTool {
       }));
     }
     
-    // Include common tags with any custom descriptions
-    const commonTags = getCommonTags();
-    result.commonTags = commonTags.map(tag => ({
-      name: tag.name,
-      description: tagDescriptions[tag.name] || tag.description  // Use custom description if available
-    }));
+    // No common tags - users manage their own tags
     
     if (input.includeGuidance !== false) {
       const guidance = getRepositoryGuidance(input.path);

@@ -30,8 +30,7 @@ export interface RepositoryConfiguration {
     compressionEnabled: boolean;
   };
   tags?: {
-    allowedTags?: string[];  // If set, only these tags are allowed
-    enforceAllowedTags?: boolean;  // Whether to enforce the allowed tags list
+    enforceAllowedTags?: boolean;  // Whether to enforce allowed tags (based on tag descriptions)
   };
 }
 
@@ -100,7 +99,6 @@ function getDefaultConfiguration(): RepositoryConfiguration {
       compressionEnabled: false
     },
     tags: {
-      allowedTags: [],  // Empty by default, meaning no restrictions
       enforceAllowedTags: false  // Disabled by default
     }
   };
@@ -150,7 +148,7 @@ function writeConfiguration(repositoryPath: string, config: RepositoryConfigurat
   fs.renameSync(tmp, configFile);
 }
 
-function validateNote(note: Omit<StoredNote, 'id' | 'timestamp'>, config: RepositoryConfiguration): ValidationError[] {
+function validateNote(note: Omit<StoredNote, 'id' | 'timestamp'>, config: RepositoryConfiguration, normalizedRepo: string): ValidationError[] {
   const errors: ValidationError[] = [];
   
   // Validate anchors are present
@@ -182,15 +180,18 @@ function validateNote(note: Omit<StoredNote, 'id' | 'timestamp'>, config: Reposi
     });
   }
   
-  // Validate against allowed tags if configured
-  if (config.tags?.enforceAllowedTags && config.tags?.allowedTags && config.tags.allowedTags.length > 0) {
-    const allowedTags = config.tags.allowedTags;
-    const invalidTags = note.tags.filter(tag => !allowedTags.includes(tag));
-    if (invalidTags.length > 0) {
-      errors.push({
-        field: 'tags',
-        message: `The following tags are not in the allowed tags list: ${invalidTags.join(', ')}. Allowed tags are: ${allowedTags.join(', ')}`
-      });
+  // Validate against allowed tags if configured (based on tag descriptions)
+  if (config.tags?.enforceAllowedTags) {
+    const tagDescriptions = getTagDescriptions(normalizedRepo);
+    const allowedTags = Object.keys(tagDescriptions);
+    if (allowedTags.length > 0) {
+      const invalidTags = note.tags.filter(tag => !allowedTags.includes(tag));
+      if (invalidTags.length > 0) {
+        errors.push({
+          field: 'tags',
+          message: `The following tags are not allowed: ${invalidTags.join(', ')}. Allowed tags: ${allowedTags.join(', ')}`
+        });
+      }
     }
   }
   
@@ -350,7 +351,7 @@ export function saveNote(note: Omit<StoredNote, 'id' | 'timestamp'> & { director
   const { directoryPath, ...noteWithoutDirectoryPath } = note;
   
   // Validate the note before processing
-  const validationErrors = validateNote(noteWithoutDirectoryPath, config);
+  const validationErrors = validateNote(noteWithoutDirectoryPath, config, repoRoot);
   if (validationErrors.length > 0) {
     const errorMessages = validationErrors.map(err => err.message).join('; ');
     throw new Error(`Note validation failed: ${errorMessages}`);
@@ -457,39 +458,10 @@ export function getUsedTagsForPath(targetPath: string): string[] {
   return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([t]) => t);
 }
 
-export function getCommonTags(): Array<{ name: string; description?: string }> {
-  return [
-    { name: 'feature', description: 'Feature work' },
-    { name: 'bugfix', description: 'Bug fixes' },
-    { name: 'refactor', description: 'Refactoring' },
-    { name: 'performance', description: 'Performance-related' },
-    { name: 'security', description: 'Security considerations' },
-    { name: 'testing', description: 'Testing and coverage' },
-    { name: 'documentation', description: 'Docs and guides' },
-    { name: 'configuration', description: 'Configs and env' },
-    { name: 'authentication', description: 'Auth flows' },
-    { name: 'database', description: 'Database and persistence' },
-    { name: 'api', description: 'API design and integration' },
-    { name: 'ui', description: 'UI and UX' },
-    { name: 'architecture', description: 'Architecture decisions' },
-    { name: 'deployment', description: 'Builds and deploys' },
-    { name: 'migration', description: 'Migrations and upgrades' },
-    { name: 'react', description: 'React-specific' },
-    { name: 'typescript', description: 'TypeScript types and patterns' }
-  ];
-}
 
 export function getSuggestedTagsForPath(targetPath: string): Array<{ name: string; reason?: string }> {
-  const lower = targetPath.toLowerCase();
-  const suggestions: Array<{ name: string; reason?: string }> = [];
-  if (lower.includes('auth')) suggestions.push({ name: 'authentication', reason: 'Path contains "auth"' });
-  if (lower.includes('test')) suggestions.push({ name: 'testing', reason: 'Path contains "test"' });
-  if (lower.includes('db') || lower.includes('prisma') || lower.includes('schema')) suggestions.push({ name: 'database', reason: 'Database-related path' });
-  if (lower.includes('api')) suggestions.push({ name: 'api', reason: 'API-related path' });
-  if (lower.includes('perf') || lower.includes('optimiz')) suggestions.push({ name: 'performance', reason: 'Performance-related keywords' });
-  if (lower.includes('security') || lower.includes('authz')) suggestions.push({ name: 'security', reason: 'Security-related keywords' });
-  if (lower.includes('ui') || lower.includes('component') || lower.includes('view')) suggestions.push({ name: 'ui', reason: 'UI component path' });
-  return suggestions;
+  // Return empty array - users manage their own tags
+  return [];
 }
 
 export interface MigrationResult {
@@ -652,7 +624,7 @@ export function updateRepositoryConfiguration(repositoryPath: string, config: {
 export function validateNoteAgainstConfig(note: Omit<StoredNote, 'id' | 'timestamp'>, repositoryPath: string): ValidationError[] {
   const repoRoot = normalizeRepositoryPath(repositoryPath);
   const config = readConfiguration(repoRoot);
-  return validateNote(note, config);
+  return validateNote(note, config, repoRoot);
 }
 
 export function getRepositoryGuidance(targetPath: string): string | null {
@@ -710,11 +682,39 @@ export interface TagInfo {
 export function getAllowedTags(repositoryPath: string): { enforced: boolean; tags: string[] } {
   const normalizedRepo = normalizeRepositoryPath(repositoryPath);
   const config = readConfiguration(normalizedRepo);
+  const enforced = config.tags?.enforceAllowedTags || false;
   
-  return {
-    enforced: config.tags?.enforceAllowedTags || false,
-    tags: config.tags?.allowedTags || []
-  };
+  if (enforced) {
+    // Auto-populate from tags directory
+    const tagDescriptions = getTagDescriptions(normalizedRepo);
+    const tags = Object.keys(tagDescriptions);
+    return { enforced, tags };
+  }
+  
+  return { enforced, tags: [] };
+}
+
+export function addAllowedTag(repositoryPath: string, tag: string, description?: string): void {
+  // Adding an allowed tag means creating a tag description
+  const desc = description || `Description for ${tag} tag`;
+  saveTagDescription(repositoryPath, tag, desc);
+}
+
+export function removeAllowedTag(repositoryPath: string, tag: string): boolean {
+  // Removing an allowed tag means deleting the tag description
+  return deleteTagDescription(repositoryPath, tag);
+}
+
+export function setEnforceAllowedTags(repositoryPath: string, enforce: boolean): void {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const config = readConfiguration(normalizedRepo);
+  
+  if (!config.tags) {
+    config.tags = { enforceAllowedTags: false };
+  }
+  
+  config.tags.enforceAllowedTags = enforce;
+  writeConfiguration(normalizedRepo, config);
 }
 
 export function checkStaleNotes(repositoryPath: string): StaleNote[] {
@@ -845,30 +845,9 @@ export function getTagsWithDescriptions(repositoryPath: string): TagInfo[] {
   const descriptions = getTagDescriptions(normalizedRepo);
   const tags: TagInfo[] = [];
   
-  // If tag restrictions are enforced, use allowed tags
-  if (config.tags?.enforceAllowedTags && config.tags?.allowedTags && config.tags.allowedTags.length > 0) {
-    for (const tagName of config.tags.allowedTags) {
-      tags.push({
-        name: tagName,
-        description: descriptions[tagName]
-      });
-    }
-  } else {
-    // Otherwise, return all tags that have descriptions
-    for (const [name, description] of Object.entries(descriptions)) {
-      tags.push({ name, description });
-    }
-    
-    // Also include common tags
-    const commonTags = getCommonTags();
-    for (const commonTag of commonTags) {
-      if (!tags.find(t => t.name === commonTag.name)) {
-        tags.push({
-          name: commonTag.name,
-          description: commonTag.description
-        });
-      }
-    }
+  // Return all tags that have descriptions (these are the available/allowed tags)
+  for (const [name, description] of Object.entries(descriptions)) {
+    tags.push({ name, description });
   }
   
   return tags;

@@ -45,7 +45,6 @@ describe('Configuration System', () => {
         compressionEnabled: false
       },
       tags: {
-        allowedTags: [],
         enforceAllowedTags: false
       }
     });
