@@ -8,7 +8,7 @@ import { findGitRoot } from '../utils/pathNormalization';
 
 export class RepositoryNoteTool extends BaseTool {
   name = 'create_repository_note';
-  description = 'Store tribal knowledge associated with repository paths';
+  description = 'Document tribal knowledge, architectural decisions, implementation patterns, and important lessons learned. This tool creates searchable notes that help future developers understand context and avoid repeating mistakes. Notes are stored locally in your repository and can be retrieved using the askA24zMemory tool.';
 
   schema = z.object({
     note: z.string().describe('The tribal knowledge content in Markdown format. Use code blocks with ``` for code snippets, **bold** for emphasis, and [file.ts](path/to/file.ts) for file references'),
@@ -31,36 +31,40 @@ export class RepositoryNoteTool extends BaseTool {
     // Validate that directoryPath is absolute
     if (!path.isAbsolute(parsed.directoryPath)) {
       throw new Error(
-        `directoryPath must be an absolute path to a git repository root. ` +
+        `❌ directoryPath must be an absolute path starting with '/'. ` +
         `Received relative path: "${parsed.directoryPath}". ` +
-        `Please provide the full absolute path to the repository root directory (e.g., /Users/username/projects/my-repo).`
+        `💡 Tip: Use absolute paths like /Users/username/projects/my-repo or /home/user/project. ` +
+        `You can get the current working directory and build the absolute path from there.`
       );
     }
-    
+
     // Validate that directoryPath exists
     if (!fs.existsSync(parsed.directoryPath)) {
       throw new Error(
-        `directoryPath does not exist: "${parsed.directoryPath}". ` +
-        `Please provide a valid absolute path to an existing git repository root.`
+        `❌ directoryPath does not exist: "${parsed.directoryPath}". ` +
+        `💡 Tip: Make sure the path exists and you have read access to it. ` +
+        `Check your current working directory and build the correct absolute path.`
       );
     }
-    
+
     // Validate that directoryPath is a git repository root
     const gitRoot = findGitRoot(parsed.directoryPath);
     if (!gitRoot) {
       throw new Error(
-        `directoryPath is not within a git repository: "${parsed.directoryPath}". ` +
-        `Please provide the absolute path to a git repository root directory (containing .git).`
+        `❌ directoryPath is not within a git repository: "${parsed.directoryPath}". ` +
+        `💡 Tip: Initialize a git repository with 'git init' in your project root, or navigate to an existing git repository. ` +
+        `The directoryPath should be the root of your git project (where .git folder is located).`
       );
     }
-    
+
     // Validate that the provided path IS the git root, not a subdirectory
     if (gitRoot !== parsed.directoryPath) {
       throw new Error(
-        `directoryPath must be the git repository root, not a subdirectory. ` +
+        `❌ directoryPath must be the git repository root, not a subdirectory. ` +
         `You provided: "${parsed.directoryPath}" ` +
         `But the git root is: "${gitRoot}". ` +
-        `Please use the git root path instead.`
+        `💡 Tip: Use the git root path (${gitRoot}) instead of the subdirectory. ` +
+        `This ensures all notes are stored in the same location and can be found consistently.`
       );
     }
     
@@ -73,6 +77,18 @@ export class RepositoryNoteTool extends BaseTool {
       type: parsed.type,
       metadata: { ...(parsed.metadata || {}), toolVersion: '2.0.0', createdBy: 'create_repository_note_tool' }
     });
-    return { content: [{ type: 'text', text: `Saved note ${saved.id}` }] };
+
+    const response = `✅ **Note saved successfully!**\n\n` +
+      `🆔 **Note ID:** ${saved.id}\n` +
+      `📁 **Repository:** ${parsed.directoryPath}\n` +
+      `🏷️ **Tags:** ${parsed.tags.join(', ')}\n` +
+      `📋 **Type:** ${parsed.type}\n` +
+      `🎯 **Confidence:** ${parsed.confidence}\n\n` +
+      `💡 **Next steps:**\n` +
+      `- Use \`askA24zMemory\` to retrieve this note later\n` +
+      `- Share this knowledge with your team by committing the \`.a24z/repository-notes.json\` file\n` +
+      `- Consider adding more context or examples to make this note even more valuable!`;
+
+    return { content: [{ type: 'text', text: response }] };
   }
 }
