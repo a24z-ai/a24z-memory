@@ -3,7 +3,16 @@ import * as path from 'node:path';
 import * as fs from 'node:fs';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
-import { saveNote } from '../store/notesStore';
+import { 
+  saveNote, 
+  getRepositoryConfiguration,
+  getTagDescriptions,
+  saveTagDescription,
+  getTypeDescriptions,
+  saveTypeDescription,
+  getAllowedTags,
+  getAllowedTypes
+} from '../store/notesStore';
 import { findGitRoot } from '../utils/pathNormalization';
 
 export class RepositoryNoteTool extends BaseTool {
@@ -68,25 +77,134 @@ export class RepositoryNoteTool extends BaseTool {
       );
     }
     
+    // Check configuration for tag/type enforcement
+    const config = getRepositoryConfiguration(parsed.directoryPath);
+    const tagEnforcement = config.tags?.enforceAllowedTags || false;
+    const typeEnforcement = config.types?.enforceAllowedTypes || false;
+    
+    // Check for new tags that don't have descriptions
+    const existingTagDescriptions = getTagDescriptions(parsed.directoryPath);
+    const existingTags = Object.keys(existingTagDescriptions);
+    const newTags = parsed.tags.filter(tag => !existingTags.includes(tag));
+    
+    // Check for new types that don't have descriptions  
+    const existingTypeDescriptions = getTypeDescriptions(parsed.directoryPath);
+    const existingTypes = Object.keys(existingTypeDescriptions);
+    const isNewType = parsed.type && !existingTypes.includes(parsed.type);
+    
+    // Handle tag enforcement
+    if (tagEnforcement && newTags.length > 0) {
+      // When enforcement is on, reject new tags
+      const allowedTagsInfo = getAllowedTags(parsed.directoryPath);
+      const tagList = allowedTagsInfo.tags.length > 0 
+        ? allowedTagsInfo.tags.map(tag => {
+            const desc = existingTagDescriptions[tag];
+            return desc ? `• **${tag}**: ${desc.split('\n')[0].substring(0, 50)}...` : `• **${tag}**`;
+          }).join('\n')
+        : 'No tags with descriptions exist yet.';
+        
+      throw new Error(
+        `❌ Tag creation is not allowed when tag enforcement is enabled.\n\n` +
+        `The following tags do not exist: ${newTags.join(', ')}\n\n` +
+        `**Available tags with descriptions:**\n${tagList}\n\n` +
+        `💡 To use new tags, either:\n` +
+        `1. Use one of the existing tags above\n` +
+        `2. Ask an administrator to create the tag with a proper description\n` +
+        `3. Disable tag enforcement in .a24z/configuration.json`
+      );
+    }
+    
+    // Handle type enforcement
+    if (typeEnforcement && isNewType) {
+      // When enforcement is on, reject new types
+      const allowedTypesInfo = getAllowedTypes(parsed.directoryPath);
+      const typeList = allowedTypesInfo.types.length > 0
+        ? allowedTypesInfo.types.map(type => {
+            const desc = existingTypeDescriptions[type];
+            return desc ? `• **${type}**: ${desc.split('\n')[0].substring(0, 50)}...` : `• **${type}**`;
+          }).join('\n')
+        : 'No types with descriptions exist yet.';
+        
+      throw new Error(
+        `❌ Type creation is not allowed when type enforcement is enabled.\n\n` +
+        `The type "${parsed.type}" does not exist.\n\n` +
+        `**Available types with descriptions:**\n${typeList}\n\n` +
+        `💡 To use new types, either:\n` +
+        `1. Use one of the existing types above\n` +
+        `2. Ask an administrator to create the type with a proper description\n` +
+        `3. Disable type enforcement in .a24z/configuration.json`
+      );
+    }
+    
+    // When enforcement is OFF, auto-create empty descriptions for new tags/types
+    const autoCreatedTags: string[] = [];
+    let autoCreatedType: string | null = null;
+    
+    if (!tagEnforcement && newTags.length > 0) {
+      // Auto-create empty descriptions for new tags
+      for (const tag of newTags) {
+        try {
+          saveTagDescription(parsed.directoryPath, tag, '');
+          autoCreatedTags.push(tag);
+        } catch (error) {
+          console.error(`Failed to auto-create tag description for "${tag}":`, error);
+        }
+      }
+    }
+    
+    if (!typeEnforcement && isNewType && parsed.type) {
+      // Auto-create empty description for new type
+      try {
+        saveTypeDescription(parsed.directoryPath, parsed.type, '');
+        autoCreatedType = parsed.type;
+      } catch (error) {
+        console.error(`Failed to auto-create type description for "${parsed.type}":`, error);
+      }
+    }
+    
     const saved = saveNote({
       note: parsed.note,
       directoryPath: parsed.directoryPath,
-      anchors: parsed.anchors,  // Now required, no need for fallback
+      anchors: parsed.anchors,
       tags: parsed.tags,
       confidence: parsed.confidence,
       type: parsed.type,
       metadata: { ...(parsed.metadata || {}), toolVersion: '2.0.0', createdBy: 'create_repository_note_tool' }
     });
 
-    const response = `✅ **Note saved successfully!**\n\n` +
+    // Build response message with guidance about auto-created tags/types
+    let response = `✅ **Note saved successfully!**\n\n` +
       `🆔 **Note ID:** ${saved.id}\n` +
       `📁 **Repository:** ${parsed.directoryPath}\n` +
       `🏷️ **Tags:** ${parsed.tags.join(', ')}\n` +
       `📋 **Type:** ${parsed.type}\n` +
-      `🎯 **Confidence:** ${parsed.confidence}\n\n` +
-      `💡 **Next steps:**\n` +
-      `- Use \`askA24zMemory\` to retrieve this note later\n` +
-      `- Share this knowledge with your team by committing the \`.a24z/repository-notes.json\` file\n` +
+      `🎯 **Confidence:** ${parsed.confidence}\n\n`;
+    
+    // Add warnings about auto-created tags
+    if (autoCreatedTags.length > 0) {
+      response += `⚠️ **New tags created with empty descriptions:**\n`;
+      response += autoCreatedTags.map(tag => `• ${tag}`).join('\n') + '\n\n';
+      response += `**IMPORTANT:** Please update these tag descriptions immediately:\n`;
+      response += `• Use the library API: \`saveTagDescription(repoPath, tagName, description)\`\n`;
+      response += `• Or create markdown files: \`.a24z/tags/${autoCreatedTags[0]}.md\`\n`;
+      response += `• Description limit: ${config.limits.tagDescriptionMaxLength} characters\n\n`;
+    }
+    
+    // Add warnings about auto-created type
+    if (autoCreatedType) {
+      response += `⚠️ **New type created with empty description:** ${autoCreatedType}\n\n`;
+      response += `**IMPORTANT:** Please update this type description immediately:\n`;
+      response += `• Use the library API: \`saveTypeDescription(repoPath, typeName, description)\`\n`;
+      response += `• Or create markdown file: \`.a24z/types/${autoCreatedType}.md\`\n`;
+      response += `• Description limit: ${config.limits.tagDescriptionMaxLength} characters\n\n`;
+    }
+    
+    response += `💡 **Next steps:**\n`;
+    if (autoCreatedTags.length > 0 || autoCreatedType) {
+      response += `- **Update the empty descriptions created above**\n`;
+    }
+    response += `- Use \`askA24zMemory\` to retrieve this note later\n` +
+      `- Share this knowledge with your team by committing the \`.a24z/\` directory\n` +
       `- Consider adding more context or examples to make this note even more valuable!`;
 
     return { content: [{ type: 'text', text: response }] };
