@@ -8,6 +8,13 @@ import {
   ValidationMessageData,
   loadValidationMessages 
 } from '../validation/messages';
+import { 
+  filterNotesByTokenLimit,
+  getTokenLimitInfo,
+  type TokenLimitInfo
+} from '../utils/tokenCounter';
+
+export { TokenLimitInfo } from '../utils/tokenCounter';
 
 export type NoteConfidence = 'high' | 'medium' | 'low';
 export type NoteType = 'decision' | 'pattern' | 'gotcha' | 'explanation';
@@ -495,7 +502,18 @@ export function saveNote(note: Omit<StoredNote, 'id' | 'timestamp'> & { director
   return saved;
 }
 
-export function getNotesForPath(targetPath: string, includeParentNotes: boolean, maxResults: number): Array<StoredNote & { isParentDirectory: boolean; pathDistance: number }> {
+export interface NotesResult {
+  notes: Array<StoredNote & { isParentDirectory: boolean; pathDistance: number }>;
+  tokenInfo?: TokenLimitInfo;
+}
+
+/**
+ * Get all notes for a path without any limits
+ */
+export function getNotesForPath(
+  targetPath: string, 
+  includeParentNotes: boolean
+): Array<StoredNote & { isParentDirectory: boolean; pathDistance: number }> {
   // Resolve the path to absolute
   const normalized = path.resolve(targetPath);
   
@@ -506,38 +524,24 @@ export function getNotesForPath(targetPath: string, includeParentNotes: boolean,
   const queryRelative = path.relative(normalizedRepo, normalized);
   
   const all = readAllNotes(normalizedRepo);
-  const results = all
+  return all
     .map((n: StoredNote) => {
-      // Since notes are stored in repository-specific .a24z directories,
-      // any note in the current repository is considered to have the repo root as its directory
       const base = normalizedRepo;
-      
-      // A note is a "parent directory" note if it matches ONLY because the query is within its directory scope
-      // We'll determine this after checking anchors
       let isParent = false;
       
-      // Check if the target path matches any anchor
-      // Anchors are stored as relative paths to the repo root
       const matchesAnchor = n.anchors.some((anchor: string) => {
-        // Check if query path is the anchor itself or within the anchor directory
-        // Both queryRelative and anchor are relative to repo root
         return queryRelative === anchor || 
                queryRelative.startsWith(`${anchor}${path.sep}`) ||
-               // Also check if anchor is within the query (for directory queries)
                anchor.startsWith(`${queryRelative}${path.sep}`);
       });
       
-      // Check if the query path is within the note's directory scope (which is the repo root)
       const queryInDirectory = normalized === base || normalized.startsWith(`${base}${path.sep}`);
       
-      // If the note matches an anchor, it's not a parent directory note
-      // If it doesn't match an anchor but the query is in its directory, it IS a parent directory note
       if (matchesAnchor) {
         isParent = false;
       } else if (queryInDirectory) {
         isParent = true;
       } else {
-        // Doesn't match at all
         return null;
       }
       
@@ -546,14 +550,48 @@ export function getNotesForPath(targetPath: string, includeParentNotes: boolean,
     })
     .filter((x): x is StoredNote & { isParentDirectory: boolean; pathDistance: number } => x !== null)
     .filter((x: StoredNote & { isParentDirectory: boolean; pathDistance: number }) => includeParentNotes ? true : !x.isParentDirectory)
-    .sort((a: StoredNote & { isParentDirectory: boolean; pathDistance: number }, b: StoredNote & { isParentDirectory: boolean; pathDistance: number }) => a.pathDistance - b.pathDistance || b.timestamp - a.timestamp)
-    .slice(0, Math.max(1, maxResults));
-  return results;
+    .sort((a: StoredNote & { isParentDirectory: boolean; pathDistance: number }, b: StoredNote & { isParentDirectory: boolean; pathDistance: number }) => a.pathDistance - b.pathDistance || b.timestamp - a.timestamp);
+}
+
+/**
+ * Get notes for a path with specified limits
+ */
+export function getNotesForPathWithLimit(
+  targetPath: string, 
+  includeParentNotes: boolean,
+  limitType: 'count' | 'tokens',
+  limit: number
+): NotesResult {
+  // Get all notes first
+  const allNotes = getNotesForPath(targetPath, includeParentNotes);
+  
+  // Apply limit based on type
+  let results: Array<StoredNote & { isParentDirectory: boolean; pathDistance: number }>;
+  let tokenInfo: TokenLimitInfo | undefined;
+  
+  if (limitType === 'count') {
+    // Simple count-based limiting
+    results = allNotes.slice(0, Math.max(1, limit));
+  } else {
+    // Token-based limiting
+    tokenInfo = getTokenLimitInfo(allNotes, limit);
+    results = filterNotesByTokenLimit(allNotes, limit) as Array<StoredNote & { isParentDirectory: boolean; pathDistance: number }>;
+    
+    // Ensure at least one note is returned if any exist
+    if (results.length === 0 && allNotes.length > 0) {
+      results = [allNotes[0]];
+    }
+  }
+  
+  return {
+    notes: results,
+    tokenInfo
+  };
 }
 
 export function getUsedTagsForPath(targetPath: string): string[] {
   const normalizedRepo = normalizeRepositoryPath(targetPath);
-  const notes = getNotesForPath(normalizedRepo, true, 1000);
+  const notes = getNotesForPath(normalizedRepo, true);
   const counts = new Map<string, number>();
   for (const n of notes) {
     for (const tag of n.tags) {

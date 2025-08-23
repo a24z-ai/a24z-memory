@@ -76,7 +76,7 @@ describe('File-based note storage', () => {
     });
 
     // Read notes back
-    const notes = getNotesForPath(testRepoPath, true, 100);
+    const notes = getNotesForPath(testRepoPath, true);
     
     expect(notes.length).toBe(2);
     expect(notes.map(n => n.note).sort()).toEqual(['First note', 'Second note'].sort());
@@ -127,7 +127,7 @@ describe('File-based note storage', () => {
     expect(backupFiles.length).toBe(1);
 
     // Verify notes can be read
-    const notes = getNotesForPath(testRepoPath, true, 100);
+    const notes = getNotesForPath(testRepoPath, true);
     expect(notes.length).toBe(2);
     expect(notes.map(n => n.note).sort()).toEqual(['Legacy note 1', 'Legacy note 2'].sort());
     
@@ -156,7 +156,7 @@ describe('File-based note storage', () => {
     expect(new Set(ids).size).toBe(5);
 
     // All notes should be readable
-    const notes = getNotesForPath(testRepoPath, true, 100);
+    const notes = getNotesForPath(testRepoPath, true);
     expect(notes.length).toBe(5);
   });
 });

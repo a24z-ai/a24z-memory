@@ -9,6 +9,7 @@
 export {
   saveNote,
   getNotesForPath,
+  getNotesForPathWithLimit,
   getUsedTagsForPath,
   getSuggestedTagsForPath,
   getRepositoryGuidance,
@@ -47,7 +48,9 @@ export {
   type ValidationError,
   type StaleNote,
   type TagInfo,
-  type TypeInfo
+  type TypeInfo,
+  type NotesResult,
+  type TokenLimitInfo
 } from './core-mcp/store/notesStore';
 
 // Validation messages and utilities
@@ -61,6 +64,16 @@ export {
   saveValidationMessages,
   getValidationMessagesPath
 } from './core-mcp/validation/messages';
+
+// Token counting utilities
+export {
+  countNoteTokens,
+  countNotesTokens,
+  filterNotesByTokenLimit,
+  isWithinTokenLimit,
+  getTokenLimitInfo as getTokenLimitInfoFunc,
+  type LimitType
+} from './core-mcp/utils/tokenCounter';
 
 // Note similarity and deduplication
 export {
@@ -114,6 +127,7 @@ export { McpServer } from './core-mcp/server/McpServer';
 import {
   saveNote as saveNoteFunc,
   getNotesForPath as getNotesForPathFunc,
+  getNotesForPathWithLimit as getNotesForPathWithLimitFunc,
   getUsedTagsForPath as getUsedTagsForPathFunc,
   getSuggestedTagsForPath as getSuggestedTagsForPathFunc,
   getRepositoryGuidance as getRepositoryGuidanceFunc,
@@ -138,7 +152,8 @@ import {
   type RepositoryConfiguration as RepositoryConfigurationType,
   type ValidationError as ValidationErrorType,
   type StaleNote as StaleNoteType,
-  type TagInfo as TagInfoType
+  type TagInfo as TagInfoType,
+  type NotesResult
 } from './core-mcp/store/notesStore';
 
 import {
@@ -191,14 +206,25 @@ export class A24zMemory {
   }
 
   /**
-   * Get notes for a specific path
+   * Get all notes for a specific path without limits
    */
   getNotesForPath(
     targetPath: string,
-    includeParentNotes = true,
-    maxResults = 10
+    includeParentNotes = true
   ) {
-    return getNotesForPathFunc(targetPath, includeParentNotes, maxResults);
+    return getNotesForPathFunc(targetPath, includeParentNotes);
+  }
+  
+  /**
+   * Get notes for a specific path with limits
+   */
+  getNotesForPathWithLimit(
+    targetPath: string,
+    includeParentNotes: boolean,
+    limitType: 'count' | 'tokens',
+    limit: number
+  ): NotesResult {
+    return getNotesForPathWithLimitFunc(targetPath, includeParentNotes, limitType, limit);
   }
 
   /**
