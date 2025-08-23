@@ -2,6 +2,12 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import { normalizeRepositoryPath, getRepositoryName } from '../utils/pathNormalization';
+import { 
+  ValidationMessageFormatter, 
+  TypedValidationError,
+  ValidationMessageData,
+  loadValidationMessages 
+} from '../validation/messages';
 
 export type NoteConfidence = 'high' | 'medium' | 'low';
 export type NoteType = 'decision' | 'pattern' | 'gotcha' | 'explanation';
@@ -42,6 +48,8 @@ export interface ValidationError {
   message: string;
   limit?: number;
   actual?: number;
+  type?: keyof ValidationMessageData;
+  data?: any; // The typed data for the validation error
 }
 
 interface NotesFileSchema {
@@ -161,20 +169,37 @@ function writeConfiguration(repositoryPath: string, config: RepositoryConfigurat
 function validateNote(note: Omit<StoredNote, 'id' | 'timestamp'>, config: RepositoryConfiguration, normalizedRepo: string): ValidationError[] {
   const errors: ValidationError[] = [];
   
+  // Create message formatter with any custom overrides
+  const customMessages = loadValidationMessages(normalizedRepo);
+  const formatter = new ValidationMessageFormatter(customMessages || undefined);
+  
   // Validate anchors are present
   if (!note.anchors || !Array.isArray(note.anchors) || note.anchors.length === 0) {
+    const data: ValidationMessageData['missingAnchors'] = { actual: 0 };
     errors.push({
       field: 'anchors',
-      message: 'At least one anchor path is required',
+      type: 'missingAnchors',
+      data,
+      message: formatter.format('missingAnchors', data),
       actual: 0
     });
   }
   
   // Validate note length
   if (note.note.length > config.limits.noteMaxLength) {
+    const overBy = note.note.length - config.limits.noteMaxLength;
+    const percentage = Math.round((note.note.length / config.limits.noteMaxLength) * 100);
+    const data: ValidationMessageData['noteTooLong'] = {
+      actual: note.note.length,
+      limit: config.limits.noteMaxLength,
+      overBy,
+      percentage
+    };
     errors.push({
       field: 'note',
-      message: `Note content exceeds maximum length of ${config.limits.noteMaxLength} characters`,
+      type: 'noteTooLong',
+      data,
+      message: formatter.format('noteTooLong', data),
       limit: config.limits.noteMaxLength,
       actual: note.note.length
     });
@@ -182,9 +207,15 @@ function validateNote(note: Omit<StoredNote, 'id' | 'timestamp'>, config: Reposi
   
   // Validate number of tags
   if (note.tags.length > config.limits.maxTagsPerNote) {
+    const data: ValidationMessageData['tooManyTags'] = {
+      actual: note.tags.length,
+      limit: config.limits.maxTagsPerNote
+    };
     errors.push({
       field: 'tags',
-      message: `Note has too many tags (${note.tags.length}). Maximum allowed: ${config.limits.maxTagsPerNote}`,
+      type: 'tooManyTags',
+      data,
+      message: formatter.format('tooManyTags', data),
       limit: config.limits.maxTagsPerNote,
       actual: note.tags.length
     });
@@ -197,9 +228,15 @@ function validateNote(note: Omit<StoredNote, 'id' | 'timestamp'>, config: Reposi
     if (allowedTags.length > 0) {
       const invalidTags = note.tags.filter(tag => !allowedTags.includes(tag));
       if (invalidTags.length > 0) {
+        const data: ValidationMessageData['invalidTags'] = {
+          invalidTags,
+          allowedTags
+        };
         errors.push({
           field: 'tags',
-          message: `The following tags are not allowed: ${invalidTags.join(', ')}. Allowed tags: ${allowedTags.join(', ')}`
+          type: 'invalidTags',
+          data,
+          message: formatter.format('invalidTags', data)
         });
       }
     }
@@ -210,18 +247,30 @@ function validateNote(note: Omit<StoredNote, 'id' | 'timestamp'>, config: Reposi
     const typeDescriptions = getTypeDescriptions(normalizedRepo);
     const allowedTypes = Object.keys(typeDescriptions);
     if (allowedTypes.length > 0 && !allowedTypes.includes(note.type)) {
+      const data: ValidationMessageData['invalidType'] = {
+        type: note.type,
+        allowedTypes
+      };
       errors.push({
         field: 'type',
-        message: `The type "${note.type}" is not allowed. Allowed types: ${allowedTypes.join(', ')}`
+        type: 'invalidType',
+        data,
+        message: formatter.format('invalidType', data)
       });
     }
   }
   
   // Validate number of anchors (only if anchors exist)
   if (note.anchors && note.anchors.length > config.limits.maxAnchorsPerNote) {
+    const data: ValidationMessageData['tooManyAnchors'] = {
+      actual: note.anchors.length,
+      limit: config.limits.maxAnchorsPerNote
+    };
     errors.push({
       field: 'anchors',
-      message: `Note has too many anchors (${note.anchors.length}). Maximum allowed: ${config.limits.maxAnchorsPerNote}`,
+      type: 'tooManyAnchors',
+      data,
+      message: formatter.format('tooManyAnchors', data),
       limit: config.limits.maxAnchorsPerNote,
       actual: note.anchors.length
     });
@@ -238,9 +287,12 @@ function validateNote(note: Omit<StoredNote, 'id' | 'timestamp'>, config: Reposi
       // Check for path traversal attempts
       const resolved = path.resolve(normalizedRepo, anchor);
       if (!resolved.startsWith(normalizedRepo + path.sep) && resolved !== normalizedRepo) {
+        const data: ValidationMessageData['anchorOutsideRepo'] = { anchor };
         errors.push({
           field: 'anchors',
-          message: `Anchor "${anchor}" references a path outside the repository. All anchors must be within the repository.`
+          type: 'anchorOutsideRepo',
+          data,
+          message: formatter.format('anchorOutsideRepo', data)
         });
       }
     }

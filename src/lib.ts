@@ -50,6 +50,18 @@ export {
   type TypeInfo
 } from './core-mcp/store/notesStore';
 
+// Validation messages and utilities
+export {
+  ValidationMessageFormatter,
+  ValidationMessageData,
+  ValidationMessageOverrides,
+  TypedValidationError,
+  DEFAULT_VALIDATION_MESSAGES,
+  loadValidationMessages,
+  saveValidationMessages,
+  getValidationMessagesPath
+} from './core-mcp/validation/messages';
+
 // Note similarity and deduplication
 export {
   calculateNoteSimilarity,
@@ -135,6 +147,15 @@ import {
 
 import { AskA24zMemoryTool, type AskMemoryResponse } from './core-mcp/tools/AskA24zMemoryTool';
 import { LLMService, type LLMConfig } from './core-mcp/services/llm-service';
+import { 
+  ValidationMessageFormatter as ValidationMessageFormatterImport,
+  ValidationMessageData as ValidationMessageDataImport,
+  ValidationMessageOverrides as ValidationMessageOverridesImport,
+  DEFAULT_VALIDATION_MESSAGES as DEFAULT_VALIDATION_MESSAGES_IMPORT,
+  saveValidationMessages as saveValidationMessagesImport,
+  loadValidationMessages as loadValidationMessagesImport,
+  getValidationMessagesPath as getValidationMessagesPathImport
+} from './core-mcp/validation/messages';
 
 /**
  * High-level API for easy use
@@ -396,6 +417,59 @@ export class A24zMemory {
     }
     
     return false;
+  }
+  
+  /**
+   * Get validation message formatter with optional custom messages
+   */
+  getValidationFormatter(overrides?: ValidationMessageOverridesImport): ValidationMessageFormatterImport {
+    return new ValidationMessageFormatterImport(overrides);
+  }
+  
+  /**
+   * Get default validation messages
+   */
+  getDefaultValidationMessages() {
+    return DEFAULT_VALIDATION_MESSAGES_IMPORT;
+  }
+  
+  /**
+   * Get validation message data types
+   * This shows what data is available for each validation error type
+   */
+  getValidationMessageDataTypes(): Record<keyof ValidationMessageDataImport, string[]> {
+    return {
+      noteTooLong: ['actual', 'limit', 'overBy', 'percentage'],
+      tooManyTags: ['actual', 'limit'],
+      tooManyAnchors: ['actual', 'limit'],
+      invalidTags: ['invalidTags', 'allowedTags'],
+      invalidType: ['type', 'allowedTypes'],
+      anchorOutsideRepo: ['anchor'],
+      missingAnchors: ['actual']
+    };
+  }
+  
+  /**
+   * Save custom validation messages to the repository
+   * These will be stored in .a24z/validation-messages.js
+   */
+  saveValidationMessages(messages: ValidationMessageOverridesImport): void {
+    saveValidationMessagesImport(this.repositoryPath, messages);
+  }
+  
+  /**
+   * Load custom validation messages from the repository
+   * Returns null if no custom messages are configured
+   */
+  loadValidationMessages(): ValidationMessageOverridesImport | null {
+    return loadValidationMessagesImport(this.repositoryPath);
+  }
+  
+  /**
+   * Get the path where custom validation messages are stored
+   */
+  getValidationMessagesPath(): string {
+    return getValidationMessagesPathImport(this.repositoryPath);
   }
 }
 
