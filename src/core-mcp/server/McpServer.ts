@@ -24,8 +24,11 @@ import {
   ReviewDuplicatesTool,
   FindSimilarNotesTool,
   MergeNotesTool,
+  ConfigureLLMTool,
 } from '../tools';
 import { McpServerConfig, McpTool, McpResource } from '../types';
+import { McpLLMConfigurator } from '../services/mcp-llm-configurator';
+import { LLMService } from '../services/llm-service';
 
 export class McpServer {
   private server: any;
@@ -33,9 +36,13 @@ export class McpServer {
   private tools: Map<string, McpTool> = new Map();
   private resources: Map<string, McpResource> = new Map();
   private messageQueue: any[] = [];
+  private llmConfigurator: McpLLMConfigurator;
+  private llmService?: LLMService;
 
   constructor(config: McpServerConfig) {
     this.config = config;
+    this.llmConfigurator = new McpLLMConfigurator();
+    
     this.server = new Server(
       {
         name: config.name,
@@ -68,6 +75,7 @@ export class McpServer {
     this.addTool(new FindSimilarNotesTool());
     this.addTool(new MergeNotesTool());
     this.addTool(new ReviewDuplicatesTool());
+    this.addTool(new ConfigureLLMTool());
   }
 
   private setupDefaultResources() {
@@ -174,6 +182,83 @@ export class McpServer {
     console.error(`✅ ${this.config.name} MCP server started successfully`);
     console.error(`📁 MCP Server working directory: ${process.cwd()}`);
     console.error(`📁 MCP Server __dirname: ${__dirname}`);
+    
+    // Initialize LLM configuration after server starts
+    this.initializeLLMService();
+  }
+  
+  /**
+   * Initialize LLM service with configuration
+   */
+  private async initializeLLMService() {
+    try {
+      console.error('');
+      console.error('🧠 Initializing AI-enhanced synthesis...');
+      
+      const llmConfig = await this.llmConfigurator.ensureLLMConfiguration();
+      
+      if (llmConfig) {
+        this.llmService = new LLMService(llmConfig);
+        const isValid = await this.llmConfigurator.validateConfiguration(llmConfig);
+        
+        if (isValid) {
+          console.error(`✅ LLM configured: ${llmConfig.provider}${llmConfig.model ? ` (${llmConfig.model})` : ''}`);
+          console.error('   AI-enhanced note synthesis enabled');
+          
+          // Show configuration source for transparency
+          const source = this.getConfigurationSource(llmConfig);
+          console.error(`   Source: ${source}`);
+        } else {
+          console.error(`⚠️  LLM configuration incomplete for ${llmConfig.provider}`);
+          console.error('   Falling back to local synthesis');
+          this.llmService = undefined;
+        }
+      } else {
+        console.error('ℹ️  No LLM configured - using local synthesis only');
+        console.error('   This works great! AI enhancement is optional.');
+      }
+      
+      console.error('');
+    } catch (error) {
+      console.error(`❌ Error initializing LLM service: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('   Falling back to local synthesis');
+      this.llmService = undefined;
+    }
+  }
+  
+  /**
+   * Get the configured LLM service (if any)
+   */
+  getLLMService(): LLMService | undefined {
+    return this.llmService;
+  }
+  
+  /**
+   * Determine the source of LLM configuration for transparency
+   */
+  private getConfigurationSource(config: any): string {
+    // Check if from config file
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const { findGitRoot } = require('../utils/pathNormalization');
+      
+      const repoRoot = findGitRoot(process.cwd());
+      if (repoRoot) {
+        const configPath = path.join(repoRoot, '.a24z', 'llm-config.json');
+        if (fs.existsSync(configPath)) {
+          const fileConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+          if (fileConfig.provider === config.provider) {
+            return 'Configuration file (.a24z/llm-config.json)';
+          }
+        }
+      }
+    } catch {
+      // Ignore error
+    }
+    
+    // Must be from stored API keys (automatic selection)
+    return 'Stored API keys (automatic selection)';
   }
 
   async stop() {

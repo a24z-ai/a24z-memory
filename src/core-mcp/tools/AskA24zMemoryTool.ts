@@ -56,13 +56,20 @@ export class AskA24zMemoryTool extends BaseTool {
     responseStyle: { acknowledgeLimitations: true, suggestNoteSaving: true, includeConfidence: true, conversationalTone: 'mentor' },
   };
   
-  private llmService: LLMService;
+  private llmService: LLMService | null;
   
   constructor(llmConfig?: any) {
     super();
     // Initialize LLM service with config if available
-    const config = llmConfig || LLMService.loadConfig();
-    this.llmService = new LLMService(config);
+    // Config will be loaded lazily on first use if not provided
+    this.llmService = llmConfig ? new LLMService(llmConfig) : null;
+  }
+  
+  private async ensureLLMService(): Promise<void> {
+    if (!this.llmService) {
+      const config = await LLMService.loadConfig();
+      this.llmService = new LLMService(config);
+    }
   }
 
   async execute(input: z.infer<typeof this.schema>): Promise<McpToolResult> {
@@ -188,7 +195,7 @@ export class AskA24zMemoryTool extends BaseTool {
       };
       
       // Only try to read files if LLM config says to include them
-      const llmConfig = LLMService.loadConfig();
+      const llmConfig = await LLMService.loadConfig();
       if (llmConfig?.includeFileContents) {
         // Limit to first 3 anchors to avoid token explosion
         const anchorsToRead = n.anchors.slice(0, 3);
@@ -230,7 +237,8 @@ export class AskA24zMemoryTool extends BaseTool {
       notes: notesWithContext
     };
     
-    const llmResponse = await this.llmService.synthesizeNotes(llmContext);
+    await this.ensureLLMService();
+    const llmResponse = await this.llmService!.synthesizeNotes(llmContext);
     
     let responseText: string;
     
@@ -333,7 +341,7 @@ export class AskA24zMemoryTool extends BaseTool {
       };
       
       // Only try to read files if LLM config says to include them
-      const llmConfig = LLMService.loadConfig();
+      const llmConfig = await LLMService.loadConfig();
       if (llmConfig?.includeFileContents) {
         // Limit to first 3 anchors to avoid token explosion
         const anchorsToRead = n.anchors.slice(0, 3);
@@ -373,7 +381,8 @@ export class AskA24zMemoryTool extends BaseTool {
       notes: notesWithContext
     };
     
-    const llmResponse = await this.llmService.synthesizeNotes(llmContext);
+    await this.ensureLLMService();
+    const llmResponse = await this.llmService!.synthesizeNotes(llmContext);
     
     if (llmResponse && llmResponse.content) {
       // Got an LLM-enhanced response - include both synthesis and source notes

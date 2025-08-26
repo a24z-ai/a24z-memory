@@ -11,13 +11,22 @@ import {
   getTypeDescriptions,
   getTypesWithDescriptions
 } from '../store/notesStore';
+import { GuidanceTokenManager } from '../services/guidance-token-manager';
 
 export class GetRepositoryGuidanceTool extends BaseTool {
   name = 'get_repository_guidance';
   description = 'Get comprehensive repository configuration including note guidance, tag restrictions, and tag descriptions';
+  
+  private tokenManager: GuidanceTokenManager;
+
+  constructor() {
+    super();
+    this.tokenManager = new GuidanceTokenManager();
+  }
 
   schema = z.object({
     path: z.string().describe('The file or directory path to get guidance for. Can be any path within the repository - the tool will find the repository root and provide comprehensive configuration.'),
+    includeToken: z.boolean().optional().describe('Whether to include a guidance token for note validation (default: true)'),
   });
 
   async execute(input: z.infer<typeof this.schema>): Promise<McpToolResult> {
@@ -118,11 +127,36 @@ export class GetRepositoryGuidanceTool extends BaseTool {
     output.push('- Note guidance: `.a24z/note-guidance.md`');
     output.push('- Notes storage: `.a24z/notes/` (organized by year/month)');
     
-    return { 
+    // Generate guidance token if requested (default to true)
+    const includeToken = input.includeToken !== false;
+    let token: string | undefined;
+    
+    if (includeToken) {
+      // Generate token based on the full guidance content
+      const fullContent = output.join('\n');
+      token = this.tokenManager.generateToken(fullContent, input.path);
+      
+      output.push('');
+      output.push('## Guidance Token');
+      output.push('This token proves you have read the current guidance:');
+      output.push(`\`${token}\``);
+      output.push('');
+      output.push('Include this token when creating notes to verify guidance compliance.');
+      output.push('Token expires in 24 hours.');
+    }
+    
+    const result: any = { 
       content: [{ 
         type: 'text', 
         text: output.join('\n')
       }] 
     };
+    
+    // Include token in structured response if generated
+    if (token) {
+      result.guidanceToken = token;
+    }
+    
+    return result;
   }
 }

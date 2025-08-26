@@ -28,6 +28,8 @@ export interface StoredNote {
   type: NoteType;
   metadata: Record<string, unknown>;
   timestamp: number;
+  reviewed?: boolean;
+  guidanceToken?: string;
 }
 
 export interface RepositoryConfiguration {
@@ -494,7 +496,8 @@ export function saveNote(note: Omit<StoredNote, 'id' | 'timestamp'> & { director
     ...noteWithoutDirectoryPath, 
     anchors: normalizedAnchors, // Use normalized anchors
     id: `note-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`, 
-    timestamp: Date.now() 
+    timestamp: Date.now(),
+    reviewed: noteWithoutDirectoryPath.reviewed !== undefined ? noteWithoutDirectoryPath.reviewed : false
   };
   
   // Write the note to its own file
@@ -814,6 +817,54 @@ export function deleteNoteById(repositoryPath: string, noteId: string): boolean 
   
   deleteNoteFile(normalizedRepo, noteToDelete);
   return true;
+}
+
+/**
+ * Get all unreviewed notes for a given path
+ */
+export function getUnreviewedNotes(repositoryPath: string, directoryPath?: string): StoredNote[] {
+  const targetPath = directoryPath || repositoryPath;
+  const notes = getNotesForPath(targetPath, true);
+  return notes.filter(note => !note.reviewed);
+}
+
+/**
+ * Mark a note as reviewed
+ */
+export function markNoteReviewed(repositoryPath: string, noteId: string): boolean {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const notes = readAllNotes(normalizedRepo);
+  const note = notes.find(n => n.id === noteId);
+  
+  if (!note) {
+    return false;
+  }
+  
+  note.reviewed = true;
+  
+  // Write the updated note back to its file
+  writeNoteToFile(normalizedRepo, note);
+  return true;
+}
+
+/**
+ * Mark all notes as reviewed for a given path
+ */
+export function markAllNotesReviewed(repositoryPath: string, directoryPath?: string): number {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const targetPath = directoryPath || normalizedRepo;
+  const notes = getNotesForPath(targetPath, true);
+  
+  let count = 0;
+  for (const note of notes) {
+    if (!note.reviewed) {
+      note.reviewed = true;
+      writeNoteToFile(normalizedRepo, note);
+      count++;
+    }
+  }
+  
+  return count;
 }
 
 export interface StaleNote {

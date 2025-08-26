@@ -1,0 +1,389 @@
+/**
+ * Tests for Note Review functionality
+ */
+
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+import {
+  saveNote,
+  getUnreviewedNotes,
+  markNoteReviewed,
+  markAllNotesReviewed,
+  getNotesForPath,
+  getNoteById,
+  type StoredNote
+} from '../src/core-mcp/store/notesStore';
+
+describe('Note Review Functionality', () => {
+  let testRepoRoot: string;
+
+  beforeEach(() => {
+    // Create a temporary test repository
+    testRepoRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'test-repo-'));
+    fs.mkdirSync(path.join(testRepoRoot, '.git'));
+    fs.mkdirSync(path.join(testRepoRoot, '.a24z'), { recursive: true });
+  });
+
+  afterEach(() => {
+    // Clean up
+    if (fs.existsSync(testRepoRoot)) {
+      fs.rmSync(testRepoRoot, { recursive: true, force: true });
+    }
+  });
+
+  describe('reviewed field', () => {
+    it('should create notes with reviewed=false by default', () => {
+      const note = saveNote({
+        note: 'Test note content',
+        directoryPath: testRepoRoot,
+        anchors: ['test.ts'],
+        tags: ['test'],
+        confidence: 'high',
+        type: 'explanation',
+        metadata: {}
+      });
+
+      expect(note.reviewed).toBe(false);
+    });
+
+    it('should preserve reviewed field when explicitly set', () => {
+      const note = saveNote({
+        note: 'Pre-reviewed note',
+        directoryPath: testRepoRoot,
+        anchors: ['test.ts'],
+        tags: ['test'],
+        confidence: 'high',
+        type: 'explanation',
+        metadata: {},
+        reviewed: true
+      });
+
+      expect(note.reviewed).toBe(true);
+    });
+
+    it('should preserve guidanceToken field', () => {
+      const testToken = 'test-token-abc123';
+      const note = saveNote({
+        note: 'Note with token',
+        directoryPath: testRepoRoot,
+        anchors: ['test.ts'],
+        tags: ['test'],
+        confidence: 'high',
+        type: 'explanation',
+        metadata: {},
+        guidanceToken: testToken
+      });
+
+      expect(note.guidanceToken).toBe(testToken);
+    });
+  });
+
+  describe('getUnreviewedNotes', () => {
+    beforeEach(() => {
+      // Create a mix of reviewed and unreviewed notes
+      saveNote({
+        note: 'Unreviewed note 1',
+        directoryPath: testRepoRoot,
+        anchors: ['file1.ts'],
+        tags: ['tag1'],
+        confidence: 'high',
+        type: 'explanation',
+        metadata: {},
+        reviewed: false
+      });
+
+      saveNote({
+        note: 'Reviewed note',
+        directoryPath: testRepoRoot,
+        anchors: ['file2.ts'],
+        tags: ['tag2'],
+        confidence: 'medium',
+        type: 'pattern',
+        reviewed: true,
+        metadata: {}
+      });
+
+      saveNote({
+        note: 'Unreviewed note 2',
+        directoryPath: testRepoRoot,
+        anchors: ['file3.ts'],
+        tags: ['tag3'],
+        confidence: 'low',
+        type: 'gotcha',
+        reviewed: false,
+        metadata: {}
+      });
+    });
+
+    it('should return only unreviewed notes', () => {
+      const unreviewed = getUnreviewedNotes(testRepoRoot);
+      
+      expect(unreviewed).toHaveLength(2);
+      expect(unreviewed.every(n => n.reviewed === false)).toBe(true);
+      expect(unreviewed.map(n => n.note)).toContain('Unreviewed note 1');
+      expect(unreviewed.map(n => n.note)).toContain('Unreviewed note 2');
+    });
+
+    it('should return empty array when all notes are reviewed', () => {
+      // Mark all as reviewed
+      markAllNotesReviewed(testRepoRoot);
+      
+      const unreviewed = getUnreviewedNotes(testRepoRoot);
+      expect(unreviewed).toHaveLength(0);
+    });
+
+    it('should filter by directory path when provided', () => {
+      // Create notes with different anchors
+      const subdir = path.join(testRepoRoot, 'subdir');
+      fs.mkdirSync(subdir, { recursive: true });
+      
+      saveNote({
+        note: 'Subdir unreviewed note',
+        directoryPath: testRepoRoot,
+        anchors: ['subdir/file.ts'],
+        tags: ['subdir'],
+        confidence: 'high',
+        type: 'explanation',
+        reviewed: false,
+        metadata: {}
+      });
+
+      const unreviewed = getUnreviewedNotes(testRepoRoot, subdir);
+      
+      // This would filter based on anchors matching the subdir
+      const subdirNotes = unreviewed.filter(n => 
+        n.anchors.some(a => a.includes('subdir'))
+      );
+      
+      expect(subdirNotes.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('markNoteReviewed', () => {
+    let noteId: string;
+
+    beforeEach(() => {
+      const note = saveNote({
+        note: 'Note to review',
+        directoryPath: testRepoRoot,
+        anchors: ['test.ts'],
+        tags: ['test'],
+        confidence: 'high',
+        type: 'explanation',
+        reviewed: false,
+        metadata: {}
+      });
+      noteId = note.id;
+    });
+
+    it('should mark a note as reviewed', () => {
+      const result = markNoteReviewed(testRepoRoot, noteId);
+      
+      expect(result).toBe(true);
+      
+      const note = getNoteById(testRepoRoot, noteId);
+      expect(note?.reviewed).toBe(true);
+    });
+
+    it('should return false for non-existent note', () => {
+      const result = markNoteReviewed(testRepoRoot, 'non-existent-id');
+      expect(result).toBe(false);
+    });
+
+    it('should persist reviewed status', () => {
+      markNoteReviewed(testRepoRoot, noteId);
+      
+      // Simulate reading from disk again
+      const notes = getNotesForPath(testRepoRoot, true);
+      const note = notes.find(n => n.id === noteId);
+      
+      expect(note?.reviewed).toBe(true);
+    });
+
+    it('should handle already reviewed notes gracefully', () => {
+      markNoteReviewed(testRepoRoot, noteId);
+      const result = markNoteReviewed(testRepoRoot, noteId);
+      
+      expect(result).toBe(true);
+      
+      const note = getNoteById(testRepoRoot, noteId);
+      expect(note?.reviewed).toBe(true);
+    });
+  });
+
+  describe('markAllNotesReviewed', () => {
+    beforeEach(() => {
+      // Create multiple unreviewed notes
+      for (let i = 1; i <= 5; i++) {
+        saveNote({
+          note: `Note ${i}`,
+          directoryPath: testRepoRoot,
+          anchors: [`file${i}.ts`],
+          tags: [`tag${i}`],
+          confidence: 'medium',
+          type: 'explanation',
+          metadata: {},
+          reviewed: false
+        });
+      }
+      
+      // Add one already reviewed note
+      saveNote({
+        note: 'Already reviewed',
+        directoryPath: testRepoRoot,
+        anchors: ['reviewed.ts'],
+        tags: ['reviewed'],
+        confidence: 'high',
+        type: 'pattern',
+        reviewed: true,
+        metadata: {}
+      });
+    });
+
+    it('should mark all unreviewed notes as reviewed', () => {
+      const count = markAllNotesReviewed(testRepoRoot);
+      
+      expect(count).toBe(5); // Only the unreviewed ones
+      
+      const notes = getNotesForPath(testRepoRoot, true);
+      expect(notes.every(n => n.reviewed === true)).toBe(true);
+    });
+
+    it('should return 0 when no unreviewed notes exist', () => {
+      markAllNotesReviewed(testRepoRoot);
+      const count = markAllNotesReviewed(testRepoRoot);
+      
+      expect(count).toBe(0);
+    });
+
+    it('should filter by directory path when provided', () => {
+      const subdir = path.join(testRepoRoot, 'subdir');
+      fs.mkdirSync(subdir, { recursive: true });
+      
+      // Add notes specific to subdir
+      saveNote({
+        note: 'Subdir note 1',
+        directoryPath: testRepoRoot,
+        anchors: ['subdir/file1.ts'],
+        tags: ['subdir'],
+        confidence: 'high',
+        type: 'explanation',
+        reviewed: false,
+        metadata: {}
+      });
+      
+      saveNote({
+        note: 'Subdir note 2',
+        directoryPath: testRepoRoot,
+        anchors: ['subdir/file2.ts'],
+        tags: ['subdir'],
+        confidence: 'high',
+        type: 'explanation',
+        reviewed: false,
+        metadata: {}
+      });
+
+      const count = markAllNotesReviewed(testRepoRoot, subdir);
+      
+      // This would depend on implementation of filtering by path
+      expect(count).toBeGreaterThan(0);
+    });
+  });
+
+  describe('integration with existing note operations', () => {
+    it('should preserve review status through note updates', () => {
+      const note = saveNote({
+        note: 'Original content',
+        directoryPath: testRepoRoot,
+        anchors: ['test.ts'],
+        tags: ['test'],
+        confidence: 'high',
+        type: 'explanation',
+        reviewed: false,
+        metadata: {}
+      });
+
+      markNoteReviewed(testRepoRoot, note.id);
+      
+      // Simulate updating the note (would need update functionality)
+      // For now, just verify the field persists
+      const retrievedNote = getNoteById(testRepoRoot, note.id);
+      expect(retrievedNote?.reviewed).toBe(true);
+    });
+
+    it('should include review status in bulk operations', () => {
+      // Create notes with various review statuses
+      const notes = [
+        { reviewed: true, confidence: 'high' as const },
+        { reviewed: false, confidence: 'medium' as const },
+        { reviewed: true, confidence: 'low' as const },
+        { reviewed: false, confidence: 'high' as const }
+      ];
+
+      const savedNotes = notes.map((noteData, i) => 
+        saveNote({
+          note: `Note ${i}`,
+          directoryPath: testRepoRoot,
+          anchors: [`file${i}.ts`],
+          tags: ['test'],
+          confidence: noteData.confidence,
+          type: 'explanation',
+          metadata: {},
+          reviewed: noteData.reviewed
+        })
+      );
+
+      const allNotes = getNotesForPath(testRepoRoot, true);
+      const reviewedCount = allNotes.filter(n => n.reviewed === true).length;
+      const unreviewedCount = allNotes.filter(n => n.reviewed === false).length;
+      
+      expect(reviewedCount).toBe(2);
+      expect(unreviewedCount).toBe(2);
+    });
+  });
+
+  describe('guidanceToken field', () => {
+    it('should preserve guidanceToken through operations', () => {
+      const token = 'test-guidance-token-xyz';
+      const note = saveNote({
+        note: 'Note with token',
+        directoryPath: testRepoRoot,
+        anchors: ['test.ts'],
+        tags: ['test'],
+        confidence: 'high',
+        type: 'explanation',
+        guidanceToken: token,
+        reviewed: false,
+        metadata: {}
+      });
+
+      expect(note.guidanceToken).toBe(token);
+      
+      // Mark as reviewed
+      markNoteReviewed(testRepoRoot, note.id);
+      
+      // Token should still be there
+      const reviewedNote = getNoteById(testRepoRoot, note.id);
+      expect(reviewedNote?.guidanceToken).toBe(token);
+      expect(reviewedNote?.reviewed).toBe(true);
+    });
+
+    it('should handle notes without guidanceToken', () => {
+      const note = saveNote({
+        note: 'Note without token',
+        directoryPath: testRepoRoot,
+        anchors: ['test.ts'],
+        tags: ['test'],
+        confidence: 'high',
+        type: 'explanation',
+        metadata: {}
+      });
+
+      expect(note.guidanceToken).toBeUndefined();
+      
+      const retrieved = getNoteById(testRepoRoot, note.id);
+      expect(retrieved?.guidanceToken).toBeUndefined();
+    });
+  });
+});

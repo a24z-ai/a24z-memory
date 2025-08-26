@@ -6,6 +6,7 @@ import { BaseTool } from './base-tool';
 import { 
   saveNote, 
   getRepositoryConfiguration,
+  getRepositoryGuidance,
   getTagDescriptions,
   saveTagDescription,
   getTypeDescriptions,
@@ -14,10 +15,18 @@ import {
   getAllowedTypes
 } from '../store/notesStore';
 import { findGitRoot } from '../utils/pathNormalization';
+import { GuidanceTokenManager } from '../services/guidance-token-manager';
 
 export class RepositoryNoteTool extends BaseTool {
   name = 'create_repository_note';
   description = 'Document tribal knowledge, architectural decisions, implementation patterns, and important lessons learned. This tool creates searchable notes that help future developers understand context and avoid repeating mistakes. Notes are stored locally in your repository and can be retrieved using the askA24zMemory tool.';
+  
+  private tokenManager: GuidanceTokenManager;
+  
+  constructor() {
+    super();
+    this.tokenManager = new GuidanceTokenManager();
+  }
 
   schema = z.object({
     note: z.string().describe('The tribal knowledge content in Markdown format. Use code blocks with ``` for code snippets, **bold** for emphasis, and [file.ts](path/to/file.ts) for file references'),
@@ -27,6 +36,7 @@ export class RepositoryNoteTool extends BaseTool {
     confidence: z.enum(['high', 'medium', 'low']).optional().default('medium').describe('Your confidence level in the accuracy and completeness of this note. Use "high" for well-tested solutions, "medium" for reasonable assumptions, and "low" for experimental or uncertain information.'),
     type: z.enum(['decision', 'pattern', 'gotcha', 'explanation']).optional().default('explanation').describe('The type of knowledge being documented. "decision" for architectural choices, "pattern" for reusable solutions, "gotcha" for tricky issues/bugs, "explanation" for general documentation.'),
     metadata: z.record(z.any()).optional().describe('Additional structured data about the note. Can include custom fields like author, related PRs, issue numbers, or any other contextual information that might be useful for future reference.'),
+    guidanceToken: z.string().optional().describe('Token from get_repository_guidance proving you have read the current guidance'),
   });
 
   async execute(input: z.input<typeof this.schema>): Promise<McpToolResult> {
@@ -77,10 +87,34 @@ export class RepositoryNoteTool extends BaseTool {
       );
     }
     
-    // Check configuration for tag/type enforcement
+    // Check configuration for tag/type enforcement and token requirement
     const config = getRepositoryConfiguration(parsed.directoryPath);
     const tagEnforcement = config.tags?.enforceAllowedTags || false;
     const typeEnforcement = config.types?.enforceAllowedTypes || false;
+    const requireGuidanceToken = process.env.A24Z_REQUIRE_GUIDANCE_TOKEN === 'true';
+    
+    // Validate guidance token if required
+    if (requireGuidanceToken) {
+      if (!parsed.guidanceToken) {
+        throw new Error(
+          `❌ Guidance token required. Please read repository guidance first using get_repository_guidance tool.\n` +
+          `💡 The guidance token proves you have read and understood the current repository guidelines.`
+        );
+      }
+      
+      // Load current guidance to validate token
+      const guidance = getRepositoryGuidance(parsed.directoryPath);
+      if (guidance) {
+        const isValid = this.tokenManager.validateToken(parsed.guidanceToken, guidance);
+        if (!isValid) {
+          throw new Error(
+            `❌ Invalid or expired guidance token.\n` +
+            `💡 Please read the current repository guidance using get_repository_guidance tool to get a fresh token.\n` +
+            `Tokens expire after 24 hours or when guidance content changes.`
+          );
+        }
+      }
+    }
     
     // Check for new tags that don't have descriptions
     const existingTagDescriptions = getTagDescriptions(parsed.directoryPath);
@@ -169,7 +203,9 @@ export class RepositoryNoteTool extends BaseTool {
       tags: parsed.tags,
       confidence: parsed.confidence,
       type: parsed.type,
-      metadata: { ...(parsed.metadata || {}), toolVersion: '2.0.0', createdBy: 'create_repository_note_tool' }
+      metadata: { ...(parsed.metadata || {}), toolVersion: '2.0.0', createdBy: 'create_repository_note_tool' },
+      reviewed: false, // New notes start as unreviewed
+      guidanceToken: parsed.guidanceToken
     });
 
     // Build response message with guidance about auto-created tags/types

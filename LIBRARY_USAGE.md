@@ -263,6 +263,70 @@ const securityNotes = allNotes.filter(n =>
 );
 ```
 
+### Configuring LLM Providers (OpenRouter, Ollama)
+
+a24z-memory supports AI-enhanced synthesis using OpenRouter or Ollama:
+
+```typescript
+import { ApiKeyManager, LLMService } from 'a24z-memory';
+
+// Configure OpenRouter (requires Bun runtime for secure storage)
+if (!ApiKeyManager.isBunSecretsAvailable()) {
+  throw new Error('Bun runtime required for OpenRouter integration');
+}
+
+await ApiKeyManager.storeApiKey('openrouter', {
+  apiKey: 'sk-or-v1-...',
+  model: 'meta-llama/llama-3.2-3b-instruct',
+  siteUrl: 'https://your-app.com',
+  siteName: 'Your App Name'
+});
+
+// Or configure via config file (.a24z/llm-config.json)
+{
+  "provider": "openrouter",
+  "model": "anthropic/claude-3.5-sonnet",
+  "temperature": 0.3,
+  "maxTokens": 1000
+}
+
+// The LLM will be used automatically for synthesis
+const tool = new AskA24zMemoryTool();
+const response = await tool.execute({
+  query: 'How does authentication work?',
+  filePath: '/src/auth'
+});
+```
+
+### Managing API Keys Securely
+
+```typescript
+import { ApiKeyManager } from 'a24z-memory';
+
+// Store API key (requires Bun runtime for secure OS keychain storage)
+if (!ApiKeyManager.isBunSecretsAvailable()) {
+  throw new Error('Bun runtime required for secure API key storage');
+}
+
+await ApiKeyManager.storeApiKey('openrouter', {
+  apiKey: 'your-api-key',
+  model: 'anthropic/claude-3.5-sonnet'
+});
+
+// Check if configured
+const stored = await ApiKeyManager.getApiKey('openrouter');
+if (stored) {
+  console.log('Using model:', stored.model);
+}
+
+// List all configured providers
+const providers = await ApiKeyManager.listStoredProviders();
+// ['openrouter', 'ollama']
+
+// Remove API key
+await ApiKeyManager.deleteApiKey('openrouter');
+```
+
 ### Embedding the MCP Server
 
 You can also programmatically run the MCP server:

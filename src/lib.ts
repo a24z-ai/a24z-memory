@@ -25,6 +25,10 @@ export {
   getNoteById,
   deleteNoteById,
   checkStaleNotes,
+  // Review functionality
+  getUnreviewedNotes,
+  markNoteReviewed,
+  markAllNotesReviewed,
   // Tag descriptions
   getTagDescriptions,
   saveTagDescription,
@@ -108,10 +112,20 @@ export { FindSimilarNotesTool } from './core-mcp/tools/FindSimilarNotesTool';
 export { MergeNotesTool } from './core-mcp/tools/MergeNotesTool';
 export { DeleteNoteTool } from './core-mcp/tools/DeleteNoteTool';
 export { ReviewDuplicatesTool } from './core-mcp/tools/ReviewDuplicatesTool';
+export { ConfigureLLMTool } from './core-mcp/tools/ConfigureLLMTool';
 export { BaseTool } from './core-mcp/tools/base-tool';
 
 // LLM Service exports
 export { LLMService, type LLMConfig, type LLMContext, type LLMResponse } from './core-mcp/services/llm-service';
+
+// API Key Manager
+export { ApiKeyManager, type StoredApiKey } from './core-mcp/services/api-key-manager';
+
+// Guidance Token Manager
+export { GuidanceTokenManager, type TokenPayload, type TokenResult } from './core-mcp/services/guidance-token-manager';
+
+// LLM Configurator
+export { McpLLMConfigurator, SUPPORTED_PROVIDERS, type LLMProviderConfig } from './core-mcp/services/mcp-llm-configurator';
 
 // Types
 export type {
@@ -146,6 +160,9 @@ import {
   deleteTagDescription as deleteTagDescriptionFunc,
   getTagsWithDescriptions as getTagsWithDescriptionsFunc,
   removeTagFromNotes as removeTagFromNotesFunc,
+  getUnreviewedNotes as getUnreviewedNotesFunc,
+  markNoteReviewed as markNoteReviewedFunc,
+  markAllNotesReviewed as markAllNotesReviewedFunc,
   type StoredNote as StoredNoteType,
   type NoteConfidence as NoteConfidenceType,
   type NoteType as NoteTypeType,
@@ -367,6 +384,27 @@ export class A24zMemory {
   }
 
   /**
+   * Get all unreviewed notes for a path
+   */
+  getUnreviewedNotes(directoryPath?: string): StoredNoteType[] {
+    return getUnreviewedNotesFunc(this.repositoryPath, directoryPath);
+  }
+
+  /**
+   * Mark a note as reviewed
+   */
+  markNoteReviewed(noteId: string): boolean {
+    return markNoteReviewedFunc(this.repositoryPath, noteId);
+  }
+
+  /**
+   * Mark all notes as reviewed for a path
+   */
+  markAllNotesReviewed(directoryPath?: string): number {
+    return markAllNotesReviewedFunc(this.repositoryPath, directoryPath);
+  }
+
+  /**
    * Ask the a24z memory system a question with enhanced metadata
    */
   async askMemory(params: {
@@ -422,7 +460,7 @@ export class A24zMemory {
   async isLLMAvailable(): Promise<boolean> {
     if (!this.llmService) {
       // Try to load default config and check
-      const config = LLMService.loadConfig();
+      const config = await LLMService.loadConfig();
       if (!config || config.provider === 'none') {
         return false;
       }

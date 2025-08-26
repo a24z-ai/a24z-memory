@@ -10,3 +10,4 @@ export { FindSimilarNotesTool } from './FindSimilarNotesTool';
 export { MergeNotesTool } from './MergeNotesTool';
 export { DeleteNoteTool } from './DeleteNoteTool';
 export { ReviewDuplicatesTool } from './ReviewDuplicatesTool';
+export { ConfigureLLMTool } from './ConfigureLLMTool';
