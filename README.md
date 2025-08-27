@@ -1,4 +1,4 @@
-<img width="2816" height="1536" alt="Gemini_Generated_Image_rx8a19rx8a19rx8a (1)" src="https://github.com/user-attachments/assets/7c7da37d-edad-4049-8b59-16e2e0c0c953" />
+<img width="2816" height="1536" alt="Gemini_Generated_Image_rx8a19rx8a19rx8a (1)" src="https://github.com/user-attachments/assets/f892952e-5955-4513-9670-7e0a6f67b01d" />
 
 # a24z-memory: Layered Knowledge Architecture
 
