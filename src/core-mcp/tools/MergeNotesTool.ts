@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
-import { saveNote } from '../store/notesStore';
+import { saveNote, deleteNoteById } from '../store/notesStore';
 import { normalizeRepositoryPath } from '../utils/pathNormalization';
 
 export class MergeNotesTool extends BaseTool {
@@ -56,9 +56,13 @@ export class MergeNotesTool extends BaseTool {
 
       let deletionResults = '';
       if (input.deleteOriginals) {
-        // In a real implementation, you'd need to read the original notes first
-        // to get their full data for deletion
-        deletionResults = `\n\n⚠️ Note: Original note deletion would require reading the original notes first.`;
+        let deletedCount = 0;
+        for (const noteId of input.noteIds) {
+          if (deleteNoteById(normalizedRepo, noteId)) {
+            deletedCount++;
+          }
+        }
+        deletionResults = `\n\n🗑️ Deleted ${deletedCount} original notes`;
       }
 
       return {

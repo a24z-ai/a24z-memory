@@ -66,7 +66,7 @@ describe('MergeNotesTool', () => {
     });
 
     expect(result.content[0].text).toContain('Successfully merged 2 notes');
-    expect(result.content[0].text).toContain('New note ID');
+    expect(result.content[0].text).toContain('New merged note ID');
     expect(result.isError).toBeUndefined();
 
     // Verify the merged note was created

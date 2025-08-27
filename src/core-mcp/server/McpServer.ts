@@ -14,17 +14,13 @@ import {
 
 import {
   /*AppInfoTool,*/ AskA24zMemoryTool,
-  RepositoryNoteTool,
+  CreateRepositoryNoteTool,
+  GetNotesTool,
   GetRepositoryTagsTool,
   GetRepositoryGuidanceTool,
   DiscoverToolsTool,
-  CheckStaleNotesTool,
   DeleteNoteTool,
   GetNoteByIdTool,
-  ReviewDuplicatesTool,
-  FindSimilarNotesTool,
-  MergeNotesTool,
-  ConfigureLLMTool,
 } from '../tools';
 import { McpServerConfig, McpTool, McpResource } from '../types';
 import { McpLLMConfigurator } from '../services/mcp-llm-configurator';
@@ -65,17 +61,13 @@ export class McpServer {
     // Add default tools
     // this.addTool(new AppInfoTool(this.config.name, this.config.version, this.config.version));
     this.addTool(new AskA24zMemoryTool());
-    this.addTool(new RepositoryNoteTool());
+    this.addTool(new CreateRepositoryNoteTool());
+    this.addTool(new GetNotesTool());
     this.addTool(new GetRepositoryTagsTool());
     this.addTool(new GetRepositoryGuidanceTool());
     this.addTool(new DiscoverToolsTool());
-    this.addTool(new CheckStaleNotesTool());
     this.addTool(new DeleteNoteTool());
     this.addTool(new GetNoteByIdTool());
-    this.addTool(new FindSimilarNotesTool());
-    this.addTool(new MergeNotesTool());
-    this.addTool(new ReviewDuplicatesTool());
-    this.addTool(new ConfigureLLMTool());
   }
 
   private setupDefaultResources() {

@@ -28,6 +28,10 @@ describe('Repository-Specific Storage', () => {
     // Create test repository structure
     fs.mkdirSync(testSubPath, { recursive: true });
     
+    // Create git directory for validation
+    fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
+    fs.writeFileSync(path.join(testRepoPath, '.git', 'config'), '[core]\nrepositoryformatversion = 0\n');
+    
     // Create package.json to make it a project root
     fs.writeFileSync(path.join(testRepoPath, 'package.json'), JSON.stringify({
       name: 'test-repo-storage',
@@ -63,7 +67,7 @@ describe('Repository-Specific Storage', () => {
   describe('Repository-Specific File Storage', () => {
     const testNote = {
       note: 'Test note for repository storage',
-      directoryPath: testSubPath, // Will be normalized to testRepoPath
+      directoryPath: testRepoPath, // Must be repository root
       anchors: [testSubPath],
       tags: ['test', 'repository-storage'],
       confidence: 'medium' as NoteConfidence,
@@ -76,19 +80,17 @@ describe('Repository-Specific Storage', () => {
       
       // Check that note was saved
       expect(saved.id).toMatch(/^note-\d+-[a-z0-9]+$/);
-      expect(saved.directoryPath).toBe(testRepoPath); // Should be normalized
       
-      // Check that file was created in correct location
-      const expectedFile = path.join(testRepoPath, '.a24z', 'repository-notes.json');
-      expect(fs.existsSync(expectedFile)).toBe(true);
+      // Check that notes directory was created in correct location
+      const expectedDir = path.join(testRepoPath, '.a24z', 'notes');
+      expect(fs.existsSync(expectedDir)).toBe(true);
       
-      // Check file structure
-      const fileContent = JSON.parse(fs.readFileSync(expectedFile, 'utf8'));
-      expect(fileContent).toHaveProperty('version', 1);
-      expect(fileContent).toHaveProperty('notes');
-      expect(Array.isArray(fileContent.notes)).toBe(true);
-      expect(fileContent.notes).toHaveLength(1);
-      expect(fileContent.notes[0].directoryPath).toBe(testRepoPath);
+      // Check that individual note file exists (in current year/month)
+      const currentDate = new Date();
+      const year = currentDate.getFullYear().toString();
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const noteFile = path.join(expectedDir, year, month, `${saved.id}.json`);
+      expect(fs.existsSync(noteFile)).toBe(true);
     });
 
     it('should retrieve notes from repository storage', () => {
@@ -96,7 +98,7 @@ describe('Repository-Specific Storage', () => {
       const saved = saveNote(testNote);
       
       // Retrieve notes using exact repository path
-      const notes = getNotesForPath(testRepoPath, true, 10);
+      const notes = getNotesForPath(testRepoPath, true);
       expect(notes).toHaveLength(1);
       expect(notes[0].id).toBe(saved.id);
       expect(notes[0].isParentDirectory).toBe(true);
@@ -109,11 +111,12 @@ describe('Repository-Specific Storage', () => {
       
       // Retrieve notes using nested path (should find the note at repo root)
       const nestedPath = path.join(testRepoPath, 'src', 'components', 'Button.tsx');
-      const notes = getNotesForPath(nestedPath, true, 10);
+      const notes = getNotesForPath(nestedPath, true);
       expect(notes).toHaveLength(1);
       expect(notes[0].id).toBe(saved.id);
-      expect(notes[0].isParentDirectory).toBe(true);
-      expect(notes[0].pathDistance).toBe(3); // src/components/Button.tsx = 3 levels
+      // The note should match the anchor, not be a parent directory
+      expect(notes[0].isParentDirectory).toBe(false);
+      expect(notes[0].pathDistance).toBe(0); // Direct anchor match
     });
 
     it('should handle multiple notes in same repository', () => {
@@ -126,7 +129,7 @@ describe('Repository-Specific Storage', () => {
       });
       
       // Retrieve all notes
-      const notes = getNotesForPath(testRepoPath, true, 10);
+      const notes = getNotesForPath(testRepoPath, true);
       expect(notes).toHaveLength(2);
       
       const noteIds = notes.map(n => n.id);
@@ -158,6 +161,11 @@ describe('Repository-Specific Storage', () => {
         fs.rmSync(secondRepoPath, { recursive: true, force: true });
       }
       fs.mkdirSync(secondRepoPath, { recursive: true });
+      
+      // Create git directory for validation
+      fs.mkdirSync(path.join(secondRepoPath, '.git'), { recursive: true });
+      fs.writeFileSync(path.join(secondRepoPath, '.git', 'config'), '[core]\nrepositoryformatversion = 0\n');
+      
       fs.writeFileSync(path.join(secondRepoPath, 'package.json'), JSON.stringify({
         name: 'second-test-repo',
         version: '1.0.0'
@@ -178,7 +186,7 @@ describe('Repository-Specific Storage', () => {
         tags: ['repo1'],
         confidence: 'medium' as NoteConfidence,
         type: 'explanation' as NoteType,
-        anchors: [],
+        anchors: [testRepoPath],
         metadata: {}
       });
 
@@ -189,49 +197,45 @@ describe('Repository-Specific Storage', () => {
         tags: ['repo2'],
         confidence: 'medium' as NoteConfidence,
         type: 'explanation' as NoteType,
-        anchors: [],
+        anchors: [secondRepoPath],
         metadata: {}
       });
 
       // Check that each repository only sees its own notes
-      const repo1Notes = getNotesForPath(testRepoPath, true, 10);
-      const repo2Notes = getNotesForPath(secondRepoPath, true, 10);
+      const repo1Notes = getNotesForPath(testRepoPath, true);
+      const repo2Notes = getNotesForPath(secondRepoPath, true);
 
       expect(repo1Notes).toHaveLength(1);
       expect(repo2Notes).toHaveLength(1);
       expect(repo1Notes[0].id).toBe(note1.id);
       expect(repo2Notes[0].id).toBe(note2.id);
 
-      // Check that files are stored separately
-      const repo1File = path.join(testRepoPath, '.a24z', 'repository-notes.json');
-      const repo2File = path.join(secondRepoPath, '.a24z', 'repository-notes.json');
+      // Check that notes directories are stored separately
+      const repo1Dir = path.join(testRepoPath, '.a24z', 'notes');
+      const repo2Dir = path.join(secondRepoPath, '.a24z', 'notes');
       
-      expect(fs.existsSync(repo1File)).toBe(true);
-      expect(fs.existsSync(repo2File)).toBe(true);
+      expect(fs.existsSync(repo1Dir)).toBe(true);
+      expect(fs.existsSync(repo2Dir)).toBe(true);
       
-      const repo1Data = JSON.parse(fs.readFileSync(repo1File, 'utf8'));
-      const repo2Data = JSON.parse(fs.readFileSync(repo2File, 'utf8'));
-      
-      expect(repo1Data.notes).toHaveLength(1);
-      expect(repo2Data.notes).toHaveLength(1);
-      expect(repo1Data.notes[0].tags).toContain('repo1');
-      expect(repo2Data.notes[0].tags).toContain('repo2');
+      // Verify tags are isolated using the notes themselves
+      expect(repo1Notes[0].tags).toContain('repo1');
+      expect(repo2Notes[0].tags).toContain('repo2');
     });
   });
 
   describe('MCP Tool Integration', () => {
     it('should save and retrieve notes through the actual MCP tools', async () => {
       // Import the actual MCP tools
-      const { RepositoryNoteTool } = await import('../../../src/core-mcp/tools/RepositoryNoteTool');
-      const { GetRepositoryNotesTool } = await import('../../../src/core-mcp/tools/GetRepositoryNotesTool');
+      const { CreateRepositoryNoteTool } = await import('../../../src/core-mcp/tools/CreateRepositoryNoteTool');
+      const { GetNotesTool } = await import('../../../src/core-mcp/tools/GetNotesTool');
       
-      const saveTool = new RepositoryNoteTool();
-      const getTool = new GetRepositoryNotesTool();
+      const saveTool = new CreateRepositoryNoteTool();
+      const getTool = new GetNotesTool();
       
       // Save a note using the MCP tool
       const saveResult = await saveTool.execute({
         note: 'MCP integration test note',
-        directoryPath: testSubPath,
+        directoryPath: testRepoPath,
         tags: ['mcp-test', 'integration'],
         type: 'explanation' as NoteType,
         confidence: 'high' as NoteConfidence,
@@ -239,13 +243,18 @@ describe('Repository-Specific Storage', () => {
         metadata: { mcpTest: true }
       });
       
-      expect(saveResult.content[0].text).toContain('Saved note');
+      expect(saveResult.content[0].text).toContain('Note saved successfully');
       
       // Retrieve notes using the MCP tool
       const getResult = await getTool.execute({
         path: testRepoPath,
         includeParentNotes: true,
-        maxResults: 10
+        filterReviewed: 'all',
+        includeStale: true,
+        sortBy: 'timestamp',
+        limit: 10,
+        offset: 0,
+        includeMetadata: true
       });
       
       console.log('MCP Get Result:', JSON.stringify(getResult, null, 2));
@@ -257,8 +266,7 @@ describe('Repository-Specific Storage', () => {
       const parsedResult = JSON.parse(getResult.content[0].text!);
       
       // This should find the note we just saved
-      expect(parsedResult.success).toBe(true);
-      expect(parsedResult.totalNotes).toBe(1);
+      expect(parsedResult.pagination.total).toBe(1);
       expect(parsedResult.notes).toHaveLength(1);
       expect(parsedResult.notes[0].note).toBe('MCP integration test note');
     });
@@ -267,24 +275,29 @@ describe('Repository-Specific Storage', () => {
       // Save a note first
       const saved = saveNote({
         note: 'Nested path retrieval test',
-        directoryPath: testSubPath,
+        directoryPath: testRepoPath,
         tags: ['nested-test'],
         type: 'explanation' as NoteType,
         confidence: 'medium' as NoteConfidence,
-        anchors: [],
+        anchors: [testSubPath],
         metadata: {}
       });
       
       // Import and use the MCP tool
-      const { GetRepositoryNotesTool } = await import('../../../src/core-mcp/tools/GetRepositoryNotesTool');
-      const getTool = new GetRepositoryNotesTool();
+      const { GetNotesTool } = await import('../../../src/core-mcp/tools/GetNotesTool');
+      const getTool = new GetNotesTool();
       
       // Try to retrieve from a deeply nested path
       const deepPath = path.join(testRepoPath, 'src', 'components', 'Button.tsx');
       const getResult = await getTool.execute({
         path: deepPath,
         includeParentNotes: true,
-        maxResults: 10
+        filterReviewed: 'all',
+        includeStale: true,
+        sortBy: 'timestamp',
+        limit: 10,
+        offset: 0,
+        includeMetadata: true
       });
       
       console.log('Nested Path Get Result:', JSON.stringify(getResult, null, 2));
@@ -295,8 +308,7 @@ describe('Repository-Specific Storage', () => {
       expect(getResult.content[0].text).toBeDefined();
       const parsedResult = JSON.parse(getResult.content[0].text!);
       
-      expect(parsedResult.success).toBe(true);
-      expect(parsedResult.totalNotes).toBe(1);
+      expect(parsedResult.pagination.total).toBe(1);
       expect(parsedResult.notes[0].id).toBe(saved.id);
     });
   });

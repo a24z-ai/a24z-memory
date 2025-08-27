@@ -462,6 +462,8 @@ export function saveNote(
     confidence: note.confidence,
     type: note.type,
     metadata: note.metadata,
+    reviewed: note.reviewed,
+    guidanceToken: note.guidanceToken,
   };
 
   // Validate the note before processing

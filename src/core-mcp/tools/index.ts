@@ -1,13 +1,9 @@
 export { BaseTool } from './base-tool';
 export { AskA24zMemoryTool } from './AskA24zMemoryTool';
-export { RepositoryNoteTool } from './RepositoryNoteTool';
+export { CreateRepositoryNoteTool } from './CreateRepositoryNoteTool';
+export { GetNotesTool } from './GetNotesTool';
 export { GetRepositoryTagsTool } from './GetRepositoryTagsTool';
 export { GetRepositoryGuidanceTool } from './GetRepositoryGuidanceTool';
 export { DiscoverToolsTool } from './DiscoverToolsTool';
-export { CheckStaleNotesTool } from './CheckStaleNotesTool';
 export { GetNoteByIdTool } from './GetNoteByIdTool';
-export { FindSimilarNotesTool } from './FindSimilarNotesTool';
-export { MergeNotesTool } from './MergeNotesTool';
 export { DeleteNoteTool } from './DeleteNoteTool';
-export { ReviewDuplicatesTool } from './ReviewDuplicatesTool';
-export { ConfigureLLMTool } from './ConfigureLLMTool';

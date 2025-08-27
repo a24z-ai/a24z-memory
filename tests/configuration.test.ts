@@ -45,6 +45,9 @@ describe('Configuration System', () => {
       tags: {
         enforceAllowedTags: false,
       },
+      types: {
+        enforceAllowedTypes: false,
+      },
     });
 
     // Check that configuration file was created
@@ -87,7 +90,7 @@ describe('Configuration System', () => {
     };
 
     expect(() => saveNote(longNote)).toThrow(
-      'Note validation failed: Note content exceeds maximum length of 50 characters'
+      'Note validation failed: Note content is too long'
     );
   });
 
@@ -151,7 +154,7 @@ describe('Configuration System', () => {
 
     expect(errors).toHaveLength(2);
     expect(errors[0].field).toBe('note');
-    expect(errors[0].message).toContain('exceeds maximum length');
+    expect(errors[0].message).toContain('too long');
     expect(errors[1].field).toBe('tags');
     expect(errors[1].message).toContain('too many tags');
   });

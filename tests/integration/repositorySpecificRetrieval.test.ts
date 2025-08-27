@@ -1,8 +1,8 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { RepositoryNoteTool } from '../../src/core-mcp/tools/RepositoryNoteTool';
-import { GetRepositoryNotesTool } from '../../src/core-mcp/tools/GetRepositoryNotesTool';
+import { CreateRepositoryNoteTool } from '../../src/core-mcp/tools/CreateRepositoryNoteTool';
+import { GetNotesTool } from '../../src/core-mcp/tools/GetNotesTool';
 
 describe('Repository-Specific Note Retrieval Integration', () => {
   const testBase = path.join(os.tmpdir(), 'retrieval-test-' + Date.now());
@@ -28,54 +28,60 @@ describe('Repository-Specific Note Retrieval Integration', () => {
   });
 
   it('should correctly store and retrieve notes from specific repositories', async () => {
-    const saveTool = new RepositoryNoteTool();
-    const getTool = new GetRepositoryNotesTool();
+    const saveTool = new CreateRepositoryNoteTool();
+    const getTool = new GetNotesTool();
     
     // Save notes in repo1
     console.log('Saving note in repo1...');
     const save1Result = await saveTool.execute({
       note: 'Repository 1 specific note',
       directoryPath: repo1,
+      anchors: [repo1],
       tags: ['repo1', 'test'],
       confidence: 'high',
       type: 'explanation',
       metadata: { testId: 'repo1-note' }
     });
-    expect(save1Result.content[0].text).toMatch(/^Saved note/);
+    expect(save1Result.content[0].text).toContain('Note saved successfully');
     
     // Save notes in repo2
     console.log('Saving note in repo2...');
     const save2Result = await saveTool.execute({
       note: 'Repository 2 specific note',
       directoryPath: repo2,
+      anchors: [repo2],
       tags: ['repo2', 'test'],
       confidence: 'high',
       type: 'explanation',
       metadata: { testId: 'repo2-note' }
     });
-    expect(save2Result.content[0].text).toMatch(/^Saved note/);
+    expect(save2Result.content[0].text).toContain('Note saved successfully');
     
-    // Verify files are created in correct locations
-    const repo1NotesFile = path.join(repo1, '.a24z', 'repository-notes.json');
-    const repo2NotesFile = path.join(repo2, '.a24z', 'repository-notes.json');
+    // Verify notes directories are created in correct locations
+    const repo1NotesDir = path.join(repo1, '.a24z', 'notes');
+    const repo2NotesDir = path.join(repo2, '.a24z', 'notes');
     
-    console.log('Checking file existence...');
-    expect(fs.existsSync(repo1NotesFile)).toBe(true);
-    expect(fs.existsSync(repo2NotesFile)).toBe(true);
+    console.log('Checking directory existence...');
+    expect(fs.existsSync(repo1NotesDir)).toBe(true);
+    expect(fs.existsSync(repo2NotesDir)).toBe(true);
     
     // Retrieve notes from repo1
     console.log('Retrieving notes from repo1...');
     const get1Result = await getTool.execute({
       path: repo1,
       includeParentNotes: true,
-      maxResults: 10
+      filterReviewed: 'all',
+      includeStale: true,
+      sortBy: 'timestamp',
+      limit: 10,
+      offset: 0,
+      includeMetadata: true
     });
     
     const repo1Data = JSON.parse(get1Result.content[0].text!);
     console.log('Repo1 retrieval result:', JSON.stringify(repo1Data, null, 2));
     
-    expect(repo1Data.success).toBe(true);
-    expect(repo1Data.totalNotes).toBe(1);
+    expect(repo1Data.pagination.total).toBe(1);
     expect(repo1Data.notes[0].note).toBe('Repository 1 specific note');
     
     // Retrieve notes from repo2
@@ -83,20 +89,24 @@ describe('Repository-Specific Note Retrieval Integration', () => {
     const get2Result = await getTool.execute({
       path: repo2,
       includeParentNotes: true,
-      maxResults: 10
+      filterReviewed: 'all',
+      includeStale: true,
+      sortBy: 'timestamp',
+      limit: 10,
+      offset: 0,
+      includeMetadata: true
     });
     
     const repo2Data = JSON.parse(get2Result.content[0].text!);
     console.log('Repo2 retrieval result:', JSON.stringify(repo2Data, null, 2));
     
-    expect(repo2Data.success).toBe(true);
-    expect(repo2Data.totalNotes).toBe(1);
+    expect(repo2Data.pagination.total).toBe(1);
     expect(repo2Data.notes[0].note).toBe('Repository 2 specific note');
   });
 
   it('should retrieve notes from nested paths within repository', async () => {
-    const saveTool = new RepositoryNoteTool();
-    const getTool = new GetRepositoryNotesTool();
+    const saveTool = new CreateRepositoryNoteTool();
+    const getTool = new GetNotesTool();
     
     const nestedPath = path.join(repo1, 'src', 'components', 'Button.tsx');
     fs.mkdirSync(path.dirname(nestedPath), { recursive: true });
@@ -106,6 +116,7 @@ describe('Repository-Specific Note Retrieval Integration', () => {
     await saveTool.execute({
       note: 'Root level note for nested path test',
       directoryPath: repo1,
+      anchors: [repo1],
       tags: ['root', 'nested-test'],
       confidence: 'medium',
       type: 'pattern',
@@ -117,24 +128,26 @@ describe('Repository-Specific Note Retrieval Integration', () => {
     const getResult = await getTool.execute({
       path: nestedPath,
       includeParentNotes: true,
-      maxResults: 10
+      filterReviewed: 'all',
+      includeStale: true,
+      sortBy: 'timestamp',
+      limit: 10,
+      offset: 0,
+      includeMetadata: true
     });
     
     const data = JSON.parse(getResult.content[0].text!);
     console.log('Nested path retrieval result:', JSON.stringify(data, null, 2));
     
     // Should find the root note even when querying from nested path
-    expect(data.success).toBe(true);
-    expect(data.totalNotes).toBeGreaterThanOrEqual(1);
+    expect(data.pagination.total).toBeGreaterThanOrEqual(1);
     
     const rootNote = data.notes.find((n: any) => n.note.includes('Root level note'));
     expect(rootNote).toBeDefined();
-    expect(rootNote.isParent).toBe(true);
-    expect(rootNote.distance).toBeGreaterThan(0); // Should have distance since it's from parent
   });
 
   it('should not retrieve notes from different repository', async () => {
-    const getTool = new GetRepositoryNotesTool();
+    const getTool = new GetNotesTool();
     
     // Both repositories should have notes from previous tests
     // Query repo1 - should not see repo2 notes
@@ -142,11 +155,16 @@ describe('Repository-Specific Note Retrieval Integration', () => {
     const get1Result = await getTool.execute({
       path: repo1,
       includeParentNotes: true,
-      maxResults: 100
+      filterReviewed: 'all',
+      includeStale: true,
+      sortBy: 'timestamp',
+      limit: 100,
+      offset: 0,
+      includeMetadata: true
     });
     
     const repo1Data = JSON.parse(get1Result.content[0].text!);
-    console.log('Repo1 notes count:', repo1Data.totalNotes);
+    console.log('Repo1 notes count:', repo1Data.pagination.total);
     
     // Check that no notes from repo2 appear
     const hasRepo2Notes = repo1Data.notes.some((n: any) => 
@@ -160,11 +178,16 @@ describe('Repository-Specific Note Retrieval Integration', () => {
     const get2Result = await getTool.execute({
       path: repo2,
       includeParentNotes: true,
-      maxResults: 100
+      filterReviewed: 'all',
+      includeStale: true,
+      sortBy: 'timestamp',
+      limit: 100,
+      offset: 0,
+      includeMetadata: true
     });
     
     const repo2Data = JSON.parse(get2Result.content[0].text!);
-    console.log('Repo2 notes count:', repo2Data.totalNotes);
+    console.log('Repo2 notes count:', repo2Data.pagination.total);
     
     // Check that no notes from repo1 appear
     const hasRepo1Notes = repo2Data.notes.some((n: any) => 

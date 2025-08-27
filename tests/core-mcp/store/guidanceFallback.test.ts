@@ -13,6 +13,9 @@ describe('Repository Guidance Fallback Logic', () => {
     repoDir = path.join(tempDir, 'test-repo');
     fs.mkdirSync(repoDir, { recursive: true });
     
+    // Create a .git directory to make it a valid repository
+    fs.mkdirSync(path.join(repoDir, '.git'), { recursive: true });
+    
     // Create a package.json to make it look like a proper project root
     fs.writeFileSync(path.join(repoDir, 'package.json'), '{}');
   });
