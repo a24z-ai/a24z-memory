@@ -23,8 +23,8 @@ export interface LLMProviderConfig {
 }
 
 export interface LLMConfigFile {
-  defaultProvider?: string | 'none';  // Which provider to use, or 'none' to disable LLM
-  provider?: string;  // Legacy field for backwards compatibility
+  defaultProvider?: string | 'none'; // Which provider to use, or 'none' to disable LLM
+  provider?: string; // Legacy field for backwards compatibility
   endpoint?: string;
   model?: string;
   temperature?: number;
@@ -39,7 +39,7 @@ export const SUPPORTED_PROVIDERS: LLMProviderConfig[] = [
     description: 'Local LLM server - no API key required',
     requiresApiKey: false,
     defaultModel: 'llama3.2:3b',
-    supportedModels: ['llama3.2:3b', 'codellama:13b', 'mistral:7b', 'deepseek-coder:6.7b']
+    supportedModels: ['llama3.2:3b', 'codellama:13b', 'mistral:7b', 'deepseek-coder:6.7b'],
   },
   {
     name: 'openrouter',
@@ -53,7 +53,7 @@ export const SUPPORTED_PROVIDERS: LLMProviderConfig[] = [
       'openai/gpt-4o',
       'google/gemini-flash-1.5',
       'deepseek/deepseek-coder',
-      'mistralai/mistral-7b-instruct'
+      'mistralai/mistral-7b-instruct',
     ],
     additionalFields: [
       {
@@ -61,16 +61,16 @@ export const SUPPORTED_PROVIDERS: LLMProviderConfig[] = [
         displayName: 'Site URL',
         description: 'Your application URL (improves rate limits)',
         optional: true,
-        placeholder: 'https://your-app.com'
+        placeholder: 'https://your-app.com',
       },
       {
         key: 'siteName',
-        displayName: 'Site Name', 
+        displayName: 'Site Name',
         description: 'Your application name (improves rate limits)',
         optional: true,
-        placeholder: 'Your App Name'
-      }
-    ]
+        placeholder: 'Your App Name',
+      },
+    ],
   },
   {
     name: 'openai',
@@ -78,20 +78,20 @@ export const SUPPORTED_PROVIDERS: LLMProviderConfig[] = [
     description: 'Direct access to OpenAI models (GPT-4, GPT-3.5)',
     requiresApiKey: true,
     defaultModel: 'gpt-4o-mini',
-    supportedModels: ['gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo']
-  }
+    supportedModels: ['gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo'],
+  },
 ];
 
 export class McpLLMConfigurator {
   private isConfiguring = false;
-  
+
   /**
    * Check if Bun runtime is available for secure key storage
    */
   static isBunAvailable(): boolean {
     return ApiKeyManager.isBunSecretsAvailable();
   }
-  
+
   /**
    * Get current LLM configuration or prompt user to configure
    */
@@ -101,7 +101,7 @@ export class McpLLMConfigurator {
     if (existingConfig) {
       return existingConfig;
     }
-    
+
     // If no Bun runtime, can't configure securely
     if (!McpLLMConfigurator.isBunAvailable()) {
       console.error('⚠️  LLM configuration requires Bun runtime for secure API key storage');
@@ -109,17 +109,17 @@ export class McpLLMConfigurator {
       console.error('   Then restart the MCP server with: bun run a24z-memory');
       return null;
     }
-    
+
     // Prevent multiple simultaneous configuration attempts
     if (this.isConfiguring) {
       return null;
     }
-    
+
     console.error('🚀 Welcome to a24z-Memory enhanced synthesis setup!');
     console.error('   Configure an LLM provider for AI-enhanced note synthesis.');
     console.error('   This is optional - the system works great without it too.');
     console.error('');
-    
+
     try {
       this.isConfiguring = true;
       return await this.promptForConfiguration();
@@ -127,7 +127,7 @@ export class McpLLMConfigurator {
       this.isConfiguring = false;
     }
   }
-  
+
   /**
    * Load existing configuration from various sources
    */
@@ -139,13 +139,13 @@ export class McpLLMConfigurator {
       if (fileConfig.provider === 'none') {
         return null;
       }
-      
+
       const merged = await ApiKeyManager.mergeWithStoredKey(fileConfig);
       if (merged.apiKey || !this.getProviderConfig(merged.provider)?.requiresApiKey) {
         return merged;
       }
     }
-    
+
     // 2. Only use automatic provider selection if no config file exists
     // (If config file exists but provider is not configured, respect that)
     if (!this.hasConfigFile()) {
@@ -154,10 +154,10 @@ export class McpLLMConfigurator {
         return autoConfig;
       }
     }
-    
+
     return null;
   }
-  
+
   /**
    * Check if config file exists
    */
@@ -166,17 +166,17 @@ export class McpLLMConfigurator {
       const fs = require('fs');
       const path = require('path');
       const { findGitRoot } = require('../utils/pathNormalization');
-      
+
       const repoRoot = findGitRoot(process.cwd());
       if (!repoRoot) return false;
-      
+
       const configPath = path.join(repoRoot, '.a24z', 'llm-config.json');
       return fs.existsSync(configPath);
     } catch {
       return false;
     }
   }
-  
+
   /**
    * Load configuration from .a24z/llm-config.json
    */
@@ -185,37 +185,37 @@ export class McpLLMConfigurator {
       const fs = require('fs');
       const path = require('path');
       const { findGitRoot } = require('../utils/pathNormalization');
-      
+
       const repoRoot = findGitRoot(process.cwd());
       if (!repoRoot) return null;
-      
+
       const configPath = path.join(repoRoot, '.a24z', 'llm-config.json');
       if (fs.existsSync(configPath)) {
         const fileConfig = JSON.parse(fs.readFileSync(configPath, 'utf8')) as LLMConfigFile;
-        
+
         // Use defaultProvider if specified, otherwise fall back to provider field
         const provider = fileConfig.defaultProvider || fileConfig.provider;
-        
+
         if (!provider) {
           return null;
         }
-        
+
         return {
           provider: provider as any,
           endpoint: fileConfig.endpoint,
           model: fileConfig.model,
           temperature: fileConfig.temperature,
           maxTokens: fileConfig.maxTokens,
-          timeout: fileConfig.timeout
+          timeout: fileConfig.timeout,
         };
       }
     } catch {
       // No config file or error reading
     }
-    
+
     return null;
   }
-  
+
   /**
    * Load configuration from stored API keys (automatic provider selection)
    */
@@ -223,16 +223,16 @@ export class McpLLMConfigurator {
     if (!McpLLMConfigurator.isBunAvailable()) {
       return null;
     }
-    
+
     // Get all stored providers
     const storedProviders = await ApiKeyManager.listStoredProviders();
     if (storedProviders.length === 0) {
       return null;
     }
-    
+
     // Provider priority order (most preferred first)
     const providerPriority = ['openrouter', 'openai', 'anthropic', 'ollama'];
-    
+
     // Find the highest priority provider that has stored credentials
     for (const preferredProvider of providerPriority) {
       if (storedProviders.includes(preferredProvider)) {
@@ -246,18 +246,18 @@ export class McpLLMConfigurator {
             openRouterSiteUrl: stored.siteUrl,
             openRouterSiteName: stored.siteName,
             temperature: 0.3,
-            maxTokens: 1000
+            maxTokens: 1000,
           };
         }
       }
     }
-    
+
     // If no priority match, use the first available provider
     const firstProvider = storedProviders[0];
     const stored = await ApiKeyManager.getApiKey(firstProvider);
     if (stored) {
       const providerConfig = this.getProviderConfig(firstProvider);
-      
+
       // For non-API key providers (like Ollama), create config even without API key
       if (!providerConfig?.requiresApiKey || stored.apiKey) {
         return {
@@ -268,21 +268,21 @@ export class McpLLMConfigurator {
           openRouterSiteUrl: stored.siteUrl,
           openRouterSiteName: stored.siteName,
           temperature: 0.3,
-          maxTokens: 1000
+          maxTokens: 1000,
         };
       }
     }
-    
+
     return null;
   }
-  
+
   /**
    * Get provider configuration by name
    */
   private getProviderConfig(providerName: string): LLMProviderConfig | undefined {
-    return SUPPORTED_PROVIDERS.find(p => p.name === providerName);
+    return SUPPORTED_PROVIDERS.find((p) => p.name === providerName);
   }
-  
+
   /**
    * Prompt user for LLM configuration (this will be called by MCP client)
    */
@@ -293,7 +293,7 @@ export class McpLLMConfigurator {
     });
     console.error('   0. Skip LLM configuration (use local synthesis only)');
     console.error('');
-    
+
     // For now, we'll use console input since MCP prompting requires more setup
     // In a real implementation, this would use MCP's prompt mechanism
     console.error('⚠️  Interactive configuration not yet implemented.');
@@ -312,10 +312,10 @@ export class McpLLMConfigurator {
     console.error('     model: "meta-llama/llama-3.2-3b-instruct"');
     console.error('   });');
     console.error('');
-    
+
     return null;
   }
-  
+
   /**
    * Interactive provider selection (to be implemented with MCP prompts)
    */
@@ -324,20 +324,20 @@ export class McpLLMConfigurator {
     // For now, return null to indicate no selection
     return null;
   }
-  
+
   /**
    * Configure selected provider (to be implemented with MCP prompts)
    */
-  private async configureProvider(provider: LLMProviderConfig): Promise<LLMConfig | null> {
+  private async configureProvider(_provider: LLMProviderConfig): Promise<LLMConfig | null> {
     // This would use MCP prompt mechanism to gather:
     // - API key (if required)
     // - Model selection
     // - Additional fields (site URL, site name, etc.)
     // - Performance settings (temperature, maxTokens)
-    
+
     return null;
   }
-  
+
   /**
    * Validate configuration
    */
@@ -346,7 +346,7 @@ export class McpLLMConfigurator {
     if (!providerConfig) {
       return false;
     }
-    
+
     // Check if API key is required and present
     if (providerConfig.requiresApiKey && !config.apiKey) {
       const stored = await ApiKeyManager.getApiKey(config.provider);
@@ -354,7 +354,7 @@ export class McpLLMConfigurator {
         return false;
       }
     }
-    
+
     return true;
   }
 }

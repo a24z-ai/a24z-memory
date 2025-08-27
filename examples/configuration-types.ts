@@ -8,7 +8,7 @@ import type {
   NoteConfidence,
   NoteType,
   ValidationError,
-  StaleNote
+  StaleNote,
 } from '../src/lib';
 
 // The complete configuration structure
@@ -18,16 +18,16 @@ const exampleConfig: RepositoryConfiguration = {
     noteMaxLength: 10000,
     maxTagsPerNote: 10,
     maxTagLength: 50,
-    maxAnchorsPerNote: 20
+    maxAnchorsPerNote: 20,
   },
   storage: {
     backupOnMigration: true,
-    compressionEnabled: false
+    compressionEnabled: false,
   },
   tags: {
     enforceAllowedTags: true,
-    allowedTags: ['feature', 'bugfix', 'documentation']
-  }
+    allowedTags: ['feature', 'bugfix', 'documentation'],
+  },
 };
 
 // A stored note structure
@@ -41,9 +41,9 @@ const exampleNote: StoredNote = {
   metadata: {
     author: 'user@example.com',
     pr: 123,
-    customField: 'value'
+    customField: 'value',
   },
-  timestamp: Date.now()
+  timestamp: Date.now(),
 };
 
 // Note confidence levels
@@ -56,15 +56,15 @@ const noteTypes: NoteType[] = ['decision', 'pattern', 'gotcha', 'explanation'];
 const exampleError: ValidationError = {
   field: 'tags',
   message: 'The following tags are not in the allowed tags list: invalid-tag',
-  limit: 10,  // optional
-  actual: 12  // optional
+  limit: 10, // optional
+  actual: 12, // optional
 };
 
 // Stale note structure (for checking obsolete anchors)
 const exampleStaleNote: StaleNote = {
   note: exampleNote,
   staleAnchors: ['src/deleted-file.ts'],
-  validAnchors: ['src/file.ts', 'docs/readme.md']
+  validAnchors: ['src/file.ts', 'docs/readme.md'],
 };
 
 // Example UI state interface using these types
@@ -84,7 +84,7 @@ export class ConfigurationManager {
     // Implementation would call getRepositoryConfiguration
     return {} as RepositoryConfiguration;
   }
-  
+
   // Update tag restrictions
   static setTagRestrictions(
     repoPath: string,
@@ -94,7 +94,7 @@ export class ConfigurationManager {
     // Implementation would call updateRepositoryConfiguration
     return {} as RepositoryConfiguration;
   }
-  
+
   // Validate a note before allowing user to save
   static validateNote(
     note: Omit<StoredNote, 'id' | 'timestamp'>,
@@ -103,7 +103,7 @@ export class ConfigurationManager {
     // Implementation would call validateNoteAgainstConfig
     return [];
   }
-  
+
   // Check if a tag is allowed
   static isTagAllowed(tag: string, repoPath: string): boolean {
     // Implementation would check against getAllowedTags

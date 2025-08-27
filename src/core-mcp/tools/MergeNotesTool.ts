@@ -1,8 +1,7 @@
 import { z } from 'zod';
-import * as path from 'node:path';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
-import { saveNote, type StoredNote, deleteNoteFile } from '../store/notesStore';
+import { saveNote } from '../store/notesStore';
 import { normalizeRepositoryPath } from '../utils/pathNormalization';
 
 export class MergeNotesTool extends BaseTool {
@@ -12,15 +11,27 @@ export class MergeNotesTool extends BaseTool {
   schema = z.object({
     repositoryPath: z.string().describe('Path to the git repository containing the notes'),
     noteIds: z.array(z.string()).min(2).describe('IDs of the notes to merge (minimum 2)'),
-    mergedNote: z.object({
-      note: z.string().describe('Consolidated note content'),
-      anchors: z.array(z.string()).min(1).describe('Combined anchor paths from all notes'),
-      tags: z.array(z.string()).min(1).describe('Combined and deduplicated tags'),
-      confidence: z.enum(['high', 'medium', 'low']).default('medium').describe('Confidence level for merged note'),
-      type: z.enum(['decision', 'pattern', 'gotcha', 'explanation']).default('explanation').describe('Type for merged note'),
-      metadata: z.record(z.any()).optional().describe('Additional metadata for merged note')
-    }).describe('The merged note data'),
-    deleteOriginals: z.boolean().optional().default(true).describe('Whether to delete the original notes after merging')
+    mergedNote: z
+      .object({
+        note: z.string().describe('Consolidated note content'),
+        anchors: z.array(z.string()).min(1).describe('Combined anchor paths from all notes'),
+        tags: z.array(z.string()).min(1).describe('Combined and deduplicated tags'),
+        confidence: z
+          .enum(['high', 'medium', 'low'])
+          .default('medium')
+          .describe('Confidence level for merged note'),
+        type: z
+          .enum(['decision', 'pattern', 'gotcha', 'explanation'])
+          .default('explanation')
+          .describe('Type for merged note'),
+        metadata: z.record(z.any()).optional().describe('Additional metadata for merged note'),
+      })
+      .describe('The merged note data'),
+    deleteOriginals: z
+      .boolean()
+      .optional()
+      .default(true)
+      .describe('Whether to delete the original notes after merging'),
   });
 
   async execute(input: z.infer<typeof this.schema>): Promise<McpToolResult> {
@@ -37,8 +48,8 @@ export class MergeNotesTool extends BaseTool {
           ...input.mergedNote.metadata,
           mergedFrom: input.noteIds,
           mergedAt: new Date().toISOString(),
-          mergeToolVersion: '1.0.0'
-        }
+          mergeToolVersion: '1.0.0',
+        },
       };
 
       const savedNote = saveNote(mergedNoteData);
@@ -51,27 +62,30 @@ export class MergeNotesTool extends BaseTool {
       }
 
       return {
-        content: [{
-          type: 'text',
-          text: `✅ Successfully merged ${input.noteIds.length} notes\n\n` +
-                `📝 New merged note ID: ${savedNote.id}\n` +
-                `📍 Anchors: ${savedNote.anchors.join(', ')}\n` +
-                `🏷️ Tags: ${savedNote.tags.join(', ')}\n` +
-                `🎯 Type/Confidence: ${savedNote.type}/${savedNote.confidence}\n` +
-                `📄 Content preview: ${savedNote.note.substring(0, 100)}${savedNote.note.length > 100 ? '...' : ''}\n` +
-                `${deletionResults}`
-        }]
+        content: [
+          {
+            type: 'text',
+            text:
+              `✅ Successfully merged ${input.noteIds.length} notes\n\n` +
+              `📝 New merged note ID: ${savedNote.id}\n` +
+              `📍 Anchors: ${savedNote.anchors.join(', ')}\n` +
+              `🏷️ Tags: ${savedNote.tags.join(', ')}\n` +
+              `🎯 Type/Confidence: ${savedNote.type}/${savedNote.confidence}\n` +
+              `📄 Content preview: ${savedNote.note.substring(0, 100)}${savedNote.note.length > 100 ? '...' : ''}\n` +
+              `${deletionResults}`,
+          },
+        ],
       };
-
     } catch (error) {
       return {
-        content: [{
-          type: 'text',
-          text: `Error merging notes: ${error instanceof Error ? error.message : 'Unknown error'}`
-        }],
-        isError: true
+        content: [
+          {
+            type: 'text',
+            text: `Error merging notes: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          },
+        ],
+        isError: true,
       };
     }
   }
 }
-

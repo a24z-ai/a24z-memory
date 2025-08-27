@@ -6,12 +6,12 @@ import * as path from 'node:path';
  */
 export function findGitRoot(startPath: string): string | null {
   let current = path.resolve(startPath);
-  
+
   // Handle file paths by starting from the directory
   if (fs.existsSync(current) && fs.statSync(current).isFile()) {
     current = path.dirname(current);
   }
-  
+
   while (current !== path.dirname(current)) {
     if (fs.existsSync(path.join(current, '.git'))) {
       return current;
@@ -26,12 +26,12 @@ export function findGitRoot(startPath: string): string | null {
  */
 export function findProjectRoot(startPath: string): string | null {
   let current = path.resolve(startPath);
-  
+
   // Handle file paths by starting from the directory
   if (fs.existsSync(current) && fs.statSync(current).isFile()) {
     current = path.dirname(current);
   }
-  
+
   const projectFiles = [
     'package.json',
     'pyproject.toml',
@@ -42,9 +42,9 @@ export function findProjectRoot(startPath: string): string | null {
     'composer.json',
     'Gemfile',
     'requirements.txt',
-    'setup.py'
+    'setup.py',
   ];
-  
+
   while (current !== path.dirname(current)) {
     for (const projectFile of projectFiles) {
       if (fs.existsSync(path.join(current, projectFile))) {
@@ -65,13 +65,13 @@ export function normalizeRepositoryPath(inputPath: string): string {
   if (gitRoot) {
     return gitRoot;
   }
-  
+
   // 2. If no git root, use the deepest "project-like" directory
   const projectRoot = findProjectRoot(inputPath);
   if (projectRoot) {
     return projectRoot;
   }
-  
+
   // 3. Fallback: use the provided path as-is (resolved)
   return path.resolve(inputPath);
 }
@@ -81,4 +81,4 @@ export function normalizeRepositoryPath(inputPath: string): string {
  */
 export function getRepositoryName(repositoryPath: string): string {
   return path.basename(repositoryPath);
-} 
+}

@@ -6,12 +6,7 @@
     "src/core-mcp/server/McpServer.ts",
     "src/core-mcp/types/index.ts"
   ],
-  "tags": [
-    "architecture",
-    "scalability",
-    "future",
-    "design"
-  ],
+  "tags": ["architecture", "scalability", "future", "design"],
   "confidence": "medium",
   "type": "decision",
   "metadata": {

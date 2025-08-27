@@ -6,12 +6,7 @@
     "src/core-mcp/tools/CopyGuidanceTemplateTool.ts",
     "src/core-mcp/tools/GetRepositoryGuidanceTool.ts"
   ],
-  "tags": [
-    "pattern",
-    "guidance",
-    "templates",
-    "onboarding"
-  ],
+  "tags": ["pattern", "guidance", "templates", "onboarding"],
   "confidence": "high",
   "type": "pattern",
   "metadata": {

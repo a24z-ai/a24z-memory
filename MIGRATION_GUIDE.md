@@ -26,16 +26,19 @@ npx a24z-memory migrate [path]
 ### Examples
 
 #### Migrate current repository
+
 ```bash
 npx a24z-memory migrate
 ```
 
 #### Migrate specific repository with verbose output
+
 ```bash
 npx a24z-memory migrate /path/to/repo --verbose
 ```
 
 #### Force re-migration
+
 ```bash
 npx a24z-memory migrate --force
 ```
@@ -59,12 +62,14 @@ npx a24z-memory migrate --force
 ## Storage Structure
 
 ### Old Format (Single File)
+
 ```
 .a24z/
 └── repository-notes.json  # All notes in one file
 ```
 
 ### New Format (File-Based)
+
 ```
 .a24z/
 ├── configuration.json      # Repository configuration
@@ -100,11 +105,13 @@ After migration, you can customize note limits via `.a24z/configuration.json`:
 ### Migration Status Check
 
 To check if a repository has been migrated:
+
 ```bash
 npx a24z-memory migrate /path/to/repo
 ```
 
 This will report:
+
 - ✅ "Repository already migrated" if using file-based storage
 - ✅ "Successfully migrated X notes" if migration was performed
 - ❌ Error message if migration failed
@@ -114,11 +121,13 @@ This will report:
 If migration fails partially:
 
 1. Check for backup files:
+
    ```bash
    ls -la .a24z/repository-notes.json.backup-*
    ```
 
 2. Restore from backup if needed:
+
    ```bash
    cp .a24z/repository-notes.json.backup-* .a24z/repository-notes.json
    ```
@@ -133,11 +142,13 @@ If migration fails partially:
 After migration, verify:
 
 1. **Check notes directory exists:**
+
    ```bash
    ls -la .a24z/notes/
    ```
 
 2. **Count migrated notes:**
+
    ```bash
    find .a24z/notes -name "*.json" -type f | wc -l
    ```

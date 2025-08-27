@@ -3,24 +3,28 @@
 ## Preferred Note Types
 
 ### 🏗️ Architecture Decisions
+
 - Document major design choices and their rationale
 - Include alternatives considered and why they were rejected
 - Example: "Chose React over Vue for better TypeScript support and team familiarity"
 - **Tags**: `architecture`, `decision`
 
 ### 🐛 Bug Fixes & Gotchas
+
 - Document tricky bugs and their solutions
 - Include reproduction steps and root cause analysis
 - Example: "Race condition in async data loading - always check component mount status"
 - **Tags**: `bugfix`, `gotcha`
 
 ### 🔧 Implementation Patterns
+
 - Document preferred code patterns and conventions
 - Include examples of good and bad practices
 - Example: "Use custom hooks for data fetching to ensure consistent error handling"
 - **Tags**: `pattern`, relevant tech tags
 
 ### ⚡ Performance Insights
+
 - Document performance optimizations and bottlenecks discovered
 - Include metrics before/after where applicable
 - Example: "Lazy loading components reduced initial bundle size by 40%"
@@ -29,11 +33,13 @@
 ## Preferred Tags
 
 ### Technical Areas
+
 - `frontend`, `backend`, `database`, `api`
 - `authentication`, `security`, `performance`
 - `testing`, `deployment`, `configuration`
 
 ### Common Frameworks & Tools
+
 - `react`, `typescript`, `node`, `express`
 - `prisma`, `postgresql`, `jest`, `cypress`
 - Add project-specific technologies here

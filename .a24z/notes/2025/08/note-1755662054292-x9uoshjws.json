@@ -1,16 +1,8 @@
 {
   "note": "## Repository Structure and .a24z Directory\n\nThe a24z-memory tool stores all repository-specific data in a `.a24z` directory at the repository root. This directory contains:\n\n- `repository-notes.json` - All notes stored for the repository\n- `note-guidance.md` - Custom guidance for note creation in that repository\n\n**Why this approach?**\n- **Repository isolation**: Each repository gets its own `.a24z` directory, preventing cross-contamination\n- **Git-friendly**: `.a24z` can be added to `.gitignore` or committed to version control as needed\n- **Self-contained**: Each repository has everything it needs for memory and guidance\n\n**Implementation details**:\n- The `notesStore.ts` automatically creates the `.a24z` directory if it doesn't exist\n- Path normalization ensures notes are always stored relative to the repository root\n- File operations use atomic writes (write to `.tmp` file, then rename) for data safety\n\n**Files involved**:\n- `src/core-mcp/store/notesStore.ts` - Directory creation and file management\n- `src/core-mcp/utils/pathNormalization.ts` - Repository root detection\n\n**Tags**: storage, decision, file-structure, repository-isolation",
   "directoryPath": "/Users/griever/Developer/a24z-Memory",
-  "anchors": [
-    "src/core-mcp/store/notesStore.ts",
-    "src/core-mcp/utils/pathNormalization.ts"
-  ],
-  "tags": [
-    "storage",
-    "decision",
-    "file-structure",
-    "repository-isolation"
-  ],
+  "anchors": ["src/core-mcp/store/notesStore.ts", "src/core-mcp/utils/pathNormalization.ts"],
+  "tags": ["storage", "decision", "file-structure", "repository-isolation"],
   "confidence": "high",
   "type": "explanation",
   "metadata": {

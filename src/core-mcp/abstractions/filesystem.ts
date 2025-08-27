@@ -1,6 +1,6 @@
 /**
  * Simple filesystem abstraction for a24z-memory
- * 
+ *
  * This provides just the file operations we actually need,
  * allowing the library to work in different environments.
  */
@@ -11,12 +11,12 @@ export interface FileSystemAdapter {
   readFile(path: string): string;
   writeFile(path: string, content: string): void;
   deleteFile(path: string): void;
-  
-  // Directory operations  
+
+  // Directory operations
   createDir(path: string): void;
   readDir(path: string): string[];
   deleteDir(path: string): void;
-  
+
   // Path operations (most environments can use these defaults)
   join(...paths: string[]): string;
   dirname(path: string): string;
@@ -48,7 +48,7 @@ export class NodeFileSystemAdapter implements FileSystemAdapter {
     if (!this.exists(dir)) {
       this.createDir(dir);
     }
-    
+
     // Write to temp file first, then rename (atomic write)
     const tmp = `${path}.tmp`;
     this.fs.writeFileSync(tmp, content, { encoding: 'utf8' });
@@ -69,10 +69,10 @@ export class NodeFileSystemAdapter implements FileSystemAdapter {
 
   readDir(path: string): string[] {
     if (!this.exists(path)) return [];
-    
+
     const entries = this.fs.readdirSync(path, { withFileTypes: true });
     const result: string[] = [];
-    
+
     for (const entry of entries) {
       if (entry.isFile()) {
         result.push(entry.name);
@@ -80,10 +80,10 @@ export class NodeFileSystemAdapter implements FileSystemAdapter {
         // Recursively read subdirectories
         const subPath = this.join(path, entry.name);
         const subFiles = this.readDir(subPath);
-        result.push(...subFiles.map(f => this.join(entry.name, f)));
+        result.push(...subFiles.map((f) => this.join(entry.name, f)));
       }
     }
-    
+
     return result;
   }
 
@@ -143,14 +143,14 @@ export class InMemoryFileSystemAdapter implements FileSystemAdapter {
     this.files.delete(path);
   }
 
-  createDir(path: string): void {
+  createDir(_path: string): void {
     // In memory, directories are implicit
   }
 
   readDir(path: string): string[] {
     const prefix = path === '/' ? '' : `${path}/`;
     const files: string[] = [];
-    
+
     for (const filePath of this.files.keys()) {
       if (filePath.startsWith(prefix)) {
         const relativePath = filePath.slice(prefix.length);
@@ -159,7 +159,7 @@ export class InMemoryFileSystemAdapter implements FileSystemAdapter {
         }
       }
     }
-    
+
     return files;
   }
 

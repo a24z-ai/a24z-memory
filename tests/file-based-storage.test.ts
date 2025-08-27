@@ -12,7 +12,7 @@ describe('File-based note storage', () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a24z-test-'));
     testRepoPath = path.join(tempDir, 'test-repo');
     fs.mkdirSync(testRepoPath, { recursive: true });
-    
+
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
   });
@@ -30,23 +30,30 @@ describe('File-based note storage', () => {
       confidence: 'high' as const,
       type: 'explanation' as const,
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     };
 
     const savedNote = saveNote(note);
-    
+
     // Check that the note was saved
     expect(savedNote.id).toBeDefined();
     expect(savedNote.timestamp).toBeDefined();
-    
+
     // Check that the file exists in the correct location
     const date = new Date(savedNote.timestamp);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
-    const notePath = path.join(testRepoPath, '.a24z', 'notes', year.toString(), month, `${savedNote.id}.json`);
-    
+    const notePath = path.join(
+      testRepoPath,
+      '.a24z',
+      'notes',
+      year.toString(),
+      month,
+      `${savedNote.id}.json`
+    );
+
     expect(fs.existsSync(notePath)).toBe(true);
-    
+
     // Read the file and verify its contents
     const fileContent = JSON.parse(fs.readFileSync(notePath, 'utf8'));
     expect(fileContent.note).toBe('Test note content');
@@ -55,31 +62,31 @@ describe('File-based note storage', () => {
 
   it('should read notes from individual files', () => {
     // Save multiple notes
-    const note1 = saveNote({
+    saveNote({
       note: 'First note',
       anchors: ['file1.ts'],
       tags: ['tag1'],
       confidence: 'high' as const,
       type: 'explanation' as const,
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
-    const note2 = saveNote({
+    saveNote({
       note: 'Second note',
       anchors: ['file2.ts'],
       tags: ['tag2'],
       confidence: 'medium' as const,
       type: 'pattern' as const,
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     // Read notes back
     const notes = getNotesForPath(testRepoPath, true);
-    
+
     expect(notes.length).toBe(2);
-    expect(notes.map(n => n.note).sort()).toEqual(['First note', 'Second note'].sort());
+    expect(notes.map((n) => n.note).sort()).toEqual(['First note', 'Second note'].sort());
   });
 
   it('should migrate legacy JSON file to individual files', () => {
@@ -95,7 +102,7 @@ describe('File-based note storage', () => {
           confidence: 'high',
           type: 'explanation',
           metadata: {},
-          timestamp: Date.now() - 10000
+          timestamp: Date.now() - 10000,
         },
         {
           id: 'legacy-note-2',
@@ -105,14 +112,17 @@ describe('File-based note storage', () => {
           confidence: 'low',
           type: 'gotcha',
           metadata: {},
-          timestamp: Date.now() - 5000
-        }
-      ]
+          timestamp: Date.now() - 5000,
+        },
+      ],
     };
 
     const a24zDir = path.join(testRepoPath, '.a24z');
     fs.mkdirSync(a24zDir, { recursive: true });
-    fs.writeFileSync(path.join(a24zDir, 'repository-notes.json'), JSON.stringify(legacyNotes, null, 2));
+    fs.writeFileSync(
+      path.join(a24zDir, 'repository-notes.json'),
+      JSON.stringify(legacyNotes, null, 2)
+    );
 
     // Trigger migration
     const migrated = migrateNotesIfNeeded(testRepoPath);
@@ -123,36 +133,40 @@ describe('File-based note storage', () => {
     expect(fs.existsSync(notesDir)).toBe(true);
 
     // Check that backup was created
-    const backupFiles = fs.readdirSync(a24zDir).filter(f => f.startsWith('repository-notes.json.backup-'));
+    const backupFiles = fs
+      .readdirSync(a24zDir)
+      .filter((f) => f.startsWith('repository-notes.json.backup-'));
     expect(backupFiles.length).toBe(1);
 
     // Verify notes can be read
     const notes = getNotesForPath(testRepoPath, true);
     expect(notes.length).toBe(2);
-    expect(notes.map(n => n.note).sort()).toEqual(['Legacy note 1', 'Legacy note 2'].sort());
-    
+    expect(notes.map((n) => n.note).sort()).toEqual(['Legacy note 1', 'Legacy note 2'].sort());
+
     // Verify original file no longer exists
     expect(fs.existsSync(path.join(a24zDir, 'repository-notes.json'))).toBe(false);
   });
 
   it('should handle concurrent note creation without conflicts', async () => {
     // Simulate concurrent note creation
-    const promises = Array.from({ length: 5 }, (_, i) => 
-      Promise.resolve(saveNote({
-        note: `Concurrent note ${i}`,
-        anchors: [`file${i}.ts`],
-        tags: ['concurrent'],
-        confidence: 'medium' as const,
-        type: 'explanation' as const,
-        metadata: {},
-        directoryPath: testRepoPath
-      }))
+    const promises = Array.from({ length: 5 }, (_, i) =>
+      Promise.resolve(
+        saveNote({
+          note: `Concurrent note ${i}`,
+          anchors: [`file${i}.ts`],
+          tags: ['concurrent'],
+          confidence: 'medium' as const,
+          type: 'explanation' as const,
+          metadata: {},
+          directoryPath: testRepoPath,
+        })
+      )
     );
 
     const savedNotes = await Promise.all(promises);
-    
+
     // All notes should have unique IDs
-    const ids = savedNotes.map(n => n.id);
+    const ids = savedNotes.map((n) => n.id);
     expect(new Set(ids).size).toBe(5);
 
     // All notes should be readable

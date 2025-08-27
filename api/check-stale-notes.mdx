@@ -1,6 +1,6 @@
 ---
-title: "check_stale_notes"
-description: "Check for notes with stale anchors (file paths that no longer exist) in a repository"
+title: 'check_stale_notes'
+description: 'Check for notes with stale anchors (file paths that no longer exist) in a repository'
 ---
 
 # check_stale_notes
@@ -21,13 +21,14 @@ The `check_stale_notes` tool scans all notes in the repository and validates the
 
 ## Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `directoryPath` | string | Yes | Absolute path to the git repository root directory or any path within it |
+| Parameter       | Type   | Required | Description                                                              |
+| --------------- | ------ | -------- | ------------------------------------------------------------------------ |
+| `directoryPath` | string | Yes      | Absolute path to the git repository root directory or any path within it |
 
 ## Response Format
 
 ### No Stale Notes Found
+
 ```json
 {
   "success": true,
@@ -36,6 +37,7 @@ The `check_stale_notes` tool scans all notes in the repository and validates the
 ```
 
 ### Stale Notes Found
+
 ```json
 {
   "success": true,
@@ -46,6 +48,7 @@ The `check_stale_notes` tool scans all notes in the repository and validates the
 ## Use Cases
 
 ### Maintenance and Cleanup
+
 ```json
 {
   "directoryPath": "/Users/project/my-app"
@@ -55,6 +58,7 @@ The `check_stale_notes` tool scans all notes in the repository and validates the
 **Purpose**: Regular maintenance to keep the knowledge base accurate and relevant.
 
 ### Before Major Refactoring
+
 ```json
 {
   "directoryPath": "/Users/project/my-app/src/components"
@@ -64,6 +68,7 @@ The `check_stale_notes` tool scans all notes in the repository and validates the
 **Purpose**: Check for notes that will become stale after planned file movements or deletions.
 
 ### Repository Health Check
+
 ```json
 {
   "directoryPath": "/Users/project/my-app"
@@ -75,16 +80,19 @@ The `check_stale_notes` tool scans all notes in the repository and validates the
 ## Stale Anchor Types
 
 ### File-Level Anchors
+
 - References to specific files that have been deleted
 - Files that have been moved to different locations
 - Files that have been renamed
 
 ### Directory-Level Anchors
+
 - References to directories that no longer exist
 - Directories that have been reorganized or moved
 - Directory structures that have changed significantly
 
 ### Path Resolution Issues
+
 - Symbolic links that are broken
 - Relative paths that are no longer valid
 - Absolute paths that don't match current repository structure
@@ -123,6 +131,7 @@ AI agents should use this tool when:
 ## Error Handling
 
 ### Repository Not Found
+
 ```json
 {
   "success": false,
@@ -131,6 +140,7 @@ AI agents should use this tool when:
 ```
 
 ### Invalid Path
+
 ```json
 {
   "success": false,
@@ -139,6 +149,7 @@ AI agents should use this tool when:
 ```
 
 ### Permission Denied
+
 ```json
 {
   "success": false,
@@ -149,12 +160,15 @@ AI agents should use this tool when:
 ## Performance Considerations
 
 ### Large Repositories
+
 For repositories with many notes:
+
 - The tool scans all notes and validates each anchor path
 - Performance scales with the number of notes and anchor complexity
 - Consider running during low-activity periods
 
 ### Optimization Tips
+
 - Use specific directory paths when possible (rather than repository root)
 - Run checks during maintenance windows
 - Consider automation for regular checks

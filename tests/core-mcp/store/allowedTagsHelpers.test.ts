@@ -1,11 +1,11 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { 
+import {
   addAllowedTag,
   removeAllowedTag,
   setEnforceAllowedTags,
-  getAllowedTags
+  getAllowedTags,
 } from '../../../src/core-mcp/store/notesStore';
 
 describe('Allowed Tags Helper Functions', () => {
@@ -17,7 +17,7 @@ describe('Allowed Tags Helper Functions', () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a24z-test-'));
     testRepoPath = path.join(tempDir, 'test-repo');
     fs.mkdirSync(testRepoPath, { recursive: true });
-    
+
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
   });
@@ -31,7 +31,7 @@ describe('Allowed Tags Helper Functions', () => {
     it('should add a tag to empty allowed tags', () => {
       addAllowedTag(testRepoPath, 'feature');
       setEnforceAllowedTags(testRepoPath, true); // Enable enforcement to see tags
-      
+
       const allowedTags = getAllowedTags(testRepoPath);
       expect(allowedTags.tags).toContain('feature');
       expect(allowedTags.tags).toHaveLength(1);
@@ -41,7 +41,7 @@ describe('Allowed Tags Helper Functions', () => {
       addAllowedTag(testRepoPath, 'feature');
       addAllowedTag(testRepoPath, 'feature'); // Duplicate
       setEnforceAllowedTags(testRepoPath, true); // Enable enforcement to see tags
-      
+
       const allowedTags = getAllowedTags(testRepoPath);
       expect(allowedTags.tags).toEqual(['feature']);
     });
@@ -51,7 +51,7 @@ describe('Allowed Tags Helper Functions', () => {
       addAllowedTag(testRepoPath, 'bug');
       addAllowedTag(testRepoPath, 'security');
       setEnforceAllowedTags(testRepoPath, true); // Enable enforcement to see tags
-      
+
       const allowedTags = getAllowedTags(testRepoPath);
       expect(allowedTags.tags).toContain('feature');
       expect(allowedTags.tags).toContain('bug');
@@ -65,9 +65,9 @@ describe('Allowed Tags Helper Functions', () => {
       addAllowedTag(testRepoPath, 'feature');
       addAllowedTag(testRepoPath, 'bug');
       setEnforceAllowedTags(testRepoPath, true); // Enable enforcement to see tags
-      
+
       const removed = removeAllowedTag(testRepoPath, 'feature');
-      
+
       expect(removed).toBe(true);
       const allowedTags = getAllowedTags(testRepoPath);
       expect(allowedTags.tags).not.toContain('feature');
@@ -76,22 +76,21 @@ describe('Allowed Tags Helper Functions', () => {
 
     it('should return false when removing non-existent tag', () => {
       const removed = removeAllowedTag(testRepoPath, 'non-existent');
-      
+
       expect(removed).toBe(false);
     });
 
     it('should handle empty allowed tags list', () => {
       const removed = removeAllowedTag(testRepoPath, 'feature');
-      
+
       expect(removed).toBe(false);
     });
   });
 
-
   describe('setEnforceAllowedTags', () => {
     it('should enable tag enforcement', () => {
       setEnforceAllowedTags(testRepoPath, true);
-      
+
       const allowedTags = getAllowedTags(testRepoPath);
       expect(allowedTags.enforced).toBe(true);
     });
@@ -99,7 +98,7 @@ describe('Allowed Tags Helper Functions', () => {
     it('should disable tag enforcement', () => {
       setEnforceAllowedTags(testRepoPath, true);
       setEnforceAllowedTags(testRepoPath, false);
-      
+
       const allowedTags = getAllowedTags(testRepoPath);
       expect(allowedTags.enforced).toBe(false);
     });

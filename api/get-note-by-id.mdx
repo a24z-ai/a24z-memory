@@ -1,6 +1,6 @@
 ---
-title: "get_repository_note"
-description: "Get a repository note by its unique ID"
+title: 'get_repository_note'
+description: 'Get a repository note by its unique ID'
 ---
 
 # get_repository_note
@@ -22,14 +22,15 @@ The `get_repository_note` tool allows you to fetch a specific note from the know
 
 ## Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `noteId` | string | Yes | Unique note ID (format: note-timestamp-hash) |
-| `directoryPath` | string | Yes | Absolute path to the git repository root directory |
+| Parameter       | Type   | Required | Description                                        |
+| --------------- | ------ | -------- | -------------------------------------------------- |
+| `noteId`        | string | Yes      | Unique note ID (format: note-timestamp-hash)       |
+| `directoryPath` | string | Yes      | Absolute path to the git repository root directory |
 
 ## Response Format
 
 ### Successful Retrieval
+
 ```json
 {
   "success": true,
@@ -38,6 +39,7 @@ The `get_repository_note` tool allows you to fetch a specific note from the know
 ```
 
 ### Note Not Found
+
 ```json
 {
   "success": false,
@@ -48,6 +50,7 @@ The `get_repository_note` tool allows you to fetch a specific note from the know
 ## Use Cases
 
 ### Detailed Note Review
+
 ```json
 {
   "noteId": "note-1734567890123-abc123def",
@@ -58,6 +61,7 @@ The `get_repository_note` tool allows you to fetch a specific note from the know
 **Purpose**: Get complete details about a specific note for review or reference.
 
 ### Note Content Analysis
+
 ```json
 {
   "noteId": "note-1734567890123-xyz789ghi",
@@ -68,6 +72,7 @@ The `get_repository_note` tool allows you to fetch a specific note from the know
 **Purpose**: Analyze note content, metadata, and related files for documentation or maintenance.
 
 ### Anchor Verification
+
 ```json
 {
   "noteId": "note-1734567890123-abc123def",
@@ -80,6 +85,7 @@ The `get_repository_note` tool allows you to fetch a specific note from the know
 ## Note Structure
 
 ### Core Information
+
 - **Note ID**: Unique identifier in format `note-timestamp-hash`
 - **Type**: Note classification (decision, pattern, gotcha, explanation)
 - **Confidence**: Creator's confidence level (high, medium, low)
@@ -87,6 +93,7 @@ The `get_repository_note` tool allows you to fetch a specific note from the know
 - **Created**: ISO timestamp of creation
 
 ### Content Sections
+
 - **Anchors**: List of related file/directory paths
 - **Content**: Main note content in Markdown format
 - **Metadata**: Optional structured data (if provided)
@@ -94,6 +101,7 @@ The `get_repository_note` tool allows you to fetch a specific note from the know
 ### Metadata Examples
 
 **Decision Notes**:
+
 ```json
 {
   "alternatives_considered": ["Option A", "Option B"],
@@ -104,6 +112,7 @@ The `get_repository_note` tool allows you to fetch a specific note from the know
 ```
 
 **Pattern Notes**:
+
 ```json
 {
   "context": "When to apply this pattern",
@@ -114,6 +123,7 @@ The `get_repository_note` tool allows you to fetch a specific note from the know
 ```
 
 **Gotcha Notes**:
+
 ```json
 {
   "symptoms": "How to identify this issue",
@@ -133,6 +143,7 @@ AI agents should use this tool when:
 4. **Anchor validation** - When verifying note relevance to current files
 
 ### Usage Pattern
+
 1. Get note ID from other tools (search results, duplicate analysis, etc.)
 2. Use `get_repository_note` to retrieve complete details
 3. Analyze content, metadata, and anchors for relevance
@@ -141,6 +152,7 @@ AI agents should use this tool when:
 ## Error Handling
 
 ### Repository Not Found
+
 ```json
 {
   "success": false,
@@ -149,6 +161,7 @@ AI agents should use this tool when:
 ```
 
 ### Invalid Path
+
 ```json
 {
   "success": false,
@@ -157,6 +170,7 @@ AI agents should use this tool when:
 ```
 
 ### Permission Denied
+
 ```json
 {
   "success": false,
@@ -165,6 +179,7 @@ AI agents should use this tool when:
 ```
 
 ### Invalid Note ID Format
+
 ```json
 {
   "success": false,
@@ -175,17 +190,20 @@ AI agents should use this tool when:
 ## Best Practices
 
 ### When to Use
+
 - When you need complete note details (not just summaries)
 - When verifying note content or metadata
 - When checking note anchors and relationships
 - When performing detailed note analysis
 
 ### When to Use Alternatives
+
 - **[askA24zMemory](/api/askA24zMemory)** - For general knowledge queries
 - **[find_similar_notes](/api/find-similar-notes)** - For discovering related notes
 - **[review_duplicates](/api/review-duplicates)** - For analyzing duplicate content
 
 ### Note ID Management
+
 - Note IDs are generated automatically and are unique
 - IDs follow the format: `note-timestamp-hash`
 - IDs are stable and don't change over time
@@ -194,12 +212,14 @@ AI agents should use this tool when:
 ## Performance Considerations
 
 ### Response Size
+
 - Notes can contain substantial content
 - Large notes may have many anchors
 - Metadata can be extensive for complex notes
 - Consider response size when processing
 
 ### Access Patterns
+
 - Direct ID access is fast (no searching required)
 - Suitable for frequent, specific note retrieval
 - Ideal for programmatic access and automation

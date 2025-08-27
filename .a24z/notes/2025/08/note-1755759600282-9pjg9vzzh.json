@@ -1,11 +1,7 @@
 {
   "note": "Test note with valid anchors",
-  "anchors": [
-    "src/test.ts"
-  ],
-  "tags": [
-    "test"
-  ],
+  "anchors": ["src/test.ts"],
+  "tags": ["test"],
   "confidence": "medium",
   "type": "explanation",
   "metadata": {},

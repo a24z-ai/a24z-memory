@@ -35,7 +35,7 @@ export class GuidanceTokenManager {
       guidanceHash: crypto.createHash('md5').update(guidanceContent).digest('hex'),
       path,
       timestamp: Date.now(),
-      expires: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
+      expires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
     };
 
     const signature = crypto
@@ -56,9 +56,7 @@ export class GuidanceTokenManager {
   validateToken(token: string, guidanceContent: string): boolean {
     try {
       // Decode the token
-      const tokenData: TokenResult = JSON.parse(
-        Buffer.from(token, 'base64').toString()
-      );
+      const tokenData: TokenResult = JSON.parse(Buffer.from(token, 'base64').toString());
 
       const { payload, signature } = tokenData;
 
@@ -80,8 +78,7 @@ export class GuidanceTokenManager {
       // Verify guidance content hash
       const currentHash = crypto.createHash('md5').update(guidanceContent).digest('hex');
       return payload.guidanceHash === currentHash;
-
-    } catch (error) {
+    } catch {
       // Any parsing or validation error means invalid token
       return false;
     }
@@ -94,9 +91,7 @@ export class GuidanceTokenManager {
    */
   parseToken(token: string): TokenPayload | null {
     try {
-      const tokenData: TokenResult = JSON.parse(
-        Buffer.from(token, 'base64').toString()
-      );
+      const tokenData: TokenResult = JSON.parse(Buffer.from(token, 'base64').toString());
       return tokenData.payload;
     } catch {
       return null;

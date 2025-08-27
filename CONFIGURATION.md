@@ -50,36 +50,40 @@ The a24z-memory system uses a flexible configuration approach that keeps your te
 ### Configuration Options
 
 #### **Limits Section**
+
 Controls size constraints to keep notes manageable:
 
-| Field | Default | Description |
-|-------|---------|-------------|
-| `noteMaxLength` | 10000 | Maximum characters per note content |
-| `maxTagsPerNote` | 10 | Maximum tags allowed per note |
-| `maxAnchorsPerNote` | 20 | Maximum file/directory anchors per note |
-| `tagDescriptionMaxLength` | 2000 | Maximum characters per tag description markdown file |
+| Field                     | Default | Description                                          |
+| ------------------------- | ------- | ---------------------------------------------------- |
+| `noteMaxLength`           | 10000   | Maximum characters per note content                  |
+| `maxTagsPerNote`          | 10      | Maximum tags allowed per note                        |
+| `maxAnchorsPerNote`       | 20      | Maximum file/directory anchors per note              |
+| `tagDescriptionMaxLength` | 2000    | Maximum characters per tag description markdown file |
 
 #### **Storage Section**
+
 Where and how notes are stored:
 
-| Field | Default | Description |
-|-------|---------|-------------|
-| `notesDirectory` | `.a24z/notes` | Directory for note storage |
-| `backupOnMigration` | true | Keep backups when migrating storage formats |
-| `compressionEnabled` | false | Enable compression for note storage (future feature) |
+| Field                | Default       | Description                                          |
+| -------------------- | ------------- | ---------------------------------------------------- |
+| `notesDirectory`     | `.a24z/notes` | Directory for note storage                           |
+| `backupOnMigration`  | true          | Keep backups when migrating storage formats          |
+| `compressionEnabled` | false         | Enable compression for note storage (future feature) |
 
 #### **Tags Section**
+
 Optional tag restrictions:
 
-| Field | Default | Description |
-|-------|---------|-------------|
+| Field                | Default | Description                                                          |
+| -------------------- | ------- | -------------------------------------------------------------------- |
 | `enforceAllowedTags` | `false` | Whether to restrict tags to those with descriptions in `.a24z/tags/` |
 
 #### **Types Section**
+
 Optional type restrictions:
 
-| Field | Default | Description |
-|-------|---------|-------------|
+| Field                 | Default | Description                                                            |
+| --------------------- | ------- | ---------------------------------------------------------------------- |
 | `enforceAllowedTypes` | `false` | Whether to restrict types to those with descriptions in `.a24z/types/` |
 
 ## Tag Descriptions (`.a24z/tags/`)
@@ -94,17 +98,20 @@ Tag descriptions are stored as individual markdown files in the `.a24z/tags/` di
 Used for documenting known issues and their workarounds.
 
 ## When to Use
+
 - When you discover a bug that can't be immediately fixed
 - When documenting a workaround for a known issue
 - When explaining why certain defensive code exists
 
 ## Examples
+
 - "Database connection pool exhaustion under high load"
 - "React hook dependency causes infinite re-renders"
 - "API returns 500 instead of 404 for missing resources"
 ```
 
 ### Benefits of Markdown Files
+
 - **Rich formatting** - Use headers, lists, code blocks, etc.
 - **Controlled length** - Descriptions limited to 2000 characters by default (configurable)
 - **Flexible naming** - Tag names can be any length
@@ -124,12 +131,14 @@ Type descriptions are stored as individual markdown files in the `.a24z/types/` 
 For documenting production incidents and post-mortems.
 
 ## When to Use
+
 - Production outages and their root causes
 - Performance degradations
 - Security incidents
 - Data corruption events
 
 ## Required Information
+
 - Timeline of events
 - Root cause analysis
 - Remediation steps taken
@@ -137,6 +146,7 @@ For documenting production incidents and post-mortems.
 ```
 
 ### Benefits
+
 - **Custom Types** - Define types specific to your team's needs
 - **Rich Documentation** - Use markdown to explain when and how to use each type
 - **Enforcement** - Optionally restrict notes to only use documented types
@@ -152,18 +162,21 @@ Optional markdown file with team-specific guidelines for creating effective note
 # Repository Note Guidelines
 
 ## What Makes a Good Note
+
 - Focus on "why" not "what" (the code shows what)
 - Include context about decisions
 - Reference related issues/PRs
 - Explain non-obvious gotchas
 
 ## Required Information
+
 - Problem statement
 - Solution approach
 - Trade-offs considered
 - Future considerations
 
 ## Tag Usage
+
 - `bug`: Known issues with workarounds
 - `feature`: Implementation decisions
 - `gotcha`: Non-obvious behaviors
@@ -185,16 +198,16 @@ const config = memory.getConfiguration();
 
 // Update configuration
 memory.updateConfiguration({
-  limits: { 
+  limits: {
     noteMaxLength: 15000,
-    tagDescriptionMaxLength: 3000
+    tagDescriptionMaxLength: 3000,
   },
-  tags: { 
-    enforceAllowedTags: true
+  tags: {
+    enforceAllowedTags: true,
   },
   types: {
-    enforceAllowedTypes: true
-  }
+    enforceAllowedTypes: true,
+  },
 });
 
 // Manage tag descriptions (stored as markdown files)
@@ -218,16 +231,19 @@ memory.deleteTypeDescription('deprecated-type');
 ## Best Practices
 
 ### 1. Start Simple
+
 - Use default configuration
 - Add tag descriptions as you discover patterns
 - Let the system grow organically with your team's needs
 
 ### 2. Tag Descriptions
+
 - Create markdown files for commonly used tags
 - Include examples of when to use each tag
 - Document any team-specific meanings
 
 ### 3. Tag & Type Enforcement (Optional)
+
 ```json
 {
   "tags": {
@@ -238,17 +254,20 @@ memory.deleteTypeDescription('deprecated-type');
   }
 }
 ```
+
 - Useful for larger teams to maintain consistency
 - Prevents tag/type proliferation
 - Ensures everyone uses the same vocabulary
 - Tags/types are defined by creating description files in `.a24z/tags/` and `.a24z/types/`
 
 ### 4. Note Guidance
+
 - Document team-specific practices
 - Include examples of good notes
 - Explain your team's tagging philosophy
 
 ### 5. Version Control
+
 - Commit all `.a24z/` files to git
 - Track how your team's understanding evolves
 - Share knowledge across the entire team
@@ -256,6 +275,7 @@ memory.deleteTypeDescription('deprecated-type');
 ## Example Configurations
 
 ### Small Team/Personal Project
+
 ```json
 {
   "version": 1,
@@ -272,6 +292,7 @@ memory.deleteTypeDescription('deprecated-type');
 ```
 
 ### Large Team/Enterprise
+
 ```json
 {
   "version": 1,
@@ -289,6 +310,7 @@ memory.deleteTypeDescription('deprecated-type');
 ```
 
 ### Open Source Project
+
 ```json
 {
   "version": 1,
@@ -314,6 +336,7 @@ get_repository_guidance path: /your/repo
 ```
 
 This returns:
+
 - Configuration limits
 - Tag restrictions (if any)
 - Tag descriptions (from markdown files)

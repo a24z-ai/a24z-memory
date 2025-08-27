@@ -5,11 +5,11 @@
  * Re-exports the local server and provides a run() helper.
  */
 
-import { McpServer } from "./core-mcp/server/McpServer";
-import type { McpServerConfig } from "./core-mcp/types/mcp-types";
-import { BRANDING } from "./branding";
+import { McpServer } from './core-mcp/server/McpServer';
+import type { McpServerConfig } from './core-mcp/types/mcp-types';
+import { BRANDING } from './branding';
 
-export { McpServer } from "./core-mcp/server/McpServer";
+export { McpServer } from './core-mcp/server/McpServer';
 
 export function run(config?: Partial<McpServerConfig>): Promise<void> {
   const resolved: McpServerConfig = {
@@ -24,7 +24,7 @@ export function run(config?: Partial<McpServerConfig>): Promise<void> {
 
 if (require.main === module) {
   run().catch((err: unknown) => {
-    console.error("Failed to start MCP server:", err);
+    console.error('Failed to start MCP server:', err);
     process.exit(1);
   });
 }

@@ -14,19 +14,59 @@ export interface FileContent {
 }
 
 export interface FileReadOptions {
-  maxFileSize?: number;  // Max bytes per file (default: 10KB)
+  maxFileSize?: number; // Max bytes per file (default: 10KB)
   maxTotalSize?: number; // Max total bytes across all files (default: 50KB)
-  maxFiles?: number;     // Max number of files to read (default: 5)
+  maxFiles?: number; // Max number of files to read (default: 5)
   includeExtensions?: string[]; // File extensions to include (default: common code files)
   excludePatterns?: RegExp[]; // Patterns to exclude (e.g., /node_modules/)
 }
 
 const DEFAULT_OPTIONS: FileReadOptions = {
-  maxFileSize: 10 * 1024,    // 10KB per file
-  maxTotalSize: 50 * 1024,   // 50KB total
+  maxFileSize: 10 * 1024, // 10KB per file
+  maxTotalSize: 50 * 1024, // 50KB total
   maxFiles: 5,
-  includeExtensions: ['.ts', '.js', '.tsx', '.jsx', '.py', '.java', '.go', '.rs', '.cpp', '.c', '.h', '.cs', '.rb', '.php', '.swift', '.kt', '.scala', '.clj', '.ex', '.md', '.json', '.yaml', '.yml', '.toml', '.xml', '.html', '.css', '.scss', '.sql'],
-  excludePatterns: [/node_modules/, /\.git/, /dist/, /build/, /coverage/, /\.next/, /\.nuxt/, /vendor/, /target/]
+  includeExtensions: [
+    '.ts',
+    '.js',
+    '.tsx',
+    '.jsx',
+    '.py',
+    '.java',
+    '.go',
+    '.rs',
+    '.cpp',
+    '.c',
+    '.h',
+    '.cs',
+    '.rb',
+    '.php',
+    '.swift',
+    '.kt',
+    '.scala',
+    '.clj',
+    '.ex',
+    '.md',
+    '.json',
+    '.yaml',
+    '.yml',
+    '.toml',
+    '.xml',
+    '.html',
+    '.css',
+    '.scss',
+    '.sql',
+  ],
+  excludePatterns: [
+    /node_modules/,
+    /\.git/,
+    /dist/,
+    /build/,
+    /coverage/,
+    /\.next/,
+    /\.nuxt/,
+    /vendor/,
+    /target/,
+  ],
 };
 
 /**
@@ -52,12 +92,10 @@ export async function readAnchorFiles(
     }
 
     // Resolve the anchor path
-    const fullPath = path.isAbsolute(anchor) 
-      ? anchor 
-      : path.join(repositoryPath, anchor);
+    const fullPath = path.isAbsolute(anchor) ? anchor : path.join(repositoryPath, anchor);
 
     // Check if file should be excluded
-    const shouldExclude = opts.excludePatterns?.some(pattern => pattern.test(fullPath));
+    const shouldExclude = opts.excludePatterns?.some((pattern) => pattern.test(fullPath));
     if (shouldExclude) {
       continue;
     }
@@ -77,13 +115,13 @@ export async function readAnchorFiles(
           content: '',
           size: 0,
           truncated: false,
-          error: 'File not found'
+          error: 'File not found',
         });
         continue;
       }
 
       const stats = fs.statSync(fullPath);
-      
+
       // If it's a directory, skip it
       if (stats.isDirectory()) {
         results.push({
@@ -91,7 +129,7 @@ export async function readAnchorFiles(
           content: '',
           size: 0,
           truncated: false,
-          error: 'Path is a directory'
+          error: 'Path is a directory',
         });
         continue;
       }
@@ -103,15 +141,15 @@ export async function readAnchorFiles(
         const fd = fs.openSync(fullPath, 'r');
         const bytesRead = fs.readSync(fd, buffer, 0, opts.maxFileSize!, 0);
         fs.closeSync(fd);
-        
+
         const content = buffer.toString('utf8', 0, bytesRead);
         results.push({
           path: anchor,
           content,
           size: bytesRead,
-          truncated: true
+          truncated: true,
         });
-        
+
         totalSize += bytesRead;
         filesRead++;
       } else {
@@ -121,9 +159,9 @@ export async function readAnchorFiles(
           path: anchor,
           content,
           size: stats.size,
-          truncated: false
+          truncated: false,
         });
-        
+
         totalSize += stats.size;
         filesRead++;
       }
@@ -133,7 +171,7 @@ export async function readAnchorFiles(
         content: '',
         size: 0,
         truncated: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -155,13 +193,13 @@ export function extractRelevantSnippets(
 
   for (const pattern of patterns) {
     const regex = new RegExp(pattern, 'gi');
-    
+
     for (let i = 0; i < lines.length; i++) {
       if (regex.test(lines[i])) {
         const start = Math.max(0, i - contextLines);
         const end = Math.min(lines.length - 1, i + contextLines);
         const rangeKey = `${start}-${end}`;
-        
+
         // Avoid duplicate snippets
         if (!addedRanges.has(rangeKey)) {
           const snippet = lines.slice(start, end + 1).join('\n');
@@ -203,11 +241,12 @@ export function selectOptimalContent(
     } else {
       // Include partial content if there's room
       const remainingChars = maxChars - totalChars;
-      if (remainingChars > 100) { // Only include if meaningful amount
+      if (remainingChars > 100) {
+        // Only include if meaningful amount
         selected.push({
           ...file,
           content: file.content.substring(0, remainingChars),
-          truncated: true
+          truncated: true,
         });
       }
       break;

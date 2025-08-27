@@ -1,6 +1,6 @@
 /**
  * a24z-memory library exports
- * 
+ *
  * This file exports the core functionality for use as a library,
  * allowing developers to build on top of a24z-memory without using MCP.
  */
@@ -54,7 +54,7 @@ export {
   type TagInfo,
   type TypeInfo,
   type NotesResult,
-  type TokenLimitInfo
+  type TokenLimitInfo,
 } from './core-mcp/store/notesStore';
 
 // Validation messages and utilities
@@ -66,7 +66,7 @@ export {
   DEFAULT_VALIDATION_MESSAGES,
   loadValidationMessages,
   saveValidationMessages,
-  getValidationMessagesPath
+  getValidationMessagesPath,
 } from './core-mcp/validation/messages';
 
 // Token counting utilities
@@ -76,7 +76,7 @@ export {
   filterNotesByTokenLimit,
   isWithinTokenLimit,
   getTokenLimitInfo as getTokenLimitInfoFunc,
-  type LimitType
+  type LimitType,
 } from './core-mcp/utils/tokenCounter';
 
 // Note similarity and deduplication
@@ -87,7 +87,7 @@ export {
   isNoteStale,
   DEFAULT_THRESHOLDS,
   type NoteSimilarity,
-  type SimilarityThresholds
+  type SimilarityThresholds,
 } from './core-mcp/utils/noteSimilarity';
 
 // Path utilities
@@ -95,7 +95,7 @@ export {
   normalizeRepositoryPath,
   findGitRoot,
   findProjectRoot,
-  getRepositoryName
+  getRepositoryName,
 } from './core-mcp/utils/pathNormalization';
 
 // Schema conversion utility
@@ -116,23 +116,32 @@ export { ConfigureLLMTool } from './core-mcp/tools/ConfigureLLMTool';
 export { BaseTool } from './core-mcp/tools/base-tool';
 
 // LLM Service exports
-export { LLMService, type LLMConfig, type LLMContext, type LLMResponse } from './core-mcp/services/llm-service';
+export {
+  LLMService,
+  type LLMConfig,
+  type LLMContext,
+  type LLMResponse,
+} from './core-mcp/services/llm-service';
 
 // API Key Manager
 export { ApiKeyManager, type StoredApiKey } from './core-mcp/services/api-key-manager';
 
 // Guidance Token Manager
-export { GuidanceTokenManager, type TokenPayload, type TokenResult } from './core-mcp/services/guidance-token-manager';
+export {
+  GuidanceTokenManager,
+  type TokenPayload,
+  type TokenResult,
+} from './core-mcp/services/guidance-token-manager';
 
 // LLM Configurator
-export { McpLLMConfigurator, SUPPORTED_PROVIDERS, type LLMProviderConfig } from './core-mcp/services/mcp-llm-configurator';
+export {
+  McpLLMConfigurator,
+  SUPPORTED_PROVIDERS,
+  type LLMProviderConfig,
+} from './core-mcp/services/mcp-llm-configurator';
 
 // Types
-export type {
-  McpTool,
-  McpToolResult,
-  McpResource
-} from './core-mcp/types';
+export type { McpTool, McpToolResult, McpResource } from './core-mcp/types';
 
 // MCP Server (for those who want to embed it)
 export { McpServer } from './core-mcp/server/McpServer';
@@ -170,23 +179,21 @@ import {
   type ValidationError as ValidationErrorType,
   type StaleNote as StaleNoteType,
   type TagInfo as TagInfoType,
-  type NotesResult
+  type NotesResult,
 } from './core-mcp/store/notesStore';
 
-import {
-  normalizeRepositoryPath as normalizeRepositoryPathFunc
-} from './core-mcp/utils/pathNormalization';
+import { normalizeRepositoryPath as normalizeRepositoryPathFunc } from './core-mcp/utils/pathNormalization';
 
 import { AskA24zMemoryTool, type AskMemoryResponse } from './core-mcp/tools/AskA24zMemoryTool';
 import { LLMService, type LLMConfig } from './core-mcp/services/llm-service';
-import { 
+import {
   ValidationMessageFormatter as ValidationMessageFormatterImport,
   ValidationMessageData as ValidationMessageDataImport,
   ValidationMessageOverrides as ValidationMessageOverridesImport,
   DEFAULT_VALIDATION_MESSAGES as DEFAULT_VALIDATION_MESSAGES_IMPORT,
   saveValidationMessages as saveValidationMessagesImport,
   loadValidationMessages as loadValidationMessagesImport,
-  getValidationMessagesPath as getValidationMessagesPathImport
+  getValidationMessagesPath as getValidationMessagesPathImport,
 } from './core-mcp/validation/messages';
 
 /**
@@ -218,20 +225,17 @@ export class A24zMemory {
       directoryPath: this.repositoryPath,
       confidence: params.confidence || 'medium',
       type: params.type || 'explanation',
-      metadata: params.metadata || {}
+      metadata: params.metadata || {},
     });
   }
 
   /**
    * Get all notes for a specific path without limits
    */
-  getNotesForPath(
-    targetPath: string,
-    includeParentNotes = true
-  ) {
+  getNotesForPath(targetPath: string, includeParentNotes = true) {
     return getNotesForPathFunc(targetPath, includeParentNotes);
   }
-  
+
   /**
    * Get notes for a specific path with limits
    */
@@ -311,7 +315,6 @@ export class A24zMemory {
   removeAllowedTag(tag: string, removeFromNotes: boolean = true): boolean {
     return removeAllowedTagFunc(this.repositoryPath, tag, removeFromNotes);
   }
-
 
   /**
    * Enable or disable allowed tags enforcement
@@ -421,27 +424,30 @@ export class A24zMemory {
   }): Promise<AskMemoryResponse> {
     // Create or reuse the ask tool with the appropriate LLM config
     const llmConfig = params.options?.llmConfig || this.llmConfig;
-    
+
     // Recreate the tool if LLM config changed
     if (!this.askTool || llmConfig !== this.llmConfig) {
       this.askTool = new AskA24zMemoryTool(llmConfig);
     }
-    
+
     // If includeFileContents is specified, update the config
     if (params.options?.includeFileContents !== undefined && llmConfig) {
-      const updatedConfig = { ...llmConfig, includeFileContents: params.options.includeFileContents };
+      const updatedConfig = {
+        ...llmConfig,
+        includeFileContents: params.options.includeFileContents,
+      };
       this.askTool = new AskA24zMemoryTool(updatedConfig);
     }
-    
+
     // Execute with metadata
     const result = await this.askTool.executeWithMetadata({
       filePath: params.filePath,
       query: params.query,
       taskContext: params.taskContext,
       filterTags: params.filterTags,
-      filterTypes: params.filterTypes
+      filterTypes: params.filterTypes,
     });
-    
+
     return result;
   }
 
@@ -466,37 +472,39 @@ export class A24zMemory {
       }
       this.llmService = new LLMService(config);
     }
-    
+
     // Check if the service is reachable
     if (this.llmConfig?.provider === 'ollama') {
       try {
         const endpoint = this.llmConfig.endpoint || 'http://localhost:11434';
         const response = await fetch(`${endpoint}/api/tags`, {
-          signal: AbortSignal.timeout(2000)
+          signal: AbortSignal.timeout(2000),
         });
         return response.ok;
       } catch {
         return false;
       }
     }
-    
+
     return false;
   }
-  
+
   /**
    * Get validation message formatter with optional custom messages
    */
-  getValidationFormatter(overrides?: ValidationMessageOverridesImport): ValidationMessageFormatterImport {
+  getValidationFormatter(
+    overrides?: ValidationMessageOverridesImport
+  ): ValidationMessageFormatterImport {
     return new ValidationMessageFormatterImport(overrides);
   }
-  
+
   /**
    * Get default validation messages
    */
   getDefaultValidationMessages() {
     return DEFAULT_VALIDATION_MESSAGES_IMPORT;
   }
-  
+
   /**
    * Get validation message data types
    * This shows what data is available for each validation error type
@@ -509,10 +517,10 @@ export class A24zMemory {
       invalidTags: ['invalidTags', 'allowedTags'],
       invalidType: ['type', 'allowedTypes'],
       anchorOutsideRepo: ['anchor'],
-      missingAnchors: ['actual']
+      missingAnchors: ['actual'],
     };
   }
-  
+
   /**
    * Save custom validation messages to the repository
    * These will be stored in .a24z/validation-messages.js
@@ -520,7 +528,7 @@ export class A24zMemory {
   saveValidationMessages(messages: ValidationMessageOverridesImport): void {
     saveValidationMessagesImport(this.repositoryPath, messages);
   }
-  
+
   /**
    * Load custom validation messages from the repository
    * Returns null if no custom messages are configured
@@ -528,7 +536,7 @@ export class A24zMemory {
   loadValidationMessages(): ValidationMessageOverridesImport | null {
     return loadValidationMessagesImport(this.repositoryPath);
   }
-  
+
   /**
    * Get the path where custom validation messages are stored
    */

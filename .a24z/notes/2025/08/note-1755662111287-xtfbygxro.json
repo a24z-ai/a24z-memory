@@ -6,12 +6,7 @@
     "src/core-mcp/types/mcp-types.ts",
     "src/core-mcp/tools/base-tool.ts"
   ],
-  "tags": [
-    "mcp",
-    "integration",
-    "protocol",
-    "schema"
-  ],
+  "tags": ["mcp", "integration", "protocol", "schema"],
   "confidence": "high",
   "type": "explanation",
   "metadata": {

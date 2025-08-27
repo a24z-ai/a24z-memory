@@ -22,29 +22,33 @@ Create `.a24z/llm-config.json` in your repository:
   "temperature": 0.3,
   "maxTokens": 1000,
   "timeout": 30000,
-  "includeFileContents": false,  // Set to true to include actual code in prompts
-  "fileContentBudget": 2000      // Max tokens to use for file contents
+  "includeFileContents": false, // Set to true to include actual code in prompts
+  "fileContentBudget": 2000 // Max tokens to use for file contents
 }
 ```
 
 #### Including File Contents
 
 When `includeFileContents` is enabled, the system will:
+
 1. Read the actual files referenced in note anchors
 2. Include relevant code snippets in the LLM prompt
 3. Provide better context for more accurate synthesis
 
 **Pros of including files:**
+
 - More accurate, code-aware responses
 - Better understanding of actual implementation
 - Can reference specific code patterns
 
 **Cons of including files:**
+
 - Larger prompts (more tokens/cost)
 - Slower response times
 - May hit context limits with large files
 
 **Recommended settings by model size:**
+
 ```json
 // For smaller models (7B)
 {
@@ -89,6 +93,7 @@ To explicitly disable LLM integration:
 ```
 
 Or via environment:
+
 ```bash
 export A24Z_LLM_PROVIDER=none
 ```
@@ -111,6 +116,7 @@ See [templates/llm-prompt-template.md](../templates/llm-prompt-template.md) for 
 ## Available Models
 
 Recommended Ollama models for code synthesis:
+
 - `codellama:13b` - Best for code understanding
 - `mistral:7b` - Good general purpose, faster
 - `llama2:13b` - Good for explanations
@@ -119,20 +125,23 @@ Recommended Ollama models for code synthesis:
 ## Example Setup
 
 1. **Install Ollama**:
+
    ```bash
    # macOS
    brew install ollama
-   
+
    # Linux
    curl -fsSL https://ollama.ai/install.sh | sh
    ```
 
 2. **Pull a model**:
+
    ```bash
    ollama pull codellama:13b
    ```
 
 3. **Start Ollama** (if not already running):
+
    ```bash
    ollama serve
    ```
@@ -149,6 +158,7 @@ Recommended Ollama models for code synthesis:
 ## How Responses Differ
 
 ### Without LLM (Local Synthesis)
+
 ```
 🎯 Context-aware guidance for: /src/auth/login.ts
 ❓ Your question: How does authentication work?
@@ -158,7 +168,7 @@ Recommended Ollama models for code synthesis:
 1. PATTERN [high confidence]
    Use JWT tokens with refresh token rotation...
 
-2. GOTCHA [medium confidence]  
+2. GOTCHA [medium confidence]
    Session timeout is 30 minutes but refresh...
 
 3. DECISION [high confidence]
@@ -166,6 +176,7 @@ Recommended Ollama models for code synthesis:
 ```
 
 ### With LLM (Enhanced Synthesis)
+
 ```
 🤖 AI-Enhanced Synthesis (via ollama:codellama)
 
@@ -209,11 +220,13 @@ The login flow follows: validate credentials → generate token pair → store r
 ## Troubleshooting
 
 ### Check if Ollama is running:
+
 ```bash
 curl http://localhost:11434/api/tags
 ```
 
 ### Test the integration:
+
 ```bash
 # With Ollama running
 askA24zMemory "How does authentication work?" /path/to/your/code
@@ -233,6 +246,7 @@ askA24zMemory "How does authentication work?" /path/to/your/code
 ### Custom Endpoints
 
 Use a remote Ollama instance:
+
 ```json
 {
   "provider": "ollama",
@@ -244,6 +258,7 @@ Use a remote Ollama instance:
 ### Fine-tuning Response Style
 
 Adjust temperature for different styles:
+
 - `0.1` - Very focused, deterministic
 - `0.3` - Balanced (default)
 - `0.7` - More creative, varied responses
@@ -253,8 +268,8 @@ Adjust temperature for different styles:
 ```json
 {
   "provider": "ollama",
-  "model": "codellama:7b",  // Smaller = faster
-  "maxTokens": 500,         // Limit response length
-  "timeout": 10000          // Fail fast if slow
+  "model": "codellama:7b", // Smaller = faster
+  "maxTokens": 500, // Limit response length
+  "timeout": 10000 // Fail fast if slow
 }
 ```

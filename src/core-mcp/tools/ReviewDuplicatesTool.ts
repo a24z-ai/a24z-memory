@@ -7,7 +7,7 @@ import {
   findSimilarNotePairs,
   clusterSimilarNotes,
   isNoteStale,
-  DEFAULT_THRESHOLDS
+  DEFAULT_THRESHOLDS,
 } from '../utils/noteSimilarity';
 import { normalizeRepositoryPath } from '../utils/pathNormalization';
 
@@ -17,10 +17,22 @@ export class ReviewDuplicatesTool extends BaseTool {
 
   schema = z.object({
     repositoryPath: z.string().describe('Path to the git repository to analyze'),
-    threshold: z.enum(['high', 'medium', 'low']).optional().default('medium').describe('Similarity threshold for duplicate detection'),
+    threshold: z
+      .enum(['high', 'medium', 'low'])
+      .optional()
+      .default('medium')
+      .describe('Similarity threshold for duplicate detection'),
     includeStale: z.boolean().optional().default(true).describe('Include stale notes in analysis'),
-    maxAgeDays: z.number().optional().default(365).describe('Maximum age in days for considering a note stale'),
-    focus: z.enum(['all', 'stale', 'recent', 'high-confidence']).optional().default('all').describe('Focus analysis on specific types of notes')
+    maxAgeDays: z
+      .number()
+      .optional()
+      .default(365)
+      .describe('Maximum age in days for considering a note stale'),
+    focus: z
+      .enum(['all', 'stale', 'recent', 'high-confidence'])
+      .optional()
+      .default('all')
+      .describe('Focus analysis on specific types of notes'),
   });
 
   async execute(input: z.infer<typeof this.schema>): Promise<McpToolResult> {
@@ -30,10 +42,12 @@ export class ReviewDuplicatesTool extends BaseTool {
 
       if (allNotes.length < 2) {
         return {
-          content: [{
-            type: 'text',
-            text: `Not enough notes to analyze. Found ${allNotes.length} notes in repository.`
-          }]
+          content: [
+            {
+              type: 'text',
+              text: `Not enough notes to analyze. Found ${allNotes.length} notes in repository.`,
+            },
+          ],
         };
       }
 
@@ -42,10 +56,11 @@ export class ReviewDuplicatesTool extends BaseTool {
         case 'stale':
           allNotes = allNotes.filter((n: StoredNote) => isNoteStale(n, input.maxAgeDays));
           break;
-        case 'recent':
-          const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+        case 'recent': {
+          const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
           allNotes = allNotes.filter((n: StoredNote) => n.timestamp > thirtyDaysAgo);
           break;
+        }
         case 'high-confidence':
           allNotes = allNotes.filter((n: StoredNote) => n.confidence === 'high');
           break;
@@ -53,17 +68,19 @@ export class ReviewDuplicatesTool extends BaseTool {
 
       if (allNotes.length < 2) {
         return {
-          content: [{
-            type: 'text',
-            text: `Not enough ${input.focus} notes to analyze. Found ${allNotes.length} matching notes.`
-          }]
+          content: [
+            {
+              type: 'text',
+              text: `Not enough ${input.focus} notes to analyze. Found ${allNotes.length} matching notes.`,
+            },
+          ],
         };
       }
 
       const thresholds: Record<string, number> = {
         high: DEFAULT_THRESHOLDS.high,
         medium: DEFAULT_THRESHOLDS.medium,
-        low: DEFAULT_THRESHOLDS.low
+        low: DEFAULT_THRESHOLDS.low,
       };
 
       const thresholdValue = thresholds[input.threshold];
@@ -71,7 +88,7 @@ export class ReviewDuplicatesTool extends BaseTool {
       // Get duplicate analysis
       const similarPairs = findSimilarNotePairs(allNotes, thresholdValue);
       const clusters = clusterSimilarNotes(allNotes, thresholdValue);
-      const duplicateClusters = clusters.filter(c => c.length > 1);
+      const duplicateClusters = clusters.filter((c) => c.length > 1);
 
       // Analyze staleness
       const staleNotes = allNotes.filter((n: StoredNote) => isNoteStale(n, input.maxAgeDays));
@@ -86,19 +103,22 @@ export class ReviewDuplicatesTool extends BaseTool {
       );
 
       return {
-        content: [{
-          type: 'text',
-          text: analysis
-        }]
+        content: [
+          {
+            type: 'text',
+            text: analysis,
+          },
+        ],
       };
-
     } catch (error) {
       return {
-        content: [{
-          type: 'text',
-          text: `Error analyzing duplicates: ${error instanceof Error ? error.message : 'Unknown error'}`
-        }],
-        isError: true
+        content: [
+          {
+            type: 'text',
+            text: `Error analyzing duplicates: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          },
+        ],
+        isError: true,
       };
     }
   }
@@ -134,7 +154,7 @@ export class ReviewDuplicatesTool extends BaseTool {
     }
 
     if (similarPairs.length > 0) {
-      const highSimilarityPairs = similarPairs.filter(p => p.score >= 0.8);
+      const highSimilarityPairs = similarPairs.filter((p) => p.score >= 0.8);
       if (highSimilarityPairs.length > 0) {
         analysis += `3. Immediate duplicates: ${highSimilarityPairs.length} pairs with >80% similarity\n`;
       }
@@ -151,8 +171,8 @@ export class ReviewDuplicatesTool extends BaseTool {
         analysis += `Cluster ${i + 1}: ${cluster.length} notes\n`;
 
         // Find common elements
-        const allAnchors = cluster.flatMap(n => n.anchors);
-        const allTags = cluster.flatMap(n => n.tags);
+        const allAnchors = cluster.flatMap((n) => n.anchors);
+        const allTags = cluster.flatMap((n) => n.tags);
         const commonAnchors = this.findCommonItems(allAnchors);
         const commonTags = this.findCommonItems(allTags);
 
@@ -163,8 +183,8 @@ export class ReviewDuplicatesTool extends BaseTool {
           analysis += `  Common tags: ${commonTags.join(', ')}\n`;
         }
 
-        analysis += `  Note types: ${this.uniqueItems(cluster.map(n => n.type)).join(', ')}\n`;
-        analysis += `  Confidence levels: ${this.uniqueItems(cluster.map(n => n.confidence)).join(', ')}\n\n`;
+        analysis += `  Note types: ${this.uniqueItems(cluster.map((n) => n.type)).join(', ')}\n`;
+        analysis += `  Confidence levels: ${this.uniqueItems(cluster.map((n) => n.confidence)).join(', ')}\n\n`;
       }
     }
 

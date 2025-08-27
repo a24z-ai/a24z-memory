@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import { MergeNotesTool } from '../../../src/core-mcp/tools/MergeNotesTool';
-import { saveNote, getNoteById, readAllNotes } from '../../../src/core-mcp/store/notesStore';
+import { saveNote, readAllNotes } from '../../../src/core-mcp/store/notesStore';
 
 describe('MergeNotesTool', () => {
   let tool: MergeNotesTool;
@@ -14,7 +14,7 @@ describe('MergeNotesTool', () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a24z-test-'));
     testRepoPath = path.join(tempDir, 'test-repo');
     fs.mkdirSync(testRepoPath, { recursive: true });
-    
+
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
   });
@@ -38,7 +38,7 @@ describe('MergeNotesTool', () => {
       confidence: 'high',
       type: 'explanation',
       metadata: { source: 'note1' },
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     const note2 = saveNote({
@@ -48,7 +48,7 @@ describe('MergeNotesTool', () => {
       confidence: 'medium',
       type: 'explanation',
       metadata: { source: 'note2' },
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     const result = await tool.execute({
@@ -60,9 +60,9 @@ describe('MergeNotesTool', () => {
         tags: ['auth', 'security', 'validation'],
         confidence: 'high',
         type: 'explanation',
-        metadata: { merged: true }
+        metadata: { merged: true },
       },
-      deleteOriginals: false
+      deleteOriginals: false,
     });
 
     expect(result.content[0].text).toContain('Successfully merged 2 notes');
@@ -71,8 +71,8 @@ describe('MergeNotesTool', () => {
 
     // Verify the merged note was created
     const allNotes = readAllNotes(testRepoPath);
-    const mergedNote = allNotes.find(n => 
-      n.note === 'Authentication system uses JWT tokens with proper validation'
+    const mergedNote = allNotes.find(
+      (n) => n.note === 'Authentication system uses JWT tokens with proper validation'
     );
     expect(mergedNote).toBeDefined();
     expect(mergedNote?.metadata?.mergedFrom).toEqual([note1.id, note2.id]);
@@ -88,7 +88,7 @@ describe('MergeNotesTool', () => {
       confidence: 'high',
       type: 'pattern',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     const note2 = saveNote({
@@ -98,7 +98,7 @@ describe('MergeNotesTool', () => {
       confidence: 'medium',
       type: 'pattern',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     const result = await tool.execute({
@@ -109,17 +109,17 @@ describe('MergeNotesTool', () => {
         anchors: ['db/pool.ts', 'db/config.ts', 'shared.ts', 'shared.ts'], // Duplicate anchor
         tags: ['database', 'database', 'performance', 'configuration', 'backend', 'backend'], // Duplicate tags
         confidence: 'high',
-        type: 'pattern'
+        type: 'pattern',
       },
-      deleteOriginals: false
+      deleteOriginals: false,
     });
 
     expect(result.content[0].text).toContain('Successfully merged');
-    
+
     // Check that duplicates were handled (note: current implementation may not dedupe, but test structure is here)
     const allNotes = readAllNotes(testRepoPath);
-    const mergedNote = allNotes.find(n => 
-      n.note === 'Database connection pooling and configuration'
+    const mergedNote = allNotes.find(
+      (n) => n.note === 'Database connection pooling and configuration'
     );
     expect(mergedNote).toBeDefined();
   });
@@ -133,7 +133,7 @@ describe('MergeNotesTool', () => {
       confidence: 'high',
       type: 'pattern',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     const note2 = saveNote({
@@ -143,7 +143,7 @@ describe('MergeNotesTool', () => {
       confidence: 'high',
       type: 'pattern',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     const originalCount = readAllNotes(testRepoPath).length;
@@ -156,13 +156,13 @@ describe('MergeNotesTool', () => {
         anchors: ['error/a.ts', 'error/b.ts'],
         tags: ['error-handling', 'patterns'],
         confidence: 'high',
-        type: 'pattern'
+        type: 'pattern',
       },
-      deleteOriginals: true
+      deleteOriginals: true,
     });
 
     expect(result.content[0].text).toContain('Successfully merged');
-    
+
     // When deleteOriginals is true, the implementation should handle deletion
     // Note: Current implementation may not fully support this, but test is structured for it
     const finalNotes = readAllNotes(testRepoPath);
@@ -177,7 +177,7 @@ describe('MergeNotesTool', () => {
       confidence: 'high',
       type: 'pattern',
       metadata: { version: '1.0' },
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     const note2 = saveNote({
@@ -187,10 +187,10 @@ describe('MergeNotesTool', () => {
       confidence: 'medium',
       type: 'explanation',
       metadata: { environment: 'production' },
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
-    const result = await tool.execute({
+    await tool.execute({
       repositoryPath: testRepoPath,
       noteIds: [note1.id, note2.id],
       mergedNote: {
@@ -199,17 +199,17 @@ describe('MergeNotesTool', () => {
         tags: ['api', 'security', 'configuration'],
         confidence: 'high',
         type: 'pattern',
-        metadata: { 
+        metadata: {
           custom: 'value',
-          version: '2.0'
-        }
+          version: '2.0',
+        },
       },
-      deleteOriginals: false
+      deleteOriginals: false,
     });
 
     const allNotes = readAllNotes(testRepoPath);
-    const mergedNote = allNotes.find(n => n.note === 'Complete rate limiting system');
-    
+    const mergedNote = allNotes.find((n) => n.note === 'Complete rate limiting system');
+
     expect(mergedNote?.metadata?.mergedFrom).toEqual([note1.id, note2.id]);
     expect(mergedNote?.metadata?.mergedAt).toBeDefined();
     expect(mergedNote?.metadata?.custom).toBe('value');
@@ -225,7 +225,7 @@ describe('MergeNotesTool', () => {
       confidence: 'high',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     // This should fail validation at the schema level
@@ -238,9 +238,9 @@ describe('MergeNotesTool', () => {
           anchors: ['file.ts'],
           tags: ['test'],
           confidence: 'high',
-          type: 'explanation'
+          type: 'explanation',
         },
-        deleteOriginals: false
+        deleteOriginals: false,
       });
       fail('Should have thrown validation error');
     } catch (error) {
@@ -258,9 +258,9 @@ describe('MergeNotesTool', () => {
         anchors: ['test.ts'],
         tags: ['test'],
         confidence: 'high',
-        type: 'explanation'
+        type: 'explanation',
       },
-      deleteOriginals: false
+      deleteOriginals: false,
     });
 
     // Should handle the error gracefully
@@ -276,7 +276,7 @@ describe('MergeNotesTool', () => {
       confidence: 'high',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     const note2 = saveNote({
@@ -286,7 +286,7 @@ describe('MergeNotesTool', () => {
       confidence: 'medium',
       type: 'pattern',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     // Test with missing required fields
@@ -299,9 +299,9 @@ describe('MergeNotesTool', () => {
           anchors: [], // Empty anchors should fail
           tags: ['merged'],
           confidence: 'high',
-          type: 'explanation'
+          type: 'explanation',
         },
-        deleteOriginals: false
+        deleteOriginals: false,
       });
       fail('Should have thrown validation error for empty anchors');
     } catch (error) {

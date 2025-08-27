@@ -1,6 +1,6 @@
 ---
-title: "discover_a24z_tools"
-description: "Discover all available a24z-Memory tools and their capabilities"
+title: 'discover_a24z_tools'
+description: 'Discover all available a24z-Memory tools and their capabilities'
 ---
 
 # discover_a24z_tools
@@ -21,23 +21,25 @@ The `discover_a24z_tools` tool serves as a self-documenting feature that helps u
 
 ## Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `category` | string | No | Filter tools by category: "all", "knowledge", "repository", "guidance" (default: "all") |
+| Parameter  | Type   | Required | Description                                                                             |
+| ---------- | ------ | -------- | --------------------------------------------------------------------------------------- |
+| `category` | string | No       | Filter tools by category: "all", "knowledge", "repository", "guidance" (default: "all") |
 
 ## Response Format
 
 ### Complete Discovery Response
-```json
+
+````json
 {
   "success": true,
   "message": "🔍 **a24z-Memory Tools Discovery**\n\n📋 **Category:** repository\n🔧 **Found 7 tool(s)**\n\n## create_repository_note\n\n**Document tribal knowledge, architectural decisions, implementation patterns, and important lessons learned.**\n\n### 🎯 Use Cases:\n- Document complex bugs after fixing them\n- Record architectural decisions and their rationale\n- Share implementation patterns with the team\n- Document gotchas and important warnings\n\n### 📝 Parameters:\n- note: The insight or decision to document (Markdown format)\n- directoryPath: Repository root path (absolute)\n- anchors: File/directory paths this note relates to\n- tags: Semantic tags for categorization\n- confidence: Your confidence level (high/medium/low)\n- type: Note type (decision/pattern/gotcha/explanation)\n- metadata: Additional context (optional)\n\n### 💡 Examples:\n```javascript\ncreate_repository_note({ note: \"Fixed race condition in validation middleware\", directoryPath: \"/Users/user/project\", anchors: [\"/Users/user/project/src/middleware/validation.ts\"], tags: [\"bugfix\", \"concurrency\", \"validation\"], type: \"gotcha\", confidence: \"high\" })\n```\n\n---\n\n💡 **Pro Tips:**\n- Always use absolute paths (starting with /) for file and directory parameters\n- Check existing knowledge with `askA24zMemory` before starting work\n- Document your learnings with `create_repository_note` after solving problems\n- Use appropriate note types: `decision` for architecture, `pattern` for reusable solutions, `gotcha` for bugs/warnings, `explanation` for general knowledge\n"
 }
-```
+````
 
 ## Tool Categories
 
 ### Knowledge Tools
+
 Tools focused on searching, retrieving, and analyzing existing knowledge:
 
 - **askA24zMemory** - Query the knowledge base for contextual guidance
@@ -45,6 +47,7 @@ Tools focused on searching, retrieving, and analyzing existing knowledge:
 - **get_repository_note** - Retrieve specific notes by ID
 
 ### Repository Tools
+
 Tools for managing and organizing the knowledge base:
 
 - **create_repository_note** - Create new notes and documentation
@@ -54,6 +57,7 @@ Tools for managing and organizing the knowledge base:
 - **check_stale_notes** - Find notes with outdated references
 
 ### Guidance Tools
+
 Tools for understanding system capabilities and getting help:
 
 - **discover_a24z_tools** - Discover available tools (this tool)
@@ -63,6 +67,7 @@ Tools for understanding system capabilities and getting help:
 ## Use Cases
 
 ### New User Onboarding
+
 ```json
 {
   "category": "all"
@@ -72,6 +77,7 @@ Tools for understanding system capabilities and getting help:
 **Purpose**: Get a complete overview of all available tools when first starting with a24z-Memory.
 
 ### Focused Learning
+
 ```json
 {
   "category": "knowledge"
@@ -81,6 +87,7 @@ Tools for understanding system capabilities and getting help:
 **Purpose**: Learn about tools related to searching and retrieving information.
 
 ### Repository Management
+
 ```json
 {
   "category": "repository"
@@ -99,6 +106,7 @@ This tool is particularly valuable for AI agents because:
 4. **Capability Assessment**: Agents can assess their own tool coverage
 
 ### Recommended Usage Pattern
+
 1. Use `discover_a24z_tools` when users ask about capabilities
 2. Filter by category when users have specific needs
 3. Use the examples provided to guide proper tool usage
@@ -107,6 +115,7 @@ This tool is particularly valuable for AI agents because:
 ## Examples
 
 ### Example 1: Complete Discovery
+
 ```json
 {
   "category": "all"
@@ -116,6 +125,7 @@ This tool is particularly valuable for AI agents because:
 **Response**: Comprehensive list of all 11 available tools with full details.
 
 ### Example 2: Knowledge Tools Only
+
 ```json
 {
   "category": "knowledge"
@@ -125,6 +135,7 @@ This tool is particularly valuable for AI agents because:
 **Response**: Focused list of tools for querying and retrieving information (askA24zMemory, find_similar_notes, get_repository_note).
 
 ### Example 3: Repository Management
+
 ```json
 {
   "category": "repository"
@@ -134,6 +145,7 @@ This tool is particularly valuable for AI agents because:
 **Response**: Tools for managing notes and the knowledge base (create_repository_note, delete_note, merge_notes, etc.).
 
 ### Example 4: Guidance and Help
+
 ```json
 {
   "category": "guidance"
@@ -147,21 +159,25 @@ This tool is particularly valuable for AI agents because:
 ### When to Use Each Category
 
 **All Category**:
+
 - New user onboarding
 - General capability assessment
 - Complete system overview
 
 **Knowledge Category**:
+
 - Learning about search and retrieval
 - Understanding query capabilities
 - Information discovery needs
 
 **Repository Category**:
+
 - Learning about note management
 - Understanding maintenance tools
 - Knowledge base organization
 
 **Guidance Category**:
+
 - Getting help with the system
 - Understanding available features
 - Learning about capabilities

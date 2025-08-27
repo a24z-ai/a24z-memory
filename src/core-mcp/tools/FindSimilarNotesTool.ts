@@ -7,8 +7,7 @@ import {
   findSimilarNotePairs,
   clusterSimilarNotes,
   DEFAULT_THRESHOLDS,
-  type SimilarityThresholds,
-  type NoteSimilarity
+  type NoteSimilarity,
 } from '../utils/noteSimilarity';
 import { normalizeRepositoryPath } from '../utils/pathNormalization';
 
@@ -18,11 +17,30 @@ export class FindSimilarNotesTool extends BaseTool {
 
   schema = z.object({
     repositoryPath: z.string().describe('Path to the git repository to analyze'),
-    threshold: z.enum(['high', 'medium', 'low']).optional().default('medium').describe('Similarity threshold: high (0.8+), medium (0.6-0.8), low (0.4-0.6)'),
-    includeStale: z.boolean().optional().default(true).describe('Include potentially stale notes in analysis'),
-    maxResults: z.number().optional().default(20).describe('Maximum number of similar note pairs to return'),
-    groupBy: z.enum(['pairs', 'clusters']).optional().default('pairs').describe('Return format: pairs (individual pairs) or clusters (grouped similar notes)'),
-    filterTags: z.array(z.string()).optional().describe('Only analyze notes that have at least one of these tags')
+    threshold: z
+      .enum(['high', 'medium', 'low'])
+      .optional()
+      .default('medium')
+      .describe('Similarity threshold: high (0.8+), medium (0.6-0.8), low (0.4-0.6)'),
+    includeStale: z
+      .boolean()
+      .optional()
+      .default(true)
+      .describe('Include potentially stale notes in analysis'),
+    maxResults: z
+      .number()
+      .optional()
+      .default(20)
+      .describe('Maximum number of similar note pairs to return'),
+    groupBy: z
+      .enum(['pairs', 'clusters'])
+      .optional()
+      .default('pairs')
+      .describe('Return format: pairs (individual pairs) or clusters (grouped similar notes)'),
+    filterTags: z
+      .array(z.string())
+      .optional()
+      .describe('Only analyze notes that have at least one of these tags'),
   });
 
   async execute(input: z.infer<typeof this.schema>): Promise<McpToolResult> {
@@ -32,27 +50,27 @@ export class FindSimilarNotesTool extends BaseTool {
 
       // Filter by tags if specified
       if (input.filterTags && input.filterTags.length > 0) {
-        allNotes = allNotes.filter(note => 
-          note.tags.some(tag => input.filterTags!.includes(tag))
+        allNotes = allNotes.filter((note) =>
+          note.tags.some((tag) => input.filterTags!.includes(tag))
         );
       }
 
       if (allNotes.length < 2) {
-        const filterMsg = input.filterTags 
-          ? ` with tags [${input.filterTags.join(', ')}]` 
-          : '';
+        const filterMsg = input.filterTags ? ` with tags [${input.filterTags.join(', ')}]` : '';
         return {
-          content: [{
-            type: 'text',
-            text: `Not enough notes to analyze${filterMsg}. Found ${allNotes.length} notes in repository.`
-          }]
+          content: [
+            {
+              type: 'text',
+              text: `Not enough notes to analyze${filterMsg}. Found ${allNotes.length} notes in repository.`,
+            },
+          ],
         };
       }
 
       const thresholds: Record<string, number> = {
         high: DEFAULT_THRESHOLDS.high,
         medium: DEFAULT_THRESHOLDS.medium,
-        low: DEFAULT_THRESHOLDS.low
+        low: DEFAULT_THRESHOLDS.low,
       };
 
       const thresholdValue = thresholds[input.threshold];
@@ -61,7 +79,7 @@ export class FindSimilarNotesTool extends BaseTool {
 
       if (input.groupBy === 'clusters') {
         const clusters = clusterSimilarNotes(allNotes, thresholdValue);
-        const relevantClusters = clusters.filter(c => c.length > 1);
+        const relevantClusters = clusters.filter((c) => c.length > 1);
 
         if (relevantClusters.length === 0) {
           results = `No similar note clusters found with ${input.threshold} threshold (${(thresholdValue * 100).toFixed(0)}% similarity).`;
@@ -78,24 +96,28 @@ export class FindSimilarNotesTool extends BaseTool {
         }
       }
 
-      const filterMsg = input.filterTags && input.filterTags.length > 0
-        ? `\n📌 Filtered by tags: ${input.filterTags.join(', ')}`
-        : '';
+      const filterMsg =
+        input.filterTags && input.filterTags.length > 0
+          ? `\n📌 Filtered by tags: ${input.filterTags.join(', ')}`
+          : '';
 
       return {
-        content: [{
-          type: 'text',
-          text: `🔍 Similar Notes Analysis for ${path.basename(normalizedRepo)}${filterMsg}\n\n${results}`
-        }]
+        content: [
+          {
+            type: 'text',
+            text: `🔍 Similar Notes Analysis for ${path.basename(normalizedRepo)}${filterMsg}\n\n${results}`,
+          },
+        ],
       };
-
     } catch (error) {
       return {
-        content: [{
-          type: 'text',
-          text: `Error analyzing notes: ${error instanceof Error ? error.message : 'Unknown error'}`
-        }],
-        isError: true
+        content: [
+          {
+            type: 'text',
+            text: `Error analyzing notes: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          },
+        ],
+        isError: true,
       };
     }
   }
@@ -143,7 +165,6 @@ export class FindSimilarNotesTool extends BaseTool {
 
   private findCommonItems<T>(arr1: T[], arr2: T[]): T[] {
     const set1 = new Set(arr1);
-    return arr2.filter(item => set1.has(item));
+    return arr2.filter((item) => set1.has(item));
   }
 }
-

@@ -14,7 +14,7 @@ describe('ReviewDuplicatesTool', () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a24z-test-'));
     testRepoPath = path.join(tempDir, 'test-repo');
     fs.mkdirSync(testRepoPath, { recursive: true });
-    
+
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
   });
@@ -26,7 +26,9 @@ describe('ReviewDuplicatesTool', () => {
 
   it('should have correct tool metadata', () => {
     expect(tool.name).toBe('review_duplicates');
-    expect(tool.description).toBe('Comprehensive duplicate analysis with actionable recommendations');
+    expect(tool.description).toBe(
+      'Comprehensive duplicate analysis with actionable recommendations'
+    );
   });
 
   it('should handle repository with insufficient notes', async () => {
@@ -38,7 +40,7 @@ describe('ReviewDuplicatesTool', () => {
       confidence: 'high',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     const result = await tool.execute({
@@ -46,7 +48,7 @@ describe('ReviewDuplicatesTool', () => {
       threshold: 'medium',
       includeStale: true,
       maxAgeDays: 365,
-      focus: 'all'
+      focus: 'all',
     });
 
     expect(result.content[0].text).toContain('Not enough notes to analyze');
@@ -62,7 +64,7 @@ describe('ReviewDuplicatesTool', () => {
       confidence: 'high',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     saveNote({
@@ -72,7 +74,7 @@ describe('ReviewDuplicatesTool', () => {
       confidence: 'high',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     saveNote({
@@ -82,7 +84,7 @@ describe('ReviewDuplicatesTool', () => {
       confidence: 'medium',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     saveNote({
@@ -92,7 +94,7 @@ describe('ReviewDuplicatesTool', () => {
       confidence: 'high',
       type: 'pattern',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     const result = await tool.execute({
@@ -100,7 +102,7 @@ describe('ReviewDuplicatesTool', () => {
       threshold: 'medium',
       includeStale: true,
       maxAgeDays: 365,
-      focus: 'all'
+      focus: 'all',
     });
 
     expect(result.content[0].text).toContain('Duplicate Analysis Report');
@@ -119,7 +121,7 @@ describe('ReviewDuplicatesTool', () => {
       confidence: 'high',
       type: 'pattern',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     saveNote({
@@ -129,7 +131,7 @@ describe('ReviewDuplicatesTool', () => {
       confidence: 'high',
       type: 'pattern',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     saveNote({
@@ -139,7 +141,7 @@ describe('ReviewDuplicatesTool', () => {
       confidence: 'medium',
       type: 'pattern',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     // High threshold - should find only very similar notes
@@ -148,7 +150,7 @@ describe('ReviewDuplicatesTool', () => {
       threshold: 'high',
       includeStale: true,
       maxAgeDays: 365,
-      focus: 'all'
+      focus: 'all',
     });
 
     // Low threshold - should find more similarities
@@ -157,7 +159,7 @@ describe('ReviewDuplicatesTool', () => {
       threshold: 'low',
       includeStale: true,
       maxAgeDays: 365,
-      focus: 'all'
+      focus: 'all',
     });
 
     expect(highResult.content[0].text).toBeDefined();
@@ -166,9 +168,8 @@ describe('ReviewDuplicatesTool', () => {
   });
 
   it('should filter by focus parameter', async () => {
-    const now = Date.now();
-    const oldDate = now - (400 * 24 * 60 * 60 * 1000); // 400 days ago
-    const recentDate = now - (10 * 24 * 60 * 60 * 1000); // 10 days ago
+    // 400 days ago and 10 days ago timestamps would be used for filtering
+    // but we cannot directly set timestamps in tests
 
     // Create notes with different timestamps and confidence levels
     // Note: We can't directly set timestamps, so we'll test the focus logic
@@ -179,7 +180,7 @@ describe('ReviewDuplicatesTool', () => {
       confidence: 'low',
       type: 'explanation',
       metadata: { created: 'old' },
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     saveNote({
@@ -189,7 +190,7 @@ describe('ReviewDuplicatesTool', () => {
       confidence: 'high',
       type: 'pattern',
       metadata: { created: 'recent' },
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     saveNote({
@@ -199,7 +200,7 @@ describe('ReviewDuplicatesTool', () => {
       confidence: 'high',
       type: 'pattern',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     saveNote({
@@ -209,7 +210,7 @@ describe('ReviewDuplicatesTool', () => {
       confidence: 'high',
       type: 'pattern',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     // Test focus on high-confidence notes
@@ -218,7 +219,7 @@ describe('ReviewDuplicatesTool', () => {
       threshold: 'medium',
       includeStale: true,
       maxAgeDays: 365,
-      focus: 'high-confidence'
+      focus: 'high-confidence',
     });
 
     expect(highConfidenceResult.content[0].text).toContain('Duplicate Analysis Report');
@@ -235,7 +236,7 @@ describe('ReviewDuplicatesTool', () => {
         confidence: 'medium',
         type: 'explanation',
         metadata: { index: i },
-        directoryPath: testRepoPath
+        directoryPath: testRepoPath,
       });
     }
 
@@ -245,7 +246,7 @@ describe('ReviewDuplicatesTool', () => {
       threshold: 'medium',
       includeStale: true,
       maxAgeDays: 30, // Consider notes older than 30 days as stale
-      focus: 'all'
+      focus: 'all',
     });
 
     // Test with includeStale false
@@ -254,7 +255,7 @@ describe('ReviewDuplicatesTool', () => {
       threshold: 'medium',
       includeStale: false,
       maxAgeDays: 30,
-      focus: 'all'
+      focus: 'all',
     });
 
     expect(withStaleResult.content[0].text).toBeDefined();
@@ -270,7 +271,7 @@ describe('ReviewDuplicatesTool', () => {
       confidence: 'high',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     saveNote({
@@ -280,7 +281,7 @@ describe('ReviewDuplicatesTool', () => {
       confidence: 'high',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     saveNote({
@@ -290,7 +291,7 @@ describe('ReviewDuplicatesTool', () => {
       confidence: 'medium',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     const result = await tool.execute({
@@ -298,7 +299,7 @@ describe('ReviewDuplicatesTool', () => {
       threshold: 'medium',
       includeStale: true,
       maxAgeDays: 365,
-      focus: 'all'
+      focus: 'all',
     });
 
     const text = result.content[0].text;
@@ -317,7 +318,7 @@ describe('ReviewDuplicatesTool', () => {
         confidence: 'low',
         type: 'explanation',
         metadata: { age: 'old' },
-        directoryPath: testRepoPath
+        directoryPath: testRepoPath,
       });
     }
 
@@ -326,7 +327,7 @@ describe('ReviewDuplicatesTool', () => {
       threshold: 'medium',
       includeStale: true,
       maxAgeDays: 1, // Very short to consider all as stale
-      focus: 'stale'
+      focus: 'stale',
     });
 
     expect(result.content[0].text).toBeDefined();
@@ -343,7 +344,7 @@ describe('ReviewDuplicatesTool', () => {
         confidence: 'high',
         type: 'pattern',
         metadata: { age: 'new' },
-        directoryPath: testRepoPath
+        directoryPath: testRepoPath,
       });
     }
 
@@ -352,7 +353,7 @@ describe('ReviewDuplicatesTool', () => {
       threshold: 'medium',
       includeStale: true,
       maxAgeDays: 365,
-      focus: 'recent'
+      focus: 'recent',
     });
 
     expect(result.content[0].text).toBeDefined();
@@ -365,7 +366,7 @@ describe('ReviewDuplicatesTool', () => {
       threshold: 'medium',
       includeStale: true,
       maxAgeDays: 365,
-      focus: 'all'
+      focus: 'all',
     });
 
     expect(result.isError).toBe(true);
@@ -376,19 +377,16 @@ describe('ReviewDuplicatesTool', () => {
     // Create a diverse set of notes for comprehensive analysis
     const noteTypes = ['pattern', 'explanation', 'gotcha', 'decision'];
     const confidenceLevels = ['high', 'medium', 'low'];
-    
+
     for (let i = 0; i < 9; i++) {
       saveNote({
         note: `Technical note ${i} about ${i % 3 === 0 ? 'authentication' : i % 3 === 1 ? 'database' : 'caching'}`,
         anchors: [`file${i}.ts`],
-        tags: [
-          i % 3 === 0 ? 'auth' : i % 3 === 1 ? 'database' : 'cache',
-          'technical'
-        ],
+        tags: [i % 3 === 0 ? 'auth' : i % 3 === 1 ? 'database' : 'cache', 'technical'],
         confidence: confidenceLevels[i % 3] as 'high' | 'medium' | 'low',
         type: noteTypes[i % 4] as 'pattern' | 'explanation' | 'gotcha' | 'decision',
         metadata: { index: i },
-        directoryPath: testRepoPath
+        directoryPath: testRepoPath,
       });
     }
 
@@ -397,7 +395,7 @@ describe('ReviewDuplicatesTool', () => {
       threshold: 'low',
       includeStale: true,
       maxAgeDays: 365,
-      focus: 'all'
+      focus: 'all',
     });
 
     const text = result.content[0].text;

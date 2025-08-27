@@ -36,8 +36,8 @@ const note = memory.saveNote({
   type: 'explanation',
   metadata: {
     author: 'john.doe',
-    jiraTicket: 'AUTH-123'
-  }
+    jiraTicket: 'AUTH-123',
+  },
 });
 
 // Retrieve notes for a path
@@ -54,17 +54,18 @@ const response = await memory.askMemory({
   filePath: '/path/to/src/auth.ts',
   query: 'How is authentication handled in this file?',
   taskContext: 'I need to add OAuth support',
-  filterTags: ['authentication'],  // Optional: filter by tags
-  filterTypes: ['pattern', 'decision'],  // Optional: filter by types
+  filterTags: ['authentication'], // Optional: filter by tags
+  filterTypes: ['pattern', 'decision'], // Optional: filter by types
   options: {
-    includeFileContents: true,  // Include anchor file contents in LLM context
-    maxNotes: 10,  // Limit number of notes to process
-    llmConfig: {  // Optional: override LLM settings
+    includeFileContents: true, // Include anchor file contents in LLM context
+    maxNotes: 10, // Limit number of notes to process
+    llmConfig: {
+      // Optional: override LLM settings
       provider: 'ollama',
       model: 'llama2',
-      endpoint: 'http://localhost:11434'
-    }
-  }
+      endpoint: 'http://localhost:11434',
+    },
+  },
 });
 
 // Response includes metadata about synthesis
@@ -80,12 +81,7 @@ console.log('Files read:', response.metadata.filesRead);
 For more control, you can use the individual functions:
 
 ```typescript
-import {
-  saveNote,
-  getNotesForPath,
-  normalizeRepositoryPath,
-  findGitRoot
-} from 'a24z-memory';
+import { saveNote, getNotesForPath, normalizeRepositoryPath, findGitRoot } from 'a24z-memory';
 
 // Find the git repository root
 const repoRoot = findGitRoot(process.cwd());
@@ -98,14 +94,14 @@ const note = saveNote({
   tags: ['core', 'engine'],
   confidence: 'medium',
   type: 'gotcha',
-  metadata: {}
+  metadata: {},
 });
 
 // Query notes with filters
 const notes = getNotesForPath(
   '/path/to/file.ts',
-  true,  // includeParentNotes
-  10     // maxResults
+  true, // includeParentNotes
+  10 // maxResults
 );
 ```
 
@@ -124,7 +120,7 @@ const result = await createTool.execute({
   anchors: ['src/db/config.ts'],
   tags: ['database', 'configuration'],
   confidence: 'high',
-  type: 'decision'
+  type: 'decision',
 });
 
 // Query notes using the tool
@@ -133,7 +129,7 @@ const queryResult = await queryTool.execute({
   query: 'How does authentication work?',
   path: '/path/to/repo',
   filterTags: ['authentication'],
-  filterTypes: ['explanation', 'pattern']
+  filterTypes: ['explanation', 'pattern'],
 });
 ```
 
@@ -186,6 +182,7 @@ const gitRoot = findGitRoot('/path/to/repo/deep/nested/file.ts');
 ## Storage Location
 
 Notes are stored in a `.a24z` directory at the repository root:
+
 - `.a24z/repository-notes.json` - All notes for the repository
 - `.a24z/note-guidance.md` - Custom guidance for note creation
 
@@ -198,13 +195,13 @@ Configure LLM settings for AI-enhanced note synthesis:
 ```typescript
 // Configure LLM for the instance
 memory.configureLLM({
-  provider: 'ollama',  // 'ollama' | 'openai' | 'none'
+  provider: 'ollama', // 'ollama' | 'openai' | 'none'
   endpoint: 'http://localhost:11434',
   model: 'llama2',
   temperature: 0.3,
   maxTokens: 1000,
-  includeFileContents: true,  // Include file contents in synthesis
-  fileContentBudget: 2000     // Max tokens for file contents
+  includeFileContents: true, // Include file contents in synthesis
+  fileContentBudget: 2000, // Max tokens for file contents
 });
 
 // Check if LLM is available
@@ -232,9 +229,9 @@ const note = memory.saveNote({
     relatedPRs: ['#123', '#456'],
     benchmarks: {
       before: '500ms',
-      after: '50ms'
-    }
-  }
+      after: '50ms',
+    },
+  },
 });
 ```
 
@@ -243,24 +240,16 @@ const note = memory.saveNote({
 ```typescript
 // Get notes for multiple paths
 const paths = ['src/auth.ts', 'src/middleware/auth.ts'];
-const allNotes = paths.flatMap(p => 
-  getNotesForPath(p, false, 5)
-);
+const allNotes = paths.flatMap((p) => getNotesForPath(p, false, 5));
 
 // Filter by confidence
-const highConfidenceNotes = allNotes.filter(n => 
-  n.confidence === 'high'
-);
+const highConfidenceNotes = allNotes.filter((n) => n.confidence === 'high');
 
 // Filter by type
-const patterns = allNotes.filter(n => 
-  n.type === 'pattern'
-);
+const patterns = allNotes.filter((n) => n.type === 'pattern');
 
 // Search by tags
-const securityNotes = allNotes.filter(n => 
-  n.tags.includes('security')
-);
+const securityNotes = allNotes.filter((n) => n.tags.includes('security'));
 ```
 
 ### Configuring LLM Providers (OpenRouter, Ollama)
@@ -310,7 +299,7 @@ if (!ApiKeyManager.isBunSecretsAvailable()) {
 
 await ApiKeyManager.storeApiKey('openrouter', {
   apiKey: 'your-api-key',
-  model: 'anthropic/claude-3.5-sonnet'
+  model: 'anthropic/claude-3.5-sonnet',
 });
 
 // Check if configured
@@ -336,7 +325,7 @@ import { McpServer } from 'a24z-memory';
 
 const server = new McpServer({
   name: 'Custom Memory Server',
-  version: '1.0.0'
+  version: '1.0.0',
 });
 
 // Add custom tools if needed
@@ -369,7 +358,7 @@ let doc = '# Repository Knowledge Base\n\n';
 
 if (grouped.decision) {
   doc += '## Architectural Decisions\n\n';
-  grouped.decision.forEach(note => {
+  grouped.decision.forEach((note) => {
     doc += `### ${note.tags.join(', ')}\n`;
     doc += `${note.note}\n\n`;
   });
@@ -386,17 +375,14 @@ import { A24zMemory } from 'a24z-memory';
 import { execSync } from 'child_process';
 
 const memory = new A24zMemory();
-const changedFiles = execSync('git diff --name-only HEAD~1')
-  .toString()
-  .split('\n')
-  .filter(Boolean);
+const changedFiles = execSync('git diff --name-only HEAD~1').toString().split('\n').filter(Boolean);
 
 // Check if any notes need updating
-changedFiles.forEach(file => {
+changedFiles.forEach((file) => {
   const notes = memory.getNotesForPath(file);
   if (notes.length > 0) {
     console.log(`Consider updating notes for ${file}`);
-    notes.forEach(note => {
+    notes.forEach((note) => {
       console.log(`  - ${note.id}: ${note.tags.join(', ')}`);
     });
   }
@@ -411,8 +397,8 @@ The library includes comprehensive error handling:
 try {
   const note = memory.saveNote({
     note: 'My note',
-    anchors: [],  // Will throw - at least one anchor required
-    tags: []       // Will throw - at least one tag required
+    anchors: [], // Will throw - at least one anchor required
+    tags: [], // Will throw - at least one tag required
   });
 } catch (error) {
   console.error('Failed to save note:', error.message);

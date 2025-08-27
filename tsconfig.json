@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "outDir": "dist",
     "rootDir": "src",
     "declaration": true,
@@ -17,4 +17,3 @@
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }
-

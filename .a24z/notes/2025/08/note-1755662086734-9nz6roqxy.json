@@ -6,12 +6,7 @@
     "src/core-mcp/tools/index.ts",
     "src/core-mcp/tools/base-tool.ts"
   ],
-  "tags": [
-    "mcp",
-    "architecture",
-    "tools",
-    "integration"
-  ],
+  "tags": ["mcp", "architecture", "tools", "integration"],
   "confidence": "high",
   "type": "pattern",
   "metadata": {

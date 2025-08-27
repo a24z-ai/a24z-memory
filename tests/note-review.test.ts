@@ -12,7 +12,6 @@ import {
   markAllNotesReviewed,
   getNotesForPath,
   getNoteById,
-  type StoredNote
 } from '../src/core-mcp/store/notesStore';
 
 describe('Note Review Functionality', () => {
@@ -41,7 +40,7 @@ describe('Note Review Functionality', () => {
         tags: ['test'],
         confidence: 'high',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       expect(note.reviewed).toBe(false);
@@ -56,7 +55,7 @@ describe('Note Review Functionality', () => {
         confidence: 'high',
         type: 'explanation',
         metadata: {},
-        reviewed: true
+        reviewed: true,
       });
 
       expect(note.reviewed).toBe(true);
@@ -72,7 +71,7 @@ describe('Note Review Functionality', () => {
         confidence: 'high',
         type: 'explanation',
         metadata: {},
-        guidanceToken: testToken
+        guidanceToken: testToken,
       });
 
       expect(note.guidanceToken).toBe(testToken);
@@ -90,7 +89,7 @@ describe('Note Review Functionality', () => {
         confidence: 'high',
         type: 'explanation',
         metadata: {},
-        reviewed: false
+        reviewed: false,
       });
 
       saveNote({
@@ -101,7 +100,7 @@ describe('Note Review Functionality', () => {
         confidence: 'medium',
         type: 'pattern',
         reviewed: true,
-        metadata: {}
+        metadata: {},
       });
 
       saveNote({
@@ -112,23 +111,23 @@ describe('Note Review Functionality', () => {
         confidence: 'low',
         type: 'gotcha',
         reviewed: false,
-        metadata: {}
+        metadata: {},
       });
     });
 
     it('should return only unreviewed notes', () => {
       const unreviewed = getUnreviewedNotes(testRepoRoot);
-      
+
       expect(unreviewed).toHaveLength(2);
-      expect(unreviewed.every(n => n.reviewed === false)).toBe(true);
-      expect(unreviewed.map(n => n.note)).toContain('Unreviewed note 1');
-      expect(unreviewed.map(n => n.note)).toContain('Unreviewed note 2');
+      expect(unreviewed.every((n) => n.reviewed === false)).toBe(true);
+      expect(unreviewed.map((n) => n.note)).toContain('Unreviewed note 1');
+      expect(unreviewed.map((n) => n.note)).toContain('Unreviewed note 2');
     });
 
     it('should return empty array when all notes are reviewed', () => {
       // Mark all as reviewed
       markAllNotesReviewed(testRepoRoot);
-      
+
       const unreviewed = getUnreviewedNotes(testRepoRoot);
       expect(unreviewed).toHaveLength(0);
     });
@@ -137,7 +136,7 @@ describe('Note Review Functionality', () => {
       // Create notes with different anchors
       const subdir = path.join(testRepoRoot, 'subdir');
       fs.mkdirSync(subdir, { recursive: true });
-      
+
       saveNote({
         note: 'Subdir unreviewed note',
         directoryPath: testRepoRoot,
@@ -146,16 +145,14 @@ describe('Note Review Functionality', () => {
         confidence: 'high',
         type: 'explanation',
         reviewed: false,
-        metadata: {}
+        metadata: {},
       });
 
       const unreviewed = getUnreviewedNotes(testRepoRoot, subdir);
-      
+
       // This would filter based on anchors matching the subdir
-      const subdirNotes = unreviewed.filter(n => 
-        n.anchors.some(a => a.includes('subdir'))
-      );
-      
+      const subdirNotes = unreviewed.filter((n) => n.anchors.some((a) => a.includes('subdir')));
+
       expect(subdirNotes.length).toBeGreaterThan(0);
     });
   });
@@ -172,16 +169,16 @@ describe('Note Review Functionality', () => {
         confidence: 'high',
         type: 'explanation',
         reviewed: false,
-        metadata: {}
+        metadata: {},
       });
       noteId = note.id;
     });
 
     it('should mark a note as reviewed', () => {
       const result = markNoteReviewed(testRepoRoot, noteId);
-      
+
       expect(result).toBe(true);
-      
+
       const note = getNoteById(testRepoRoot, noteId);
       expect(note?.reviewed).toBe(true);
     });
@@ -193,20 +190,20 @@ describe('Note Review Functionality', () => {
 
     it('should persist reviewed status', () => {
       markNoteReviewed(testRepoRoot, noteId);
-      
+
       // Simulate reading from disk again
       const notes = getNotesForPath(testRepoRoot, true);
-      const note = notes.find(n => n.id === noteId);
-      
+      const note = notes.find((n) => n.id === noteId);
+
       expect(note?.reviewed).toBe(true);
     });
 
     it('should handle already reviewed notes gracefully', () => {
       markNoteReviewed(testRepoRoot, noteId);
       const result = markNoteReviewed(testRepoRoot, noteId);
-      
+
       expect(result).toBe(true);
-      
+
       const note = getNoteById(testRepoRoot, noteId);
       expect(note?.reviewed).toBe(true);
     });
@@ -224,10 +221,10 @@ describe('Note Review Functionality', () => {
           confidence: 'medium',
           type: 'explanation',
           metadata: {},
-          reviewed: false
+          reviewed: false,
         });
       }
-      
+
       // Add one already reviewed note
       saveNote({
         note: 'Already reviewed',
@@ -237,30 +234,30 @@ describe('Note Review Functionality', () => {
         confidence: 'high',
         type: 'pattern',
         reviewed: true,
-        metadata: {}
+        metadata: {},
       });
     });
 
     it('should mark all unreviewed notes as reviewed', () => {
       const count = markAllNotesReviewed(testRepoRoot);
-      
+
       expect(count).toBe(5); // Only the unreviewed ones
-      
+
       const notes = getNotesForPath(testRepoRoot, true);
-      expect(notes.every(n => n.reviewed === true)).toBe(true);
+      expect(notes.every((n) => n.reviewed === true)).toBe(true);
     });
 
     it('should return 0 when no unreviewed notes exist', () => {
       markAllNotesReviewed(testRepoRoot);
       const count = markAllNotesReviewed(testRepoRoot);
-      
+
       expect(count).toBe(0);
     });
 
     it('should filter by directory path when provided', () => {
       const subdir = path.join(testRepoRoot, 'subdir');
       fs.mkdirSync(subdir, { recursive: true });
-      
+
       // Add notes specific to subdir
       saveNote({
         note: 'Subdir note 1',
@@ -270,9 +267,9 @@ describe('Note Review Functionality', () => {
         confidence: 'high',
         type: 'explanation',
         reviewed: false,
-        metadata: {}
+        metadata: {},
       });
-      
+
       saveNote({
         note: 'Subdir note 2',
         directoryPath: testRepoRoot,
@@ -281,11 +278,11 @@ describe('Note Review Functionality', () => {
         confidence: 'high',
         type: 'explanation',
         reviewed: false,
-        metadata: {}
+        metadata: {},
       });
 
       const count = markAllNotesReviewed(testRepoRoot, subdir);
-      
+
       // This would depend on implementation of filtering by path
       expect(count).toBeGreaterThan(0);
     });
@@ -301,11 +298,11 @@ describe('Note Review Functionality', () => {
         confidence: 'high',
         type: 'explanation',
         reviewed: false,
-        metadata: {}
+        metadata: {},
       });
 
       markNoteReviewed(testRepoRoot, note.id);
-      
+
       // Simulate updating the note (would need update functionality)
       // For now, just verify the field persists
       const retrievedNote = getNoteById(testRepoRoot, note.id);
@@ -318,10 +315,10 @@ describe('Note Review Functionality', () => {
         { reviewed: true, confidence: 'high' as const },
         { reviewed: false, confidence: 'medium' as const },
         { reviewed: true, confidence: 'low' as const },
-        { reviewed: false, confidence: 'high' as const }
+        { reviewed: false, confidence: 'high' as const },
       ];
 
-      const savedNotes = notes.map((noteData, i) => 
+      notes.map((noteData, i) =>
         saveNote({
           note: `Note ${i}`,
           directoryPath: testRepoRoot,
@@ -330,14 +327,14 @@ describe('Note Review Functionality', () => {
           confidence: noteData.confidence,
           type: 'explanation',
           metadata: {},
-          reviewed: noteData.reviewed
+          reviewed: noteData.reviewed,
         })
       );
 
       const allNotes = getNotesForPath(testRepoRoot, true);
-      const reviewedCount = allNotes.filter(n => n.reviewed === true).length;
-      const unreviewedCount = allNotes.filter(n => n.reviewed === false).length;
-      
+      const reviewedCount = allNotes.filter((n) => n.reviewed === true).length;
+      const unreviewedCount = allNotes.filter((n) => n.reviewed === false).length;
+
       expect(reviewedCount).toBe(2);
       expect(unreviewedCount).toBe(2);
     });
@@ -355,14 +352,14 @@ describe('Note Review Functionality', () => {
         type: 'explanation',
         guidanceToken: token,
         reviewed: false,
-        metadata: {}
+        metadata: {},
       });
 
       expect(note.guidanceToken).toBe(token);
-      
+
       // Mark as reviewed
       markNoteReviewed(testRepoRoot, note.id);
-      
+
       // Token should still be there
       const reviewedNote = getNoteById(testRepoRoot, note.id);
       expect(reviewedNote?.guidanceToken).toBe(token);
@@ -377,11 +374,11 @@ describe('Note Review Functionality', () => {
         tags: ['test'],
         confidence: 'high',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       expect(note.guidanceToken).toBeUndefined();
-      
+
       const retrieved = getNoteById(testRepoRoot, note.id);
       expect(retrieved?.guidanceToken).toBeUndefined();
     });

@@ -1,12 +1,7 @@
 {
   "note": "Test note without directoryPath - final version",
-  "anchors": [
-    "test-file-final.ts"
-  ],
-  "tags": [
-    "test",
-    "final"
-  ],
+  "anchors": ["test-file-final.ts"],
+  "tags": ["test", "final"],
   "confidence": "medium",
   "type": "explanation",
   "metadata": {

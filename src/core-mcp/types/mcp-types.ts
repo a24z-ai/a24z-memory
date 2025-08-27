@@ -9,7 +9,12 @@ export interface McpTool<TParams = unknown, TResult = unknown> {
 }
 
 export interface McpToolResult<T = unknown> {
-  content: Array<{ type: 'text' | 'image' | 'resource'; text?: string; data?: T; mimeType?: string }>;
+  content: Array<{
+    type: 'text' | 'image' | 'resource';
+    text?: string;
+    data?: T;
+    mimeType?: string;
+  }>;
   isError?: boolean;
 }
 

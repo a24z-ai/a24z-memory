@@ -1,16 +1,15 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { 
+import {
   saveNote,
   removeTagFromNotes,
   deleteTagDescription,
   removeAllowedTag,
   addAllowedTag,
   getNotesForPath,
-  type StoredNote
+  type StoredNote,
 } from '../../../src/core-mcp/store/notesStore';
-import { findGitRoot } from '../../../src/core-mcp/utils/pathNormalization';
 
 describe('Tag Removal from Notes', () => {
   let testRepoPath: string;
@@ -20,10 +19,10 @@ describe('Tag Removal from Notes', () => {
     // Create a temporary directory for testing
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a24z-test-'));
     testRepoPath = tmpDir;
-    
+
     // Initialize as a git repo
     fs.mkdirSync(path.join(testRepoPath, '.git'));
-    
+
     // Create a basic test note template
     testNote = {
       note: 'Test note content',
@@ -31,7 +30,7 @@ describe('Tag Removal from Notes', () => {
       tags: ['feature', 'bugfix'],
       confidence: 'high' as const,
       type: 'pattern' as const,
-      metadata: {}
+      metadata: {},
     };
   });
 
@@ -47,17 +46,22 @@ describe('Tag Removal from Notes', () => {
       // Create multiple notes with the tag
       saveNote({ ...testNote, directoryPath: testRepoPath });
       saveNote({ ...testNote, note: 'Another note', directoryPath: testRepoPath });
-      saveNote({ ...testNote, note: 'Third note', tags: ['bugfix', 'urgent'], directoryPath: testRepoPath });
-      
+      saveNote({
+        ...testNote,
+        note: 'Third note',
+        tags: ['bugfix', 'urgent'],
+        directoryPath: testRepoPath,
+      });
+
       // Remove the 'bugfix' tag
       const modifiedCount = removeTagFromNotes(testRepoPath, 'bugfix');
-      
+
       expect(modifiedCount).toBe(3);
-      
+
       // Verify the tag was removed
       const notes = getNotesForPath(testRepoPath, true);
       expect(notes).toHaveLength(3);
-      
+
       for (const note of notes) {
         expect(note.tags).not.toContain('bugfix');
         // 'feature' should still be there for first two notes
@@ -72,23 +76,23 @@ describe('Tag Removal from Notes', () => {
       saveNote({
         ...testNote,
         tags: ['bugfix'],
-        directoryPath: testRepoPath
+        directoryPath: testRepoPath,
       });
-      
+
       // Remove the only tag
       const modifiedCount = removeTagFromNotes(testRepoPath, 'bugfix');
-      
+
       expect(modifiedCount).toBe(1);
-      
+
       const notes = getNotesForPath(testRepoPath, true);
       expect(notes[0].tags).toEqual([]);
     });
 
     it('should return 0 if tag does not exist', () => {
       saveNote({ ...testNote, directoryPath: testRepoPath });
-      
+
       const modifiedCount = removeTagFromNotes(testRepoPath, 'nonexistent');
-      
+
       expect(modifiedCount).toBe(0);
     });
   });
@@ -104,16 +108,16 @@ describe('Tag Removal from Notes', () => {
       const tagPath = path.join(testRepoPath, '.a24z', 'tags', 'bugfix.md');
       fs.mkdirSync(path.dirname(tagPath), { recursive: true });
       fs.writeFileSync(tagPath, 'Bug fix related changes');
-      
+
       // Delete with removeFromNotes = true
       const result = deleteTagDescription(testRepoPath, 'bugfix', true);
-      
+
       expect(result).toBe(true);
       expect(fs.existsSync(tagPath)).toBe(false);
-      
+
       // Verify tag was removed from notes
       const notes = getNotesForPath(testRepoPath, true);
-      notes.forEach(note => {
+      notes.forEach((note) => {
         expect(note.tags).not.toContain('bugfix');
       });
     });
@@ -123,13 +127,13 @@ describe('Tag Removal from Notes', () => {
       const tagPath = path.join(testRepoPath, '.a24z', 'tags', 'bugfix.md');
       fs.mkdirSync(path.dirname(tagPath), { recursive: true });
       fs.writeFileSync(tagPath, 'Bug fix related changes');
-      
+
       // Delete with removeFromNotes = false
       const result = deleteTagDescription(testRepoPath, 'bugfix', false);
-      
+
       expect(result).toBe(true);
       expect(fs.existsSync(tagPath)).toBe(false);
-      
+
       // Verify tag still exists in notes
       const notes = getNotesForPath(testRepoPath, true);
       expect(notes[0].tags).toContain('bugfix');
@@ -140,12 +144,12 @@ describe('Tag Removal from Notes', () => {
       const tagPath = path.join(testRepoPath, '.a24z', 'tags', 'bugfix.md');
       fs.mkdirSync(path.dirname(tagPath), { recursive: true });
       fs.writeFileSync(tagPath, 'Bug fix related changes');
-      
+
       // Delete without specifying removeFromNotes
       const result = deleteTagDescription(testRepoPath, 'bugfix');
-      
+
       expect(result).toBe(true);
-      
+
       // Tag should still be in notes (default is false)
       const notes = getNotesForPath(testRepoPath, true);
       expect(notes[0].tags).toContain('bugfix');
@@ -162,9 +166,9 @@ describe('Tag Removal from Notes', () => {
 
     it('should remove from allowed tags and notes when removeFromNotes is true', () => {
       const result = removeAllowedTag(testRepoPath, 'bugfix', true);
-      
+
       expect(result).toBe(true);
-      
+
       // Tag should be removed from notes
       const notes = getNotesForPath(testRepoPath, true);
       expect(notes[0].tags).not.toContain('bugfix');
@@ -172,9 +176,9 @@ describe('Tag Removal from Notes', () => {
 
     it('should remove from allowed tags but keep in notes when removeFromNotes is false', () => {
       const result = removeAllowedTag(testRepoPath, 'bugfix', false);
-      
+
       expect(result).toBe(true);
-      
+
       // Tag should still be in notes
       const notes = getNotesForPath(testRepoPath, true);
       expect(notes[0].tags).toContain('bugfix');
@@ -182,9 +186,9 @@ describe('Tag Removal from Notes', () => {
 
     it('should return false if tag is not in allowed tags', () => {
       const result = removeAllowedTag(testRepoPath, 'nonexistent', true);
-      
+
       expect(result).toBe(false);
-      
+
       // Notes should remain unchanged
       const notes = getNotesForPath(testRepoPath, true);
       expect(notes[0].tags).toEqual(['feature', 'bugfix']);
@@ -199,27 +203,27 @@ describe('Tag Removal from Notes', () => {
           ...testNote,
           note: `Note ${i}`,
           tags: ['common-tag', `tag-${i % 5}`],
-          directoryPath: testRepoPath
+          directoryPath: testRepoPath,
         });
       }
-      
+
       // Verify initial state
       let notes = getNotesForPath(testRepoPath, true);
       expect(notes).toHaveLength(10);
-      expect(notes.every(n => n.tags.includes('common-tag'))).toBe(true);
-      
+      expect(notes.every((n) => n.tags.includes('common-tag'))).toBe(true);
+
       // Remove the common tag
       const start = Date.now();
       const modifiedCount = removeTagFromNotes(testRepoPath, 'common-tag');
       const duration = Date.now() - start;
-      
+
       expect(modifiedCount).toBe(10);
       expect(duration).toBeLessThan(1000); // Should complete within 1 second
-      
+
       // Verify final state
       notes = getNotesForPath(testRepoPath, true);
       expect(notes).toHaveLength(10);
-      expect(notes.every(n => !n.tags.includes('common-tag'))).toBe(true);
+      expect(notes.every((n) => !n.tags.includes('common-tag'))).toBe(true);
     });
   });
 
@@ -228,17 +232,17 @@ describe('Tag Removal from Notes', () => {
       saveNote({
         ...testNote,
         tags: ['only-tag'],
-        directoryPath: testRepoPath
+        directoryPath: testRepoPath,
       });
-      
+
       const modifiedCount = removeTagFromNotes(testRepoPath, 'only-tag');
       expect(modifiedCount).toBe(1);
-      
+
       // Note should now have empty tags array
       const notes = getNotesForPath(testRepoPath, true);
       expect(notes[0].tags).toEqual([]);
     });
-    
+
     it('should handle repository with no notes', () => {
       const modifiedCount = removeTagFromNotes(testRepoPath, 'any-tag');
       expect(modifiedCount).toBe(0);

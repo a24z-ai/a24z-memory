@@ -31,7 +31,8 @@ export interface LLMContext {
     confidence: string;
     tags: string[];
     anchors: string[];
-    anchorContents?: Array<{  // Optional file contents
+    anchorContents?: Array<{
+      // Optional file contents
       path: string;
       content: string;
       error?: string;
@@ -57,11 +58,11 @@ class OllamaService {
   async synthesize(context: LLMContext): Promise<LLMResponse> {
     const endpoint = this.config.endpoint || 'http://localhost:11434';
     const model = this.config.model || 'llama2';
-    
+
     try {
       // Build the prompt
       const prompt = this.buildPrompt(context);
-      
+
       // Call Ollama API
       const response = await fetch(`${endpoint}/api/generate`, {
         method: 'POST',
@@ -72,10 +73,10 @@ class OllamaService {
           temperature: this.config.temperature || 0.3,
           stream: false,
           options: {
-            num_predict: this.config.maxTokens || 500
-          }
+            num_predict: this.config.maxTokens || 500,
+          },
         }),
-        signal: AbortSignal.timeout(this.config.timeout || 30000)
+        signal: AbortSignal.timeout(this.config.timeout || 30000),
       });
 
       if (!response.ok) {
@@ -83,18 +84,18 @@ class OllamaService {
       }
 
       const data = await response.json();
-      
+
       return {
         success: true,
         content: data.response,
-        provider: `ollama:${model}`
+        provider: `ollama:${model}`,
       };
     } catch (error) {
       // Service unavailable or error - fall back gracefully
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
-        provider: 'ollama'
+        provider: 'ollama',
       };
     }
   }
@@ -125,7 +126,7 @@ Working on: ${context.filePath}`;
       prompt += `Tags: ${note.tags.join(', ')}\n`;
       prompt += `Anchored to: ${note.anchors.join(', ')}\n`;
       prompt += `Content: ${note.content}\n`;
-      
+
       // Include file contents if available and within token limits
       if (note.anchorContents && note.anchorContents.length > 0) {
         prompt += '\nRelated code from anchored files:\n';
@@ -134,14 +135,15 @@ Working on: ${context.filePath}`;
             prompt += `  - ${anchor.path}: [Could not read: ${anchor.error}]\n`;
           } else {
             // Limit file content to prevent prompt explosion
-            const truncated = anchor.content.length > 500 
-              ? anchor.content.substring(0, 500) + '...[truncated]'
-              : anchor.content;
+            const truncated =
+              anchor.content.length > 500
+                ? anchor.content.substring(0, 500) + '...[truncated]'
+                : anchor.content;
             prompt += `  - ${anchor.path}:\n\`\`\`\n${truncated}\n\`\`\`\n`;
           }
         }
       }
-      
+
       prompt += '---\n';
     }
 
@@ -162,24 +164,27 @@ Answer:`;
   private interpolateTemplate(template: string, context: LLMContext): string {
     // Simple template interpolation
     let result = template;
-    
+
     // Replace basic variables
     result = result.replace(/\{\{query\}\}/g, context.query);
     result = result.replace(/\{\{filePath\}\}/g, context.filePath);
     result = result.replace(/\{\{taskContext\}\}/g, context.taskContext || '');
     result = result.replace(/\{\{noteCount\}\}/g, context.notes.length.toString());
-    
+
     // Replace notes section
-    const notesSection = context.notes.map((note, i) => 
-      `[Note ${i + 1}] ID: ${note.id}
+    const notesSection = context.notes
+      .map(
+        (note, i) =>
+          `[Note ${i + 1}] ID: ${note.id}
 Type: ${note.type.toUpperCase()} | Confidence: ${note.confidence}
 Tags: ${note.tags.join(', ')}
 Anchored to: ${note.anchors.join(', ')}
 Content: ${note.content}`
-    ).join('\n---\n');
-    
+      )
+      .join('\n---\n');
+
     result = result.replace(/\{\{notes\}\}/g, notesSection);
-    
+
     return result;
   }
 
@@ -187,7 +192,7 @@ Content: ${note.content}`
     try {
       const endpoint = this.config.endpoint || 'http://localhost:11434';
       const response = await fetch(`${endpoint}/api/tags`, {
-        signal: AbortSignal.timeout(2000) // Quick check
+        signal: AbortSignal.timeout(2000), // Quick check
       });
       return response.ok;
     } catch {
@@ -205,21 +210,21 @@ class OpenRouterService {
   async synthesize(context: LLMContext): Promise<LLMResponse> {
     const endpoint = 'https://openrouter.ai/api/v1/chat/completions';
     const model = this.config.model || 'meta-llama/llama-3.2-3b-instruct';
-    
+
     if (!this.config.apiKey) {
       throw new Error('OpenRouter API key is required');
     }
-    
+
     try {
       // Build the prompt
       const prompt = this.buildPrompt(context);
-      
+
       // Prepare headers
       const headers: Record<string, string> = {
-        'Authorization': `Bearer ${this.config.apiKey}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${this.config.apiKey}`,
+        'Content-Type': 'application/json',
       };
-      
+
       // Add optional headers for better rate limiting
       if (this.config.openRouterSiteUrl) {
         headers['HTTP-Referer'] = this.config.openRouterSiteUrl;
@@ -227,7 +232,7 @@ class OpenRouterService {
       if (this.config.openRouterSiteName) {
         headers['X-Title'] = this.config.openRouterSiteName;
       }
-      
+
       // Call OpenRouter API
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -237,14 +242,14 @@ class OpenRouterService {
           messages: [
             {
               role: 'user',
-              content: prompt
-            }
+              content: prompt,
+            },
           ],
           temperature: this.config.temperature || 0.3,
           max_tokens: this.config.maxTokens || 1000,
-          stream: false
+          stream: false,
         }),
-        signal: AbortSignal.timeout(this.config.timeout || 30000)
+        signal: AbortSignal.timeout(this.config.timeout || 30000),
       });
 
       if (!response.ok) {
@@ -253,17 +258,17 @@ class OpenRouterService {
       }
 
       const data = await response.json();
-      
+
       return {
         success: true,
         content: data.choices[0]?.message?.content || '',
-        provider: `openrouter:${model}`
+        provider: `openrouter:${model}`,
       };
     } catch (error) {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
-        provider: 'openrouter'
+        provider: 'openrouter',
       };
     }
   }
@@ -293,21 +298,22 @@ Working on: ${context.filePath}`;
       prompt += `Tags: ${note.tags.join(', ')}\n`;
       prompt += `Anchored to: ${note.anchors.join(', ')}\n`;
       prompt += `Content: ${note.content}\n`;
-      
+
       if (note.anchorContents && note.anchorContents.length > 0) {
         prompt += '\nRelated code from anchored files:\n';
         for (const anchor of note.anchorContents) {
           if (anchor.error) {
             prompt += `  - ${anchor.path}: [Could not read: ${anchor.error}]\n`;
           } else {
-            const truncated = anchor.content.length > 500 
-              ? anchor.content.substring(0, 500) + '...[truncated]'
-              : anchor.content;
+            const truncated =
+              anchor.content.length > 500
+                ? anchor.content.substring(0, 500) + '...[truncated]'
+                : anchor.content;
             prompt += `  - ${anchor.path}:\n\`\`\`\n${truncated}\n\`\`\`\n`;
           }
         }
       }
-      
+
       prompt += '---\n';
     }
 
@@ -327,22 +333,25 @@ Answer:`;
 
   private interpolateTemplate(template: string, context: LLMContext): string {
     let result = template;
-    
+
     result = result.replace(/\{\{query\}\}/g, context.query);
     result = result.replace(/\{\{filePath\}\}/g, context.filePath);
     result = result.replace(/\{\{taskContext\}\}/g, context.taskContext || '');
     result = result.replace(/\{\{noteCount\}\}/g, context.notes.length.toString());
-    
-    const notesSection = context.notes.map((note, i) => 
-      `[Note ${i + 1}] ID: ${note.id}
+
+    const notesSection = context.notes
+      .map(
+        (note, i) =>
+          `[Note ${i + 1}] ID: ${note.id}
 Type: ${note.type.toUpperCase()} | Confidence: ${note.confidence}
 Tags: ${note.tags.join(', ')}
 Anchored to: ${note.anchors.join(', ')}
 Content: ${note.content}`
-    ).join('\n---\n');
-    
+      )
+      .join('\n---\n');
+
     result = result.replace(/\{\{notes\}\}/g, notesSection);
-    
+
     return result;
   }
 
@@ -382,7 +391,7 @@ export class LLMService {
 
     // Try to get LLM synthesis
     const response = await this.provider.synthesize(context);
-    
+
     // Return response only if successful
     return response.success ? response : null;
   }
@@ -395,13 +404,17 @@ export class LLMService {
         endpoint: process.env.A24Z_LLM_ENDPOINT,
         model: process.env.A24Z_LLM_MODEL,
         // API keys must be stored via ApiKeyManager with Bun runtime
-        temperature: process.env.A24Z_LLM_TEMPERATURE ? parseFloat(process.env.A24Z_LLM_TEMPERATURE) : undefined,
-        maxTokens: process.env.A24Z_LLM_MAX_TOKENS ? parseInt(process.env.A24Z_LLM_MAX_TOKENS) : undefined,
+        temperature: process.env.A24Z_LLM_TEMPERATURE
+          ? parseFloat(process.env.A24Z_LLM_TEMPERATURE)
+          : undefined,
+        maxTokens: process.env.A24Z_LLM_MAX_TOKENS
+          ? parseInt(process.env.A24Z_LLM_MAX_TOKENS)
+          : undefined,
         timeout: process.env.A24Z_LLM_TIMEOUT ? parseInt(process.env.A24Z_LLM_TIMEOUT) : undefined,
         openRouterSiteUrl: process.env.A24Z_OPENROUTER_SITE_URL,
-        openRouterSiteName: process.env.A24Z_OPENROUTER_SITE_NAME
+        openRouterSiteName: process.env.A24Z_OPENROUTER_SITE_NAME,
       };
-      
+
       // Merge with stored API keys if needed
       return await ApiKeyManager.mergeWithStoredKey(config);
     }
@@ -411,14 +424,14 @@ export class LLMService {
       const fs = require('fs');
       const path = require('path');
       const { findGitRoot } = require('../utils/pathNormalization');
-      
+
       const repoRoot = findGitRoot(process.cwd());
       if (!repoRoot) return undefined;
-      
+
       const configPath = path.join(repoRoot, '.a24z', 'llm-config.json');
       if (fs.existsSync(configPath)) {
         const config = JSON.parse(fs.readFileSync(configPath, 'utf8')) as LLMConfig;
-        
+
         // Merge with stored API keys if needed
         return await ApiKeyManager.mergeWithStoredKey(config);
       }
@@ -441,12 +454,12 @@ export class LLMService {
  *   "maxTokens": 1000,
  *   "timeout": 30000
  * }
- * 
+ *
  * Or via environment variables (excluding API keys):
  * A24Z_LLM_PROVIDER=ollama
  * A24Z_LLM_ENDPOINT=http://localhost:11434
  * A24Z_LLM_MODEL=codellama:13b
- * 
+ *
  * Note: API keys must be stored via ApiKeyManager with Bun runtime.
  * For OpenRouter: bun run your-script.js
  */

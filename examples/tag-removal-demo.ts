@@ -2,7 +2,7 @@
 
 /**
  * Demonstration of the new tag removal functionality
- * 
+ *
  * This script shows how to use the new removeTagFromNotes function
  * and the enhanced deleteTagDescription/removeAllowedTag functions
  */
@@ -10,14 +10,14 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { 
+import {
   saveNote,
   removeTagFromNotes,
   deleteTagDescription,
   removeAllowedTag,
   addAllowedTag,
   getNotesForPath,
-  getUsedTagsForPath
+  getUsedTagsForPath,
 } from '../src/core-mcp/store/notesStore';
 
 // Create a temporary directory for the demo
@@ -36,7 +36,7 @@ saveNote({
   tags: ['authentication', 'security', 'backend'],
   confidence: 'high',
   type: 'explanation',
-  metadata: {}
+  metadata: {},
 });
 
 saveNote({
@@ -46,7 +46,7 @@ saveNote({
   tags: ['deprecated', 'api', 'backend'],
   confidence: 'high',
   type: 'gotcha',
-  metadata: {}
+  metadata: {},
 });
 
 saveNote({
@@ -56,7 +56,7 @@ saveNote({
   tags: ['database', 'performance', 'backend'],
   confidence: 'medium',
   type: 'pattern',
-  metadata: {}
+  metadata: {},
 });
 
 saveNote({
@@ -66,7 +66,7 @@ saveNote({
   tags: ['deprecated', 'technical-debt', 'refactoring'],
   confidence: 'low',
   type: 'gotcha',
-  metadata: {}
+  metadata: {},
 });
 
 const initialNotes = getNotesForPath(demoDir, true, 100);

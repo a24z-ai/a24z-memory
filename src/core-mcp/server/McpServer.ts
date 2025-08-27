@@ -42,7 +42,7 @@ export class McpServer {
   constructor(config: McpServerConfig) {
     this.config = config;
     this.llmConfigurator = new McpLLMConfigurator();
-    
+
     this.server = new Server(
       {
         name: config.name,
@@ -53,7 +53,7 @@ export class McpServer {
           tools: {},
           resources: {},
         },
-      },
+      }
     );
 
     this.setupDefaultTools();
@@ -115,14 +115,20 @@ export class McpServer {
     // Handle tools/call request
     this.server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
       console.error('[McpServer] DEBUG: tool call received, name =', request.params.name);
-      console.error('[McpServer] DEBUG: tool call args =', JSON.stringify(request.params.arguments, null, 2));
+      console.error(
+        '[McpServer] DEBUG: tool call args =',
+        JSON.stringify(request.params.arguments, null, 2)
+      );
       console.error('[McpServer] DEBUG: current working directory:', process.cwd());
       console.error('[McpServer] DEBUG: __dirname:', __dirname);
       const { name, arguments: args } = request.params;
       const tool = this.tools.get(name);
 
       if (!tool) {
-        console.error('[McpServer] DEBUG: tool not found, available tools:', Array.from(this.tools.keys()));
+        console.error(
+          '[McpServer] DEBUG: tool not found, available tools:',
+          Array.from(this.tools.keys())
+        );
         throw new Error(`Unknown tool: ${name}`);
       }
 
@@ -182,11 +188,11 @@ export class McpServer {
     console.error(`✅ ${this.config.name} MCP server started successfully`);
     console.error(`📁 MCP Server working directory: ${process.cwd()}`);
     console.error(`📁 MCP Server __dirname: ${__dirname}`);
-    
+
     // Initialize LLM configuration after server starts
     this.initializeLLMService();
   }
-  
+
   /**
    * Initialize LLM service with configuration
    */
@@ -194,17 +200,19 @@ export class McpServer {
     try {
       console.error('');
       console.error('🧠 Initializing AI-enhanced synthesis...');
-      
+
       const llmConfig = await this.llmConfigurator.ensureLLMConfiguration();
-      
+
       if (llmConfig) {
         this.llmService = new LLMService(llmConfig);
         const isValid = await this.llmConfigurator.validateConfiguration(llmConfig);
-        
+
         if (isValid) {
-          console.error(`✅ LLM configured: ${llmConfig.provider}${llmConfig.model ? ` (${llmConfig.model})` : ''}`);
+          console.error(
+            `✅ LLM configured: ${llmConfig.provider}${llmConfig.model ? ` (${llmConfig.model})` : ''}`
+          );
           console.error('   AI-enhanced note synthesis enabled');
-          
+
           // Show configuration source for transparency
           const source = this.getConfigurationSource(llmConfig);
           console.error(`   Source: ${source}`);
@@ -217,22 +225,24 @@ export class McpServer {
         console.error('ℹ️  No LLM configured - using local synthesis only');
         console.error('   This works great! AI enhancement is optional.');
       }
-      
+
       console.error('');
     } catch (error) {
-      console.error(`❌ Error initializing LLM service: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error(
+        `❌ Error initializing LLM service: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
       console.error('   Falling back to local synthesis');
       this.llmService = undefined;
     }
   }
-  
+
   /**
    * Get the configured LLM service (if any)
    */
   getLLMService(): LLMService | undefined {
     return this.llmService;
   }
-  
+
   /**
    * Determine the source of LLM configuration for transparency
    */
@@ -242,7 +252,7 @@ export class McpServer {
       const fs = require('fs');
       const path = require('path');
       const { findGitRoot } = require('../utils/pathNormalization');
-      
+
       const repoRoot = findGitRoot(process.cwd());
       if (repoRoot) {
         const configPath = path.join(repoRoot, '.a24z', 'llm-config.json');
@@ -256,7 +266,7 @@ export class McpServer {
     } catch {
       // Ignore error
     }
-    
+
     // Must be from stored API keys (automatic selection)
     return 'Stored API keys (automatic selection)';
   }

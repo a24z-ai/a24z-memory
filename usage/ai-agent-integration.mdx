@@ -1,6 +1,6 @@
 ---
-title: "AI Agent Integration"
-description: "Integrate A24z Memory with your AI coding assistant"
+title: 'AI Agent Integration'
+description: 'Integrate A24z Memory with your AI coding assistant'
 ---
 
 # AI Agent Integration Guide
@@ -19,10 +19,13 @@ When working on development tasks, you have access to a a24z-memory MCP server t
 ### Available Tools
 
 #### `discover_a24z_tools`
+
 Discover all available a24z-Memory tools and their capabilities. Use this to explore all available functions.
 
 #### `askA24zMemory`
+
 Ask the a24z memory for contextual guidance based on tribal knowledge. This tool retrieves relevant notes and synthesizes an answer.
+
 - **filePath**: **REQUIRED** - Absolute path to file or directory
 - **query**: **REQUIRED** - Your specific question about the code
 - **taskContext**: (Optional) Additional context about what you're trying to accomplish
@@ -30,7 +33,9 @@ Ask the a24z memory for contextual guidance based on tribal knowledge. This tool
 - **filterTypes**: (Optional) Filter by note types: 'decision', 'pattern', 'gotcha', 'explanation'
 
 #### `create_repository_note`
+
 Store important development insights and decisions for future reference.
+
 - **note**: **REQUIRED** - The insight or decision to document (Markdown format)
 - **directoryPath**: **REQUIRED** - Repository root path (absolute path starting with /)
 - **anchors**: **REQUIRED** - File/directory paths this note relates to
@@ -40,32 +45,44 @@ Store important development insights and decisions for future reference.
 - **metadata**: (Optional) Additional context
 
 #### `get_repository_tags`
+
 Get available tags for categorizing notes and understand existing categorization patterns.
+
 - **path**: **REQUIRED** - File or directory path
 - **includeUsedTags**: (Optional) Include previously used tags. Default is true
 - **includeSuggestedTags**: (Optional) Include path-based tag suggestions. Default is true
 - **includeGuidance**: (Optional) Include repository guidance. Default is true
 
 #### `get_repository_guidance`
+
 Get repository-specific guidance for creating effective notes.
+
 - **path**: **REQUIRED** - Any path within the repository
 
 #### `get_repository_note`
+
 Retrieve a specific note by its unique ID for detailed information.
+
 - **noteId**: **REQUIRED** - Unique note ID (e.g., "note-1734567890123-abc123def")
 - **directoryPath**: **REQUIRED** - Repository path (absolute)
 
 #### `check_stale_notes`
+
 Check for notes with stale anchors (file paths that no longer exist) in a repository.
+
 - **directoryPath**: **REQUIRED** - Repository path (absolute)
 
 #### `delete_note`
+
 Delete a specific note from the knowledge base.
+
 - **noteId**: **REQUIRED** - Unique note ID to delete
 - **directoryPath**: **REQUIRED** - Repository path (absolute)
 
 #### `find_similar_notes`
+
 Find notes with similar content to avoid duplication and discover related information.
+
 - **query**: (Optional) Search query for similar content
 - **content**: (Optional) Content to compare similarity against
 - **directoryPath**: **REQUIRED** - Repository path (absolute)
@@ -73,14 +90,18 @@ Find notes with similar content to avoid duplication and discover related inform
 - **minSimilarity**: (Optional) Minimum similarity score (0-1)
 
 #### `merge_notes`
+
 Combine multiple related notes into a comprehensive note.
+
 - **noteIds**: **REQUIRED** - Array of note IDs to merge
 - **directoryPath**: **REQUIRED** - Repository path (absolute)
 - **newNote**: **REQUIRED** - Content for the merged note
 - **deleteOriginals**: (Optional) Whether to delete original notes
 
 #### `review_duplicates`
+
 Analyze the knowledge base to identify duplicate or highly similar notes.
+
 - **directoryPath**: **REQUIRED** - Repository path to analyze
 - **similarityThreshold**: (Optional) Similarity threshold (0-1)
 - **groupBy**: (Optional) Group by content or tags
@@ -104,6 +125,7 @@ Analyze the knowledge base to identify duplicate or highly similar notes.
    - Or manually edit `~/.cursor/mcp.json`
 
 2. **Add A24z Memory Configuration**
+
    ```json
    {
      "mcpServers": {
@@ -239,6 +261,7 @@ Use A24z Memory to:
 ### AI Agent Doesn't Recognize Tools
 
 1. **Verify MCP Configuration**
+
    ```bash
    # Test if server starts
    npx a24z-memory start

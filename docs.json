@@ -16,19 +16,11 @@
         "groups": [
           {
             "group": "Getting Started",
-            "pages": [
-              "index",
-              "quickstart",
-              "installation"
-            ]
+            "pages": ["index", "quickstart", "installation"]
           },
           {
             "group": "Usage Guide",
-            "pages": [
-              "usage/ai-agent-integration",
-              "usage/tools-overview",
-              "usage/best-practices"
-            ]
+            "pages": ["usage/ai-agent-integration", "usage/tools-overview", "usage/best-practices"]
           },
           {
             "group": "API Reference",

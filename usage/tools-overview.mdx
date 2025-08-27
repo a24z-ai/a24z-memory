@@ -1,6 +1,6 @@
 ---
-title: "Tools Overview"
-description: "Overview of A24z Memory MCP tools and their capabilities"
+title: 'Tools Overview'
+description: 'Overview of A24z Memory MCP tools and their capabilities'
 ---
 
 # Tools Overview
@@ -14,6 +14,7 @@ A24z Memory provides several MCP tools to help AI agents interact with project k
 **Purpose**: Query the knowledge base for contextual guidance and tribal knowledge.
 
 **When to use**:
+
 - Starting work on unfamiliar code or patterns
 - Making architectural or implementation decisions
 - Understanding project conventions
@@ -21,6 +22,7 @@ A24z Memory provides several MCP tools to help AI agents interact with project k
 - Learning about past solutions
 
 **Example workflow**:
+
 1. AI agent encounters new component pattern
 2. Queries A24z Memory: "What patterns exist for form validation in this project?"
 3. Receives context about existing validation approaches
@@ -31,6 +33,7 @@ A24z Memory provides several MCP tools to help AI agents interact with project k
 **Purpose**: Store important insights, decisions, and knowledge for future reference.
 
 **When to use**:
+
 - After implementing significant features
 - When making architectural decisions
 - After solving complex problems
@@ -38,6 +41,7 @@ A24z Memory provides several MCP tools to help AI agents interact with project k
 - When documenting important discoveries
 
 **Note types**:
+
 - **Decision**: Architecture choices, technology selections
 - **Pattern**: Reusable implementation patterns
 - **Gotcha**: Common mistakes and solutions
@@ -48,6 +52,7 @@ A24z Memory provides several MCP tools to help AI agents interact with project k
 **Purpose**: Discover available tags for categorizing notes and understand project taxonomy.
 
 **When to use**:
+
 - Before creating new notes (to use consistent tags)
 - Understanding project technology stack
 - Exploring what types of knowledge exist
@@ -58,6 +63,7 @@ A24z Memory provides several MCP tools to help AI agents interact with project k
 **Purpose**: Get repository-specific configuration, standards, and documentation guidance.
 
 **When to use**:
+
 - New team member onboarding
 - Understanding project standards
 - Setting up consistent documentation practices
@@ -70,12 +76,14 @@ A24z Memory provides several MCP tools to help AI agents interact with project k
 **Purpose**: Retrieve a specific note by its unique ID for detailed information.
 
 **When to use**:
+
 - Get detailed information about a specific note
 - Review note content and metadata
 - Check note anchors and related files
 - Follow up on note references from other tools
 
 **Example workflow**:
+
 1. Get note ID from search results or other tools
 2. Retrieve complete note details
 3. Review content, metadata, and anchors
@@ -86,12 +94,14 @@ A24z Memory provides several MCP tools to help AI agents interact with project k
 **Purpose**: Check for notes with stale anchors (file paths that no longer exist).
 
 **When to use**:
+
 - Find notes that reference deleted or moved files
 - Maintain note accuracy and relevance
 - Clean up outdated documentation
 - Regular knowledge base maintenance
 
 **Example workflow**:
+
 1. Run stale note check after file operations
 2. Review notes with broken anchors
 3. Update or remove outdated notes
@@ -102,12 +112,14 @@ A24z Memory provides several MCP tools to help AI agents interact with project k
 **Purpose**: Discover all available a24z-Memory tools and their capabilities.
 
 **When to use**:
+
 - Understand what tools are available
 - Learn how to use tools effectively
 - Get tool usage examples and parameters
 - Explore new features as they're added
 
 **Example workflow**:
+
 1. New user wants to explore capabilities
 2. AI agent uses discover tool to show available options
 3. User selects appropriate tools for their needs
@@ -118,6 +130,7 @@ A24z Memory provides several MCP tools to help AI agents interact with project k
 **Purpose**: Find notes with similar content to avoid duplication and discover related information.
 
 **When to use**:
+
 - Before creating new notes (check for existing content)
 - Researching related topics
 - Consolidating similar information
@@ -128,6 +141,7 @@ A24z Memory provides several MCP tools to help AI agents interact with project k
 **Purpose**: Combine multiple related notes into comprehensive documentation.
 
 **When to use**:
+
 - Consolidating duplicate information
 - Creating comprehensive guides from fragments
 - Organizing scattered knowledge
@@ -138,6 +152,7 @@ A24z Memory provides several MCP tools to help AI agents interact with project k
 **Purpose**: Analyze knowledge base for duplicate or highly similar notes.
 
 **When to use**:
+
 - Regular knowledge base maintenance
 - Before major refactoring or reorganization
 - Quality assurance of documentation
@@ -148,6 +163,7 @@ A24z Memory provides several MCP tools to help AI agents interact with project k
 **Purpose**: Remove outdated or incorrect notes from the knowledge base.
 
 **When to use**:
+
 - Removing deprecated information
 - Correcting factual errors
 - Cleaning up after refactoring
@@ -225,8 +241,8 @@ A24z Memory provides several MCP tools to help AI agents interact with project k
 // AI Agent: I need to implement a user authentication hook
 // First, query existing patterns
 const existingPatterns = await askA24zMemory({
-  filePath: "/src/hooks",
-  query: "What authentication hook patterns exist in this project?"
+  filePath: '/src/hooks',
+  query: 'What authentication hook patterns exist in this project?',
 });
 
 // Apply the discovered patterns to new code
@@ -238,8 +254,8 @@ const existingPatterns = await askA24zMemory({
 ```typescript
 // AI Agent: Considering whether to use Redux or Context API
 const decisionHistory = await askA24zMemory({
-  query: "What were the previous decisions about state management in this project?",
-  taskContext: "Evaluating Redux vs Context API for new feature"
+  query: 'What were the previous decisions about state management in this project?',
+  taskContext: 'Evaluating Redux vs Context API for new feature',
 });
 
 // Use historical context to inform current decision
@@ -251,8 +267,8 @@ const decisionHistory = await askA24zMemory({
 ```typescript
 // AI Agent: Reviewing a complex component
 const patterns = await askA24zMemory({
-  filePath: "/src/components/UserProfile.tsx",
-  query: "What patterns exist for complex component state management?"
+  filePath: '/src/components/UserProfile.tsx',
+  query: 'What patterns exist for complex component state management?',
 });
 
 // Apply patterns to improve the code
@@ -264,6 +280,7 @@ const patterns = await askA24zMemory({
 ### Tool Not Available
 
 If AI agent can't access tools:
+
 - Verify MCP server is running
 - Check system prompt configuration
 - Restart the editor/IDE
@@ -272,6 +289,7 @@ If AI agent can't access tools:
 ### No Relevant Information
 
 When queries return no results:
+
 - This is normal for new repositories
 - Start by creating foundational notes
 - Use broader queries to find general patterns
@@ -280,6 +298,7 @@ When queries return no results:
 ### Too Much Information
 
 When queries return too many results:
+
 - Use more specific file paths
 - Add filter tags to narrow results
 - Break complex queries into smaller parts
@@ -290,6 +309,7 @@ When queries return too many results:
 ### Large Codebases
 
 For repositories with extensive knowledge bases:
+
 - Use specific file paths to narrow searches
 - Leverage tag filtering for better results
 - Consider periodic knowledge base cleanup
@@ -298,6 +318,7 @@ For repositories with extensive knowledge bases:
 ### Frequent Queries
 
 To optimize performance:
+
 - Cache frequently accessed information
 - Use appropriate similarity thresholds
 - Consider repository structure when organizing notes

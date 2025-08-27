@@ -14,7 +14,7 @@ describe('FindSimilarNotesTool', () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a24z-test-'));
     testRepoPath = path.join(tempDir, 'test-repo');
     fs.mkdirSync(testRepoPath, { recursive: true });
-    
+
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
   });
@@ -26,7 +26,9 @@ describe('FindSimilarNotesTool', () => {
 
   it('should have correct tool metadata', () => {
     expect(tool.name).toBe('find_similar_notes');
-    expect(tool.description).toBe('Find notes that are semantically similar or potentially duplicates');
+    expect(tool.description).toBe(
+      'Find notes that are semantically similar or potentially duplicates'
+    );
   });
 
   it('should handle repository with insufficient notes', async () => {
@@ -38,7 +40,7 @@ describe('FindSimilarNotesTool', () => {
       confidence: 'high',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     const result = await tool.execute({
@@ -46,7 +48,7 @@ describe('FindSimilarNotesTool', () => {
       threshold: 'medium',
       includeStale: true,
       maxResults: 20,
-      groupBy: 'pairs'
+      groupBy: 'pairs',
     });
 
     expect(result.content[0].text).toContain('Not enough notes to analyze');
@@ -62,7 +64,7 @@ describe('FindSimilarNotesTool', () => {
       confidence: 'high',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     saveNote({
@@ -72,7 +74,7 @@ describe('FindSimilarNotesTool', () => {
       confidence: 'high',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     saveNote({
@@ -82,7 +84,7 @@ describe('FindSimilarNotesTool', () => {
       confidence: 'medium',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     const result = await tool.execute({
@@ -90,7 +92,7 @@ describe('FindSimilarNotesTool', () => {
       threshold: 'medium',
       includeStale: true,
       maxResults: 20,
-      groupBy: 'pairs'
+      groupBy: 'pairs',
     });
 
     expect(result.content[0].text).toContain('Similar Notes Analysis');
@@ -107,7 +109,7 @@ describe('FindSimilarNotesTool', () => {
       confidence: 'high',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     saveNote({
@@ -117,7 +119,7 @@ describe('FindSimilarNotesTool', () => {
       confidence: 'high',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     saveNote({
@@ -127,7 +129,7 @@ describe('FindSimilarNotesTool', () => {
       confidence: 'medium',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     saveNote({
@@ -137,7 +139,7 @@ describe('FindSimilarNotesTool', () => {
       confidence: 'high',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     // Filter to only 'auth' tagged notes
@@ -147,7 +149,7 @@ describe('FindSimilarNotesTool', () => {
       includeStale: true,
       maxResults: 20,
       groupBy: 'pairs',
-      filterTags: ['auth']
+      filterTags: ['auth'],
     });
 
     expect(result.content[0].text).toContain('Filtered by tags: auth');
@@ -165,7 +167,7 @@ describe('FindSimilarNotesTool', () => {
       confidence: 'high',
       type: 'pattern',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     saveNote({
@@ -175,7 +177,7 @@ describe('FindSimilarNotesTool', () => {
       confidence: 'high',
       type: 'pattern',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     saveNote({
@@ -185,7 +187,7 @@ describe('FindSimilarNotesTool', () => {
       confidence: 'high',
       type: 'pattern',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     const result = await tool.execute({
@@ -193,7 +195,7 @@ describe('FindSimilarNotesTool', () => {
       threshold: 'medium',
       includeStale: true,
       maxResults: 20,
-      groupBy: 'clusters'
+      groupBy: 'clusters',
     });
 
     expect(result.content[0].text).toContain('Similar Notes Analysis');
@@ -209,7 +211,7 @@ describe('FindSimilarNotesTool', () => {
       confidence: 'high',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     saveNote({
@@ -219,7 +221,7 @@ describe('FindSimilarNotesTool', () => {
       confidence: 'high',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     saveNote({
@@ -229,7 +231,7 @@ describe('FindSimilarNotesTool', () => {
       confidence: 'high',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
 
     // High threshold should find very similar notes
@@ -238,7 +240,7 @@ describe('FindSimilarNotesTool', () => {
       threshold: 'high',
       includeStale: true,
       maxResults: 20,
-      groupBy: 'pairs'
+      groupBy: 'pairs',
     });
 
     // Low threshold should find more pairs
@@ -247,7 +249,7 @@ describe('FindSimilarNotesTool', () => {
       threshold: 'low',
       includeStale: true,
       maxResults: 20,
-      groupBy: 'pairs'
+      groupBy: 'pairs',
     });
 
     // With high threshold, we expect fewer or no matches between dissimilar notes
@@ -262,7 +264,7 @@ describe('FindSimilarNotesTool', () => {
       threshold: 'medium',
       includeStale: true,
       maxResults: 20,
-      groupBy: 'pairs'
+      groupBy: 'pairs',
     });
 
     expect(result.isError).toBe(true);
@@ -279,7 +281,7 @@ describe('FindSimilarNotesTool', () => {
         confidence: 'high',
         type: 'explanation',
         metadata: {},
-        directoryPath: testRepoPath
+        directoryPath: testRepoPath,
       });
     }
 
@@ -288,7 +290,7 @@ describe('FindSimilarNotesTool', () => {
       threshold: 'low',
       includeStale: true,
       maxResults: 3,
-      groupBy: 'pairs'
+      groupBy: 'pairs',
     });
 
     // Check that the output respects the maxResults limit

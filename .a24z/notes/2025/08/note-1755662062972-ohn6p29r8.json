@@ -1,16 +1,8 @@
 {
   "note": "## BaseTool Pattern for MCP Tools\n\nAll MCP tools in this repository inherit from `BaseTool`, which provides a consistent pattern for tool implementation and validation.\n\n**Key benefits**:\n- **Automatic validation**: Zod schemas are automatically validated before execution\n- **Error handling**: Built-in error handling for validation failures and execution errors\n- **Schema conversion**: Automatic conversion from Zod schemas to JSON Schema for MCP protocol\n\n**How it works**:\n1. Each tool defines a `schema` property using Zod\n2. The `inputSchema` getter converts Zod schema to JSON Schema using `zodToJsonSchema`\n3. The `handler` method validates input using the schema before calling `execute`\n4. Errors are automatically caught and formatted for MCP responses\n\n**Example usage**:\n```typescript\nexport class MyTool extends BaseTool<MyParams, MyResult> {\n  name = 'myTool';\n  description = 'Does something useful';\n  schema = z.object({\n    input: z.string().describe('The input string')\n  });\n\n  async execute(params: MyParams): Promise<McpToolResult<MyResult>> {\n    // Implementation here\n  }\n}\n```\n\n**Files involved**:\n- `src/core-mcp/tools/base-tool.ts` - Base class implementation\n- `src/core-mcp/utils/zod-to-json-schema.ts` - Schema conversion utility\n\n**Tags**: tools, pattern, validation, mcp",
   "directoryPath": "/Users/griever/Developer/a24z-Memory",
-  "anchors": [
-    "src/core-mcp/tools/base-tool.ts",
-    "src/core-mcp/utils/zod-to-json-schema.ts"
-  ],
-  "tags": [
-    "tools",
-    "pattern",
-    "validation",
-    "mcp"
-  ],
+  "anchors": ["src/core-mcp/tools/base-tool.ts", "src/core-mcp/utils/zod-to-json-schema.ts"],
+  "tags": ["tools", "pattern", "validation", "mcp"],
   "confidence": "high",
   "type": "pattern",
   "metadata": {

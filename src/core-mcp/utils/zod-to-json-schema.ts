@@ -4,12 +4,12 @@ export function zodToJsonSchema(schema: z.ZodTypeAny): unknown {
   // Minimal conversion: rely on Zod's shape introspection where possible
   const def = (schema as any)._def;
   const typeName = def?.typeName || '';
-  
+
   // Extract description if available
   const description = def?.description;
-  
+
   let result: any;
-  
+
   switch (typeName) {
     case 'ZodObject': {
       const shape = def.shape();
@@ -17,7 +17,9 @@ export function zodToJsonSchema(schema: z.ZodTypeAny): unknown {
       const required: string[] = [];
       for (const key of Object.keys(shape)) {
         const child: z.ZodTypeAny = shape[key];
-        const isOptional = (child as any)._def?.typeName === 'ZodOptional' || (child as any)._def?.typeName === 'ZodDefault';
+        const isOptional =
+          (child as any)._def?.typeName === 'ZodOptional' ||
+          (child as any)._def?.typeName === 'ZodDefault';
         // Pass the full schema to preserve descriptions
         properties[key] = zodToJsonSchema(child);
         if (!isOptional) required.push(key);
@@ -65,13 +67,11 @@ export function zodToJsonSchema(schema: z.ZodTypeAny): unknown {
     default:
       result = {};
   }
-  
+
   // Add description if it exists
   if (description && result) {
     result.description = description;
   }
-  
+
   return result;
 }
-
-

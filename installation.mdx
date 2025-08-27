@@ -1,6 +1,6 @@
 ---
-title: "Installation"
-description: "Complete installation guide for A24z Memory MCP server"
+title: 'Installation'
+description: 'Complete installation guide for A24z Memory MCP server'
 ---
 
 # Installation Guide
@@ -37,6 +37,7 @@ npx a24z-memory install-cursor
 ```
 
 This command will:
+
 - ✅ Install A24z Memory globally
 - ✅ Add configuration to `~/.cursor/mcp.json`
 - ✅ Restart Cursor (if running)
@@ -48,6 +49,7 @@ npx a24z-memory install-claude
 ```
 
 This command will:
+
 - ✅ Install A24z Memory globally
 - ✅ Add configuration to `~/.claude.json` or `~/.config/claude/config.json`
 - ✅ Configure for Claude Code usage
@@ -71,6 +73,7 @@ npx a24z-memory --version
 #### Cursor Configuration
 
 1. Create or edit `~/.cursor/mcp.json`:
+
    ```json
    {
      "mcpServers": {
@@ -134,13 +137,14 @@ For editors like Windsurf, Gemini CLI, or Jules:
 
 You can customize A24z Memory behavior with environment variables:
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `A24Z_MEMORY_PORT` | Port for the MCP server | Auto-assigned |
-| `A24Z_MEMORY_LOG_LEVEL` | Logging verbosity | `info` |
+| Variable                   | Description             | Default          |
+| -------------------------- | ----------------------- | ---------------- |
+| `A24Z_MEMORY_PORT`         | Port for the MCP server | Auto-assigned    |
+| `A24Z_MEMORY_LOG_LEVEL`    | Logging verbosity       | `info`           |
 | `A24Z_MEMORY_STORAGE_PATH` | Custom storage location | `~/.a24z-memory` |
 
 Example:
+
 ```bash
 A24Z_MEMORY_LOG_LEVEL=debug npx a24z-memory start
 ```
@@ -284,6 +288,7 @@ rm ~/.claude.json      # If using Claude
 If you encounter issues:
 
 1. **Check the logs**: Run with debug logging
+
    ```bash
    A24Z_MEMORY_LOG_LEVEL=debug npx a24z-memory start
    ```

@@ -14,7 +14,7 @@ describe('GetRepositoryGuidanceTool', () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'guidance-test-'));
     repoDir = path.join(tempDir, 'test-repo');
     fs.mkdirSync(repoDir, { recursive: true });
-    
+
     // Create a package.json to make it look like a proper project root
     fs.writeFileSync(path.join(repoDir, 'package.json'), '{}');
   });
@@ -41,11 +41,11 @@ describe('GetRepositoryGuidanceTool', () => {
     it('should return comprehensive configuration including guidance', async () => {
       // Create a .git directory to make it a valid repository
       fs.mkdirSync(path.join(repoDir, '.git'), { recursive: true });
-      
+
       // Create a repository-specific guidance file
       const a24zDir = path.join(repoDir, '.a24z');
       fs.mkdirSync(a24zDir, { recursive: true });
-      
+
       const customGuidance = '# Custom Repository Guidance\n\nThis is project-specific guidance.';
       fs.writeFileSync(path.join(a24zDir, 'note-guidance.md'), customGuidance);
 
@@ -53,7 +53,7 @@ describe('GetRepositoryGuidanceTool', () => {
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
-      
+
       const text = result.content[0].text as string;
       // Check for main sections
       expect(text).toContain('# Repository Note Configuration');
@@ -67,12 +67,12 @@ describe('GetRepositoryGuidanceTool', () => {
     it('should show configuration with default guidance when no custom exists', async () => {
       // Create a .git directory to make it a valid repository
       fs.mkdirSync(path.join(repoDir, '.git'), { recursive: true });
-      
+
       const result = await tool.handler({ path: repoDir });
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
-      
+
       const text = result.content[0].text as string;
       // Should still show configuration sections
       expect(text).toContain('# Repository Note Configuration');
@@ -86,7 +86,7 @@ describe('GetRepositoryGuidanceTool', () => {
     it('should work with nested paths within repository', async () => {
       // Create a .git directory to make it a valid repository
       fs.mkdirSync(path.join(repoDir, '.git'), { recursive: true });
-      
+
       // Create a nested directory structure
       const nestedDir = path.join(repoDir, 'src', 'components');
       fs.mkdirSync(nestedDir, { recursive: true });
@@ -94,7 +94,7 @@ describe('GetRepositoryGuidanceTool', () => {
       // Create guidance at repository root
       const a24zDir = path.join(repoDir, '.a24z');
       fs.mkdirSync(a24zDir, { recursive: true });
-      
+
       const customGuidance = '# Repo Guidance from Root';
       fs.writeFileSync(path.join(a24zDir, 'note-guidance.md'), customGuidance);
 
@@ -109,12 +109,12 @@ describe('GetRepositoryGuidanceTool', () => {
     it('should include tag descriptions when available', async () => {
       // Create a .git directory to make it a valid repository
       fs.mkdirSync(path.join(repoDir, '.git'), { recursive: true });
-      
+
       // Create tag descriptions as markdown files
       const a24zDir = path.join(repoDir, '.a24z');
       const tagsDir = path.join(a24zDir, 'tags');
       fs.mkdirSync(tagsDir, { recursive: true });
-      
+
       fs.writeFileSync(path.join(tagsDir, 'feature.md'), 'New functionality');
       fs.writeFileSync(path.join(tagsDir, 'bugfix.md'), 'Bug corrections');
 
@@ -131,7 +131,9 @@ describe('GetRepositoryGuidanceTool', () => {
   describe('tool metadata', () => {
     it('should have correct name and description', () => {
       expect(tool.name).toBe('get_repository_guidance');
-      expect(tool.description).toBe('Get comprehensive repository configuration including note guidance, tag restrictions, and tag descriptions');
+      expect(tool.description).toBe(
+        'Get comprehensive repository configuration including note guidance, tag restrictions, and tag descriptions'
+      );
     });
 
     it('should have proper schema structure', () => {

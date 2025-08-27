@@ -1,6 +1,6 @@
 ---
-title: "create_repository_note"
-description: "Store important development insights and decisions for future reference"
+title: 'create_repository_note'
+description: 'Store important development insights and decisions for future reference'
 ---
 
 # create_repository_note
@@ -31,19 +31,20 @@ The `create_repository_note` tool allows you to capture and preserve institution
 
 ## Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `note` | string | Yes | The insight, decision, or knowledge to document (Markdown supported) |
-| `directoryPath` | string | Yes | Path where this knowledge applies |
-| `tags` | string[] | Yes | Semantic tags for categorization |
-| `anchors` | string[] | No | Additional file/directory paths or keywords to associate with the note |
-| `confidence` | string | No | Confidence level: 'high', 'medium', 'low' |
-| `type` | string | No | Note type: 'decision', 'pattern', 'gotcha', 'explanation' |
-| `metadata` | object | No | Additional structured data |
+| Parameter       | Type     | Required | Description                                                            |
+| --------------- | -------- | -------- | ---------------------------------------------------------------------- |
+| `note`          | string   | Yes      | The insight, decision, or knowledge to document (Markdown supported)   |
+| `directoryPath` | string   | Yes      | Path where this knowledge applies                                      |
+| `tags`          | string[] | Yes      | Semantic tags for categorization                                       |
+| `anchors`       | string[] | No       | Additional file/directory paths or keywords to associate with the note |
+| `confidence`    | string   | No       | Confidence level: 'high', 'medium', 'low'                              |
+| `type`          | string   | No       | Note type: 'decision', 'pattern', 'gotcha', 'explanation'              |
+| `metadata`      | object   | No       | Additional structured data                                             |
 
 ## Note Types
 
 ### Decision
+
 Use for architectural decisions, technology choices, and important project decisions.
 
 ```json
@@ -56,6 +57,7 @@ Use for architectural decisions, technology choices, and important project decis
 ```
 
 ### Pattern
+
 Use for reusable implementation patterns, coding conventions, and best practices.
 
 ```json
@@ -68,6 +70,7 @@ Use for reusable implementation patterns, coding conventions, and best practices
 ```
 
 ### Gotcha
+
 Use for common mistakes, edge cases, and pitfalls to avoid.
 
 ```json
@@ -80,6 +83,7 @@ Use for common mistakes, edge cases, and pitfalls to avoid.
 ```
 
 ### Explanation
+
 Use for general documentation, setup instructions, and conceptual explanations.
 
 ```json
@@ -93,24 +97,28 @@ Use for general documentation, setup instructions, and conceptual explanations.
 ## Best Practices
 
 ### Write Actionable Notes
+
 ```
 ❌ Bad: "We have a caching system"
 ✅ Good: "Use React Query for API caching with staleTime: 5 * 60 * 1000 for user data"
 ```
 
 ### Include Context
+
 ```
 ❌ Bad: "Use TypeScript"
 ✅ Good: "Use TypeScript strict mode for all new files to catch potential runtime errors early"
 ```
 
 ### Be Specific About Location
+
 ```
 ❌ Bad: "API error handling"
 ✅ Good: "API error handling in /src/api/client.ts - use handleApiError() function"
 ```
 
 ### Use Meaningful Tags
+
 ```
 ❌ Bad: ["code", "stuff"]
 ✅ Good: ["authentication", "security", "api", "error-handling"]
@@ -119,6 +127,7 @@ Use for general documentation, setup instructions, and conceptual explanations.
 ## Response Format
 
 ### Successful Creation
+
 ```json
 {
   "success": true,
@@ -139,6 +148,7 @@ Use for general documentation, setup instructions, and conceptual explanations.
 ```
 
 ### Validation Error
+
 ```json
 {
   "success": false,
@@ -153,6 +163,7 @@ Use for general documentation, setup instructions, and conceptual explanations.
 ## Examples
 
 ### Example 1: Architecture Decision
+
 ```json
 {
   "note": "Adopted micro-frontend architecture to enable independent deployment of different business domains. Each micro-frontend owns its own routing, state, and build process.",
@@ -170,6 +181,7 @@ Use for general documentation, setup instructions, and conceptual explanations.
 ```
 
 ### Example 2: Code Pattern
+
 ```json
 {
   "note": "Use custom hooks for business logic separation. Always extract complex stateful logic from components into custom hooks following the pattern: use[Feature].ts",
@@ -182,6 +194,7 @@ Use for general documentation, setup instructions, and conceptual explanations.
 ```
 
 ### Example 3: Gotcha Documentation
+
 ```json
 {
   "note": "When using useEffect with async operations, always add a cleanup function to prevent state updates on unmounted components. Use the abort controller pattern for cancellable requests.",

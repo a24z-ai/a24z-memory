@@ -1,6 +1,6 @@
 ---
-title: "delete_note"
-description: "Delete a repository note by its ID"
+title: 'delete_note'
+description: 'Delete a repository note by its ID'
 ---
 
 # delete_note
@@ -22,14 +22,15 @@ The `delete_note` tool allows you to remove notes that are outdated, incorrect, 
 
 ## Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `noteId` | string | Yes | Unique ID of the note to delete (format: note-timestamp-hash) |
-| `directoryPath` | string | Yes | Repository root path to identify the correct repository |
+| Parameter       | Type   | Required | Description                                                   |
+| --------------- | ------ | -------- | ------------------------------------------------------------- |
+| `noteId`        | string | Yes      | Unique ID of the note to delete (format: note-timestamp-hash) |
+| `directoryPath` | string | Yes      | Repository root path to identify the correct repository       |
 
 ## Response Format
 
 ### Successful Deletion
+
 ```json
 {
   "success": true,
@@ -39,6 +40,7 @@ The `delete_note` tool allows you to remove notes that are outdated, incorrect, 
 ```
 
 ### Note Not Found
+
 ```json
 {
   "success": false,
@@ -51,6 +53,7 @@ The `delete_note` tool allows you to remove notes that are outdated, incorrect, 
 ## Usage Examples
 
 ### Example 1: Remove Outdated Information
+
 ```json
 {
   "noteId": "note-1734567890123-abc123def",
@@ -61,6 +64,7 @@ The `delete_note` tool allows you to remove notes that are outdated, incorrect, 
 **Use Case**: A note about a deprecated library or outdated practice that should be removed.
 
 ### Example 2: Clean Up After Refactoring
+
 ```json
 {
   "noteId": "note-1734567890123-xyz789ghi",
@@ -89,6 +93,7 @@ The `delete_note` tool allows you to remove notes that are outdated, incorrect, 
 ## Error Handling
 
 ### Repository Not Found
+
 ```json
 {
   "success": false,
@@ -98,6 +103,7 @@ The `delete_note` tool allows you to remove notes that are outdated, incorrect, 
 ```
 
 ### Permission Denied
+
 ```json
 {
   "success": false,
@@ -107,6 +113,7 @@ The `delete_note` tool allows you to remove notes that are outdated, incorrect, 
 ```
 
 ### Invalid Note ID
+
 ```json
 {
   "success": false,
@@ -119,13 +126,17 @@ The `delete_note` tool allows you to remove notes that are outdated, incorrect, 
 ## Safety Considerations
 
 ### Confirmation Recommended
+
 Always confirm with the user before deleting notes, especially:
+
 - High-confidence notes (may contain important institutional knowledge)
 - Notes with many tags or anchors (widely referenced)
 - Decision-type notes (document architectural choices)
 
 ### Backup Strategy
+
 Consider backing up important notes before deletion by:
+
 1. Exporting note content to documentation
 2. Creating a summary note referencing the deletion
 3. Moving critical information to permanent documentation
@@ -133,6 +144,7 @@ Consider backing up important notes before deletion by:
 ## Integration with AI Agents
 
 AI agents should:
+
 1. **Confirm deletions** with users for important notes
 2. **Check note usage** before deletion (search for references)
 3. **Document deletions** in a changelog or audit trail

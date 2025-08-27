@@ -1,6 +1,6 @@
 ---
-title: "askA24zMemory"
-description: "Query the knowledge base for contextual guidance and tribal knowledge"
+title: 'askA24zMemory'
+description: 'Query the knowledge base for contextual guidance and tribal knowledge'
 ---
 
 # askA24zMemory
@@ -23,35 +23,39 @@ The `askA24zMemory` tool is your AI agent's primary interface to the project's i
 
 ## Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `filePath` | string | Yes | Absolute or relative path to the file or directory relevant to the query |
-| `query` | string | Yes | Your specific question about the code or project |
-| `taskContext` | string | No | Additional context about what you're trying to accomplish |
-| `filterTags` | string[] | No | Filter results to notes with specific tags |
-| `filterTypes` | string[] | No | Filter results by note type: 'decision', 'pattern', 'gotcha', 'explanation' |
+| Parameter     | Type     | Required | Description                                                                 |
+| ------------- | -------- | -------- | --------------------------------------------------------------------------- |
+| `filePath`    | string   | Yes      | Absolute or relative path to the file or directory relevant to the query    |
+| `query`       | string   | Yes      | Your specific question about the code or project                            |
+| `taskContext` | string   | No       | Additional context about what you're trying to accomplish                   |
+| `filterTags`  | string[] | No       | Filter results to notes with specific tags                                  |
+| `filterTypes` | string[] | No       | Filter results by note type: 'decision', 'pattern', 'gotcha', 'explanation' |
 
 ## Use Cases
 
 ### Architecture Decisions
+
 ```
 Query: "What were the architectural decisions made for the authentication system?"
 Context: "Planning to extend user management features"
 ```
 
 ### Code Patterns
+
 ```
 Query: "How do we typically handle error boundaries in React components?"
 Context: "Adding error handling to a new feature component"
 ```
 
 ### Project Conventions
+
 ```
 Query: "What's the project's approach to state management?"
 Context: "Deciding between Redux and Context API for new feature"
 ```
 
 ### Debugging Help
+
 ```
 Query: "What are common gotchas when working with the API client?"
 Context: "Debugging authentication issues"
@@ -62,6 +66,7 @@ Context: "Debugging authentication issues"
 The tool returns a structured response containing:
 
 ### Successful Response
+
 ```json
 {
   "success": true,
@@ -85,6 +90,7 @@ The tool returns a structured response containing:
 ```
 
 ### No Results Found
+
 ```json
 {
   "success": true,
@@ -100,29 +106,34 @@ The tool returns a structured response containing:
 ## Best Practices
 
 ### Be Specific
+
 ```
 ❌ Bad: "How does this work?"
 ✅ Good: "How do we handle form validation in this React project?"
 ```
 
 ### Provide Context
+
 ```
 ❌ Bad: "What's the API pattern?"
 ✅ Good: "I'm building a new endpoint for user preferences. What's the existing API pattern in this project?"
 ```
 
 ### Use File Paths
+
 ```
 ❌ Bad: "How do we style buttons?"
 ✅ Good: "How do we style buttons?" with filePath: "/src/components/Button.tsx"
 ```
 
 ### Follow Up Questions
+
 The tool often provides suggestions for follow-up questions or related topics to explore.
 
 ## Error Handling
 
 ### Invalid File Path
+
 ```json
 {
   "success": false,
@@ -132,6 +143,7 @@ The tool often provides suggestions for follow-up questions or related topics to
 ```
 
 ### Repository Not Found
+
 ```json
 {
   "success": false,
@@ -141,6 +153,7 @@ The tool often provides suggestions for follow-up questions or related topics to
 ```
 
 ### Permission Denied
+
 ```json
 {
   "success": false,
@@ -152,6 +165,7 @@ The tool often provides suggestions for follow-up questions or related topics to
 ## Examples
 
 ### Example 1: Getting Started
+
 ```json
 {
   "filePath": ".",
@@ -161,12 +175,14 @@ The tool often provides suggestions for follow-up questions or related topics to
 ```
 
 **Expected Response:**
+
 - Overview of project architecture
 - Key conventions and patterns
 - Important configuration decisions
 - Common gotchas to avoid
 
 ### Example 2: Code Review
+
 ```json
 {
   "filePath": "/src/api/userService.ts",
@@ -176,12 +192,14 @@ The tool often provides suggestions for follow-up questions or related topics to
 ```
 
 **Expected Response:**
+
 - Project's error handling patterns
 - Specific examples from similar services
 - Best practices for API error handling
 - Testing recommendations
 
 ### Example 3: Architecture Planning
+
 ```json
 {
   "filePath": "/src/components",
@@ -191,6 +209,7 @@ The tool often provides suggestions for follow-up questions or related topics to
 ```
 
 **Expected Response:**
+
 - Component architecture decisions
 - Common patterns (HOC, hooks, etc.)
 - Styling conventions

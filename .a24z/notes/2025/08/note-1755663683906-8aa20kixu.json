@@ -1,13 +1,8 @@
 {
   "note": "Test note without directoryPath - updated version",
   "directoryPath": "/Users/griever/Developer/a24z-Memory",
-  "anchors": [
-    "test-file-updated.ts"
-  ],
-  "tags": [
-    "test",
-    "updated"
-  ],
+  "anchors": ["test-file-updated.ts"],
+  "tags": ["test", "updated"],
   "confidence": "medium",
   "type": "explanation",
   "metadata": {

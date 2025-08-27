@@ -1,5 +1,4 @@
 import { StoredNote } from '../store/notesStore';
-import * as path from 'node:path';
 
 export interface NoteSimilarity {
   note1: StoredNote;
@@ -56,7 +55,7 @@ export function calculateNoteSimilarity(note1: StoredNote, note2: StoredNote): N
     note1,
     note2,
     score: Math.min(score, 1), // Cap at 1.0
-    reasons
+    reasons,
   };
 }
 
@@ -77,7 +76,7 @@ function calculateContentSimilarity(text1: string, text2: string): number {
   const words1 = new Set(t1.split(' '));
   const words2 = new Set(t2.split(' '));
 
-  const intersection = new Set([...words1].filter(x => words2.has(x)));
+  const intersection = new Set([...words1].filter((x) => words2.has(x)));
   const union = new Set([...words1, ...words2]);
 
   return intersection.size / union.size;
@@ -92,7 +91,7 @@ function calculateAnchorSimilarity(anchors1: string[], anchors2: string[]): numb
   const set1 = new Set(anchors1);
   const set2 = new Set(anchors2);
 
-  const intersection = new Set([...set1].filter(x => set2.has(x)));
+  const intersection = new Set([...set1].filter((x) => set2.has(x)));
   const union = new Set([...set1, ...set2]);
 
   return intersection.size / union.size;
@@ -107,7 +106,7 @@ function calculateTagSimilarity(tags1: string[], tags2: string[]): number {
   const set1 = new Set(tags1);
   const set2 = new Set(tags2);
 
-  const intersection = new Set([...set1].filter(x => set2.has(x)));
+  const intersection = new Set([...set1].filter((x) => set2.has(x)));
   const union = new Set([...set1, ...set2]);
 
   return intersection.size / union.size;
@@ -138,10 +137,7 @@ export function findSimilarNotePairs(
 /**
  * Group notes by similarity clusters
  */
-export function clusterSimilarNotes(
-  notes: StoredNote[],
-  threshold: number = 0.6
-): StoredNote[][] {
+export function clusterSimilarNotes(notes: StoredNote[], threshold: number = 0.6): StoredNote[][] {
   const similarities = findSimilarNotePairs(notes, threshold);
   const clusters: StoredNote[][] = [];
 
@@ -157,8 +153,8 @@ export function clusterSimilarNotes(
     }
 
     // Find existing cluster for note1
-    let cluster1 = clusters.find(c => c.some(n => n.id === note1Id));
-    let cluster2 = clusters.find(c => c.some(n => n.id === note2Id));
+    let cluster1 = clusters.find((c) => c.some((n) => n.id === note1Id));
+    let cluster2 = clusters.find((c) => c.some((n) => n.id === note2Id));
 
     if (cluster1 && cluster2) {
       // Merge clusters
@@ -182,7 +178,7 @@ export function clusterSimilarNotes(
   // Add remaining unclustered notes as singletons
   for (const note of notes) {
     if (!processed.has(note.id)) {
-      const existingCluster = clusters.find(c => c.some(n => n.id === note.id));
+      const existingCluster = clusters.find((c) => c.some((n) => n.id === note.id));
       if (!existingCluster) {
         clusters.push([note]);
       }
@@ -198,7 +194,7 @@ export function clusterSimilarNotes(
 export const DEFAULT_THRESHOLDS: SimilarityThresholds = {
   high: 0.8,
   medium: 0.6,
-  low: 0.4
+  low: 0.4,
 };
 
 /**
@@ -208,4 +204,3 @@ export function isNoteStale(note: StoredNote, maxAgeDays: number = 365): boolean
   const ageDays = (Date.now() - note.timestamp) / (1000 * 60 * 60 * 24);
   return ageDays > maxAgeDays && note.confidence === 'low';
 }
-

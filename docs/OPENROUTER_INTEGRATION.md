@@ -21,12 +21,13 @@ The `defaultProvider` field in `.a24z/llm-config.json` controls which LLM provid
 
 ```json
 {
-  "defaultProvider": "openrouter",  // Use OpenRouter
+  "defaultProvider": "openrouter", // Use OpenRouter
   "model": "meta-llama/llama-3.2-3b-instruct"
 }
 ```
 
 **Special Values:**
+
 - `"none"` - Disables all LLM features (uses local synthesis only)
 - `"<provider-name>"` - Uses the specified provider
 - Not specified - No provider is active (explicit configuration required)
@@ -52,7 +53,7 @@ When disabled, the system uses local synthesis only.
 
 ## Configuration Methods
 
-### Method 1: MCP Server Configuration Tool (Recommended) 
+### Method 1: MCP Server Configuration Tool (Recommended)
 
 The easiest way is to use the built-in `configure_llm` tool through your MCP client (Claude Desktop, etc.):
 
@@ -69,7 +70,7 @@ The easiest way is to use the built-in `configure_llm` tool through your MCP cli
 
 // Configure OpenRouter
 {
-  "action": "configure", 
+  "action": "configure",
   "provider": "openrouter",
   "apiKey": "sk-or-v1-...",
   "model": "meta-llama/llama-3.2-3b-instruct",
@@ -86,7 +87,7 @@ The easiest way is to use the built-in `configure_llm` tool through your MCP cli
 // Test the configuration
 {
   "action": "test",
-  "provider": "openrouter" 
+  "provider": "openrouter"
 }
 
 // Disable LLM features
@@ -97,6 +98,7 @@ The easiest way is to use the built-in `configure_llm` tool through your MCP cli
 ```
 
 **Benefits:**
+
 - ✅ **Secure setup** - API keys are stored securely and persist across server restarts
 - ✅ **No manual file editing** - Everything configured through Claude interface
 - ✅ **Built-in testing** - Verify your configuration works immediately
@@ -108,8 +110,8 @@ Create `.a24z/llm-config.json` in your repository:
 
 ```json
 {
-  "defaultProvider": "openrouter",  // Explicitly set provider
-  "model": "meta-llama/llama-3.2-3b-instruct", 
+  "defaultProvider": "openrouter", // Explicitly set provider
+  "model": "meta-llama/llama-3.2-3b-instruct",
   "temperature": 0.3,
   "maxTokens": 1000,
   "timeout": 30000
@@ -135,7 +137,7 @@ await ApiKeyManager.storeApiKey('openrouter', {
   apiKey: 'sk-or-v1-...',
   model: 'meta-llama/llama-3.2-3b-instruct',
   siteUrl: 'https://your-app.com',
-  siteName: 'Your App Name'
+  siteName: 'Your App Name',
 });
 ```
 
@@ -144,8 +146,9 @@ await ApiKeyManager.storeApiKey('openrouter', {
 ### Requirements
 
 **Bun runtime is required** for secure API key storage. API keys are stored in the OS keychain:
+
 - **macOS**: Keychain Services
-- **Linux**: GNOME Keyring / KWallet  
+- **Linux**: GNOME Keyring / KWallet
 - **Windows**: Windows Credential Manager
 
 There is no fallback storage mechanism. If Bun is not available, the OpenRouter integration cannot be used.
@@ -197,14 +200,14 @@ There is no fallback storage mechanism. If Bun is not available, the OpenRouter 
 import { ApiKeyManager, McpLLMConfigurator, SUPPORTED_PROVIDERS } from 'a24z-memory';
 
 // Check available providers
-console.log(SUPPORTED_PROVIDERS.map(p => p.name));
+console.log(SUPPORTED_PROVIDERS.map((p) => p.name));
 // ['ollama', 'openrouter', 'openai']
 
 // Configure with secure key storage (requires Bun)
 if (ApiKeyManager.isBunSecretsAvailable()) {
   await ApiKeyManager.storeApiKey('openrouter', {
     apiKey: 'sk-or-v1-...',
-    model: 'meta-llama/llama-3.2-3b-instruct'
+    model: 'meta-llama/llama-3.2-3b-instruct',
   });
 }
 
@@ -215,7 +218,7 @@ console.log('Configured:', providers);
 // Set a default provider in config
 const config = {
   defaultProvider: 'openrouter',
-  model: 'meta-llama/llama-3.2-3b-instruct'
+  model: 'meta-llama/llama-3.2-3b-instruct',
 };
 // Write to .a24z/llm-config.json
 ```
@@ -225,16 +228,19 @@ const config = {
 Popular models available through OpenRouter:
 
 ### Fast & Economical
+
 - `meta-llama/llama-3.2-3b-instruct` - Fast, good for code (default)
 - `google/gemini-flash-1.5` - Very fast, multimodal
 - `mistralai/mistral-7b-instruct` - Balanced performance
 
 ### High Quality
+
 - `anthropic/claude-3.5-sonnet` - Excellent for complex reasoning
 - `openai/gpt-4o` - Strong general purpose
 - `google/gemini-pro-1.5` - Good for long context
 
 ### Specialized for Code
+
 - `deepseek/deepseek-coder` - Optimized for programming
 - `phind/phind-codellama-34b` - Code-focused
 - `codellama/codellama-70b-instruct` - Large code model
@@ -244,20 +250,23 @@ Popular models available through OpenRouter:
 ### Quick Setup (5 minutes)
 
 1. **Install Bun** (required for secure key storage):
+
    ```bash
    # macOS/Linux
    curl -fsSL https://bun.sh/install | bash
-   
+
    # Windows
    powershell -c "irm bun.sh/install.ps1 | iex"
    ```
 
 2. **Start the MCP server** with Bun:
+
    ```bash
    bun run a24z-memory
    ```
-   
+
    You'll see:
+
    ```
    ✅ a24z Memory MCP server started successfully
    🧠 Initializing AI-enhanced synthesis...
@@ -265,16 +274,17 @@ Popular models available through OpenRouter:
       Please configure using one of these methods:
    ```
 
-3. **Get an OpenRouter API Key**: 
-   - Sign up at [OpenRouter.ai](https://openrouter.ai/) 
+3. **Get an OpenRouter API Key**:
+   - Sign up at [OpenRouter.ai](https://openrouter.ai/)
    - Create an API key
 
 4. **Configure through Claude**:
    Use the `configure_llm` tool in Claude Desktop:
+
    ```json
    {
      "action": "configure",
-     "provider": "openrouter", 
+     "provider": "openrouter",
      "apiKey": "sk-or-v1-your-key-here",
      "model": "meta-llama/llama-3.2-3b-instruct"
    }
@@ -302,36 +312,39 @@ async function configureOpenRouter() {
       'OpenRouter configuration requires Bun runtime for secure key storage.',
       'Install Bun'
     );
-    
+
     if (result === 'Install Bun') {
       vscode.env.openExternal(vscode.Uri.parse('https://bun.sh'));
     }
     return;
   }
-  
+
   const apiKey = await vscode.window.showInputBox({
     prompt: 'Enter your OpenRouter API key',
     password: true,
-    placeHolder: 'sk-or-v1-...'
+    placeHolder: 'sk-or-v1-...',
   });
-  
+
   if (apiKey) {
-    const model = await vscode.window.showQuickPick([
-      'meta-llama/llama-3.2-3b-instruct',
-      'anthropic/claude-3.5-sonnet',
-      'openai/gpt-4o',
-      'google/gemini-flash-1.5'
-    ], {
-      placeHolder: 'Select a model'
-    });
-    
+    const model = await vscode.window.showQuickPick(
+      [
+        'meta-llama/llama-3.2-3b-instruct',
+        'anthropic/claude-3.5-sonnet',
+        'openai/gpt-4o',
+        'google/gemini-flash-1.5',
+      ],
+      {
+        placeHolder: 'Select a model',
+      }
+    );
+
     await ApiKeyManager.storeApiKey('openrouter', {
       apiKey,
       model,
       siteUrl: 'vscode://a24z-memory',
-      siteName: 'a24z-Memory VSCode'
+      siteName: 'a24z-Memory VSCode',
     });
-    
+
     vscode.window.showInformationMessage('OpenRouter configured successfully!');
   }
 }
@@ -362,7 +375,7 @@ The typical flow: validate credentials → generate token pair → store refresh
 
 📚 Source Notes Referenced:
 [Note 1] note-1734567890123-abc123def
-[Note 2] note-1734567890124-def456ghi  
+[Note 2] note-1734567890124-def456ghi
 [Note 3] note-1734567890125-ghi789jkl
 ```
 
@@ -385,6 +398,7 @@ OpenRouter provides transparent pricing:
 ## Troubleshooting
 
 ### "API key not found"
+
 ```javascript
 // Check if key is stored
 const stored = await ApiKeyManager.getApiKey('openrouter');
@@ -392,24 +406,27 @@ console.log('Key stored:', stored !== null);
 ```
 
 ### "Model not available"
+
 Some models require specific access. Check available models at [openrouter.ai/models](https://openrouter.ai/models)
 
 ### Rate Limiting
+
 OpenRouter has generous rate limits. If you hit them:
+
 - Check your usage: `GET https://openrouter.ai/api/v1/auth/key`
 - Consider upgrading your account
 - Use a smaller/faster model
 
 ## Comparison with Ollama
 
-| Feature | Ollama | OpenRouter |
-|---------|--------|------------|
-| Setup | Install locally | API key only |
-| Models | Download individually | 100+ available instantly |
-| Privacy | Fully local | API-based |
-| Cost | Free (local compute) | Pay per token |
-| Speed | Depends on hardware | Consistent, fast |
-| Offline | Yes | No |
+| Feature | Ollama                | OpenRouter               |
+| ------- | --------------------- | ------------------------ |
+| Setup   | Install locally       | API key only             |
+| Models  | Download individually | 100+ available instantly |
+| Privacy | Fully local           | API-based                |
+| Cost    | Free (local compute)  | Pay per token            |
+| Speed   | Depends on hardware   | Consistent, fast         |
+| Offline | Yes                   | No                       |
 
 Choose **Ollama** for complete privacy and offline use.
 Choose **OpenRouter** for model variety and zero setup.

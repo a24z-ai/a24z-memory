@@ -1,6 +1,6 @@
 ---
-title: "get_repository_tags"
-description: "Discover available tags for categorizing notes in the repository"
+title: 'get_repository_tags'
+description: 'Discover available tags for categorizing notes in the repository'
 ---
 
 # get_repository_tags
@@ -24,16 +24,17 @@ The `get_repository_tags` tool provides information about available tags for cat
 
 ## Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `path` | string | Yes | File or directory path to get tags for |
-| `includeUsedTags` | boolean | No | Include tags already used in this repository (default: true) |
-| `includeSuggestedTags` | boolean | No | Include AI-suggested tags based on file path (default: true) |
-| `includeGuidance` | boolean | No | Include repository-specific tagging guidance (default: true) |
+| Parameter              | Type    | Required | Description                                                  |
+| ---------------------- | ------- | -------- | ------------------------------------------------------------ |
+| `path`                 | string  | Yes      | File or directory path to get tags for                       |
+| `includeUsedTags`      | boolean | No       | Include tags already used in this repository (default: true) |
+| `includeSuggestedTags` | boolean | No       | Include AI-suggested tags based on file path (default: true) |
+| `includeGuidance`      | boolean | No       | Include repository-specific tagging guidance (default: true) |
 
 ## Response Format
 
 ### Complete Response
+
 ```json
 {
   "success": true,
@@ -81,6 +82,7 @@ The `get_repository_tags` tool provides information about available tags for cat
 ```
 
 ### Minimal Response
+
 ```json
 {
   "success": true,
@@ -98,24 +100,28 @@ The `get_repository_tags` tool provides information about available tags for cat
 ### Common Tag Types
 
 #### Technology Stack
+
 - `react`, `vue`, `angular` - Frontend frameworks
 - `nodejs`, `python`, `java` - Backend languages
 - `postgresql`, `mongodb`, `redis` - Database technologies
 - `docker`, `kubernetes` - Infrastructure tools
 
 #### Architecture & Design
+
 - `architecture` - System design decisions
 - `microservices`, `micro-frontends` - Architectural patterns
 - `api-design` - API structure and conventions
 - `security` - Authentication and authorization
 
 #### Development Practices
+
 - `testing` - Unit, integration, and e2e testing
 - `performance` - Optimization and performance tuning
 - `error-handling` - Exception handling patterns
 - `logging` - Logging and monitoring strategies
 
 #### Business Domains
+
 - `authentication`, `authorization` - User management
 - `payments`, `billing` - Financial operations
 - `notifications` - Email, SMS, push notifications
@@ -145,6 +151,7 @@ The `get_repository_tags` tool provides information about available tags for cat
 ## Usage Examples
 
 ### Example 1: New Component Development
+
 ```json
 {
   "path": "/src/components/UserProfile.tsx",
@@ -154,12 +161,14 @@ The `get_repository_tags` tool provides information about available tags for cat
 ```
 
 **Suggested Tags:**
+
 - `react` - React component
 - `ui-components` - Reusable UI component
 - `user-management` - User-related functionality
 - `typescript` - TypeScript implementation
 
 ### Example 2: API Development
+
 ```json
 {
   "path": "/src/api/userService.ts",
@@ -169,12 +178,14 @@ The `get_repository_tags` tool provides information about available tags for cat
 ```
 
 **Suggested Tags:**
+
 - `api` - API-related functionality
 - `user-management` - User operations
 - `typescript` - TypeScript implementation
 - `error-handling` - API error management
 
 ### Example 3: Database Operations
+
 ```json
 {
   "path": "/src/database/migrations",
@@ -184,6 +195,7 @@ The `get_repository_tags` tool provides information about available tags for cat
 ```
 
 **Suggested Tags:**
+
 - `database` - Database operations
 - `migrations` - Schema migrations
 - `postgresql` - Database technology
@@ -218,6 +230,7 @@ The tool can provide custom guidance based on `.a24z-memory.json` configuration:
 ## Error Handling
 
 ### Repository Not Found
+
 ```json
 {
   "success": false,
@@ -227,6 +240,7 @@ The tool can provide custom guidance based on `.a24z-memory.json` configuration:
 ```
 
 ### Permission Denied
+
 ```json
 {
   "success": false,
@@ -236,6 +250,7 @@ The tool can provide custom guidance based on `.a24z-memory.json` configuration:
 ```
 
 ### Invalid Path
+
 ```json
 {
   "success": false,

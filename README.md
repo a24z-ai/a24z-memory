@@ -1,11 +1,9 @@
-
 <img width="2816" height="1536" alt="Gemini_Generated_Image_rx8a19rx8a19rx8a (1)" src="https://github.com/user-attachments/assets/7c7da37d-edad-4049-8b59-16e2e0c0c953" />
 
 # a24z-memory: Layered Knowledge Architecture
 
-
 [![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=a24z-memory&config=eyJjb21tYW5kIjoibnB4IC15IGEyNHotbWVtb3J5In0%3D) [![Install in VS Code](https://img.shields.io/badge/Install%20in%20VS%20Code-0098FF?style=for-the-badge&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%7B%22name%22%3A%22a24z-memory%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22a24z-memory%22%5D%7D)
-[![Documentation](https://img.shields.io/badge/docs-a24z.ai-blue.svg)](https://docs.a24z.ai) 
+[![Documentation](https://img.shields.io/badge/docs-a24z.ai-blue.svg)](https://docs.a24z.ai)
 
 A retrieval-oriented memory system that prevents knowledge staleness through anchor-based context.
 
@@ -30,7 +28,7 @@ flowchart LR
     K4 --> K5[Git: Commit & Share]
 ```
 
-### Knowledge Retrieval  
+### Knowledge Retrieval
 
 When you need to understand something:
 
@@ -47,7 +45,7 @@ flowchart LR
 Unlike traditional RAG that embeds content and hopes it stays relevant, we anchor knowledge to code locations:
 
 - **Notes point to code** via file/directory anchors, not embedded content
-- **Context stays fresh** because we read the current state of your files  
+- **Context stays fresh** because we read the current state of your files
 - **Knowledge doesn't rot** - anchors ensure notes remain relevant to actual code
 - **Retrieval-first design** - optimized for finding the right context, not storing it
 
@@ -95,7 +93,6 @@ For some editors, you can run the following commands for a one-click install:
 
 [![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=a24z-memory&config=eyJjb21tYW5kIjoibnB4IC15IGEyNHotbWVtb3J5In0%3D)
 
-
 ## Manual Integration
 
 ```json
@@ -103,16 +100,14 @@ For some editors, you can run the following commands for a one-click install:
   "mcpServers": {
     "a24z-memory": {
       "command": "npx",
-      "args": [
-        "-y",
-        "a24z-memory"
-      ]
+      "args": ["-y", "a24z-memory"]
     }
   }
 }
 ```
 
 ### Jules
+
 Refer to Jules MCP configuration; define a server named `a24z-memory` with the same `command`, `args`, and `env`.
 
 ## Usage with AI Agents
@@ -127,19 +122,31 @@ Refer to Jules MCP configuration; define a server named `a24z-memory` with the s
 When working on development tasks, you have access to a a24z-memory MCP server...
 
 ### Available Tools
+
 #### discover_a24z_tools
+
 #### askA24zMemory
+
 #### create_repository_note
+
 #### get_repository_tags
+
 #### get_repository_guidance
+
 #### get_repository_note
+
 #### find_similar_notes
+
 #### merge_notes
+
 #### check_stale_notes
+
 #### delete_repository_note
+
 #### review_duplicates
 
 ### Best Practices
+
 1. Check existing knowledge before starting work
 2. Use absolute paths starting with /
 3. Document insights after solving problems
@@ -150,6 +157,7 @@ When working on development tasks, you have access to a a24z-memory MCP server..
 For detailed setup instructions, comprehensive troubleshooting, and complete system prompt examples:
 
 📖 **[Complete Documentation at docs.a24z.ai](https://docs.a24z.ai)**
+
 - ✅ Complete system prompt with all 11 tools
 - ✅ IDE-specific setup instructions
 - ✅ Troubleshooting checklist for common issues
@@ -159,12 +167,12 @@ For detailed setup instructions, comprehensive troubleshooting, and complete sys
 
 📚 **[Local Documentation](./USAGE_GUIDE.md)** - Quick reference for local setup
 
-
 ## Troubleshooting
 
 If your LLM isn't using the a24z-Memory tools, check these common issues:
 
 ### 🔍 **Server Not Starting**
+
 ```bash
 # Check if the server starts without errors
 npx a24z-memory
@@ -175,12 +183,14 @@ node --version
 ```
 
 ### 🔍 **LLM Not Discovering Tools**
+
 1. **Verify server is running** in a separate terminal
 2. **Check system prompt** includes the complete tool definitions
 3. **Test tool discovery**: Try calling `discover_a24z_tools({ category: "all" })`
 4. **Verify tool names** match exactly (no `mcp__` prefixes needed)
 
 ### 🔍 **"Path must be absolute" Errors**
+
 ```bash
 # Always use absolute paths starting with /
 pwd  # Get your current directory
@@ -188,6 +198,7 @@ pwd  # Get your current directory
 ```
 
 ### 🔍 **"Not a git repository" Errors**
+
 ```bash
 # Ensure you're in a git repository
 git status
@@ -197,11 +208,13 @@ git init
 ```
 
 ### 🔍 **Empty Query Results**
+
 - Try broader queries like "What's known about this file?"
 - Check if any notes exist in `.a24z/repository-notes.json`
 - Use different file paths or remove filters
 
 ### 🔍 **Debug Mode**
+
 ```bash
 # Enable debug logging
 DEBUG=a24z-memory:* npx a24z-memory
@@ -228,6 +241,6 @@ The MCP server provides these tools:
 ## Programmatic use
 
 ```ts
-import { run } from "a24z-memory";
+import { run } from 'a24z-memory';
 run();
 ```

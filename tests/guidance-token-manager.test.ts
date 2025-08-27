@@ -16,10 +16,10 @@ describe('GuidanceTokenManager', () => {
   describe('generateToken', () => {
     it('should generate a valid base64 token', () => {
       const token = tokenManager.generateToken(testGuidance, testPath);
-      
+
       expect(token).toBeDefined();
       expect(typeof token).toBe('string');
-      
+
       // Should be valid base64
       const decoded = Buffer.from(token, 'base64').toString();
       expect(() => JSON.parse(decoded)).not.toThrow();
@@ -29,7 +29,7 @@ describe('GuidanceTokenManager', () => {
       const token = tokenManager.generateToken(testGuidance, testPath);
       const decoded = Buffer.from(token, 'base64').toString();
       const data = JSON.parse(decoded);
-      
+
       expect(data).toHaveProperty('payload');
       expect(data).toHaveProperty('signature');
       expect(data.payload).toHaveProperty('guidanceHash');
@@ -42,14 +42,14 @@ describe('GuidanceTokenManager', () => {
     it('should generate different tokens for different content', () => {
       const token1 = tokenManager.generateToken('Content A', testPath);
       const token2 = tokenManager.generateToken('Content B', testPath);
-      
+
       expect(token1).not.toBe(token2);
     });
 
     it('should generate different tokens for different paths', () => {
       const token1 = tokenManager.generateToken(testGuidance, '/path/a');
       const token2 = tokenManager.generateToken(testGuidance, '/path/b');
-      
+
       expect(token1).not.toBe(token2);
     });
   });
@@ -58,14 +58,14 @@ describe('GuidanceTokenManager', () => {
     it('should validate a fresh token', () => {
       const token = tokenManager.generateToken(testGuidance, testPath);
       const isValid = tokenManager.validateToken(token, testGuidance);
-      
+
       expect(isValid).toBe(true);
     });
 
     it('should reject token with different content', () => {
       const token = tokenManager.generateToken(testGuidance, testPath);
       const isValid = tokenManager.validateToken(token, 'Different content');
-      
+
       expect(isValid).toBe(false);
     });
 
@@ -73,11 +73,11 @@ describe('GuidanceTokenManager', () => {
       const token = tokenManager.generateToken(testGuidance, testPath);
       const decoded = Buffer.from(token, 'base64').toString();
       const data = JSON.parse(decoded);
-      
+
       // Tamper with the payload
       data.payload.path = '/hacked/path';
       const tamperedToken = Buffer.from(JSON.stringify(data)).toString('base64');
-      
+
       const isValid = tokenManager.validateToken(tamperedToken, testGuidance);
       expect(isValid).toBe(false);
     });
@@ -86,30 +86,30 @@ describe('GuidanceTokenManager', () => {
       const token = tokenManager.generateToken(testGuidance, testPath);
       const decoded = Buffer.from(token, 'base64').toString();
       const data = JSON.parse(decoded);
-      
+
       // Set expiration to the past
       data.payload.expires = Date.now() - 1000;
-      
+
       // Regenerate signature for the modified payload
       const crypto = require('crypto');
       data.signature = crypto
         .createHmac('sha256', 'test-secret')
         .update(JSON.stringify(data.payload))
         .digest('hex');
-      
+
       const expiredToken = Buffer.from(JSON.stringify(data)).toString('base64');
-      
+
       const isValid = tokenManager.validateToken(expiredToken, testGuidance);
       expect(isValid).toBe(false);
     });
 
     it('should reject tokens with wrong secret', () => {
       const token = tokenManager.generateToken(testGuidance, testPath);
-      
+
       // Create a new manager with different secret
       const otherManager = new GuidanceTokenManager('different-secret');
       const isValid = otherManager.validateToken(token, testGuidance);
-      
+
       expect(isValid).toBe(false);
     });
 
@@ -129,7 +129,7 @@ describe('GuidanceTokenManager', () => {
     it('should parse a valid token', () => {
       const token = tokenManager.generateToken(testGuidance, testPath);
       const payload = tokenManager.parseToken(token);
-      
+
       expect(payload).toBeDefined();
       expect(payload?.path).toBe(testPath);
       expect(payload?.guidanceHash).toBeDefined();
@@ -147,7 +147,7 @@ describe('GuidanceTokenManager', () => {
     it('should return false for fresh token', () => {
       const token = tokenManager.generateToken(testGuidance, testPath);
       const isExpired = tokenManager.isTokenExpired(token);
-      
+
       expect(isExpired).toBe(false);
     });
 
@@ -155,11 +155,11 @@ describe('GuidanceTokenManager', () => {
       const token = tokenManager.generateToken(testGuidance, testPath);
       const decoded = Buffer.from(token, 'base64').toString();
       const data = JSON.parse(decoded);
-      
+
       // Set expiration to the past
       data.payload.expires = Date.now() - 1000;
       const expiredToken = Buffer.from(JSON.stringify(data)).toString('base64');
-      
+
       const isExpired = tokenManager.isTokenExpired(expiredToken);
       expect(isExpired).toBe(true);
     });
@@ -175,19 +175,19 @@ describe('GuidanceTokenManager', () => {
       const token = tokenManager.generateToken(testGuidance, testPath);
       const decoded = Buffer.from(token, 'base64').toString();
       const data = JSON.parse(decoded);
-      
+
       // Verify signature format (should be hex string)
       expect(data.signature).toMatch(/^[a-f0-9]{64}$/);
     });
 
     it('should include all context in signature', (done) => {
       const token1 = tokenManager.generateToken(testGuidance, testPath);
-      
+
       // Even with same content and path, timestamps differ
       // So wait a bit to ensure different timestamp
       setTimeout(() => {
         const token2 = tokenManager.generateToken(testGuidance, testPath);
-        
+
         // Tokens should be different due to timestamp
         expect(token1).not.toBe(token2);
         done();
@@ -199,7 +199,7 @@ describe('GuidanceTokenManager', () => {
     it('should use default secret when none provided', () => {
       const defaultManager = new GuidanceTokenManager();
       const token = defaultManager.generateToken(testGuidance, testPath);
-      
+
       expect(token).toBeDefined();
       expect(defaultManager.validateToken(token, testGuidance)).toBe(true);
     });
@@ -207,13 +207,13 @@ describe('GuidanceTokenManager', () => {
     it('should use environment variable when available', () => {
       const originalEnv = process.env.A24Z_GUIDANCE_SECRET;
       process.env.A24Z_GUIDANCE_SECRET = 'env-secret';
-      
+
       const envManager = new GuidanceTokenManager();
       const token = envManager.generateToken(testGuidance, testPath);
-      
+
       expect(token).toBeDefined();
       expect(envManager.validateToken(token, testGuidance)).toBe(true);
-      
+
       // Restore original env
       if (originalEnv !== undefined) {
         process.env.A24Z_GUIDANCE_SECRET = originalEnv;

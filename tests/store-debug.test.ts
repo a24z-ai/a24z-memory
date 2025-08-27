@@ -1,6 +1,5 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { TEST_DIR } from './setup';
 
 // Import the internal functions by copying them temporarily
 const DATA_DIR = process.env.A24Z_TEST_DATA_DIR || path.join(require('os').homedir(), '.a24z');
@@ -15,16 +14,16 @@ function ensureDataDir(): void {
   }
 }
 
-function writeAllNotes(notes: any[]): void {
+function writeAllNotes(notes: unknown[]): void {
   console.log('writeAllNotes called with', notes.length, 'notes');
   ensureDataDir();
   const payload = { version: 1, notes };
   const tmp = `${NOTES_FILE}.tmp`;
-  
+
   console.log('Writing to temp file:', tmp);
   fs.writeFileSync(tmp, JSON.stringify(payload, null, 2), { encoding: 'utf8' });
   console.log('Temp file written, size:', fs.statSync(tmp).size);
-  
+
   console.log('Renaming', tmp, 'to', NOTES_FILE);
   fs.renameSync(tmp, NOTES_FILE);
   console.log('Rename complete, final file exists:', fs.existsSync(NOTES_FILE));
@@ -32,23 +31,25 @@ function writeAllNotes(notes: any[]): void {
 
 describe('Store Debug Test', () => {
   it('should test the write process manually', () => {
-    const testNotes = [{
-      id: 'test-123',
-      note: 'Test note',
-      directoryPath: '/test/path',
-      tags: ['test'],
-      anchors: ['/test/path'],
-      confidence: 'medium',
-      type: 'explanation',
-      metadata: {},
-      timestamp: Date.now()
-    }];
+    const testNotes = [
+      {
+        id: 'test-123',
+        note: 'Test note',
+        directoryPath: '/test/path',
+        tags: ['test'],
+        anchors: ['/test/path'],
+        confidence: 'medium',
+        type: 'explanation',
+        metadata: {},
+        timestamp: Date.now(),
+      },
+    ];
 
     console.log('Starting manual write test...');
     writeAllNotes(testNotes);
-    
+
     expect(fs.existsSync(NOTES_FILE)).toBe(true);
-    
+
     const content = fs.readFileSync(NOTES_FILE, 'utf8');
     const data = JSON.parse(content);
     expect(data.notes).toHaveLength(1);

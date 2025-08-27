@@ -10,10 +10,10 @@ try {
     tags: ['test'],
     confidence: 'medium',
     type: 'explanation',
-    metadata: {}
+    metadata: {},
     // anchors is missing!
   };
-  
+
   const result = saveNote(noteWithoutAnchors);
   console.error('ERROR: Note was saved without anchors! This should not happen.');
   console.log('Result:', result);
@@ -31,9 +31,9 @@ try {
     tags: ['test'],
     confidence: 'medium',
     type: 'explanation',
-    metadata: {}
+    metadata: {},
   };
-  
+
   const result = saveNote(noteWithEmptyAnchors);
   console.error('ERROR: Note was saved with empty anchors! This should not happen.');
   console.log('Result:', result);
@@ -51,9 +51,9 @@ try {
     tags: ['test'],
     confidence: 'medium',
     type: 'explanation',
-    metadata: {}
+    metadata: {},
   };
-  
+
   const result = saveNote(validNote);
   console.log('✅ Successfully saved with anchors:', result.id);
 } catch (error) {

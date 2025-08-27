@@ -5,10 +5,12 @@ This is the **comprehensive guide** for connecting your AI agent (Cursor, VS Cod
 ## 📚 Documentation Navigation
 
 **New to a24z-Memory?**
+
 - 🚀 **[Quick Start in README.md](./README.md)** - 2-minute setup
 - 📖 **This Guide** - Complete reference and advanced configuration
 
 **Need specific help?**
+
 - 🔧 [MCP Setup Checklist](#complete-mcp-setup-checklist-for-llm-integration)
 - 🔍 [Troubleshooting](#why-your-llm-might-not-be-using-the-mcp-tools)
 - 💡 [System Prompt Guide](#system-prompt-configuration-guide)
@@ -23,12 +25,14 @@ This is the **comprehensive guide** for connecting your AI agent (Cursor, VS Cod
 [![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=a24z-memory&config=eyJjb21tYW5kIjoibnB4IC15IGEyNHotbWVtb3J5In0%3D)
 
 **Manual Installation:**
+
 ```bash
 npm install -g a24z-memory
 npx a24z-memory  # Keep this running
 ```
 
 ### 2. Add System Prompt
+
 Copy this into your AI agent's system prompt:
 
 ```markdown
@@ -37,10 +41,13 @@ When working on development tasks, you have access to a a24z-memory MCP server t
 ### Available Tools
 
 #### `discover_a24z_tools`
+
 Discover all available a24z-Memory tools and their capabilities. Use this to explore all available functions.
 
 #### `askA24zMemory`
+
 Ask the a24z memory for contextual guidance based on tribal knowledge. This tool retrieves relevant notes and synthesizes an answer.
+
 - **filePath**: **REQUIRED** - Absolute path to file or directory
 - **query**: **REQUIRED** - Your specific question about the code
 - **taskContext**: (Optional) Additional context about what you're trying to accomplish
@@ -48,7 +55,9 @@ Ask the a24z memory for contextual guidance based on tribal knowledge. This tool
 - **filterTypes**: (Optional) Filter by note types: 'decision', 'pattern', 'gotcha', 'explanation'
 
 #### `create_repository_note`
+
 Store important development insights and decisions for future reference.
+
 - **note**: **REQUIRED** - The insight or decision to document (Markdown format)
 - **directoryPath**: **REQUIRED** - Repository root path (absolute path starting with /)
 - **anchors**: **REQUIRED** - File/directory paths this note relates to
@@ -58,32 +67,44 @@ Store important development insights and decisions for future reference.
 - **metadata**: (Optional) Additional context
 
 #### `get_repository_tags`
+
 Get available tags for categorizing notes and understand existing categorization patterns.
+
 - **path**: **REQUIRED** - File or directory path
 - **includeUsedTags**: (Optional) Include previously used tags. Default is true
 - **includeSuggestedTags**: (Optional) Include path-based tag suggestions. Default is true
 - **includeGuidance**: (Optional) Include repository guidance. Default is true
 
 #### `get_repository_guidance`
+
 Get repository-specific guidance for creating effective notes.
+
 - **path**: **REQUIRED** - Any path within the repository
 
 #### `get_repository_note`
+
 Retrieve a specific note by its unique ID for detailed information.
+
 - **noteId**: **REQUIRED** - Unique note ID (e.g., "note-1734567890123-abc123def")
 - **directoryPath**: **REQUIRED** - Repository path (absolute)
 
 #### `check_stale_notes`
+
 Check for notes with stale anchors (file paths that no longer exist) in a repository.
+
 - **directoryPath**: **REQUIRED** - Repository path (absolute)
 
 #### `delete_note`
+
 Delete a specific note from the knowledge base.
+
 - **noteId**: **REQUIRED** - Unique note ID to delete
 - **directoryPath**: **REQUIRED** - Repository path (absolute)
 
 #### `find_similar_notes`
+
 Find notes with similar content to avoid duplication and discover related information.
+
 - **query**: (Optional) Search query for similar content
 - **content**: (Optional) Content to compare similarity against
 - **directoryPath**: **REQUIRED** - Repository path (absolute)
@@ -91,20 +112,26 @@ Find notes with similar content to avoid duplication and discover related inform
 - **minSimilarity**: (Optional) Minimum similarity score (0-1)
 
 #### `merge_notes`
+
 Combine multiple related notes into a comprehensive note.
+
 - **noteIds**: **REQUIRED** - Array of note IDs to merge
 - **directoryPath**: **REQUIRED** - Repository path (absolute)
 - **newNote**: **REQUIRED** - Content for the merged note
 - **deleteOriginals**: (Optional) Whether to delete original notes
 
 #### `review_duplicates`
+
 Analyze the knowledge base to identify duplicate or highly similar notes.
+
 - **directoryPath**: **REQUIRED** - Repository path to analyze
 - **similarityThreshold**: (Optional) Similarity threshold (0-1)
 - **groupBy**: (Optional) Group by content or tags
 
 #### `copy_guidance_template`
+
 Copy note guidance templates to establish documentation standards.
+
 - **path**: **REQUIRED** - Repository path where template should be copied
 - **template**: (Optional) Template type: 'default', 'react-typescript', 'nodejs-api', 'python-data-science'
 - **overwrite**: (Optional) Whether to overwrite existing guidance. Default is false
@@ -124,7 +151,8 @@ Copy note guidance templates to establish documentation standards.
 ```
 
 ### 3. Test It
-Ask your AI agent: *"What a24z-Memory tools are available?"*
+
+Ask your AI agent: _"What a24z-Memory tools are available?"_
 It should call `discover_a24z_tools` and show you all available tools.
 
 ---
@@ -241,14 +269,17 @@ Before using your LLM, verify your system prompt contains:
 ### **IDE-Specific System Prompt Setup**
 
 #### **Cursor**
+
 1. Go to **Settings → AI → System Prompt**
 2. Paste the complete prompt from this guide
 3. Ensure MCP server is running: `npx a24z-memory`
 4. Test with: `discover_a24z_tools({ category: "all" })`
 
 #### **VS Code with MCP Extension**
+
 1. Install MCP extension for VS Code
 2. Configure server in settings.json:
+
 ```json
 {
   "mcpServers": {
@@ -259,10 +290,12 @@ Before using your LLM, verify your system prompt contains:
   }
 }
 ```
+
 3. Add system prompt to AI extension settings
 4. Verify server connection in extension logs
 
 #### **Claude Code/Desktop**
+
 1. Open Claude settings
 2. Find "System Prompt" or "Instructions" section
 3. Paste the complete prompt
@@ -281,18 +314,21 @@ After configuration, test your setup:
 ### **Common System Prompt Issues**
 
 **Issue: "Tool not found"**
+
 - ✅ Server is running
 - ✅ Tool names match exactly
 - ✅ System prompt includes complete "Available Tools" section
 - ✅ No typos in tool names
 
 **Issue: LLM doesn't know when to use tools**
+
 - ✅ Include clear "When to use" instructions for each tool
 - ✅ Add specific use case examples
 - ✅ Include best practices section
 - ✅ Use trigger phrases like "development tasks"
 
 **Issue: Parameter errors**
+
 - ✅ Include all parameters with descriptions
 - ✅ Mark required parameters with `**REQUIRED**`
 - ✅ Provide parameter examples
@@ -306,11 +342,13 @@ For maximum effectiveness, include:
 **Context-Aware Usage:**
 
 When working with code files:
+
 1. First call discover_a24z_tools({ category: "knowledge" })
 2. Then call askA24zMemory with the current file path
 3. Use the insights to guide your implementation
 
 When solving problems:
+
 1. Document solutions with create_repository_note
 2. Use appropriate tags and confidence levels
 3. Include relevant file paths as anchors
@@ -324,9 +362,11 @@ When working on development tasks, you have access to a a24z-memory MCP server t
 ### Available Tools
 
 #### discover_a24z_tools
+
 Discover all available a24z-Memory tools and their capabilities.
 
 #### askA24zMemory
+
 Ask the a24z memory for contextual guidance based on tribal knowledge. This tool retrieves relevant notes and synthesizes an answer.
 
 - **Parameters**:
@@ -337,6 +377,7 @@ Ask the a24z memory for contextual guidance based on tribal knowledge. This tool
   - filterTypes: (Optional) Filter by note types
 
 #### create_repository_note
+
 Store important development insights and decisions for future reference.
 
 - **Parameters**:
@@ -349,6 +390,7 @@ Store important development insights and decisions for future reference.
   - metadata: (Optional) Additional context
 
 #### get_repository_tags
+
 Get available tags for categorizing notes and understand existing categorization patterns.
 
 - **Parameters**:
@@ -358,12 +400,14 @@ Get available tags for categorizing notes and understand existing categorization
   - includeGuidance: (Optional) Include repository guidance. Default is true
 
 #### get_repository_guidance
+
 Get repository-specific guidance for creating effective notes.
 
 - **Parameters**:
   - path: **REQUIRED** - Any path within the repository
 
 #### get_repository_note
+
 Retrieve a specific note by its unique ID for detailed information.
 
 - **Parameters**:
@@ -371,12 +415,14 @@ Retrieve a specific note by its unique ID for detailed information.
   - directoryPath: **REQUIRED** - Repository path (absolute)
 
 #### check_stale_notes
+
 Check for notes with stale anchors (file paths that no longer exist) in a repository.
 
 - **Parameters**:
   - directoryPath: **REQUIRED** - Repository path (absolute)
 
 #### delete_note
+
 Delete a specific note from the knowledge base.
 
 - **Parameters**:
@@ -384,6 +430,7 @@ Delete a specific note from the knowledge base.
   - directoryPath: **REQUIRED** - Repository path (absolute)
 
 #### find_similar_notes
+
 Find notes with similar content to avoid duplication and discover related information.
 
 - **Parameters**:
@@ -394,6 +441,7 @@ Find notes with similar content to avoid duplication and discover related inform
   - minSimilarity: (Optional) Minimum similarity score (0-1)
 
 #### merge_notes
+
 Combine multiple related notes into a comprehensive note.
 
 - **Parameters**:
@@ -403,6 +451,7 @@ Combine multiple related notes into a comprehensive note.
   - deleteOriginals: (Optional) Whether to delete original notes
 
 #### review_duplicates
+
 Analyze the knowledge base to identify duplicate or highly similar notes.
 
 - **Parameters**:
@@ -411,6 +460,7 @@ Analyze the knowledge base to identify duplicate or highly similar notes.
   - groupBy: (Optional) Group by content or tags
 
 #### copy_guidance_template
+
 Copy note guidance templates to establish documentation standards.
 
 - **Parameters**:
@@ -439,6 +489,7 @@ If your LLM still isn't using the a24z-Memory tools after configuration, use thi
 ### **Phase 1: MCP Server Setup**
 
 ✅ **Server Installation**
+
 ```bash
 # Install the package globally
 npm install -g a24z-memory
@@ -451,6 +502,7 @@ npx a24z-memory --help
 ```
 
 ✅ **Server Running**
+
 ```bash
 # Start the MCP server (keep this terminal running)
 npx a24z-memory
@@ -462,6 +514,7 @@ npx a24z-memory
 ```
 
 ✅ **Tool Discovery Test**
+
 ```bash
 # The server should list these tools:
 # - askA24zMemory
@@ -481,16 +534,19 @@ npx a24z-memory
 ### **Phase 2: LLM Environment Configuration**
 
 ✅ **IDE/Editor Configuration**
+
 - **Cursor**: Check if MCP server is running in terminal
 - **VS Code**: Ensure MCP extension is installed and configured
 - **Other editors**: Verify MCP client support
 
 ✅ **System Prompt Integration**
+
 - Copy the complete system prompt from this guide
 - Ensure all tool names match exactly
 - Verify the prompt includes the "Available Tools" section
 
 ✅ **Tool Name Matching**
+
 - Tools use simple names: `askA24zMemory`, `create_repository_note`, etc.
 - No prefixes like `mcp__a24z-memory__` needed in tool calls
 - Parameter names must match exactly as documented
@@ -498,6 +554,7 @@ npx a24z-memory
 ### **Phase 3: Repository Setup**
 
 ✅ **Git Repository**
+
 ```bash
 # Ensure you're in a git repository
 git status
@@ -507,6 +564,7 @@ git init
 ```
 
 ✅ **Repository Path Validation**
+
 ```bash
 # The directoryPath parameter must be the git root
 pwd  # This should be your git repository root
@@ -518,49 +576,56 @@ pwd  # This should be your git repository root
 ### **Phase 4: Testing Tool Calls**
 
 ✅ **Basic Tool Discovery**
+
 ```javascript
 // First, try the discovery tool
-discover_a24z_tools({ category: "all" })
+discover_a24z_tools({ category: 'all' });
 ```
 
 ✅ **Simple Knowledge Query**
+
 ```javascript
 askA24zMemory({
-  filePath: "/absolute/path/to/your/project/src/some-file.ts",
-  query: "What's known about this file?"
-})
+  filePath: '/absolute/path/to/your/project/src/some-file.ts',
+  query: "What's known about this file?",
+});
 ```
 
 ✅ **Note Creation Test**
+
 ```javascript
 create_repository_note({
-  note: "Test note to verify MCP functionality",
-  directoryPath: "/absolute/path/to/your/git/repo",
-  anchors: ["/absolute/path/to/your/project/src/some-file.ts"],
-  tags: ["test", "verification"],
-  confidence: "high",
-  type: "explanation"
-})
+  note: 'Test note to verify MCP functionality',
+  directoryPath: '/absolute/path/to/your/git/repo',
+  anchors: ['/absolute/path/to/your/project/src/some-file.ts'],
+  tags: ['test', 'verification'],
+  confidence: 'high',
+  type: 'explanation',
+});
 ```
 
 ### **Phase 5: Common Issues & Solutions**
 
 ❌ **"Tool not found" Error**
+
 - ✅ Server is running
 - ✅ Tool names match exactly
 - ✅ System prompt includes the tools section
 
 ❌ **"Path must be absolute" Error**
+
 - ✅ Use complete paths starting with `/`
 - ✅ No relative paths like `./file.ts` or `src/file.ts`
 - ✅ Example: `/Users/username/projects/my-repo/src/file.ts`
 
 ❌ **"Not a git repository" Error**
+
 - ✅ Run `git init` in your project root
 - ✅ Use the git root directory as `directoryPath`
 - ✅ Ensure `.git` folder exists
 
 ❌ **Empty Results from Queries**
+
 - ✅ Try different file paths
 - ✅ Use broader queries initially
 - ✅ Check if any notes exist yet
@@ -568,6 +633,7 @@ create_repository_note({
 ### **Phase 6: Advanced Configuration**
 
 ✅ **Environment Variables**
+
 ```bash
 # Set these if needed for your environment
 export DEBUG=a24z-memory:*
@@ -575,6 +641,7 @@ export NODE_ENV=development
 ```
 
 ✅ **Custom Configuration**
+
 - Review the server logs for detailed error messages
 - Check that all file permissions are correct
 - Ensure the LLM has access to the repository files
@@ -629,6 +696,7 @@ echo "Setup verification complete!"
 5. **Use absolute paths** without prompting for corrections
 
 **If the LLM still doesn't use the tools:**
+
 - Double-check the system prompt configuration
 - Ensure the MCP server is running and accessible
 - Try the `discover_a24z_tools` command to verify tool availability
@@ -657,48 +725,60 @@ pwd         # Note the absolute path for directoryPath
 ### **Most Common Reasons & Solutions**
 
 #### **1. System Prompt Not Configured**
+
 **Symptoms**: LLM gives generic responses, doesn't mention tools
 **Solution**:
+
 - ✅ Copy the complete system prompt from this guide
 - ✅ Include ALL 6 tools in "Available Tools" section
 - ✅ Use exact tool names: `askA24zMemory`, not `mcp__a24z-memory__askA24zMemory`
 - ✅ Include "Best Practices" section
 
 #### **2. MCP Server Not Running**
+
 **Symptoms**: "Tool not found" errors, no tool responses
 **Solution**:
+
 - ✅ Run `npx a24z-memory` in a separate terminal
 - ✅ Keep the server running while using LLM
 - ✅ Verify server starts with success message
 - ✅ Check for port conflicts or permission issues
 
 #### **3. Tool Name Mismatch**
+
 **Symptoms**: "Tool not found" despite server running
 **Solution**:
+
 - ✅ Use simple names: `askA24zMemory`, `create_repository_note`
 - ✅ Remove any `mcp__` prefixes
 - ✅ Match parameter names exactly as documented
 - ✅ Check for typos in tool names
 
 #### **4. Missing Repository Context**
+
 **Symptoms**: Path-related errors, "not a git repository" errors
 **Solution**:
+
 - ✅ Ensure you're in a git repository (`git status`)
 - ✅ Use absolute paths starting with `/`
 - ✅ Use git root directory as `directoryPath`
 - ✅ Verify `.git` folder exists
 
 #### **5. LLM Doesn't Know When to Use Tools**
+
 **Symptoms**: LLM responds conversationally instead of using tools
 **Solution**:
+
 - ✅ Include clear "When to use" instructions for each tool
 - ✅ Add specific use case examples
 - ✅ Use trigger phrases like "development tasks"
 - ✅ Include the `discover_a24z_tools` tool for exploration
 
 #### **6. Parameter Format Issues**
+
 **Symptoms**: Validation errors, "expected string, received undefined"
 **Solution**:
+
 - ✅ Use absolute paths for `filePath`, `directoryPath`, `anchors`
 - ✅ Include all **REQUIRED** parameters
 - ✅ Check parameter types match documentation
@@ -734,16 +814,19 @@ askA24zMemory({
 ### **LLM-Specific Troubleshooting**
 
 #### **Cursor**
+
 - ✅ MCP server running in integrated terminal
 - ✅ System prompt configured in AI settings
 - ✅ Try `Cmd+K` to check AI model access
 
 #### **Claude Code**
+
 - ✅ Server running in external terminal
 - ✅ System prompt configured in settings
 - ✅ Check Claude's connection to MCP server
 
 #### **VS Code**
+
 - ✅ MCP extension installed and configured
 - ✅ System prompt in AI extension settings
 - ✅ Check extension logs for connection errors
@@ -768,6 +851,7 @@ cat .a24z/repository-notes.json
 ### **If Everything Fails**
 
 1. **Restart Everything**:
+
    ```bash
    # Stop MCP server (Ctrl+C)
    # Close and reopen your IDE/terminal
@@ -775,6 +859,7 @@ cat .a24z/repository-notes.json
    ```
 
 2. **Minimal Test**:
+
    ```bash
    # Test with minimal system prompt
    # Use only askA24zMemory tool initially
@@ -785,4 +870,7 @@ cat .a24z/repository-notes.json
    - Check the repository for known issues
    - Review similar MCP integration problems
    - Consider creating a minimal reproduction case
+
+```
+
 ```

@@ -18,34 +18,38 @@ export interface StoredApiKey {
 
 export class ApiKeyManager {
   private static SERVICE_NAME = 'a24z-memory';
-  
+
   /**
    * Check if Bun.secrets is available (Bun runtime)
    */
   static isBunSecretsAvailable(): boolean {
-    return typeof (globalThis as any).Bun !== 'undefined' && 
-           typeof (globalThis as any).Bun.secrets !== 'undefined';
+    return (
+      typeof (globalThis as any).Bun !== 'undefined' &&
+      typeof (globalThis as any).Bun.secrets !== 'undefined'
+    );
   }
-  
+
   /**
    * Store an API key securely
    */
   static async storeApiKey(provider: string, config: Partial<StoredApiKey>): Promise<void> {
     if (!this.isBunSecretsAvailable()) {
-      throw new Error('API key storage requires Bun runtime. Please use Bun to run this application for secure key management.');
+      throw new Error(
+        'API key storage requires Bun runtime. Please use Bun to run this application for secure key management.'
+      );
     }
-    
+
     const keyName = `${provider}-api-key`;
     const secrets = (globalThis as any).Bun.secrets;
     const value = JSON.stringify(config);
-    
+
     await secrets.set({
       service: this.SERVICE_NAME,
       name: keyName,
-      value
+      value,
     });
   }
-  
+
   /**
    * Retrieve an API key
    */
@@ -53,43 +57,45 @@ export class ApiKeyManager {
     if (!this.isBunSecretsAvailable()) {
       return null; // No Bun, no API key storage
     }
-    
+
     const keyName = `${provider}-api-key`;
     const secrets = (globalThis as any).Bun.secrets;
-    
+
     try {
       const value = await secrets.get({
         service: this.SERVICE_NAME,
-        name: keyName
+        name: keyName,
       });
-      
+
       if (value) {
         return JSON.parse(value);
       }
     } catch {
       // Key doesn't exist
     }
-    
+
     return null;
   }
-  
+
   /**
    * Delete a stored API key
    */
   static async deleteApiKey(provider: string): Promise<void> {
     if (!this.isBunSecretsAvailable()) {
-      throw new Error('API key deletion requires Bun runtime. Keys set via environment variables must be removed manually.');
+      throw new Error(
+        'API key deletion requires Bun runtime. Keys set via environment variables must be removed manually.'
+      );
     }
-    
+
     const keyName = `${provider}-api-key`;
     const secrets = (globalThis as any).Bun.secrets;
-    
+
     await secrets.delete({
       service: this.SERVICE_NAME,
-      name: keyName
+      name: keyName,
     });
   }
-  
+
   /**
    * List all stored providers
    */
@@ -97,9 +103,9 @@ export class ApiKeyManager {
     if (!this.isBunSecretsAvailable()) {
       return []; // No Bun, no stored providers
     }
-    
+
     const providers: string[] = [];
-    
+
     // Check common providers
     const knownProviders = ['ollama', 'openai', 'openrouter', 'anthropic', 'google', 'mistral'];
     for (const provider of knownProviders) {
@@ -108,10 +114,10 @@ export class ApiKeyManager {
         providers.push(provider);
       }
     }
-    
+
     return providers;
   }
-  
+
   /**
    * Merge stored API key with provided config
    */
@@ -120,7 +126,7 @@ export class ApiKeyManager {
     if (config.apiKey) {
       return config;
     }
-    
+
     // Try to load stored API key
     const stored = await this.getApiKey(config.provider);
     if (stored) {
@@ -130,10 +136,10 @@ export class ApiKeyManager {
         model: config.model || stored.model,
         endpoint: config.endpoint || stored.endpoint,
         openRouterSiteUrl: config.openRouterSiteUrl || stored.siteUrl,
-        openRouterSiteName: config.openRouterSiteName || stored.siteName
+        openRouterSiteName: config.openRouterSiteName || stored.siteName,
       };
     }
-    
+
     return config;
   }
 }

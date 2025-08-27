@@ -41,11 +41,11 @@ import { updateRepositoryConfiguration } from 'a24z-memory';
 const updated = updateRepositoryConfiguration('/path/to/repo', {
   limits: {
     noteMaxLength: 20000,
-    maxTagsPerNote: 15
+    maxTagsPerNote: 15,
   },
   tags: {
-    enforceAllowedTags: true
-  }
+    enforceAllowedTags: true,
+  },
 });
 ```
 
@@ -54,7 +54,7 @@ const updated = updateRepositoryConfiguration('/path/to/repo', {
 ```tsx
 function RepositorySettings({ repoPath }) {
   const [config, setConfig] = useState(null);
-  
+
   useEffect(() => {
     const cfg = getRepositoryConfiguration(repoPath);
     setConfig(cfg);
@@ -68,12 +68,12 @@ function RepositorySettings({ repoPath }) {
   return (
     <div>
       <h2>Repository Settings</h2>
-      
+
       <Section title="Note Limits">
         <NumberInput
           label="Max Note Length"
           value={config?.limits.noteMaxLength}
-          onChange={(v) => handleSave({ limits: { noteMaxLength: v }})}
+          onChange={(v) => handleSave({ limits: { noteMaxLength: v } })}
           min={100}
           max={100000}
         />
@@ -89,7 +89,7 @@ function RepositorySettings({ repoPath }) {
         <Toggle
           label="Enforce Allowed Tags"
           checked={config?.tags.enforceAllowedTags}
-          onChange={(v) => handleSave({ tags: { enforceAllowedTags: v }})}
+          onChange={(v) => handleSave({ tags: { enforceAllowedTags: v } })}
         />
       </Section>
     </div>
@@ -123,7 +123,7 @@ import * as path from 'path';
 
 function getLLMConfig(repoPath: string): LLMConfig | null {
   const configPath = path.join(repoPath, '.a24z', 'llm-config.json');
-  
+
   try {
     if (fs.existsSync(configPath)) {
       return JSON.parse(fs.readFileSync(configPath, 'utf8'));
@@ -131,19 +131,19 @@ function getLLMConfig(repoPath: string): LLMConfig | null {
   } catch (e) {
     console.error('Failed to read LLM config:', e);
   }
-  
+
   return null;
 }
 
 function saveLLMConfig(repoPath: string, config: LLMConfig): void {
   const configDir = path.join(repoPath, '.a24z');
   const configPath = path.join(configDir, 'llm-config.json');
-  
+
   // Ensure directory exists
   if (!fs.existsSync(configDir)) {
     fs.mkdirSync(configDir, { recursive: true });
   }
-  
+
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 }
 
@@ -159,7 +159,7 @@ async function testOllamaConnection(endpoint: string = 'http://localhost:11434')
       const data = await response.json();
       return {
         connected: true,
-        models: data.models?.map(m => m.name) || []
+        models: data.models?.map((m) => m.name) || [],
       };
     }
     return { connected: false, error: `HTTP ${response.status}` };
@@ -174,7 +174,7 @@ async function testOllamaConnection(endpoint: string = 'http://localhost:11434')
 ```tsx
 function LLMConfiguration({ repoPath }) {
   const [config, setConfig] = useState<LLMConfig>({
-    provider: 'none'
+    provider: 'none',
   });
   const [ollamaStatus, setOllamaStatus] = useState(null);
   const [availableModels, setAvailableModels] = useState([]);
@@ -188,7 +188,7 @@ function LLMConfiguration({ repoPath }) {
   // Test Ollama connection when provider changes
   useEffect(() => {
     if (config.provider === 'ollama') {
-      testOllamaConnection(config.endpoint).then(result => {
+      testOllamaConnection(config.endpoint).then((result) => {
         setOllamaStatus(result);
         setAvailableModels(result.models || []);
       });
@@ -203,15 +203,15 @@ function LLMConfiguration({ repoPath }) {
   return (
     <div className="llm-config">
       <h2>LLM Configuration</h2>
-      
+
       <Select
         label="Provider"
         value={config.provider}
-        onChange={(v) => setConfig({...config, provider: v})}
+        onChange={(v) => setConfig({ ...config, provider: v })}
         options={[
           { value: 'none', label: 'No LLM (Local synthesis only)' },
           { value: 'ollama', label: 'Ollama (Local)' },
-          { value: 'openai', label: 'OpenAI (Coming soon)' }
+          { value: 'openai', label: 'OpenAI (Coming soon)' },
         ]}
       />
 
@@ -220,64 +220,64 @@ function LLMConfiguration({ repoPath }) {
           <TextInput
             label="Endpoint"
             value={config.endpoint || 'http://localhost:11434'}
-            onChange={(v) => setConfig({...config, endpoint: v})}
+            onChange={(v) => setConfig({ ...config, endpoint: v })}
             placeholder="http://localhost:11434"
           />
-          
+
           <ConnectionStatus status={ollamaStatus} />
-          
+
           {availableModels.length > 0 && (
             <Select
               label="Model"
               value={config.model}
-              onChange={(v) => setConfig({...config, model: v})}
-              options={availableModels.map(m => ({ value: m, label: m }))}
+              onChange={(v) => setConfig({ ...config, model: v })}
+              options={availableModels.map((m) => ({ value: m, label: m }))}
             />
           )}
-          
+
           <Slider
             label="Temperature"
             value={config.temperature || 0.3}
-            onChange={(v) => setConfig({...config, temperature: v})}
+            onChange={(v) => setConfig({ ...config, temperature: v })}
             min={0}
             max={1}
             step={0.1}
           />
-          
+
           <NumberInput
             label="Max Tokens"
             value={config.maxTokens || 1000}
-            onChange={(v) => setConfig({...config, maxTokens: v})}
+            onChange={(v) => setConfig({ ...config, maxTokens: v })}
             min={100}
             max={10000}
           />
-          
+
           <Checkbox
             label="Include File Contents in Prompt"
             checked={config.includeFileContents || false}
-            onChange={(v) => setConfig({...config, includeFileContents: v})}
+            onChange={(v) => setConfig({ ...config, includeFileContents: v })}
           />
-          
+
           {config.includeFileContents && (
             <NumberInput
               label="File Content Token Budget"
               value={config.fileContentBudget || 2000}
-              onChange={(v) => setConfig({...config, fileContentBudget: v})}
+              onChange={(v) => setConfig({ ...config, fileContentBudget: v })}
               min={500}
               max={5000}
             />
           )}
-          
+
           <TextArea
             label="Custom Prompt Template (Optional)"
             value={config.promptTemplate || ''}
-            onChange={(v) => setConfig({...config, promptTemplate: v})}
+            onChange={(v) => setConfig({ ...config, promptTemplate: v })}
             placeholder="Leave empty for default template"
             rows={10}
           />
         </>
       )}
-      
+
       <Button onClick={handleSave}>Save Configuration</Button>
     </div>
   );
@@ -295,7 +295,7 @@ import {
   deleteTagDescription,
   getAllowedTags,
   setEnforceAllowedTags,
-  removeTagFromNotes
+  removeTagFromNotes,
 } from 'a24z-memory';
 
 // Get all tags with descriptions
@@ -329,7 +329,7 @@ function TagManager({ repoPath }) {
   const loadTags = () => {
     const tagList = getTagsWithDescriptions(repoPath);
     setTags(tagList);
-    
+
     const { enforced } = getAllowedTags(repoPath);
     setEnforced(enforced);
   };
@@ -344,7 +344,11 @@ function TagManager({ repoPath }) {
   };
 
   const handleDeleteTag = (name, removeFromNotes) => {
-    if (confirm(`Delete tag "${name}"? ${removeFromNotes ? 'This will remove it from all notes.' : ''}`)) {
+    if (
+      confirm(
+        `Delete tag "${name}"? ${removeFromNotes ? 'This will remove it from all notes.' : ''}`
+      )
+    ) {
       deleteTagDescription(repoPath, name, removeFromNotes);
       loadTags();
     }
@@ -353,7 +357,7 @@ function TagManager({ repoPath }) {
   return (
     <div className="tag-manager">
       <h2>Tag Management</h2>
-      
+
       <Toggle
         label="Enforce Allowed Tags"
         checked={enforced}
@@ -363,9 +367,9 @@ function TagManager({ repoPath }) {
         }}
         help="When enabled, only tags with descriptions can be used"
       />
-      
+
       <TagList>
-        {tags.map(tag => (
+        {tags.map((tag) => (
           <TagItem key={tag.name}>
             <TagName>{tag.name}</TagName>
             <TagDescription>{tag.description || 'No description'}</TagDescription>
@@ -379,11 +383,9 @@ function TagManager({ repoPath }) {
           </TagItem>
         ))}
       </TagList>
-      
-      <Button onClick={() => setEditingTag({ name: '', description: '' })}>
-        Add New Tag
-      </Button>
-      
+
+      <Button onClick={() => setEditingTag({ name: '', description: '' })}>Add New Tag</Button>
+
       {editingTag && (
         <TagEditor
           tag={editingTag}
@@ -404,12 +406,7 @@ function TagManager({ repoPath }) {
 ### Note APIs
 
 ```typescript
-import {
-  getNotesForPath,
-  getNoteById,
-  deleteNoteById,
-  checkStaleNotes
-} from 'a24z-memory';
+import { getNotesForPath, getNoteById, deleteNoteById, checkStaleNotes } from 'a24z-memory';
 
 // Get notes for a path
 const notes = getNotesForPath('/path/to/file.ts', true, 100);
@@ -434,7 +431,7 @@ function NoteManager({ repoPath }) {
   const loadNotes = () => {
     const allNotes = getNotesForPath(repoPath, true, 1000);
     setNotes(allNotes);
-    
+
     const stale = checkStaleNotes(repoPath);
     setStaleNotes(stale);
   };
@@ -449,16 +446,22 @@ function NoteManager({ repoPath }) {
   return (
     <div>
       <h2>Note Management</h2>
-      
+
       {staleNotes.length > 0 && (
         <Alert type="warning">
           {staleNotes.length} notes have stale anchors (files no longer exist)
-          <Button onClick={() => {/* handle cleanup */}}>Clean Up</Button>
+          <Button
+            onClick={() => {
+              /* handle cleanup */
+            }}
+          >
+            Clean Up
+          </Button>
         </Alert>
       )}
-      
+
       <NoteList>
-        {notes.map(note => (
+        {notes.map((note) => (
           <NoteCard key={note.id}>
             <NoteHeader>
               <NoteId>{note.id}</NoteId>
@@ -468,7 +471,7 @@ function NoteManager({ repoPath }) {
             <NoteContent>{note.note}</NoteContent>
             <NoteTags>{note.tags.join(', ')}</NoteTags>
             <NoteAnchors>
-              {note.anchors.map(anchor => (
+              {note.anchors.map((anchor) => (
                 <Anchor key={anchor} exists={!note.isStale}>
                   {anchor}
                 </Anchor>
@@ -494,26 +497,26 @@ function A24zMemoryConfigUI({ repoPath }) {
   return (
     <div className="a24z-config">
       <h1>a24z-Memory Configuration</h1>
-      
+
       <Tabs value={activeTab} onChange={setActiveTab}>
         <Tab value="repository" label="Repository" />
         <Tab value="llm" label="LLM Integration" />
         <Tab value="tags" label="Tags" />
         <Tab value="notes" label="Notes" />
       </Tabs>
-      
+
       <TabPanel value={activeTab} index="repository">
         <RepositorySettings repoPath={repoPath} />
       </TabPanel>
-      
+
       <TabPanel value={activeTab} index="llm">
         <LLMConfiguration repoPath={repoPath} />
       </TabPanel>
-      
+
       <TabPanel value={activeTab} index="tags">
         <TagManager repoPath={repoPath} />
       </TabPanel>
-      
+
       <TabPanel value={activeTab} index="notes">
         <NoteManager repoPath={repoPath} />
       </TabPanel>
@@ -535,7 +538,7 @@ import {
   getRepositoryConfiguration,
   updateRepositoryConfiguration,
   getTagsWithDescriptions,
-  saveTagDescription
+  saveTagDescription,
 } from 'a24z-memory';
 
 ipcMain.handle('a24z:getConfig', (event, repoPath) => {
@@ -559,7 +562,7 @@ ipcMain.handle('a24z:testOllama', async (event, endpoint) => {
   try {
     const response = await fetch(`${endpoint}/api/tags`);
     const data = await response.json();
-    return { connected: true, models: data.models?.map(m => m.name) };
+    return { connected: true, models: data.models?.map((m) => m.name) };
   } catch (e) {
     return { connected: false, error: e.message };
   }
@@ -571,30 +574,27 @@ ipcMain.handle('a24z:testOllama', async (event, endpoint) => {
 ```typescript
 // renderer.ts
 const a24zAPI = {
-  getConfig: (repoPath: string) => 
-    ipcRenderer.invoke('a24z:getConfig', repoPath),
-    
+  getConfig: (repoPath: string) => ipcRenderer.invoke('a24z:getConfig', repoPath),
+
   updateConfig: (repoPath: string, config: any) =>
     ipcRenderer.invoke('a24z:updateConfig', repoPath, config),
-    
-  getTags: (repoPath: string) =>
-    ipcRenderer.invoke('a24z:getTags', repoPath),
-    
+
+  getTags: (repoPath: string) => ipcRenderer.invoke('a24z:getTags', repoPath),
+
   saveTag: (repoPath: string, name: string, desc: string) =>
     ipcRenderer.invoke('a24z:saveTag', repoPath, name, desc),
-    
-  testOllama: (endpoint: string) =>
-    ipcRenderer.invoke('a24z:testOllama', endpoint)
+
+  testOllama: (endpoint: string) => ipcRenderer.invoke('a24z:testOllama', endpoint),
 };
 
 // Use in React components
 function ConfigUI() {
   const [config, setConfig] = useState(null);
-  
+
   useEffect(() => {
     a24zAPI.getConfig('/current/repo').then(setConfig);
   }, []);
-  
+
   // ... rest of UI
 }
 ```
@@ -605,7 +605,7 @@ function ConfigUI() {
 // Validate configuration before saving
 function validateLLMConfig(config: LLMConfig): string[] {
   const errors: string[] = [];
-  
+
   if (config.provider === 'ollama') {
     if (!config.endpoint) {
       errors.push('Endpoint is required for Ollama');
@@ -620,28 +620,28 @@ function validateLLMConfig(config: LLMConfig): string[] {
       errors.push('Max tokens must be at least 100');
     }
   }
-  
+
   return errors;
 }
 
 // Handle errors gracefully
 async function saveConfigWithValidation(config: LLMConfig) {
   const errors = validateLLMConfig(config);
-  
+
   if (errors.length > 0) {
     return {
       success: false,
-      errors
+      errors,
     };
   }
-  
+
   try {
     saveLLMConfig(repoPath, config);
     return { success: true };
   } catch (e) {
     return {
       success: false,
-      errors: [`Failed to save: ${e.message}`]
+      errors: [`Failed to save: ${e.message}`],
     };
   }
 }
@@ -663,6 +663,7 @@ async function saveConfigWithValidation(config: LLMConfig) {
 ## Configuration Schema Reference
 
 See the TypeScript interfaces in the library:
+
 - `RepositoryConfiguration` - Core repository settings
 - `LLMConfig` - LLM integration settings
 - `TagInfo` - Tag definitions

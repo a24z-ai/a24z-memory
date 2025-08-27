@@ -14,10 +14,10 @@ describe('CheckStaleNotesTool', () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a24z-test-'));
     testRepoPath = path.join(tempDir, 'test-repo');
     fs.mkdirSync(testRepoPath, { recursive: true });
-    
+
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
-    
+
     tool = new CheckStaleNotesTool();
   });
 
@@ -32,7 +32,7 @@ describe('CheckStaleNotesTool', () => {
     const file2 = path.join(testRepoPath, 'file2.ts');
     fs.writeFileSync(file1, 'content');
     fs.writeFileSync(file2, 'content');
-    
+
     // Save notes with valid anchors
     saveNote({
       note: 'Note with valid anchors',
@@ -41,11 +41,11 @@ describe('CheckStaleNotesTool', () => {
       confidence: 'high',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
-    
+
     const result = await tool.execute({ directoryPath: testRepoPath });
-    
+
     expect(result.content[0].type).toBe('text');
     expect(result.content[0].text).toContain('No stale notes found');
   });
@@ -54,7 +54,7 @@ describe('CheckStaleNotesTool', () => {
     // Create one valid file
     const validFile = path.join(testRepoPath, 'valid.ts');
     fs.writeFileSync(validFile, 'content');
-    
+
     // Save notes with various anchor configurations
     const note1 = saveNote({
       note: 'This is a note with mixed anchors that should be detected',
@@ -63,9 +63,9 @@ describe('CheckStaleNotesTool', () => {
       confidence: 'medium',
       type: 'gotcha',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
-    
+
     const note2 = saveNote({
       note: 'This note has all stale anchors',
       anchors: ['missing1.ts', 'missing2.ts'],
@@ -73,30 +73,30 @@ describe('CheckStaleNotesTool', () => {
       confidence: 'low',
       type: 'pattern',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
-    
+
     const result = await tool.execute({ directoryPath: testRepoPath });
-    
+
     expect(result.content[0].type).toBe('text');
     const text = result.content[0].text as string;
-    
+
     // Check that it found 2 stale notes
     expect(text).toContain('Found 2 note(s) with stale anchors');
-    
+
     // Check for note IDs
     expect(text).toContain(note1.id);
     expect(text).toContain(note2.id);
-    
+
     // Check for stale anchor indicators
     expect(text).toContain('❌ stale1.ts');
     expect(text).toContain('❌ stale2.ts');
     expect(text).toContain('❌ missing1.ts');
     expect(text).toContain('❌ missing2.ts');
-    
+
     // Check for valid anchor indicator
     expect(text).toContain('✅ valid.ts');
-    
+
     // Check for note metadata
     expect(text).toContain('Type: gotcha');
     expect(text).toContain('Type: pattern');
@@ -107,11 +107,11 @@ describe('CheckStaleNotesTool', () => {
   it('should handle subdirectories in the repository', async () => {
     const subDir = path.join(testRepoPath, 'src', 'components');
     fs.mkdirSync(subDir, { recursive: true });
-    
+
     // Create a file in subdirectory
     const validFile = path.join(subDir, 'Component.tsx');
     fs.writeFileSync(validFile, 'content');
-    
+
     // Save a note with mixed anchors
     saveNote({
       note: 'Component documentation',
@@ -120,41 +120,44 @@ describe('CheckStaleNotesTool', () => {
       confidence: 'high',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
-    
+
     // Can provide any path within the repo
     const result = await tool.execute({ directoryPath: subDir });
-    
+
     expect(result.content[0].type).toBe('text');
     const text = result.content[0].text as string;
-    
+
     expect(text).toContain('Found 1 note(s) with stale anchors');
     expect(text).toContain('❌ src/components/Missing.tsx');
     expect(text).toContain('✅ src/components/Component.tsx');
   });
 
   it('should throw error for non-absolute path', async () => {
-    await expect(tool.execute({ directoryPath: 'relative/path' }))
-      .rejects.toThrow('directoryPath must be an absolute path');
+    await expect(tool.execute({ directoryPath: 'relative/path' })).rejects.toThrow(
+      'directoryPath must be an absolute path'
+    );
   });
 
   it('should throw error for non-existent path', async () => {
-    await expect(tool.execute({ directoryPath: '/non/existent/path' }))
-      .rejects.toThrow('directoryPath does not exist');
+    await expect(tool.execute({ directoryPath: '/non/existent/path' })).rejects.toThrow(
+      'directoryPath does not exist'
+    );
   });
 
   it('should throw error for path outside git repository', async () => {
     const nonGitDir = path.join(tempDir, 'non-git');
     fs.mkdirSync(nonGitDir, { recursive: true });
-    
-    await expect(tool.execute({ directoryPath: nonGitDir }))
-      .rejects.toThrow('directoryPath is not within a git repository');
+
+    await expect(tool.execute({ directoryPath: nonGitDir })).rejects.toThrow(
+      'directoryPath is not within a git repository'
+    );
   });
 
   it('should handle notes with long content correctly', async () => {
     const longContent = 'A'.repeat(200);
-    
+
     saveNote({
       note: longContent,
       anchors: ['missing.ts'],
@@ -162,12 +165,12 @@ describe('CheckStaleNotesTool', () => {
       confidence: 'high',
       type: 'explanation',
       metadata: {},
-      directoryPath: testRepoPath
+      directoryPath: testRepoPath,
     });
-    
+
     const result = await tool.execute({ directoryPath: testRepoPath });
     const text = result.content[0].text as string;
-    
+
     // Should truncate to 100 chars with ellipsis
     expect(text).toContain('A'.repeat(100) + '...');
   });

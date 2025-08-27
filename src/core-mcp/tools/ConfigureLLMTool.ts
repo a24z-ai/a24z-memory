@@ -15,19 +15,27 @@ export class ConfigureLLMTool extends BaseTool {
   description = 'Configure LLM providers for AI-enhanced note synthesis';
 
   schema = z.object({
-    action: z.enum(['list', 'status', 'configure', 'test', 'remove', 'set-default']).describe('Action to perform'),
-    provider: z.string().optional().describe('Provider name (required for configure/test/remove/set-default, use "none" to disable)'),
+    action: z
+      .enum(['list', 'status', 'configure', 'test', 'remove', 'set-default'])
+      .describe('Action to perform'),
+    provider: z
+      .string()
+      .optional()
+      .describe(
+        'Provider name (required for configure/test/remove/set-default, use "none" to disable)'
+      ),
     apiKey: z.string().optional().describe('API key for the provider'),
     model: z.string().optional().describe('Model to use'),
     siteUrl: z.string().optional().describe('Site URL (for OpenRouter rate limiting)'),
     siteName: z.string().optional().describe('Site name (for OpenRouter rate limiting)'),
     temperature: z.number().min(0).max(2).optional().describe('Temperature (0-2, default 0.3)'),
     maxTokens: z.number().min(1).optional().describe('Max tokens per response'),
-    endpoint: z.string().optional().describe('Custom endpoint URL (for Ollama)')
+    endpoint: z.string().optional().describe('Custom endpoint URL (for Ollama)'),
   });
 
   async execute(input: z.infer<typeof this.schema>): Promise<McpToolResult> {
-    const { action, provider, apiKey, model, siteUrl, siteName, temperature, maxTokens, endpoint } = input;
+    const { action, provider, apiKey, model, siteUrl, siteName, temperature, maxTokens, endpoint } =
+      input;
 
     switch (action) {
       case 'list':
@@ -36,10 +44,18 @@ export class ConfigureLLMTool extends BaseTool {
         return await this.showStatus();
       case 'configure':
         if (!provider) {
-          return { content: [{ type: 'text', text: 'Provider name is required for configuration' }] };
+          return {
+            content: [{ type: 'text', text: 'Provider name is required for configuration' }],
+          };
         }
         return await this.configureProvider(provider, {
-          apiKey, model, siteUrl, siteName, temperature, maxTokens, endpoint
+          apiKey,
+          model,
+          siteUrl,
+          siteName,
+          temperature,
+          maxTokens,
+          endpoint,
         });
       case 'test':
         if (!provider) {
@@ -53,11 +69,22 @@ export class ConfigureLLMTool extends BaseTool {
         return await this.removeProvider(provider);
       case 'set-default':
         if (!provider) {
-          return { content: [{ type: 'text', text: 'Provider name is required (use "none" to disable LLM)' }] };
+          return {
+            content: [
+              { type: 'text', text: 'Provider name is required (use "none" to disable LLM)' },
+            ],
+          };
         }
         return await this.setDefaultProvider(provider);
       default:
-        return { content: [{ type: 'text', text: 'Invalid action. Use: list, status, configure, test, remove, or set-default' }] };
+        return {
+          content: [
+            {
+              type: 'text',
+              text: 'Invalid action. Use: list, status, configure, test, remove, or set-default',
+            },
+          ],
+        };
     }
   }
 
@@ -67,7 +94,7 @@ export class ConfigureLLMTool extends BaseTool {
   private listProviders(): McpToolResult {
     const bunAvailable = ApiKeyManager.isBunSecretsAvailable();
     let content = '# Available LLM Providers\n\n';
-    
+
     if (!bunAvailable) {
       content += '⚠️  **Bun runtime required** for secure API key storage\n';
       content += 'Install Bun: https://bun.sh\n\n';
@@ -79,10 +106,10 @@ export class ConfigureLLMTool extends BaseTool {
       content += `**Provider ID:** \`${provider.name}\`\n`;
       content += `**API Key Required:** ${provider.requiresApiKey ? '✅ Yes' : '❌ No'}\n`;
       content += `**Default Model:** \`${provider.defaultModel || 'N/A'}\`\n`;
-      
+
       if (provider.supportedModels && provider.supportedModels.length > 0) {
         content += `**Supported Models:**\n`;
-        provider.supportedModels.slice(0, 5).forEach(model => {
+        provider.supportedModels.slice(0, 5).forEach((model) => {
           content += `- \`${model}\`\n`;
         });
         if (provider.supportedModels.length > 5) {
@@ -121,7 +148,7 @@ export class ConfigureLLMTool extends BaseTool {
   private async showStatus(): Promise<McpToolResult> {
     const bunAvailable = ApiKeyManager.isBunSecretsAvailable();
     let content = '# Current LLM Configuration Status\n\n';
-    
+
     if (!bunAvailable) {
       content += '⚠️  **Bun runtime not available** - API key storage disabled\n';
       content += 'Install Bun: https://bun.sh\n\n';
@@ -131,14 +158,14 @@ export class ConfigureLLMTool extends BaseTool {
     const fileConfig = this.loadConfigFile();
     if (fileConfig) {
       content += '## Configuration File (.a24z/llm-config.json)\n';
-      
+
       // Show defaultProvider explicitly
       if (fileConfig.defaultProvider !== undefined) {
         content += `**Default Provider:** ${fileConfig.defaultProvider === 'none' ? 'DISABLED (LLM features off)' : fileConfig.defaultProvider}\n`;
       } else if (fileConfig.provider) {
         content += `**Provider (legacy):** ${fileConfig.provider}\n`;
       }
-      
+
       content += `**Model:** ${fileConfig.model || 'default'}\n`;
       if (fileConfig.endpoint) content += `**Endpoint:** ${fileConfig.endpoint}\n\n`;
     }
@@ -151,8 +178,8 @@ export class ConfigureLLMTool extends BaseTool {
 
         for (const providerName of storedProviders) {
           const stored = await ApiKeyManager.getApiKey(providerName);
-          const providerConfig = SUPPORTED_PROVIDERS.find(p => p.name === providerName);
-          
+          const providerConfig = SUPPORTED_PROVIDERS.find((p) => p.name === providerName);
+
           content += `### ${providerConfig?.displayName || providerName}\n`;
           content += `**Provider:** ${providerName}\n`;
           content += `**Model:** ${stored?.model || providerConfig?.defaultModel || 'default'}\n`;
@@ -169,7 +196,7 @@ export class ConfigureLLMTool extends BaseTool {
 
     // Show current effective configuration
     content += '## Current Effective Configuration\n';
-    
+
     try {
       // Check what configuration would actually be used
       if (fileConfig?.defaultProvider === 'none') {
@@ -204,10 +231,10 @@ export class ConfigureLLMTool extends BaseTool {
       const fs = require('fs');
       const path = require('path');
       const { findGitRoot } = require('../utils/pathNormalization');
-      
+
       const repoRoot = findGitRoot(process.cwd());
       if (!repoRoot) return null;
-      
+
       const configPath = path.join(repoRoot, '.a24z', 'llm-config.json');
       if (fs.existsSync(configPath)) {
         return JSON.parse(fs.readFileSync(configPath, 'utf8'));
@@ -222,7 +249,7 @@ export class ConfigureLLMTool extends BaseTool {
    * Configure a provider
    */
   private async configureProvider(
-    providerName: string, 
+    providerName: string,
     config: {
       apiKey?: string;
       model?: string;
@@ -233,23 +260,27 @@ export class ConfigureLLMTool extends BaseTool {
       endpoint?: string;
     }
   ): Promise<McpToolResult> {
-    const providerConfig = SUPPORTED_PROVIDERS.find(p => p.name === providerName);
+    const providerConfig = SUPPORTED_PROVIDERS.find((p) => p.name === providerName);
     if (!providerConfig) {
-      return { 
-        content: [{ 
-          type: 'text', 
-          text: `❌ Unknown provider: ${providerName}\n\nUse the 'list' action to see available providers.` 
-        }] 
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `❌ Unknown provider: ${providerName}\n\nUse the 'list' action to see available providers.`,
+          },
+        ],
       };
     }
 
     // Check if Bun is available for providers that need API keys
     if (providerConfig.requiresApiKey && !ApiKeyManager.isBunSecretsAvailable()) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ ${providerConfig.displayName} configuration requires Bun runtime for secure API key storage.\n\nInstall Bun: https://bun.sh\nThen restart the MCP server with: bun run a24z-memory`
-        }]
+        content: [
+          {
+            type: 'text',
+            text: `❌ ${providerConfig.displayName} configuration requires Bun runtime for secure API key storage.\n\nInstall Bun: https://bun.sh\nThen restart the MCP server with: bun run a24z-memory`,
+          },
+        ],
       };
     }
 
@@ -259,10 +290,12 @@ export class ConfigureLLMTool extends BaseTool {
       const existing = await ApiKeyManager.getApiKey(providerName);
       if (!existing?.apiKey) {
         return {
-          content: [{
-            type: 'text',
-            text: `❌ API key required for ${providerConfig.displayName}\n\nPlease provide the 'apiKey' parameter.`
-          }]
+          content: [
+            {
+              type: 'text',
+              text: `❌ API key required for ${providerConfig.displayName}\n\nPlease provide the 'apiKey' parameter.`,
+            },
+          ],
         };
       }
     }
@@ -272,7 +305,7 @@ export class ConfigureLLMTool extends BaseTool {
       if (providerConfig.requiresApiKey && config.apiKey) {
         const storeConfig: any = {
           provider: providerName,
-          apiKey: config.apiKey
+          apiKey: config.apiKey,
         };
 
         // Add optional fields
@@ -292,7 +325,7 @@ export class ConfigureLLMTool extends BaseTool {
         maxTokens: config.maxTokens || 1000,
         endpoint: config.endpoint,
         openRouterSiteUrl: config.siteUrl,
-        openRouterSiteName: config.siteName
+        openRouterSiteName: config.siteName,
       };
 
       // Merge with stored API key if available
@@ -307,7 +340,7 @@ export class ConfigureLLMTool extends BaseTool {
       if (mergedConfig.endpoint) content += `**Endpoint:** ${mergedConfig.endpoint}\n`;
       content += `**Temperature:** ${mergedConfig.temperature || 0.3}\n`;
       content += `**Max Tokens:** ${mergedConfig.maxTokens || 1000}\n`;
-      
+
       if (testResult.success) {
         content += '\n🧪 **Connection Test:** ✅ Passed\n';
         content += 'AI-enhanced note synthesis is now enabled!\n';
@@ -318,13 +351,14 @@ export class ConfigureLLMTool extends BaseTool {
       }
 
       return { content: [{ type: 'text', text: content }] };
-
     } catch (error) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ Configuration failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-        }]
+        content: [
+          {
+            type: 'text',
+            text: `❌ Configuration failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          },
+        ],
       };
     }
   }
@@ -333,13 +367,15 @@ export class ConfigureLLMTool extends BaseTool {
    * Test a provider configuration
    */
   private async testProvider(providerName: string): Promise<McpToolResult> {
-    const providerConfig = SUPPORTED_PROVIDERS.find(p => p.name === providerName);
+    const providerConfig = SUPPORTED_PROVIDERS.find((p) => p.name === providerName);
     if (!providerConfig) {
-      return { 
-        content: [{ 
-          type: 'text', 
-          text: `❌ Unknown provider: ${providerName}` 
-        }] 
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `❌ Unknown provider: ${providerName}`,
+          },
+        ],
       };
     }
 
@@ -348,10 +384,12 @@ export class ConfigureLLMTool extends BaseTool {
       const stored = await ApiKeyManager.getApiKey(providerName);
       if (providerConfig.requiresApiKey && (!stored || !stored.apiKey)) {
         return {
-          content: [{
-            type: 'text',
-            text: `❌ No API key configured for ${providerConfig.displayName}\n\nRun configure action first.`
-          }]
+          content: [
+            {
+              type: 'text',
+              text: `❌ No API key configured for ${providerConfig.displayName}\n\nRun configure action first.`,
+            },
+          ],
         };
       }
 
@@ -359,7 +397,7 @@ export class ConfigureLLMTool extends BaseTool {
         provider: providerName,
         model: stored?.model || providerConfig.defaultModel,
         temperature: 0.3,
-        maxTokens: 100
+        maxTokens: 100,
       };
 
       if (stored) {
@@ -374,7 +412,7 @@ export class ConfigureLLMTool extends BaseTool {
       let content = `🧪 **Testing ${providerConfig.displayName}**\n\n`;
       content += `**Provider:** ${providerName}\n`;
       content += `**Model:** ${llmConfig.model}\n`;
-      
+
       if (testResult.success) {
         content += `**Status:** ✅ Available and working\n`;
         content += `**Response:** "${testResult.response}"\n`;
@@ -384,13 +422,14 @@ export class ConfigureLLMTool extends BaseTool {
       }
 
       return { content: [{ type: 'text', text: content }] };
-
     } catch (error) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ Test failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-        }]
+        content: [
+          {
+            type: 'text',
+            text: `❌ Test failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          },
+        ],
       };
     }
   }
@@ -399,13 +438,15 @@ export class ConfigureLLMTool extends BaseTool {
    * Remove a provider configuration
    */
   private async removeProvider(providerName: string): Promise<McpToolResult> {
-    const providerConfig = SUPPORTED_PROVIDERS.find(p => p.name === providerName);
+    const providerConfig = SUPPORTED_PROVIDERS.find((p) => p.name === providerName);
     if (!providerConfig) {
-      return { 
-        content: [{ 
-          type: 'text', 
-          text: `❌ Unknown provider: ${providerName}` 
-        }] 
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `❌ Unknown provider: ${providerName}`,
+          },
+        ],
       };
     }
 
@@ -413,10 +454,12 @@ export class ConfigureLLMTool extends BaseTool {
       if (providerConfig.requiresApiKey) {
         if (!ApiKeyManager.isBunSecretsAvailable()) {
           return {
-            content: [{
-              type: 'text',
-              text: `❌ Cannot remove ${providerConfig.displayName} configuration: Bun runtime required`
-            }]
+            content: [
+              {
+                type: 'text',
+                text: `❌ Cannot remove ${providerConfig.displayName} configuration: Bun runtime required`,
+              },
+            ],
           };
         }
 
@@ -424,18 +467,21 @@ export class ConfigureLLMTool extends BaseTool {
       }
 
       return {
-        content: [{
-          type: 'text',
-          text: `✅ ${providerConfig.displayName} configuration removed successfully`
-        }]
+        content: [
+          {
+            type: 'text',
+            text: `✅ ${providerConfig.displayName} configuration removed successfully`,
+          },
+        ],
       };
-
     } catch (error) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ Removal failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-        }]
+        content: [
+          {
+            type: 'text',
+            text: `❌ Removal failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          },
+        ],
       };
     }
   }
@@ -443,30 +489,35 @@ export class ConfigureLLMTool extends BaseTool {
   /**
    * Test a configuration by making a simple request
    */
-  private async testConfiguration(config: any, providerConfig: LLMProviderConfig): Promise<{success: boolean, response?: string, error?: string}> {
+  private async testConfiguration(
+    config: any,
+    _providerConfig: LLMProviderConfig
+  ): Promise<{ success: boolean; response?: string; error?: string }> {
     try {
       const llmService = new LLMService(config);
       const response = await llmService.synthesizeNotes({
         query: 'Hello, this is a test',
         notes: [],
-        filePath: '/test'
+        filePath: '/test',
       });
 
       if (response && response.success) {
         return {
           success: true,
-          response: response.content?.substring(0, 100) + (response.content && response.content.length > 100 ? '...' : '')
+          response:
+            response.content?.substring(0, 100) +
+            (response.content && response.content.length > 100 ? '...' : ''),
         };
       } else {
         return {
           success: false,
-          error: response?.error || 'No response received'
+          error: response?.error || 'No response received',
         };
       }
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -477,13 +528,15 @@ export class ConfigureLLMTool extends BaseTool {
   private async setDefaultProvider(providerName: string): Promise<McpToolResult> {
     // Validate provider (allow 'none' as special case)
     if (providerName !== 'none') {
-      const providerConfig = SUPPORTED_PROVIDERS.find(p => p.name === providerName);
+      const providerConfig = SUPPORTED_PROVIDERS.find((p) => p.name === providerName);
       if (!providerConfig) {
         return {
-          content: [{
-            type: 'text',
-            text: `❌ Unknown provider: ${providerName}\n\nUse 'none' to disable LLM or one of: ${SUPPORTED_PROVIDERS.map(p => p.name).join(', ')}`
-          }]
+          content: [
+            {
+              type: 'text',
+              text: `❌ Unknown provider: ${providerName}\n\nUse 'none' to disable LLM or one of: ${SUPPORTED_PROVIDERS.map((p) => p.name).join(', ')}`,
+            },
+          ],
         };
       }
 
@@ -492,10 +545,12 @@ export class ConfigureLLMTool extends BaseTool {
         const stored = await ApiKeyManager.getApiKey(providerName);
         if (!stored?.apiKey) {
           return {
-            content: [{
-              type: 'text',
-              text: `❌ ${providerConfig.displayName} requires API key configuration first.\n\nUse: { "action": "configure", "provider": "${providerName}", "apiKey": "..." }`
-            }]
+            content: [
+              {
+                type: 'text',
+                text: `❌ ${providerConfig.displayName} requires API key configuration first.\n\nUse: { "action": "configure", "provider": "${providerName}", "apiKey": "..." }`,
+              },
+            ],
           };
         }
       }
@@ -505,25 +560,27 @@ export class ConfigureLLMTool extends BaseTool {
       const fs = require('fs');
       const path = require('path');
       const { findGitRoot } = require('../utils/pathNormalization');
-      
+
       const repoRoot = findGitRoot(process.cwd());
       if (!repoRoot) {
         return {
-          content: [{
-            type: 'text',
-            text: '❌ Could not find repository root'
-          }]
+          content: [
+            {
+              type: 'text',
+              text: '❌ Could not find repository root',
+            },
+          ],
         };
       }
-      
+
       const configDir = path.join(repoRoot, '.a24z');
       const configPath = path.join(configDir, 'llm-config.json');
-      
+
       // Ensure directory exists
       if (!fs.existsSync(configDir)) {
         fs.mkdirSync(configDir, { recursive: true });
       }
-      
+
       // Load existing config or create new one
       let config: any = {};
       if (fs.existsSync(configPath)) {
@@ -534,43 +591,47 @@ export class ConfigureLLMTool extends BaseTool {
           config = {};
         }
       }
-      
+
       // Update defaultProvider
       config.defaultProvider = providerName;
-      
+
       // Remove legacy provider field if setting defaultProvider
       if (config.provider && config.defaultProvider) {
         delete config.provider;
       }
-      
+
       // Write updated config
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-      
+
       let message = '';
       if (providerName === 'none') {
         message = '✅ LLM features disabled successfully\n\n';
         message += 'The system will use local synthesis only.\n';
-        message += 'To re-enable, use: `{ "action": "set-default", "provider": "<provider-name>" }`';
+        message +=
+          'To re-enable, use: `{ "action": "set-default", "provider": "<provider-name>" }`';
       } else {
-        const providerConfig = SUPPORTED_PROVIDERS.find(p => p.name === providerName);
+        const providerConfig = SUPPORTED_PROVIDERS.find((p) => p.name === providerName);
         message = `✅ Default provider set to ${providerConfig?.displayName || providerName}\n\n`;
         message += `The system will use ${providerName} for all LLM operations.\n`;
         message += 'To disable LLM, use: `{ "action": "set-default", "provider": "none" }`';
       }
-      
+
       return {
-        content: [{
-          type: 'text',
-          text: message
-        }]
+        content: [
+          {
+            type: 'text',
+            text: message,
+          },
+        ],
       };
-      
     } catch (error) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ Failed to set default provider: ${error instanceof Error ? error.message : 'Unknown error'}`
-        }]
+        content: [
+          {
+            type: 'text',
+            text: `❌ Failed to set default provider: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          },
+        ],
       };
     }
   }

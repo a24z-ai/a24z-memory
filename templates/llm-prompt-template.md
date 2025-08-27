@@ -53,10 +53,10 @@ const fs = require('fs');
 const template = fs.readFileSync('.a24z/llm-prompt-template.txt', 'utf8');
 
 const config = {
-  provider: "ollama",
-  model: "codellama:13b",
+  provider: 'ollama',
+  model: 'codellama:13b',
   promptTemplate: template,
-  includeSourceNotes: true
+  includeSourceNotes: true,
 };
 ```
 

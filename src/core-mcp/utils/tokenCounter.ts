@@ -2,7 +2,7 @@
  * Token counting utilities for limiting notes by token count
  */
 
-import { encode, countTokens } from 'gpt-tokenizer';
+import { countTokens } from 'gpt-tokenizer';
 import type { StoredNote } from '../store/notesStore';
 
 export type LimitType = 'count' | 'tokens';
@@ -29,13 +29,13 @@ function formatNoteForTokenCount(note: StoredNote): string {
     `Confidence: ${note.confidence}`,
     `Tags: ${note.tags.join(', ')}`,
     `Anchors: ${note.anchors.join(', ')}`,
-    `Content: ${note.note}`
+    `Content: ${note.note}`,
   ];
-  
+
   if (note.metadata && Object.keys(note.metadata).length > 0) {
     parts.push(`Metadata: ${JSON.stringify(note.metadata)}`);
   }
-  
+
   return parts.join('\n');
 }
 
@@ -50,13 +50,10 @@ export function countNotesTokens(notes: StoredNote[]): number {
  * Filter notes to fit within token limit
  * Returns notes that fit within the limit, preserving order
  */
-export function filterNotesByTokenLimit(
-  notes: StoredNote[], 
-  maxTokens: number
-): StoredNote[] {
+export function filterNotesByTokenLimit(notes: StoredNote[], maxTokens: number): StoredNote[] {
   const result: StoredNote[] = [];
   let currentTokens = 0;
-  
+
   for (const note of notes) {
     const noteTokens = countNoteTokens(note);
     if (currentTokens + noteTokens <= maxTokens) {
@@ -67,7 +64,7 @@ export function filterNotesByTokenLimit(
       break;
     }
   }
-  
+
   return result;
 }
 
@@ -83,13 +80,10 @@ export interface TokenLimitInfo {
   truncated: boolean;
 }
 
-export function getTokenLimitInfo(
-  notes: StoredNote[], 
-  maxTokens: number
-): TokenLimitInfo {
+export function getTokenLimitInfo(notes: StoredNote[], maxTokens: number): TokenLimitInfo {
   let usedTokens = 0;
   let includedNotes = 0;
-  
+
   for (const note of notes) {
     const noteTokens = countNoteTokens(note);
     if (usedTokens + noteTokens <= maxTokens) {
@@ -99,16 +93,16 @@ export function getTokenLimitInfo(
       break;
     }
   }
-  
+
   const totalTokens = countNotesTokens(notes);
-  
+
   return {
     totalNotes: notes.length,
     includedNotes,
     totalTokens,
     usedTokens,
     remainingTokens: maxTokens - usedTokens,
-    truncated: includedNotes < notes.length
+    truncated: includedNotes < notes.length,
   };
 }
 

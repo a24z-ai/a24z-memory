@@ -13,10 +13,10 @@ describe('A24zMemory askMemory method', () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a24z-test-'));
     testRepoPath = path.join(tempDir, 'test-repo');
     fs.mkdirSync(testRepoPath, { recursive: true });
-    
+
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
-    
+
     // Initialize A24zMemory with test repo
     memory = new A24zMemory(testRepoPath);
   });
@@ -34,13 +34,13 @@ describe('A24zMemory askMemory method', () => {
         anchors: [path.join(testRepoPath, 'src/auth.ts')],
         tags: ['authentication', 'jwt', 'security'],
         confidence: 'high',
-        type: 'pattern'
+        type: 'pattern',
       });
 
       // Ask a question
       const result = await memory.askMemory({
         filePath: path.join(testRepoPath, 'src/auth.ts'),
-        query: 'How is authentication handled?'
+        query: 'How is authentication handled?',
       });
 
       expect(result.metadata).toBeDefined();
@@ -56,25 +56,25 @@ describe('A24zMemory askMemory method', () => {
         note: 'Authentication with JWT',
         anchors: [path.join(testRepoPath, 'src/auth.ts')],
         tags: ['authentication', 'jwt'],
-        type: 'pattern'
+        type: 'pattern',
       });
 
       memory.saveNote({
         note: 'Database connection pooling',
         anchors: [path.join(testRepoPath, 'src/db.ts')],
         tags: ['database', 'performance'],
-        type: 'pattern'
+        type: 'pattern',
       });
 
       // Ask with tag filter
       const result = await memory.askMemory({
         filePath: testRepoPath,
         query: 'What patterns exist?',
-        filterTags: ['database']
+        filterTags: ['database'],
       });
 
       expect(result.metadata.filters.tags).toEqual(['database']);
-      expect(result.notes.every(n => n.tags.includes('database'))).toBe(true);
+      expect(result.notes.every((n) => n.tags.includes('database'))).toBe(true);
     });
 
     it('should apply type filters correctly', async () => {
@@ -83,32 +83,32 @@ describe('A24zMemory askMemory method', () => {
         note: 'Architecture decision: Use microservices',
         anchors: [path.join(testRepoPath, 'docs/arch.md')],
         tags: ['architecture'],
-        type: 'decision'
+        type: 'decision',
       });
 
       memory.saveNote({
         note: 'Watch out for race condition in auth',
         anchors: [path.join(testRepoPath, 'src/auth.ts')],
         tags: ['bug'],
-        type: 'gotcha'
+        type: 'gotcha',
       });
 
       // Ask with type filter
       const result = await memory.askMemory({
         filePath: testRepoPath,
         query: 'What should I know?',
-        filterTypes: ['gotcha']
+        filterTypes: ['gotcha'],
       });
 
       expect(result.metadata.filters.types).toEqual(['gotcha']);
-      expect(result.notes.every(n => n.context.type === 'gotcha')).toBe(true);
+      expect(result.notes.every((n) => n.context.type === 'gotcha')).toBe(true);
     });
 
     it('should handle empty results gracefully', async () => {
       // Ask without any notes
       const result = await memory.askMemory({
         filePath: path.join(testRepoPath, 'src/nonexistent.ts'),
-        query: 'Any notes here?'
+        query: 'Any notes here?',
       });
 
       expect(result.metadata.notesFound).toBe(0);
@@ -124,7 +124,7 @@ describe('A24zMemory askMemory method', () => {
           note: `Note ${i}`,
           anchors: [path.join(testRepoPath, `file${i}.ts`)],
           tags: ['test'],
-          type: 'explanation'
+          type: 'explanation',
         });
       }
 
@@ -132,7 +132,7 @@ describe('A24zMemory askMemory method', () => {
       const result = await memory.askMemory({
         filePath: testRepoPath,
         query: 'Show me notes',
-        options: { maxNotes: 3 }
+        options: { maxNotes: 3 },
       });
 
       // Note: The tool internally limits to defaultConfig.noteFetching.maxNotesPerQuery
@@ -148,11 +148,11 @@ describe('A24zMemory askMemory method', () => {
         provider: 'ollama' as const,
         endpoint: 'http://localhost:11434',
         model: 'llama2',
-        temperature: 0.5
+        temperature: 0.5,
       };
 
       memory.configureLLM(config);
-      
+
       // Configuration should be set (we can't directly test private fields)
       expect(() => memory.configureLLM(config)).not.toThrow();
     });
@@ -168,7 +168,7 @@ describe('A24zMemory askMemory method', () => {
       memory.configureLLM({
         provider: 'ollama',
         endpoint: 'http://localhost:11434',
-        model: 'llama2'
+        model: 'llama2',
       });
 
       // This will return false if Ollama is not running
@@ -178,7 +178,7 @@ describe('A24zMemory askMemory method', () => {
 
     it('should return false for "none" provider', async () => {
       memory.configureLLM({
-        provider: 'none'
+        provider: 'none',
       });
 
       const available = await memory.isLLMAvailable();
@@ -197,13 +197,13 @@ describe('A24zMemory askMemory method', () => {
         note: 'This file contains test exports',
         anchors: [testFilePath],
         tags: ['exports'],
-        type: 'explanation'
+        type: 'explanation',
       });
 
       // Configure LLM with file contents
       memory.configureLLM({
         provider: 'none', // Use none to avoid actual LLM calls
-        includeFileContents: true
+        includeFileContents: true,
       });
 
       // Ask with file contents option
@@ -211,8 +211,8 @@ describe('A24zMemory askMemory method', () => {
         filePath: testFilePath,
         query: 'What does this file do?',
         options: {
-          includeFileContents: true
-        }
+          includeFileContents: true,
+        },
       });
 
       expect(result).toBeDefined();
