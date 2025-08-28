@@ -213,7 +213,8 @@ export class A24zMemory {
     tags: string[];
     confidence?: NoteConfidenceType;
     type?: NoteTypeType;
-    metadata?: Record<string, any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    metadata?: Record<string, any>; // Metadata can contain arbitrary user data
   }): StoredNoteType {
     return saveNoteFunc({
       ...params,

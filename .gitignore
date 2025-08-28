@@ -5,3 +5,4 @@ dist
 .history
 
 .env.local
+.a24z/lancedb

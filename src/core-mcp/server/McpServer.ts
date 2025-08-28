@@ -27,11 +27,13 @@ import { McpLLMConfigurator } from '../services/mcp-llm-configurator';
 import { LLMService } from '../services/llm-service';
 
 export class McpServer {
-  private server: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private server: any; // MCP SDK Server type not exported
   private config: McpServerConfig;
   private tools: Map<string, McpTool> = new Map();
   private resources: Map<string, McpResource> = new Map();
-  private messageQueue: any[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private messageQueue: any[] = []; // Message types vary by transport
   private llmConfigurator: McpLLMConfigurator;
   private llmService?: LLMService;
 
@@ -105,7 +107,9 @@ export class McpServer {
     });
 
     // Handle tools/call request
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
+      // MCP SDK request type
       console.error('[McpServer] DEBUG: tool call received, name =', request.params.name);
       console.error(
         '[McpServer] DEBUG: tool call args =',
@@ -127,7 +131,8 @@ export class McpServer {
       console.error('[McpServer] DEBUG: calling tool handler for', name);
       const result = await tool.handler(args || {});
       console.error('[McpServer] DEBUG: tool handler returned:', JSON.stringify(result, null, 2));
-      return result as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return result as any; // MCP SDK expects any return type
     });
 
     // Handle resources/list request
@@ -145,7 +150,9 @@ export class McpServer {
     });
 
     // Handle resources/read request
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.server.setRequestHandler(ReadResourceRequestSchema, async (request: any) => {
+      // MCP SDK request type
       const { uri } = request.params;
       const resource = this.resources.get(uri);
 
@@ -238,7 +245,9 @@ export class McpServer {
   /**
    * Determine the source of LLM configuration for transparency
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private getConfigurationSource(config: any): string {
+    // Config shape varies by provider
     // Check if from config file
     try {
       const fs = require('fs');

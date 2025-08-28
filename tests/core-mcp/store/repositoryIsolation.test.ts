@@ -1,7 +1,14 @@
+// Test file - any types used for mock data
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { saveNote, getNotesForPath, getUsedTagsForPath } from '../../../src/core-mcp/store/notesStore';
+import {
+  saveNote,
+  getNotesForPath,
+  getUsedTagsForPath,
+} from '../../../src/core-mcp/store/notesStore';
 import { CreateRepositoryNoteTool } from '../../../src/core-mcp/tools/CreateRepositoryNoteTool';
 import { GetNotesTool } from '../../../src/core-mcp/tools/GetNotesTool';
 
@@ -31,32 +38,47 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
 
     // Repository 1: Git repository with package.json
     fs.mkdirSync(path.join(repo1Path, '.git'), { recursive: true });
-    fs.writeFileSync(path.join(repo1Path, '.git', 'config'), '[core]\nrepositoryformatversion = 0\n');
-    fs.writeFileSync(path.join(repo1Path, 'package.json'), JSON.stringify({
-      name: 'project-alpha',
-      version: '1.0.0'
-    }));
+    fs.writeFileSync(
+      path.join(repo1Path, '.git', 'config'),
+      '[core]\nrepositoryformatversion = 0\n'
+    );
+    fs.writeFileSync(
+      path.join(repo1Path, 'package.json'),
+      JSON.stringify({
+        name: 'project-alpha',
+        version: '1.0.0',
+      })
+    );
     fs.mkdirSync(path.join(repo1Path, 'src', 'components'), { recursive: true });
 
     // Repository 2: Git repository with package.json
     fs.mkdirSync(repo2Path, { recursive: true });
     fs.mkdirSync(path.join(repo2Path, '.git'), { recursive: true });
-    fs.writeFileSync(path.join(repo2Path, '.git', 'config'), '[core]\nrepositoryformatversion = 0\n');
-    fs.writeFileSync(path.join(repo2Path, 'package.json'), JSON.stringify({
-      name: 'project-beta',
-      version: '2.0.0'
-    }));
+    fs.writeFileSync(
+      path.join(repo2Path, '.git', 'config'),
+      '[core]\nrepositoryformatversion = 0\n'
+    );
+    fs.writeFileSync(
+      path.join(repo2Path, 'package.json'),
+      JSON.stringify({
+        name: 'project-beta',
+        version: '2.0.0',
+      })
+    );
     fs.mkdirSync(path.join(repo2Path, 'lib', 'utils'), { recursive: true });
 
     // Repository 3: Git repository without package.json
     fs.mkdirSync(path.join(repo3Path, '.git'), { recursive: true });
-    fs.writeFileSync(path.join(repo3Path, '.git', 'config'), '[core]\nrepositoryformatversion = 0\n');
+    fs.writeFileSync(
+      path.join(repo3Path, '.git', 'config'),
+      '[core]\nrepositoryformatversion = 0\n'
+    );
     fs.mkdirSync(path.join(repo3Path, 'modules', 'core'), { recursive: true });
   });
 
   afterEach(() => {
     // Clean up repository directories
-    [repo1Path, repo2Path, repo3Path].forEach(repoPath => {
+    [repo1Path, repo2Path, repo3Path].forEach((repoPath) => {
       if (fs.existsSync(repoPath)) {
         fs.rmSync(repoPath, { recursive: true, force: true });
       }
@@ -73,7 +95,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         anchors: [repo1Path],
         confidence: 'high',
         type: 'explanation',
-        metadata: { project: 'alpha' }
+        metadata: { project: 'alpha' },
       });
 
       saveNote({
@@ -83,7 +105,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         anchors: [repo2Path],
         confidence: 'medium',
         type: 'pattern',
-        metadata: { project: 'beta' }
+        metadata: { project: 'beta' },
       });
 
       saveNote({
@@ -93,7 +115,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         anchors: [repo3Path],
         confidence: 'low',
         type: 'gotcha',
-        metadata: { project: 'gamma' }
+        metadata: { project: 'gamma' },
       });
 
       // Verify each repository has its own .a24z directory
@@ -116,7 +138,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         anchors: [repo1Path],
         confidence: 'high',
         type: 'decision',
-        metadata: { confidential: true }
+        metadata: { confidential: true },
       });
 
       const note2 = saveNote({
@@ -126,7 +148,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         anchors: [repo2Path],
         confidence: 'high',
         type: 'decision',
-        metadata: { proprietary: true }
+        metadata: { proprietary: true },
       });
 
       // Retrieve notes from each repository
@@ -155,11 +177,11 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
     it('should store notes from subdirectories in repository root', () => {
       const subPath1 = path.join(repo1Path, 'src', 'components');
       const subPath2 = path.join(repo1Path, 'src', 'components', 'buttons', 'PrimaryButton.tsx');
-      
+
       // Save notes from different subdirectory depths
       // Create the subdirectory paths first
       fs.mkdirSync(path.dirname(subPath2), { recursive: true });
-      
+
       saveNote({
         note: 'Component level note',
         directoryPath: repo1Path,
@@ -167,7 +189,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         anchors: [subPath1],
         confidence: 'medium',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       saveNote({
@@ -177,7 +199,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         anchors: [subPath2],
         confidence: 'high',
         type: 'pattern',
-        metadata: {}
+        metadata: {},
       });
 
       // Both should be stored in repository root .a24z
@@ -202,7 +224,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         anchors: [repo1Path],
         confidence: 'high',
         type: 'decision',
-        metadata: {}
+        metadata: {},
       });
 
       // Query from a deep subdirectory
@@ -222,7 +244,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       // Save notes with similar tags in different repositories
       // Create the auth directory first
       fs.mkdirSync(path.join(repo1Path, 'src', 'auth'), { recursive: true });
-      
+
       saveNote({
         note: 'Authentication implementation in Alpha',
         directoryPath: repo1Path,
@@ -230,12 +252,12 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         anchors: [path.join(repo1Path, 'src', 'auth')],
         confidence: 'high',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       // Create the auth directory first
       fs.mkdirSync(path.join(repo2Path, 'lib', 'auth'), { recursive: true });
-      
+
       saveNote({
         note: 'Authentication implementation in Beta',
         directoryPath: repo2Path,
@@ -243,12 +265,12 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         anchors: [path.join(repo2Path, 'lib', 'auth')],
         confidence: 'high',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       // Create the auth directory first
       fs.mkdirSync(path.join(repo3Path, 'modules', 'auth'), { recursive: true });
-      
+
       saveNote({
         note: 'Authentication implementation in Gamma',
         directoryPath: repo3Path,
@@ -256,7 +278,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         anchors: [path.join(repo3Path, 'modules', 'auth')],
         confidence: 'high',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       // Query each repository for auth notes
@@ -284,7 +306,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         anchors: [repo1Path],
         confidence: 'medium',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       saveNote({
@@ -294,7 +316,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         anchors: [repo2Path],
         confidence: 'medium',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       // Get used tags from each repository
@@ -323,7 +345,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         tags: ['mcp', 'alpha'],
         confidence: 'high',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       await createTool.execute({
@@ -333,7 +355,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         tags: ['mcp', 'beta'],
         confidence: 'high',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       // Retrieve using MCP tool
@@ -345,7 +367,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         sortBy: 'timestamp',
         limit: 10,
         offset: 0,
-        includeMetadata: true
+        includeMetadata: true,
       });
 
       const betaResult = await getTool.execute({
@@ -356,7 +378,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         sortBy: 'timestamp',
         limit: 10,
         offset: 0,
-        includeMetadata: true
+        includeMetadata: true,
       });
 
       // Parse results
@@ -377,11 +399,17 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       // Create a nested repository inside repo1
       const nestedRepoPath = path.join(repo1Path, 'vendor', 'nested-project');
       fs.mkdirSync(path.join(nestedRepoPath, '.git'), { recursive: true });
-      fs.writeFileSync(path.join(nestedRepoPath, '.git', 'config'), '[core]\nrepositoryformatversion = 0\n');
-      fs.writeFileSync(path.join(nestedRepoPath, 'package.json'), JSON.stringify({
-        name: 'nested-project',
-        version: '1.0.0'
-      }));
+      fs.writeFileSync(
+        path.join(nestedRepoPath, '.git', 'config'),
+        '[core]\nrepositoryformatversion = 0\n'
+      );
+      fs.writeFileSync(
+        path.join(nestedRepoPath, 'package.json'),
+        JSON.stringify({
+          name: 'nested-project',
+          version: '1.0.0',
+        })
+      );
 
       // Save notes in parent and nested repositories
       const parentNote = saveNote({
@@ -391,7 +419,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         anchors: [repo1Path],
         confidence: 'high',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       const nestedNote = saveNote({
@@ -401,7 +429,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         anchors: [nestedRepoPath],
         confidence: 'high',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       // Each should have its own .a24z directory
@@ -422,10 +450,13 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
     it('should handle repository without package.json but with git', () => {
       const orphanPath = path.join(tempBase, 'orphan-directory');
       fs.mkdirSync(orphanPath, { recursive: true });
-      
+
       // Create minimal git structure
       fs.mkdirSync(path.join(orphanPath, '.git'), { recursive: true });
-      fs.writeFileSync(path.join(orphanPath, '.git', 'config'), '[core]\nrepositoryformatversion = 0\n');
+      fs.writeFileSync(
+        path.join(orphanPath, '.git', 'config'),
+        '[core]\nrepositoryformatversion = 0\n'
+      );
 
       const orphanNote = saveNote({
         note: 'Orphan directory note',
@@ -434,7 +465,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         anchors: [orphanPath],
         confidence: 'low',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       // Should create .a24z in the directory itself
@@ -451,39 +482,45 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
 
       // Create 5 notes in each repository concurrently
       for (let i = 0; i < 5; i++) {
-        notePromises.push(saveNote({
-          note: `Alpha concurrent note ${i}`,
-          directoryPath: repo1Path,
-          tags: ['concurrent', 'alpha'],
-          anchors: [repo1Path],
-          confidence: 'medium',
-          type: 'explanation',
-          metadata: { index: i }
-        }));
+        notePromises.push(
+          saveNote({
+            note: `Alpha concurrent note ${i}`,
+            directoryPath: repo1Path,
+            tags: ['concurrent', 'alpha'],
+            anchors: [repo1Path],
+            confidence: 'medium',
+            type: 'explanation',
+            metadata: { index: i },
+          })
+        );
 
-        notePromises.push(saveNote({
-          note: `Beta concurrent note ${i}`,
-          directoryPath: repo2Path,
-          tags: ['concurrent', 'beta'],
-          anchors: [repo2Path],
-          confidence: 'medium',
-          type: 'explanation',
-          metadata: { index: i }
-        }));
+        notePromises.push(
+          saveNote({
+            note: `Beta concurrent note ${i}`,
+            directoryPath: repo2Path,
+            tags: ['concurrent', 'beta'],
+            anchors: [repo2Path],
+            confidence: 'medium',
+            type: 'explanation',
+            metadata: { index: i },
+          })
+        );
 
-        notePromises.push(saveNote({
-          note: `Gamma concurrent note ${i}`,
-          directoryPath: repo3Path,
-          tags: ['concurrent', 'gamma'],
-          anchors: [repo3Path],
-          confidence: 'medium',
-          type: 'explanation',
-          metadata: { index: i }
-        }));
+        notePromises.push(
+          saveNote({
+            note: `Gamma concurrent note ${i}`,
+            directoryPath: repo3Path,
+            tags: ['concurrent', 'gamma'],
+            anchors: [repo3Path],
+            confidence: 'medium',
+            type: 'explanation',
+            metadata: { index: i },
+          })
+        );
       }
 
       // Wait for all saves
-      const savedNotes = notePromises.map(n => n);
+      notePromises.map((n) => n);
 
       // Verify each repository has exactly 5 notes
       const alphaNotes = getNotesForPath(repo1Path, true);
@@ -495,9 +532,9 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       expect(gammaNotes).toHaveLength(5);
 
       // Verify no cross-contamination
-      expect(alphaNotes.every(n => n.note.includes('Alpha'))).toBe(true);
-      expect(betaNotes.every(n => n.note.includes('Beta'))).toBe(true);
-      expect(gammaNotes.every(n => n.note.includes('Gamma'))).toBe(true);
+      expect(alphaNotes.every((n) => n.note.includes('Alpha'))).toBe(true);
+      expect(betaNotes.every((n) => n.note.includes('Beta'))).toBe(true);
+      expect(gammaNotes.every((n) => n.note.includes('Gamma'))).toBe(true);
     });
   });
 });

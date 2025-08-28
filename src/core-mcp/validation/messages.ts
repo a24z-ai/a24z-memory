@@ -99,7 +99,8 @@ export class ValidationMessageFormatter {
     if (!formatter) {
       throw new Error(`Unknown validation message type: ${type}`);
     }
-    return (formatter as any)(data);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (formatter as any)(data); // Type assertion needed for dynamic formatter call
   }
 
   formatError<T extends keyof ValidationMessageData>(error: TypedValidationError<T>): string {

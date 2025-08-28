@@ -16,7 +16,8 @@ export abstract class BaseTool<TParams = unknown, TResult = unknown>
 {
   abstract name: string;
   abstract description: string;
-  abstract schema: z.ZodType<TParams, any, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  abstract schema: z.ZodType<TParams, any, any>; // Zod requires any for type parameters
 
   get inputSchema(): unknown {
     return zodToJsonSchema(this.schema);

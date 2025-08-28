@@ -8,7 +8,7 @@ import {
   isNoteStale,
   DEFAULT_THRESHOLDS,
 } from '../../../src/core-mcp/utils/noteSimilarity';
-import { saveNote, type StoredNote } from '../../../src/core-mcp/store/notesStore';
+import { type StoredNote } from '../../../src/core-mcp/store/notesStore';
 
 describe('Note Similarity Utilities', () => {
   let tempDir: string;
@@ -50,9 +50,9 @@ describe('Note Similarity Utilities', () => {
       };
 
       const similarity = calculateNoteSimilarity(note1, note2);
-      
+
       expect(similarity.score).toBeGreaterThan(0.6); // Should be similar
-      expect(similarity.reasons.some(r => r.includes('Content similarity'))).toBe(true);
+      expect(similarity.reasons.some((r) => r.includes('Content similarity'))).toBe(true);
       expect(similarity.reasons).toContain('Same type');
     });
 
@@ -80,7 +80,7 @@ describe('Note Similarity Utilities', () => {
       };
 
       const similarity = calculateNoteSimilarity(note1, note2);
-      
+
       expect(similarity.score).toBeLessThan(0.3); // Should not be similar
       expect(similarity.reasons).toHaveLength(0); // No significant similarities
     });
@@ -122,7 +122,7 @@ describe('Note Similarity Utilities', () => {
       ];
 
       const pairs = findSimilarNotePairs(notes, 0.4); // Lower threshold
-      
+
       expect(pairs).toHaveLength(1); // Only note1 and note2 are similar
       expect(pairs[0].note1.id).toBe('note1');
       expect(pairs[0].note2.id).toBe('note2');
@@ -194,12 +194,10 @@ describe('Note Similarity Utilities', () => {
       ];
 
       const clusters = clusterSimilarNotes(notes, 0.3); // Lower threshold
-      
+
       // Should have at least one cluster with auth notes
-      const authCluster = clusters.find(cluster => 
-        cluster.some(note => note.id === 'auth1')
-      );
-      
+      const authCluster = clusters.find((cluster) => cluster.some((note) => note.id === 'auth1'));
+
       expect(authCluster).toBeDefined();
       expect(authCluster?.length).toBeGreaterThanOrEqual(2);
     });
@@ -215,7 +213,7 @@ describe('Note Similarity Utilities', () => {
         confidence: 'low',
         type: 'explanation',
         metadata: {},
-        timestamp: Date.now() - (400 * 24 * 60 * 60 * 1000), // 400 days ago
+        timestamp: Date.now() - 400 * 24 * 60 * 60 * 1000, // 400 days ago
       };
 
       const recentNote: StoredNote = {
@@ -226,7 +224,7 @@ describe('Note Similarity Utilities', () => {
         confidence: 'high',
         type: 'explanation',
         metadata: {},
-        timestamp: Date.now() - (10 * 24 * 60 * 60 * 1000), // 10 days ago
+        timestamp: Date.now() - 10 * 24 * 60 * 60 * 1000, // 10 days ago
       };
 
       expect(isNoteStale(oldNote, 365)).toBe(true);
@@ -242,7 +240,7 @@ describe('Note Similarity Utilities', () => {
         confidence: 'low',
         type: 'explanation',
         metadata: {},
-        timestamp: Date.now() - (100 * 24 * 60 * 60 * 1000), // 100 days ago
+        timestamp: Date.now() - 100 * 24 * 60 * 60 * 1000, // 100 days ago
       };
 
       // Low confidence notes with 100 days age - check staleness

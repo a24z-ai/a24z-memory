@@ -52,6 +52,9 @@ export interface AskMemoryResponse {
   notes: TribalNote[];
 }
 
+// This tool handles dynamic LLM responses and configurations
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export class AskA24zMemoryTool extends BaseTool {
   public name = 'askA24zMemory';
   public description =

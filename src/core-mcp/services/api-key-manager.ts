@@ -16,6 +16,9 @@ export interface StoredApiKey {
   siteName?: string;
 }
 
+// API key manager needs any types for Bun.secrets interface which isn't fully typed
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export class ApiKeyManager {
   private static SERVICE_NAME = 'a24z-memory';
 
