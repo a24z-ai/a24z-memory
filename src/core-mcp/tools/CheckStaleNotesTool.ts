@@ -67,7 +67,7 @@ export class CheckStaleNotesTool extends BaseTool {
     for (const staleNote of staleNotes) {
       const { note, staleAnchors, validAnchors } = staleNote;
       output.push(`\n## Note ID: ${note.id}`);
-      output.push(`Type: ${note.type} | Confidence: ${note.confidence}`);
+      output.push(`Type: ${note.type}`);
       output.push(`Tags: ${note.tags.join(', ')}`);
       output.push(
         `\nNote preview: ${note.note.substring(0, 100)}${note.note.length > 100 ? '...' : ''}`

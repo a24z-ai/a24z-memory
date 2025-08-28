@@ -38,7 +38,6 @@ describe('Store Debug Test', () => {
         directoryPath: '/test/path',
         tags: ['test'],
         anchors: ['/test/path'],
-        confidence: 'medium',
         type: 'explanation',
         metadata: {},
         timestamp: Date.now(),

@@ -34,7 +34,6 @@ saveNote({
   note: 'Authentication module implementation',
   anchors: ['src/auth.ts'],
   tags: ['authentication', 'security', 'backend'],
-  confidence: 'high',
   type: 'explanation',
   metadata: {},
 });
@@ -44,7 +43,6 @@ saveNote({
   note: 'Deprecated API endpoint - to be removed in v2',
   anchors: ['src/api/v1.ts'],
   tags: ['deprecated', 'api', 'backend'],
-  confidence: 'high',
   type: 'gotcha',
   metadata: {},
 });
@@ -54,7 +52,6 @@ saveNote({
   note: 'Database connection pooling strategy',
   anchors: ['src/db.ts'],
   tags: ['database', 'performance', 'backend'],
-  confidence: 'medium',
   type: 'pattern',
   metadata: {},
 });
@@ -64,7 +61,6 @@ saveNote({
   note: 'Legacy code that needs refactoring',
   anchors: ['src/legacy.ts'],
   tags: ['deprecated', 'technical-debt', 'refactoring'],
-  confidence: 'low',
   type: 'gotcha',
   metadata: {},
 });

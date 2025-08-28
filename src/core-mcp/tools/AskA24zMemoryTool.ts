@@ -18,7 +18,6 @@ export interface A24zMemoryConfig {
   responseStyle: {
     acknowledgeLimitations: boolean;
     suggestNoteSaving: boolean;
-    includeConfidence: boolean;
     conversationalTone: 'mentor' | 'peer' | 'expert';
   };
 }
@@ -30,8 +29,7 @@ interface TribalNote {
   content: string;
   context: {
     when: Date;
-    confidence: 'high' | 'medium' | 'low';
-    type: 'decision' | 'pattern' | 'gotcha' | 'explanation';
+    type: string;
   };
   relevanceScore?: number;
 }
@@ -78,10 +76,10 @@ export class AskA24zMemoryTool extends BaseTool {
         'Filter results to only notes with these tags. Useful for targeted searches like ["bugfix", "authentication"] or ["performance", "database"].'
       ),
     filterTypes: z
-      .array(z.enum(['decision', 'pattern', 'gotcha', 'explanation']))
+      .array(z.string())
       .optional()
       .describe(
-        'Filter results to only these note types. For example, use ["gotcha", "pattern"] when debugging, or ["decision"] when understanding architecture.'
+        'Filter results to only these note types. Common types: decision, pattern, gotcha, explanation. Custom types are also supported. For example, use ["gotcha", "pattern"] when debugging, or ["decision"] when understanding architecture.'
       ),
   });
 
@@ -101,7 +99,6 @@ export class AskA24zMemoryTool extends BaseTool {
     responseStyle: {
       acknowledgeLimitations: true,
       suggestNoteSaving: true,
-      includeConfidence: true,
       conversationalTone: 'mentor',
     },
   };
@@ -182,7 +179,7 @@ export class AskA24zMemoryTool extends BaseTool {
     query?: string,
     taskContext?: string,
     filterTags?: string[],
-    filterTypes?: Array<'decision' | 'pattern' | 'gotcha' | 'explanation'>
+    filterTypes?: string[]
   ): Promise<TribalNote[]> {
     // Get more notes initially if we're filtering, to ensure we have enough after filtering
     const fetchLimit =
@@ -213,7 +210,6 @@ export class AskA24zMemoryTool extends BaseTool {
       content: n.note,
       context: {
         when: new Date(n.timestamp),
-        confidence: n.confidence,
         type: n.type,
       },
       relevanceScore: Math.max(0, 1 - (n.pathDistance || 0) / 10),
@@ -226,7 +222,7 @@ export class AskA24zMemoryTool extends BaseTool {
     taskContext: string,
     notes: TribalNote[],
     filterTags?: string[],
-    filterTypes?: Array<'decision' | 'pattern' | 'gotcha' | 'explanation'>
+    filterTypes?: string[]
   ): Promise<AskMemoryResponse> {
     // Try to get repository path for file reading
     const repoPath = normalizeRepositoryPath(filePath);
@@ -241,7 +237,6 @@ export class AskA24zMemoryTool extends BaseTool {
           id: n.id,
           content: n.content,
           type: n.context.type,
-          confidence: n.context.confidence,
           tags: n.tags,
           anchors: n.anchors,
           anchorContents: undefined as any,
@@ -310,7 +305,7 @@ export class AskA24zMemoryTool extends BaseTool {
         const note = notes[i];
         enhancedResponse += `**[Note ${i + 1}]** \`${note.id}\`\n`;
         enhancedResponse += `📁 Anchored to: ${note.anchors.map((a) => `\`${a}\``).join(', ')}\n`;
-        enhancedResponse += `🏷️ Tags: ${note.tags.join(', ')} | Type: ${note.context.type} | Confidence: ${note.context.confidence}\n`;
+        enhancedResponse += `🏷️ Tags: ${note.tags.join(', ')} | Type: ${note.context.type}\n`;
         enhancedResponse += `💡 ${note.content}\n\n`;
       }
 
@@ -348,7 +343,7 @@ export class AskA24zMemoryTool extends BaseTool {
         response += `📚 **Found ${notes.length} related notes** (showing top ${topNotes.length}):\n\n`;
         for (let i = 0; i < topNotes.length; i++) {
           const n = topNotes[i];
-          response += `**${i + 1}. ${n.context.type.toUpperCase()}** [${n.context.confidence} confidence]\n`;
+          response += `**${i + 1}. ${n.context.type.toUpperCase()}**\n`;
           response += `   ${n.content}\n\n`;
         }
 
@@ -383,7 +378,7 @@ export class AskA24zMemoryTool extends BaseTool {
     taskContext: string,
     notes: TribalNote[],
     filterTags?: string[],
-    filterTypes?: Array<'decision' | 'pattern' | 'gotcha' | 'explanation'>
+    filterTypes?: string[]
   ): Promise<string> {
     // Try to get repository path for file reading
     const repoPath = normalizeRepositoryPath(filePath);
@@ -395,7 +390,6 @@ export class AskA24zMemoryTool extends BaseTool {
           id: n.id,
           content: n.content,
           type: n.context.type,
-          confidence: n.context.confidence,
           tags: n.tags,
           anchors: n.anchors,
           anchorContents: undefined as any,
@@ -457,7 +451,7 @@ export class AskA24zMemoryTool extends BaseTool {
         const note = notes[i];
         enhancedResponse += `**[Note ${i + 1}]** \`${note.id}\`\n`;
         enhancedResponse += `📁 Anchored to: ${note.anchors.map((a) => `\`${a}\``).join(', ')}\n`;
-        enhancedResponse += `🏷️ Tags: ${note.tags.join(', ')} | Type: ${note.context.type} | Confidence: ${note.context.confidence}\n`;
+        enhancedResponse += `🏷️ Tags: ${note.tags.join(', ')} | Type: ${note.context.type}\n`;
         enhancedResponse += `💡 ${note.content}\n\n`;
       }
 
@@ -495,7 +489,7 @@ export class AskA24zMemoryTool extends BaseTool {
       response += `📚 **Found ${notes.length} related notes** (showing top ${topNotes.length}):\n\n`;
       for (let i = 0; i < topNotes.length; i++) {
         const n = topNotes[i];
-        response += `**${i + 1}. ${n.context.type.toUpperCase()}** [${n.context.confidence} confidence]\n`;
+        response += `**${i + 1}. ${n.context.type.toUpperCase()}**\n`;
         response += `   ${n.content}\n\n`;
       }
 
@@ -526,7 +520,6 @@ create_repository_note({
   directoryPath: "/path/to/your/repository",
   anchors: ["${filePath}"],
   tags: ["relevant", "tags", "here"],
-  confidence: "high",
   type: "pattern" // or "decision", "gotcha", "explanation"
 });
 \`\`\``;
@@ -534,10 +527,7 @@ create_repository_note({
     return response;
   }
 
-  private getFilterDescription(
-    filterTags?: string[],
-    filterTypes?: Array<'decision' | 'pattern' | 'gotcha' | 'explanation'>
-  ): string {
+  private getFilterDescription(filterTags?: string[], filterTypes?: string[]): string {
     const parts: string[] = [];
     if (filterTags && filterTags.length > 0) {
       parts.push(`tags: ${filterTags.join(', ')}`);

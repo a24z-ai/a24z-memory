@@ -32,7 +32,6 @@ describe('GetNoteByIdTool', () => {
       note: '# Test Note\n\nThis is a test note with **markdown** content.',
       anchors: ['src/test.ts', 'docs/readme.md'],
       tags: ['testing', 'documentation', 'example'],
-      confidence: 'high',
       type: 'explanation',
       metadata: {
         author: 'test-user',
@@ -53,7 +52,6 @@ describe('GetNoteByIdTool', () => {
     // Check for all expected sections
     expect(text).toContain(`# Note ID: ${savedNote.id}`);
     expect(text).toContain('**Type:** explanation');
-    expect(text).toContain('**Confidence:** high');
     expect(text).toContain('**Tags:** testing, documentation, example');
     expect(text).toContain('**Created:**');
 
@@ -90,7 +88,6 @@ describe('GetNoteByIdTool', () => {
       note: 'Simple note',
       anchors: ['file.ts'],
       tags: ['simple'],
-      confidence: 'medium',
       type: 'pattern',
       metadata: {},
       directoryPath: testRepoPath,
@@ -105,7 +102,6 @@ describe('GetNoteByIdTool', () => {
 
     // Should have standard sections
     expect(text).toContain('**Type:** pattern');
-    expect(text).toContain('**Confidence:** medium');
     expect(text).toContain('Simple note');
 
     // Metadata section should not appear when metadata is empty
@@ -117,7 +113,6 @@ describe('GetNoteByIdTool', () => {
       note: 'Subdirectory test note',
       anchors: ['src/components/Component.tsx'],
       tags: ['component'],
-      confidence: 'low',
       type: 'gotcha',
       metadata: {},
       directoryPath: testRepoPath,
@@ -174,7 +169,6 @@ describe('GetNoteByIdTool', () => {
       note: 'Timestamp test',
       anchors: ['file.ts'],
       tags: ['time'],
-      confidence: 'high',
       type: 'decision',
       metadata: {},
       directoryPath: testRepoPath,
@@ -197,7 +191,6 @@ describe('GetNoteByIdTool', () => {
       note: 'Complex metadata test',
       anchors: ['file.ts'],
       tags: ['complex'],
-      confidence: 'high',
       type: 'explanation',
       metadata: {
         nested: {
@@ -241,7 +234,6 @@ describe('GetNoteByIdTool', () => {
         note: `Note of type ${type}`,
         anchors: ['file.ts'],
         tags: [type],
-        confidence: 'high',
         type,
         metadata: {},
         directoryPath: testRepoPath,

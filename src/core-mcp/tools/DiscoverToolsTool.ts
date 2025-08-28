@@ -60,12 +60,11 @@ export class DiscoverToolsTool extends BaseTool {
           'directoryPath: Repository root path (absolute)',
           'anchors: File/directory paths this note relates to',
           'tags: Semantic tags for categorization',
-          'confidence: Your confidence level (high/medium/low)',
           'type: Note type (decision/pattern/gotcha/explanation)',
           'metadata: Additional context (optional)',
         ],
         examples: [
-          'create_repository_note({ note: "Fixed race condition in validation middleware", directoryPath: "/Users/user/project", anchors: ["/Users/user/project/src/middleware/validation.ts"], tags: ["bugfix", "concurrency", "validation"], type: "gotcha", confidence: "high" })',
+          'create_repository_note({ note: "Fixed race condition in validation middleware", directoryPath: "/Users/user/project", anchors: ["/Users/user/project/src/middleware/validation.ts"], tags: ["bugfix", "concurrency", "validation"], type: "gotcha" })',
         ],
       },
       {

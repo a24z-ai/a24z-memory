@@ -16,7 +16,6 @@ async function main() {
     note: 'Authentication uses JWT tokens with refresh token rotation for security',
     anchors: [path.join(process.cwd(), 'src/auth/jwt.ts')],
     tags: ['authentication', 'security', 'jwt'],
-    confidence: 'high',
     type: 'pattern',
     metadata: {
       implementedIn: 'v2.0.0',
@@ -28,7 +27,6 @@ async function main() {
     note: 'OAuth2 integration planned for Q2 - will support Google and GitHub',
     anchors: [path.join(process.cwd(), 'src/auth/oauth.ts')],
     tags: ['authentication', 'oauth', 'roadmap'],
-    confidence: 'medium',
     type: 'decision',
     metadata: {
       jiraTicket: 'AUTH-456',
@@ -40,7 +38,6 @@ async function main() {
     note: 'Watch out: JWT token validation must check both signature AND expiry',
     anchors: [path.join(process.cwd(), 'src/middleware/auth.ts')],
     tags: ['authentication', 'security', 'validation'],
-    confidence: 'high',
     type: 'gotcha',
     metadata: {
       discoveredIn: 'security-audit-2024',

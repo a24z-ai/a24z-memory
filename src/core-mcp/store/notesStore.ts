@@ -14,15 +14,13 @@ import {
 
 export { TokenLimitInfo } from '../utils/tokenCounter';
 
-export type NoteConfidence = 'high' | 'medium' | 'low';
-export type NoteType = 'decision' | 'pattern' | 'gotcha' | 'explanation';
+export type NoteType = string;
 
 export interface StoredNote {
   id: string;
   note: string;
   anchors: string[];
   tags: string[];
-  confidence: NoteConfidence;
   type: NoteType;
   metadata: Record<string, unknown>;
   timestamp: number;
@@ -460,7 +458,6 @@ export function saveNote(
     note: note.note,
     anchors: note.anchors,
     tags: note.tags,
-    confidence: note.confidence,
     type: note.type,
     metadata: note.metadata,
     reviewed: note.reviewed,

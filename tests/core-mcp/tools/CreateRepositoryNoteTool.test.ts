@@ -76,7 +76,6 @@ describe('CreateRepositoryNoteTool', () => {
       };
 
       const parsed = tool.schema.parse(input);
-      expect(parsed.confidence).toBe('medium');
       expect(parsed.type).toBe('explanation');
     });
 
@@ -86,12 +85,10 @@ describe('CreateRepositoryNoteTool', () => {
         directoryPath: testPath,
         anchors: ['src/test.ts'],
         tags: ['test'],
-        confidence: 'high' as const,
         type: 'decision' as const,
       };
 
       const parsed = tool.schema.parse(input);
-      expect(parsed.confidence).toBe('high');
       expect(parsed.type).toBe('decision');
     });
   });
@@ -103,7 +100,6 @@ describe('CreateRepositoryNoteTool', () => {
         directoryPath: testPath,
         tags: ['test', 'example'],
         anchors: ['additional-path'],
-        confidence: 'high' as const,
         type: 'pattern' as const,
         metadata: { customField: 'value' },
       };
@@ -293,7 +289,6 @@ describe('CreateRepositoryNoteTool', () => {
         directoryPath: testPath,
         anchors: ['src/**/*.ts', 'docs/'],
         tags: ['markdown', 'documentation', 'typescript'],
-        confidence: 'low' as const,
         type: 'gotcha' as const,
         metadata: {
           author: 'test-user',
@@ -309,7 +304,6 @@ describe('CreateRepositoryNoteTool', () => {
 
       expect(saved.note).toBe(input.note);
       expect(saved.tags).toEqual(input.tags);
-      expect(saved.confidence).toBe(input.confidence);
       expect(saved.type).toBe(input.type);
       expect(saved.anchors).toContain('src/**/*.ts');
       expect(saved.anchors).toContain('docs');

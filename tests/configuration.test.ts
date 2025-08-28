@@ -83,15 +83,12 @@ describe('Configuration System', () => {
       note: 'This is a very long note that exceeds the configured limit of 50 characters and should be rejected',
       anchors: ['test.ts'],
       tags: ['test'],
-      confidence: 'high' as const,
       type: 'explanation' as const,
       metadata: {},
       directoryPath: testRepoPath,
     };
 
-    expect(() => saveNote(longNote)).toThrow(
-      'Note validation failed: Note content is too long'
-    );
+    expect(() => saveNote(longNote)).toThrow('Note validation failed: Note content is too long');
   });
 
   it('should validate number of tags', () => {
@@ -104,7 +101,6 @@ describe('Configuration System', () => {
       note: 'Test note',
       anchors: ['test.ts'],
       tags: ['tag1', 'tag2', 'tag3', 'tag4'],
-      confidence: 'high' as const,
       type: 'explanation' as const,
       metadata: {},
       directoryPath: testRepoPath,
@@ -125,7 +121,6 @@ describe('Configuration System', () => {
       note: 'Test note',
       anchors: ['file1.ts', 'file2.ts', 'file3.ts'],
       tags: ['test'],
-      confidence: 'high' as const,
       type: 'explanation' as const,
       metadata: {},
       directoryPath: testRepoPath,
@@ -145,7 +140,6 @@ describe('Configuration System', () => {
       note: 'This is a very long note that exceeds the configured limit of 50 characters',
       anchors: ['test.ts'],
       tags: ['tag1', 'tag2', 'tag3'],
-      confidence: 'high' as const,
       type: 'explanation' as const,
       metadata: {},
     };
@@ -164,7 +158,6 @@ describe('Configuration System', () => {
       note: 'This is a valid note within all limits',
       anchors: ['test.ts'],
       tags: ['valid', 'test'],
-      confidence: 'high' as const,
       type: 'explanation' as const,
       metadata: {},
       directoryPath: testRepoPath,

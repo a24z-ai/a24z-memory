@@ -16,10 +16,6 @@ export class MergeNotesTool extends BaseTool {
         note: z.string().describe('Consolidated note content'),
         anchors: z.array(z.string()).min(1).describe('Combined anchor paths from all notes'),
         tags: z.array(z.string()).min(1).describe('Combined and deduplicated tags'),
-        confidence: z
-          .enum(['high', 'medium', 'low'])
-          .default('medium')
-          .describe('Confidence level for merged note'),
         type: z
           .enum(['decision', 'pattern', 'gotcha', 'explanation'])
           .default('explanation')
@@ -74,7 +70,7 @@ export class MergeNotesTool extends BaseTool {
               `📝 New merged note ID: ${savedNote.id}\n` +
               `📍 Anchors: ${savedNote.anchors.join(', ')}\n` +
               `🏷️ Tags: ${savedNote.tags.join(', ')}\n` +
-              `🎯 Type/Confidence: ${savedNote.type}/${savedNote.confidence}\n` +
+              `🎯 Type: ${savedNote.type}\n` +
               `📄 Content preview: ${savedNote.note.substring(0, 100)}${savedNote.note.length > 100 ? '...' : ''}\n` +
               `${deletionResults}`,
           },

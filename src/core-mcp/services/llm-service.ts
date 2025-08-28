@@ -28,7 +28,6 @@ export interface LLMContext {
     id: string;
     content: string;
     type: string;
-    confidence: string;
     tags: string[];
     anchors: string[];
     anchorContents?: Array<{
@@ -122,7 +121,7 @@ Working on: ${context.filePath}`;
     for (let i = 0; i < context.notes.length; i++) {
       const note = context.notes[i];
       prompt += `\n[Note ${i + 1}] ID: ${note.id}\n`;
-      prompt += `Type: ${note.type.toUpperCase()} | Confidence: ${note.confidence}\n`;
+      prompt += `Type: ${note.type.toUpperCase()}\n`;
       prompt += `Tags: ${note.tags.join(', ')}\n`;
       prompt += `Anchored to: ${note.anchors.join(', ')}\n`;
       prompt += `Content: ${note.content}\n`;
@@ -176,7 +175,7 @@ Answer:`;
       .map(
         (note, i) =>
           `[Note ${i + 1}] ID: ${note.id}
-Type: ${note.type.toUpperCase()} | Confidence: ${note.confidence}
+Type: ${note.type.toUpperCase()}
 Tags: ${note.tags.join(', ')}
 Anchored to: ${note.anchors.join(', ')}
 Content: ${note.content}`
@@ -294,7 +293,7 @@ Working on: ${context.filePath}`;
     for (let i = 0; i < context.notes.length; i++) {
       const note = context.notes[i];
       prompt += `\n[Note ${i + 1}] ID: ${note.id}\n`;
-      prompt += `Type: ${note.type.toUpperCase()} | Confidence: ${note.confidence}\n`;
+      prompt += `Type: ${note.type.toUpperCase()}\n`;
       prompt += `Tags: ${note.tags.join(', ')}\n`;
       prompt += `Anchored to: ${note.anchors.join(', ')}\n`;
       prompt += `Content: ${note.content}\n`;
@@ -343,7 +342,7 @@ Answer:`;
       .map(
         (note, i) =>
           `[Note ${i + 1}] ID: ${note.id}
-Type: ${note.type.toUpperCase()} | Confidence: ${note.confidence}
+Type: ${note.type.toUpperCase()}
 Tags: ${note.tags.join(', ')}
 Anchored to: ${note.anchors.join(', ')}
 Content: ${note.content}`

@@ -5,7 +5,6 @@
 import type {
   RepositoryConfiguration,
   StoredNote,
-  NoteConfidence,
   NoteType,
   ValidationError,
   StaleNote,
@@ -36,7 +35,6 @@ const exampleNote: StoredNote = {
   note: 'This is the note content',
   anchors: ['src/file.ts', 'docs/readme.md'],
   tags: ['feature', 'documentation'],
-  confidence: 'high',
   type: 'explanation',
   metadata: {
     author: 'user@example.com',
@@ -46,11 +44,8 @@ const exampleNote: StoredNote = {
   timestamp: Date.now(),
 };
 
-// Note confidence levels
-const confidenceLevels: NoteConfidence[] = ['high', 'medium', 'low'];
-
-// Note types
-const noteTypes: NoteType[] = ['decision', 'pattern', 'gotcha', 'explanation'];
+// Note types - now supports any string value
+const noteTypes: NoteType[] = ['decision', 'pattern', 'gotcha', 'explanation', 'incident', 'research', 'custom-type'];
 
 // Validation error structure
 const exampleError: ValidationError = {

@@ -5,8 +5,6 @@ import {
   getNotesForPath,
   getUsedTagsForPath,
   getSuggestedTagsForPath,
-  type NoteType,
-  type NoteConfidence,
 } from '../../../src/core-mcp/store/notesStore';
 import {
   findProjectRoot,
@@ -22,8 +20,7 @@ describe('notesStore', () => {
     directoryPath: testNotePath,
     anchors: [testNotePath, 'test-anchor'],
     tags: ['test', 'example'],
-    confidence: 'high' as NoteConfidence,
-    type: 'explanation' as NoteType,
+    type: 'explanation',
     metadata: { testData: true },
   };
 
