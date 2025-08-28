@@ -127,7 +127,6 @@ Best practice: Always use ApiKeyManager for key storage, never hardcode keys.`,
     anchors: ['docs/OPENROUTER_INTEGRATION.md'],
     tags: ['openrouter', 'api-keys', 'security', 'pattern'],
     type: 'pattern',
-    confidence: 'high',
   });
 
   console.log('📝 Added a sample note about OpenRouter patterns\n');

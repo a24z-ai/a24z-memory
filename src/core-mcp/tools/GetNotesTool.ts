@@ -2,7 +2,7 @@ import { z } from 'zod';
 import * as path from 'node:path';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
-import { getNotesForPath, checkStaleNotes, type NoteType } from '../store/notesStore';
+import { getNotesForPath, checkStaleNotes } from '../store/notesStore';
 import { normalizeRepositoryPath } from '../utils/pathNormalization';
 
 type NoteResponse = {
@@ -10,8 +10,7 @@ type NoteResponse = {
   note: string;
   anchors: string[];
   tags: string[];
-  confidence: 'high' | 'medium' | 'low';
-  type: 'decision' | 'pattern' | 'gotcha' | 'explanation';
+  type: string;
   timestamp: number;
   reviewed: boolean;
   metadata?: Record<string, unknown>;
@@ -74,9 +73,11 @@ export class GetNotesTool extends BaseTool {
       ),
 
     filterTypes: z
-      .array(z.enum(['decision', 'pattern', 'gotcha', 'explanation']))
+      .array(z.string())
       .optional()
-      .describe('Filter results to only these note types. Leave empty to include all types'),
+      .describe(
+        'Filter results to only these note types. Common types: decision, pattern, gotcha, explanation. Custom types are also supported. Leave empty to include all types'
+      ),
 
     filterReviewed: z
       .enum(['reviewed', 'unreviewed', 'all'])
@@ -211,9 +212,7 @@ export class GetNotesTool extends BaseTool {
 
     // Filter by types
     if (parsed.filterTypes && parsed.filterTypes.length > 0) {
-      filteredNotes = filteredNotes.filter((note) =>
-        parsed.filterTypes!.includes(note.type as NoteType)
-      );
+      filteredNotes = filteredNotes.filter((note) => parsed.filterTypes!.includes(note.type));
     }
 
     // Filter by reviewed status
@@ -273,7 +272,6 @@ export class GetNotesTool extends BaseTool {
         note: note.note,
         anchors: note.anchors,
         tags: note.tags,
-        confidence: note.confidence,
         type: note.type,
         timestamp: note.timestamp,
         reviewed: note.reviewed || false,

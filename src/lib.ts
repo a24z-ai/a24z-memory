@@ -46,7 +46,6 @@ export {
   setEnforceAllowedTypes as setEnforceAllowedTypesFunc,
   // Types
   type StoredNote,
-  type NoteConfidence,
   type NoteType,
   type RepositoryConfiguration,
   type ValidationError,
@@ -168,7 +167,6 @@ import {
   markNoteReviewed as markNoteReviewedFunc,
   markAllNotesReviewed as markAllNotesReviewedFunc,
   type StoredNote as StoredNoteType,
-  type NoteConfidence as NoteConfidenceType,
   type NoteType as NoteTypeType,
   type RepositoryConfiguration as RepositoryConfigurationType,
   type ValidationError as ValidationErrorType,
@@ -211,7 +209,6 @@ export class A24zMemory {
     note: string;
     anchors: string[];
     tags: string[];
-    confidence?: NoteConfidenceType;
     type?: NoteTypeType;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     metadata?: Record<string, any>; // Metadata can contain arbitrary user data
@@ -219,7 +216,6 @@ export class A24zMemory {
     return saveNoteFunc({
       ...params,
       directoryPath: this.repositoryPath,
-      confidence: params.confidence || 'medium',
       type: params.type || 'explanation',
       metadata: params.metadata || {},
     });

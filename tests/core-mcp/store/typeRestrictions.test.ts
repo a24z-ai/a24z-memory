@@ -89,8 +89,7 @@ describe('Type Restrictions', () => {
         note: 'Test note',
         anchors: ['file.ts'],
         tags: ['test-tag'],
-        confidence: 'high' as const,
-        type: 'random-type' as unknown as 'explanation', // Using a type not in the standard set
+        type: 'random-type', // Using a type not in the standard set
         metadata: {},
         directoryPath: testRepoPath,
       };
@@ -116,8 +115,7 @@ describe('Type Restrictions', () => {
         note: 'Test note with invalid type',
         anchors: ['file.ts'],
         tags: ['test'],
-        confidence: 'high' as const,
-        type: 'random-type' as unknown as 'explanation',
+        type: 'random-type',
         metadata: {},
         directoryPath: testRepoPath,
       };
@@ -145,7 +143,6 @@ describe('Type Restrictions', () => {
         note: 'Test note with valid type',
         anchors: ['file.ts'],
         tags: ['test'],
-        confidence: 'high' as const,
         type: 'pattern' as const,
         metadata: {},
         directoryPath: testRepoPath,
@@ -168,7 +165,6 @@ describe('Type Restrictions', () => {
         note: 'Test note',
         anchors: ['file.ts'],
         tags: ['test'],
-        confidence: 'high' as const,
         type: 'explanation' as const,
         metadata: {},
         directoryPath: testRepoPath,
@@ -194,8 +190,7 @@ describe('Type Restrictions', () => {
         note: 'Test note',
         anchors: ['file.ts'],
         tags: ['test'],
-        confidence: 'high' as const,
-        type: 'invalid-type' as unknown as 'explanation',
+        type: 'invalid-type',
         metadata: {},
       };
 
@@ -277,8 +272,7 @@ describe('Type Restrictions', () => {
         note: 'Test note',
         anchors: ['file.ts'],
         tags: ['test'],
-        confidence: 'high' as const,
-        type: 'custom-type' as unknown as 'explanation',
+        type: 'custom-type',
         metadata: {},
         directoryPath: testRepoPath,
       };
@@ -335,7 +329,6 @@ describe('Type Restrictions', () => {
         note: 'Standard type note',
         anchors: ['file.ts'],
         tags: ['test'],
-        confidence: 'high' as const,
         type: 'decision' as const,
         metadata: {},
         directoryPath: testRepoPath,
@@ -348,8 +341,7 @@ describe('Type Restrictions', () => {
         note: 'Custom type note',
         anchors: ['file.ts'],
         tags: ['test'],
-        confidence: 'high' as const,
-        type: 'incident' as unknown as 'explanation',
+        type: 'incident',
         metadata: {},
         directoryPath: testRepoPath,
       };
@@ -361,7 +353,6 @@ describe('Type Restrictions', () => {
         note: 'Disallowed standard type',
         anchors: ['file.ts'],
         tags: ['test'],
-        confidence: 'high' as const,
         type: 'explanation' as const,
         metadata: {},
         directoryPath: testRepoPath,

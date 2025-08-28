@@ -33,7 +33,6 @@ describe('A24zMemory askMemory method', () => {
         note: 'Test authentication pattern using JWT',
         anchors: [path.join(testRepoPath, 'src/auth.ts')],
         tags: ['authentication', 'jwt', 'security'],
-        confidence: 'high',
         type: 'pattern',
       });
 

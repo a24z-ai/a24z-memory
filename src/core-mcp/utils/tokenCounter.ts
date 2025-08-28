@@ -26,7 +26,6 @@ function formatNoteForTokenCount(note: StoredNote): string {
   const parts = [
     `Note ID: ${note.id}`,
     `Type: ${note.type}`,
-    `Confidence: ${note.confidence}`,
     `Tags: ${note.tags.join(', ')}`,
     `Anchors: ${note.anchors.join(', ')}`,
     `Content: ${note.note}`,

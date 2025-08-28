@@ -64,7 +64,6 @@ export class GetNoteByIdTool extends BaseTool {
       `# Note ID: ${note.id}`,
       '',
       `**Type:** ${note.type}`,
-      `**Confidence:** ${note.confidence}`,
       `**Tags:** ${note.tags.join(', ')}`,
       `**Created:** ${new Date(note.timestamp).toISOString()}`,
       '',

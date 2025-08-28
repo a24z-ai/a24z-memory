@@ -37,7 +37,6 @@ async function directApiExample() {
     note: 'Test note',
     anchors: ['src/file.ts'],
     tags: ['feature', 'invalid-tag'], // 'invalid-tag' is not allowed
-    confidence: 'high',
     type: 'explanation',
     metadata: {},
   };
@@ -79,7 +78,6 @@ async function classApiExample() {
     note: 'Important security fix',
     anchors: ['src/auth.ts'],
     tags: ['security'],
-    confidence: 'high',
     type: 'gotcha',
     metadata: { pr: 123 },
   };

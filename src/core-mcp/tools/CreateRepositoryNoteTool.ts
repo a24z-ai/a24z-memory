@@ -52,19 +52,12 @@ export class CreateRepositoryNoteTool extends BaseTool {
       .describe(
         "Required semantic tags for categorization. Use get_repository_tags tool to see available tags. New tags will be created automatically if they don't exist."
       ),
-    confidence: z
-      .enum(['high', 'medium', 'low'])
-      .optional()
-      .default('medium')
-      .describe(
-        'Your confidence level in the accuracy and completeness of this note. Use "high" for well-tested solutions, "medium" for reasonable assumptions, and "low" for experimental or uncertain information.'
-      ),
     type: z
-      .enum(['decision', 'pattern', 'gotcha', 'explanation'])
+      .string()
       .optional()
       .default('explanation')
       .describe(
-        'The type of knowledge being documented. "decision" for architectural choices, "pattern" for reusable solutions, "gotcha" for tricky issues/bugs, "explanation" for general documentation.'
+        'The type of knowledge being documented. Common types: "decision" for architectural choices, "pattern" for reusable solutions, "gotcha" for tricky issues/bugs, "explanation" for general documentation. Custom types are also supported.'
       ),
     metadata: z
       .record(z.any())
@@ -245,7 +238,6 @@ export class CreateRepositoryNoteTool extends BaseTool {
       directoryPath: parsed.directoryPath,
       anchors: parsed.anchors,
       tags: parsed.tags,
-      confidence: parsed.confidence,
       type: parsed.type,
       metadata: {
         ...(parsed.metadata || {}),
@@ -263,7 +255,7 @@ export class CreateRepositoryNoteTool extends BaseTool {
       `📁 **Repository:** ${parsed.directoryPath}\n` +
       `🏷️ **Tags:** ${parsed.tags.join(', ')}\n` +
       `📋 **Type:** ${parsed.type}\n` +
-      `🎯 **Confidence:** ${parsed.confidence}\n\n`;
+      `\n`;
 
     // Add warnings about auto-created tags
     if (autoCreatedTags.length > 0) {

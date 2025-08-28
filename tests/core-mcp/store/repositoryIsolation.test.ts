@@ -93,7 +93,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         directoryPath: repo1Path,
         tags: ['alpha'],
         anchors: [repo1Path],
-        confidence: 'high',
         type: 'explanation',
         metadata: { project: 'alpha' },
       });
@@ -103,7 +102,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         directoryPath: repo2Path,
         tags: ['beta'],
         anchors: [repo2Path],
-        confidence: 'medium',
         type: 'pattern',
         metadata: { project: 'beta' },
       });
@@ -113,7 +111,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         directoryPath: repo3Path,
         tags: ['gamma'],
         anchors: [repo3Path],
-        confidence: 'low',
         type: 'gotcha',
         metadata: { project: 'gamma' },
       });
@@ -136,7 +133,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         directoryPath: repo1Path,
         tags: ['secret', 'alpha-only'],
         anchors: [repo1Path],
-        confidence: 'high',
         type: 'decision',
         metadata: { confidential: true },
       });
@@ -146,7 +142,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         directoryPath: repo2Path,
         tags: ['private', 'beta-only'],
         anchors: [repo2Path],
-        confidence: 'high',
         type: 'decision',
         metadata: { proprietary: true },
       });
@@ -187,7 +182,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         directoryPath: repo1Path,
         tags: ['components'],
         anchors: [subPath1],
-        confidence: 'medium',
         type: 'explanation',
         metadata: {},
       });
@@ -197,7 +191,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         directoryPath: repo1Path,
         tags: ['button'],
         anchors: [subPath2],
-        confidence: 'high',
         type: 'pattern',
         metadata: {},
       });
@@ -222,7 +215,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         directoryPath: repo1Path,
         tags: ['config', 'root'],
         anchors: [repo1Path],
-        confidence: 'high',
         type: 'decision',
         metadata: {},
       });
@@ -250,7 +242,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         directoryPath: repo1Path,
         tags: ['auth', 'security'],
         anchors: [path.join(repo1Path, 'src', 'auth')],
-        confidence: 'high',
         type: 'explanation',
         metadata: {},
       });
@@ -263,7 +254,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         directoryPath: repo2Path,
         tags: ['auth', 'security'],
         anchors: [path.join(repo2Path, 'lib', 'auth')],
-        confidence: 'high',
         type: 'explanation',
         metadata: {},
       });
@@ -276,7 +266,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         directoryPath: repo3Path,
         tags: ['auth', 'security'],
         anchors: [path.join(repo3Path, 'modules', 'auth')],
-        confidence: 'high',
         type: 'explanation',
         metadata: {},
       });
@@ -304,7 +293,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         directoryPath: repo1Path,
         tags: ['feature', 'v1'],
         anchors: [repo1Path],
-        confidence: 'medium',
         type: 'explanation',
         metadata: {},
       });
@@ -314,7 +302,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         directoryPath: repo2Path,
         tags: ['feature', 'v2'],
         anchors: [repo2Path],
-        confidence: 'medium',
         type: 'explanation',
         metadata: {},
       });
@@ -343,7 +330,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         directoryPath: repo1Path,
         anchors: [repo1Path],
         tags: ['mcp', 'alpha'],
-        confidence: 'high',
         type: 'explanation',
         metadata: {},
       });
@@ -353,7 +339,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         directoryPath: repo2Path,
         anchors: [repo2Path],
         tags: ['mcp', 'beta'],
-        confidence: 'high',
         type: 'explanation',
         metadata: {},
       });
@@ -417,7 +402,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         directoryPath: repo1Path,
         tags: ['parent'],
         anchors: [repo1Path],
-        confidence: 'high',
         type: 'explanation',
         metadata: {},
       });
@@ -427,7 +411,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         directoryPath: nestedRepoPath,
         tags: ['nested'],
         anchors: [nestedRepoPath],
-        confidence: 'high',
         type: 'explanation',
         metadata: {},
       });
@@ -463,7 +446,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         directoryPath: orphanPath,
         tags: ['orphan'],
         anchors: [orphanPath],
-        confidence: 'low',
         type: 'explanation',
         metadata: {},
       });
@@ -488,7 +470,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
             directoryPath: repo1Path,
             tags: ['concurrent', 'alpha'],
             anchors: [repo1Path],
-            confidence: 'medium',
             type: 'explanation',
             metadata: { index: i },
           })
@@ -500,7 +481,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
             directoryPath: repo2Path,
             tags: ['concurrent', 'beta'],
             anchors: [repo2Path],
-            confidence: 'medium',
             type: 'explanation',
             metadata: { index: i },
           })
@@ -512,7 +492,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
             directoryPath: repo3Path,
             tags: ['concurrent', 'gamma'],
             anchors: [repo3Path],
-            confidence: 'medium',
             type: 'explanation',
             metadata: { index: i },
           })

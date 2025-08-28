@@ -41,14 +41,10 @@ export function calculateNoteSimilarity(note1: StoredNote, note2: StoredNote): N
     reasons.push(`Tag overlap: ${(tagSimilarity * 100).toFixed(0)}%`);
   }
 
-  // 4. Type and confidence match (10% weight)
+  // 4. Type match (5% weight)
   if (note1.type === note2.type) {
     score += 0.05;
     reasons.push('Same type');
-  }
-  if (note1.confidence === note2.confidence) {
-    score += 0.05;
-    reasons.push('Same confidence level');
   }
 
   return {
@@ -198,9 +194,9 @@ export const DEFAULT_THRESHOLDS: SimilarityThresholds = {
 };
 
 /**
- * Check if a note is stale based on age and confidence
+ * Check if a note is stale based on age
  */
 export function isNoteStale(note: StoredNote, maxAgeDays: number = 365): boolean {
   const ageDays = (Date.now() - note.timestamp) / (1000 * 60 * 60 * 24);
-  return ageDays > maxAgeDays && note.confidence === 'low';
+  return ageDays > maxAgeDays;
 }

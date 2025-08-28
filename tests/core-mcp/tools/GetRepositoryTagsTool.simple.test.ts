@@ -39,7 +39,6 @@ describe('GetRepositoryTagsTool (Simple)', () => {
       directoryPath: testPath,
       tags: ['custom-tag'],
       anchors: [testPath],
-      confidence: 'high',
       type: 'explanation',
       metadata: {},
     });

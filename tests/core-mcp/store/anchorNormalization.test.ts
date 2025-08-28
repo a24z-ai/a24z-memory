@@ -12,10 +12,10 @@ describe('Anchor Normalization and Matching', () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'anchor-test-'));
     repoDir = path.join(tempDir, 'test-repo');
     fs.mkdirSync(repoDir, { recursive: true });
-    
+
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(repoDir, '.git'), { recursive: true });
-    
+
     // Create a package.json to make it look like a proper project root
     fs.writeFileSync(path.join(repoDir, 'package.json'), '{}');
   });
@@ -33,9 +33,8 @@ describe('Anchor Normalization and Matching', () => {
         directoryPath: repoDir,
         anchors: ['src/components/Button.tsx', './lib/utils.ts', 'docs/README.md'],
         tags: ['test'],
-        confidence: 'high',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       // All anchors should be relative paths to repo root
@@ -43,7 +42,7 @@ describe('Anchor Normalization and Matching', () => {
       expect(path.isAbsolute(note.anchors[0])).toBe(false);
       expect(path.isAbsolute(note.anchors[1])).toBe(false);
       expect(path.isAbsolute(note.anchors[2])).toBe(false);
-      
+
       // Check they're correctly normalized relative to repo root
       expect(note.anchors[0]).toBe('src/components/Button.tsx');
       expect(note.anchors[1]).toBe('lib/utils.ts');
@@ -52,15 +51,14 @@ describe('Anchor Normalization and Matching', () => {
 
     it('should convert absolute anchor paths to relative', () => {
       const absoluteAnchor = path.join(repoDir, 'src/api/endpoint.ts');
-      
+
       const note = saveNote({
         note: 'Test note with absolute anchor',
         directoryPath: repoDir,
         anchors: [absoluteAnchor],
         tags: ['test'],
-        confidence: 'high',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       expect(note.anchors).toHaveLength(1);
@@ -70,15 +68,14 @@ describe('Anchor Normalization and Matching', () => {
 
     it('should handle mixed relative and absolute anchors', () => {
       const absoluteAnchor = path.join(repoDir, 'absolute/path.ts');
-      
+
       const note = saveNote({
         note: 'Test note with mixed anchors',
         directoryPath: repoDir,
         anchors: ['relative/path.ts', absoluteAnchor, './another/relative.ts'],
         tags: ['test'],
-        confidence: 'high',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       expect(note.anchors).toHaveLength(3);
@@ -96,9 +93,8 @@ describe('Anchor Normalization and Matching', () => {
         directoryPath: repoDir,
         anchors: ['src/components/Button.tsx', 'src/components/Button.test.tsx'],
         tags: ['component'],
-        confidence: 'high',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       saveNote({
@@ -106,9 +102,8 @@ describe('Anchor Normalization and Matching', () => {
         directoryPath: repoDir,
         anchors: ['src/utils/api.ts', 'src/utils'],
         tags: ['utils'],
-        confidence: 'medium',
         type: 'pattern',
-        metadata: {}
+        metadata: {},
       });
 
       saveNote({
@@ -116,9 +111,8 @@ describe('Anchor Normalization and Matching', () => {
         directoryPath: repoDir,
         anchors: ['config/database.yml'],
         tags: ['config'],
-        confidence: 'high',
         type: 'decision',
-        metadata: {}
+        metadata: {},
       });
     });
 
@@ -147,7 +141,7 @@ describe('Anchor Normalization and Matching', () => {
       const notes = getNotesForPath(componentsDir, false);
 
       // Should find the Button note because the anchor is a child of this directory
-      const buttonNote = notes.find(n => n.note === 'Button component note');
+      const buttonNote = notes.find((n) => n.note === 'Button component note');
       expect(buttonNote).toBeDefined();
     });
 
@@ -162,14 +156,14 @@ describe('Anchor Normalization and Matching', () => {
       // Skipped due to macOS /var vs /private/var symlink issues in temp directories
       // Save current directory
       const originalCwd = process.cwd();
-      
+
       try {
         // Change to repo directory
         process.chdir(repoDir);
-        
+
         // Query with relative path
         const notes = getNotesForPath('src/components/Button.tsx', false);
-        
+
         expect(notes).toHaveLength(1);
         expect(notes[0].note).toBe('Button component note');
       } finally {
@@ -185,9 +179,8 @@ describe('Anchor Normalization and Matching', () => {
         directoryPath: path.join(repoDir, 'src/components'),
         anchors: ['src/components/index.ts'],
         tags: ['general'],
-        confidence: 'low',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       const buttonPath = path.join(repoDir, 'src/components/Button.tsx');
@@ -205,9 +198,8 @@ describe('Anchor Normalization and Matching', () => {
         directoryPath: path.join(repoDir, 'src/components'),
         anchors: ['../utils/shared.ts', './Button.tsx'],
         tags: ['test'],
-        confidence: 'high',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       // Anchors should be normalized to relative paths from repo root
@@ -218,7 +210,7 @@ describe('Anchor Normalization and Matching', () => {
       const sharedNotes = getNotesForPath(path.join(repoDir, 'src/utils/shared.ts'), false);
       // Should find both notes: API utils (because src/utils is a parent) and Parent directory reference
       expect(sharedNotes).toHaveLength(2);
-      const noteTexts = sharedNotes.map(n => n.note);
+      const noteTexts = sharedNotes.map((n) => n.note);
       expect(noteTexts).toContain('Parent directory reference note');
       expect(noteTexts).toContain('API utils note');
     });
@@ -237,9 +229,8 @@ describe('Anchor Normalization and Matching', () => {
         directoryPath: repoDir,
         anchors: ['src/file.ts'],
         tags: ['repo1'],
-        confidence: 'high',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       // Save note in second repo
@@ -248,9 +239,8 @@ describe('Anchor Normalization and Matching', () => {
         directoryPath: otherRepo,
         anchors: ['src/file.ts'],
         tags: ['repo2'],
-        confidence: 'high',
         type: 'explanation',
-        metadata: {}
+        metadata: {},
       });
 
       // Query first repo - should only find first note

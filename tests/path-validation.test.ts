@@ -34,7 +34,6 @@ describe('Path Validation for saveNote', () => {
         directoryPath: 'relative/path',
         anchors: ['test.ts'],
         tags: ['test'],
-        confidence: 'medium',
         type: 'explanation',
         metadata: {},
       })
@@ -49,7 +48,6 @@ describe('Path Validation for saveNote', () => {
         directoryPath: fakePath,
         anchors: ['test.ts'],
         tags: ['test'],
-        confidence: 'medium',
         type: 'explanation',
         metadata: {},
       })
@@ -63,7 +61,6 @@ describe('Path Validation for saveNote', () => {
         directoryPath: nonGitPath,
         anchors: ['test.ts'],
         tags: ['test'],
-        confidence: 'medium',
         type: 'explanation',
         metadata: {},
       })
@@ -76,7 +73,6 @@ describe('Path Validation for saveNote', () => {
       directoryPath: gitRepoPath,
       anchors: ['test.ts'],
       tags: ['test'],
-      confidence: 'medium',
       type: 'explanation',
       metadata: {},
     });
@@ -96,7 +92,6 @@ describe('Path Validation for saveNote', () => {
         directoryPath: './relative/path',
         anchors: ['test.ts'],
         tags: ['test'],
-        confidence: 'medium',
         type: 'explanation',
         metadata: {},
       })
@@ -110,7 +105,6 @@ describe('Path Validation for saveNote', () => {
         directoryPath: '../relative/path',
         anchors: ['test.ts'],
         tags: ['test'],
-        confidence: 'medium',
         type: 'explanation',
         metadata: {},
       })
@@ -124,7 +118,6 @@ describe('Path Validation for saveNote', () => {
         directoryPath: gitRepoPath,
         anchors: [],
         tags: ['test'],
-        confidence: 'medium',
         type: 'explanation',
         metadata: {},
       })
@@ -137,7 +130,6 @@ describe('Path Validation for saveNote', () => {
         note: 'Test note',
         directoryPath: gitRepoPath,
         tags: ['test'],
-        confidence: 'medium',
         type: 'explanation',
         metadata: {},
       } as Parameters<typeof saveNote>[0])
