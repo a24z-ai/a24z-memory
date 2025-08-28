@@ -1,3 +1,6 @@
+// Test file - any types used for mock data
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { CreateRepositoryNoteTool } from '../../src/core-mcp/tools/CreateRepositoryNoteTool';

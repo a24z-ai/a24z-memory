@@ -82,6 +82,9 @@ export const SUPPORTED_PROVIDERS: LLMProviderConfig[] = [
   },
 ];
 
+// LLM configurator handles dynamic provider configurations
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export class McpLLMConfigurator {
   private isConfiguring = false;
 

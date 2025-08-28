@@ -1,5 +1,9 @@
 import type { z } from 'zod';
 
+// This file converts Zod schemas to JSON Schema for MCP SDK
+// The any types are necessary for accessing Zod's internal _def structure
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export function zodToJsonSchema(schema: z.ZodTypeAny): unknown {
   // Minimal conversion: rely on Zod's shape introspection where possible
   const def = (schema as any)._def;

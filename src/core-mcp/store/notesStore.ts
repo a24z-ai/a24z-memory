@@ -56,7 +56,8 @@ export interface ValidationError {
   limit?: number;
   actual?: number;
   type?: keyof ValidationMessageData;
-  data?: any; // The typed data for the validation error
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data?: any; // Dynamic validation data shape varies by error type
 }
 
 interface NotesFileSchema {

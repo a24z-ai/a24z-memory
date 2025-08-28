@@ -30,8 +30,10 @@ export interface FileSystemAdapter {
  */
 export class NodeFileSystemAdapter implements FileSystemAdapter {
   constructor(
-    private fs: any,
-    private path: any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private fs: any, // Node.js fs module type not imported to avoid dependency
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private path: any // Node.js path module type not imported to avoid dependency
   ) {}
 
   exists(path: string): boolean {

@@ -155,7 +155,9 @@ export class GetRepositoryGuidanceTool extends BaseTool {
       output.push('Token expires in 24 hours.');
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = {
+      // Dynamic result shape with optional guidanceToken
       content: [
         {
           type: 'text',
