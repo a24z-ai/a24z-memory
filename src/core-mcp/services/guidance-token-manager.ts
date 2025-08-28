@@ -4,6 +4,8 @@
  */
 
 import * as crypto from 'crypto';
+import { normalizeRepositoryPath } from '../utils/pathNormalization';
+import { generateFullGuidanceContent } from '../utils/guidanceGenerator';
 
 export interface TokenPayload {
   guidanceHash: string;
@@ -21,7 +23,7 @@ export class GuidanceTokenManager {
   private readonly secret: string;
 
   constructor(secret?: string) {
-    this.secret = secret || process.env.A24Z_GUIDANCE_SECRET || 'default-a24z-guidance-secret';
+    this.secret = secret || 'default-a24z-guidance-secret';
   }
 
   /**
@@ -107,5 +109,40 @@ export class GuidanceTokenManager {
     const payload = this.parseToken(token);
     if (!payload) return true;
     return Date.now() > payload.expires;
+  }
+
+  /**
+   * Validate a token for a specific repository path
+   * Validates the token against the full guidance content
+   * @param token The token to validate
+   * @param repoOrFilePath The repository or file path
+   * @returns Whether the token is valid
+   * @throws Error if token is invalid
+   */
+  validateTokenForPath(token: string | undefined, repoOrFilePath: string): void {
+    if (!token) {
+      throw new Error('Guidance token required. Please run get_repository_guidance first.');
+    }
+
+    // Get the repository path
+    const repoPath = normalizeRepositoryPath(repoOrFilePath);
+
+    // Generate the full guidance content (same as GetRepositoryGuidanceTool)
+    let guidanceContent = '';
+    try {
+      guidanceContent = generateFullGuidanceContent(repoPath);
+    } catch {
+      // If we can't generate guidance content, the repository might not be initialized
+      throw new Error(
+        'Unable to generate guidance content. Please run get_repository_guidance first.'
+      );
+    }
+
+    // Validate the token against the full guidance content
+    if (!this.validateToken(token, guidanceContent)) {
+      throw new Error(
+        'Invalid or expired guidance token. Please run get_repository_guidance again.'
+      );
+    }
   }
 }

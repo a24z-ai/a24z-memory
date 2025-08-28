@@ -25,6 +25,7 @@ export {
   getNoteById,
   deleteNoteById,
   checkStaleNotes,
+  mergeNotes,
   // Review functionality
   getUnreviewedNotes,
   markNoteReviewed,
@@ -54,6 +55,8 @@ export {
   type TypeInfo,
   type NotesResult,
   type TokenLimitInfo,
+  type MergeNotesInput,
+  type MergeNotesResult,
 } from './core-mcp/store/notesStore';
 
 // Validation messages and utilities
@@ -158,6 +161,7 @@ import {
   getNoteById as getNoteByIdFunc,
   deleteNoteById as deleteNoteByIdFunc,
   checkStaleNotes as checkStaleNotesFunc,
+  mergeNotes as mergeNotesFunc,
   getTagDescriptions as getTagDescriptionsFunc,
   saveTagDescription as saveTagDescriptionFunc,
   deleteTagDescription as deleteTagDescriptionFunc,
@@ -173,12 +177,16 @@ import {
   type StaleNote as StaleNoteType,
   type TagInfo as TagInfoType,
   type NotesResult,
+  type MergeNotesInput as MergeNotesInputType,
+  type MergeNotesResult as MergeNotesResultType,
 } from './core-mcp/store/notesStore';
 
 import { normalizeRepositoryPath as normalizeRepositoryPathFunc } from './core-mcp/utils/pathNormalization';
 
 import { AskA24zMemoryTool, type AskMemoryResponse } from './core-mcp/tools/AskA24zMemoryTool';
 import { LLMService, type LLMConfig } from './core-mcp/services/llm-service';
+import { GuidanceTokenManager } from './core-mcp/services/guidance-token-manager';
+import { GetRepositoryGuidanceTool } from './core-mcp/tools/GetRepositoryGuidanceTool';
 import {
   ValidationMessageFormatter as ValidationMessageFormatterImport,
   ValidationMessageData as ValidationMessageDataImport,
@@ -197,9 +205,13 @@ export class A24zMemory {
   private llmConfig?: LLMConfig;
   private askTool?: AskA24zMemoryTool;
   private llmService?: LLMService;
+  private tokenManager: GuidanceTokenManager;
+  private guidanceTool: GetRepositoryGuidanceTool;
 
   constructor(repositoryPath?: string) {
     this.repositoryPath = repositoryPath || normalizeRepositoryPathFunc(process.cwd());
+    this.tokenManager = new GuidanceTokenManager();
+    this.guidanceTool = new GetRepositoryGuidanceTool();
   }
 
   /**
@@ -344,6 +356,13 @@ export class A24zMemory {
   }
 
   /**
+   * Merge multiple notes into a single consolidated note
+   */
+  mergeNotes(input: MergeNotesInputType): MergeNotesResultType {
+    return mergeNotesFunc(this.repositoryPath, input);
+  }
+
+  /**
    * Get all tag descriptions
    */
   getTagDescriptions(): Record<string, string> {
@@ -431,6 +450,18 @@ export class A24zMemory {
       this.askTool = new AskA24zMemoryTool(updatedConfig);
     }
 
+    // Auto-generate a guidance token for backward compatibility
+    // This allows the library to work without requiring users to manage tokens
+    const guidanceResult = await this.guidanceTool.execute({ path: params.filePath });
+    // The token is returned at the root level of the result
+    const guidanceToken = (guidanceResult as any).guidanceToken;
+
+    if (!guidanceToken) {
+      throw new Error(
+        'Failed to generate guidance token. Please ensure the repository is properly initialized.'
+      );
+    }
+
     // Execute with metadata
     const result = await this.askTool.executeWithMetadata({
       filePath: params.filePath,
@@ -438,6 +469,7 @@ export class A24zMemory {
       taskContext: params.taskContext,
       filterTags: params.filterTags,
       filterTypes: params.filterTypes,
+      guidanceToken,
     });
 
     return result;

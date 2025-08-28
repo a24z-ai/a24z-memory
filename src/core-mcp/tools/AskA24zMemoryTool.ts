@@ -6,6 +6,7 @@ import { getNotesForPathWithLimit } from '../store/notesStore';
 import { normalizeRepositoryPath } from '../utils/pathNormalization';
 import { LLMService, type LLMContext } from '../services/llm-service';
 import { readAnchorFiles, selectOptimalContent } from '../utils/fileReader';
+import { GuidanceTokenManager } from '../services/guidance-token-manager';
 
 export interface A24zMemoryConfig {
   llm: { model: string; temperature: number; systemPrompt: string; maxTokens: number };
@@ -81,6 +82,11 @@ export class AskA24zMemoryTool extends BaseTool {
       .describe(
         'Filter results to only these note types. Common types: decision, pattern, gotcha, explanation. Custom types are also supported. For example, use ["gotcha", "pattern"] when debugging, or ["decision"] when understanding architecture.'
       ),
+    guidanceToken: z
+      .string()
+      .describe(
+        'The guidance token obtained from get_repository_guidance. Required to ensure guidance has been read.'
+      ),
   });
 
   private defaultConfig: A24zMemoryConfig = {
@@ -104,12 +110,14 @@ export class AskA24zMemoryTool extends BaseTool {
   };
 
   private llmService: LLMService | null;
+  private tokenManager: GuidanceTokenManager;
 
   constructor(llmConfig?: any) {
     super();
     // Initialize LLM service with config if available
     // Config will be loaded lazily on first use if not provided
     this.llmService = llmConfig ? new LLMService(llmConfig) : null;
+    this.tokenManager = new GuidanceTokenManager();
   }
 
   private async ensureLLMService(): Promise<void> {
@@ -126,7 +134,10 @@ export class AskA24zMemoryTool extends BaseTool {
   }
 
   async executeWithMetadata(input: z.infer<typeof this.schema>): Promise<AskMemoryResponse> {
-    const { filePath, query, taskContext, filterTags, filterTypes } = input;
+    const { filePath, query, taskContext, filterTags, filterTypes, guidanceToken } = input;
+
+    // Validate guidance token
+    this.tokenManager.validateTokenForPath(guidanceToken, filePath);
     // Validate that filePath is absolute
     if (!path.isAbsolute(filePath)) {
       throw new Error(

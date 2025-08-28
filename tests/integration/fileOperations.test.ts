@@ -7,6 +7,7 @@ import { CreateRepositoryNoteTool } from '../../src/core-mcp/tools/CreateReposit
 import { GetNotesTool } from '../../src/core-mcp/tools/GetNotesTool';
 import { GetRepositoryTagsTool } from '../../src/core-mcp/tools/GetRepositoryTagsTool';
 import { TEST_DIR } from '../setup';
+import { withGuidanceToken, createTestGuidanceToken } from '../test-helpers';
 
 describe('File Operations Integration', () => {
   const testPath = path.join(TEST_DIR, 'file-ops-test');
@@ -40,14 +41,16 @@ describe('File Operations Integration', () => {
   it('should complete full create-retrieve-query workflow', async () => {
     // Step 1: Create a note
     const createTool = new CreateRepositoryNoteTool();
-    const createResult = await createTool.execute({
-      note: '# Integration Test\\n\\nThis tests file operations.',
-      directoryPath: testPath,
-      anchors: [testPath],
-      tags: ['integration', 'file-ops'],
-      type: 'explanation',
-      metadata: { test: true },
-    });
+    const createResult = await createTool.execute(
+      withGuidanceToken({
+        note: '# Integration Test\\n\\nThis tests file operations.',
+        directoryPath: testPath,
+        anchors: [testPath],
+        tags: ['integration', 'file-ops'],
+        type: 'explanation',
+        metadata: { test: true },
+      })
+    );
 
     expect(createResult.content[0].text).toContain('Note saved successfully');
 
@@ -57,6 +60,7 @@ describe('File Operations Integration', () => {
 
     // Step 3: Retrieve notes
     const getTool = new GetNotesTool();
+    const guidanceToken = createTestGuidanceToken(testPath);
     const getResult = await getTool.execute({
       path: testPath,
       includeParentNotes: true,
@@ -66,6 +70,7 @@ describe('File Operations Integration', () => {
       limit: 10,
       offset: 0,
       includeMetadata: true,
+      guidanceToken,
     });
     const getData = JSON.parse(getResult.content[0].text!);
 
@@ -79,6 +84,7 @@ describe('File Operations Integration', () => {
       includeUsedTags: true,
       includeSuggestedTags: true,
       includeGuidance: false,
+      guidanceToken,
     });
     const tagsData = JSON.parse(tagsResult.content[0].text!);
 
@@ -92,14 +98,16 @@ describe('File Operations Integration', () => {
 
     // Create 10 notes concurrently
     const promises = Array.from({ length: 10 }, (_: unknown, i: number) =>
-      createTool.execute({
-        note: `Concurrent note ${i}`,
-        directoryPath: testPath,
-        anchors: [testPath],
-        tags: [`tag-${i}`],
-        type: 'explanation',
-        metadata: { index: i },
-      })
+      createTool.execute(
+        withGuidanceToken({
+          note: `Concurrent note ${i}`,
+          directoryPath: testPath,
+          anchors: [testPath],
+          tags: [`tag-${i}`],
+          type: 'explanation',
+          metadata: { index: i },
+        })
+      )
     );
 
     const results = await Promise.all(promises);
@@ -111,6 +119,7 @@ describe('File Operations Integration', () => {
 
     // Verify all were saved
     const getTool = new GetNotesTool();
+    const verifyToken = createTestGuidanceToken(testPath);
     const getResult = await getTool.execute({
       path: testPath,
       includeParentNotes: true,
@@ -120,6 +129,7 @@ describe('File Operations Integration', () => {
       limit: 20,
       offset: 0,
       includeMetadata: true,
+      guidanceToken: verifyToken,
     });
     const data = JSON.parse(getResult.content[0].text!);
 
@@ -129,14 +139,16 @@ describe('File Operations Integration', () => {
   it('should persist notes across tool instances', async () => {
     // Create note with first tool instance
     const tool1 = new CreateRepositoryNoteTool();
-    await tool1.execute({
-      note: 'Persistence test',
-      directoryPath: testPath,
-      anchors: [testPath],
-      tags: ['persistence'],
-      type: 'explanation',
-      metadata: {},
-    });
+    await tool1.execute(
+      withGuidanceToken({
+        note: 'Persistence test',
+        directoryPath: testPath,
+        anchors: [testPath],
+        tags: ['persistence'],
+        type: 'explanation',
+        metadata: {},
+      })
+    );
 
     // Retrieve with new tool instance
     const tool2 = new GetNotesTool();

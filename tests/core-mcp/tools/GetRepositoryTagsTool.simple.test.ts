@@ -3,6 +3,8 @@ import * as path from 'node:path';
 import { GetRepositoryTagsTool } from '../../../src/core-mcp/tools/GetRepositoryTagsTool';
 import { saveNote } from '../../../src/core-mcp/store/notesStore';
 import { TEST_DIR } from '../../setup';
+import { createTestGuidanceToken } from '../../test-helpers';
+import { GuidanceTokenManager } from '../../../src/core-mcp/services/guidance-token-manager';
 
 describe('GetRepositoryTagsTool (Simple)', () => {
   let tool: GetRepositoryTagsTool;
@@ -24,7 +26,8 @@ describe('GetRepositoryTagsTool (Simple)', () => {
   });
 
   it('should return JSON response', async () => {
-    const result = await tool.handler({ path: testPath });
+    const guidanceToken = createTestGuidanceToken(testPath);
+    const result = await tool.handler({ path: testPath, guidanceToken });
 
     expect(result.content[0].type).toBe('text');
     const data = JSON.parse(result.content[0].text!);
@@ -43,7 +46,8 @@ describe('GetRepositoryTagsTool (Simple)', () => {
       metadata: {},
     });
 
-    const result = await tool.handler({ path: testPath });
+    const guidanceToken = createTestGuidanceToken(testPath);
+    const result = await tool.handler({ path: testPath, guidanceToken });
     const data = JSON.parse(result.content[0].text!);
 
     expect(data.usedTags.some((tag: { name: string }) => tag.name === 'custom-tag')).toBe(true);
@@ -53,7 +57,9 @@ describe('GetRepositoryTagsTool (Simple)', () => {
     const authPath = path.join(testPath, 'auth');
     fs.mkdirSync(authPath, { recursive: true });
 
-    const result = await tool.handler({ path: authPath });
+    // Use testPath (the repo root) for token generation, not authPath
+    const guidanceToken = createTestGuidanceToken(testPath);
+    const result = await tool.handler({ path: authPath, guidanceToken });
     const data = JSON.parse(result.content[0].text!);
 
     expect(data.suggestedTags).toBeDefined();
@@ -62,7 +68,8 @@ describe('GetRepositoryTagsTool (Simple)', () => {
   });
 
   it('should include repository guidance by default', async () => {
-    const result = await tool.handler({ path: testPath });
+    const guidanceToken = createTestGuidanceToken(testPath);
+    const result = await tool.handler({ path: testPath, guidanceToken });
     const data = JSON.parse(result.content[0].text!);
 
     // Should include either repositoryGuidance or guidanceNote
@@ -81,7 +88,11 @@ describe('GetRepositoryTagsTool (Simple)', () => {
     const customGuidance = '# Custom Project Guidance\n\nThis is specific to our project.';
     fs.writeFileSync(path.join(a24zDir, 'note-guidance.md'), customGuidance);
 
-    const result = await tool.handler({ path: testPath });
+    // Generate token AFTER writing the custom guidance using the test helper
+    // which generates the full content like the actual tool does
+    const guidanceToken = createTestGuidanceToken(testPath);
+
+    const result = await tool.handler({ path: testPath, guidanceToken });
     const data = JSON.parse(result.content[0].text!);
 
     expect(data.repositoryGuidance).toBe(customGuidance);
@@ -89,9 +100,11 @@ describe('GetRepositoryTagsTool (Simple)', () => {
   });
 
   it('should exclude guidance when includeGuidance is false', async () => {
+    const guidanceToken = createTestGuidanceToken(testPath);
     const result = await tool.handler({
       path: testPath,
       includeGuidance: false,
+      guidanceToken,
     });
     const data = JSON.parse(result.content[0].text!);
 
@@ -100,10 +113,12 @@ describe('GetRepositoryTagsTool (Simple)', () => {
   });
 
   it('should allow selective inclusion of tag types', async () => {
+    const guidanceToken = createTestGuidanceToken(testPath);
     const result = await tool.handler({
       path: testPath,
       includeUsedTags: false,
       includeSuggestedTags: false,
+      guidanceToken,
       includeGuidance: false,
     });
     const data = JSON.parse(result.content[0].text!);

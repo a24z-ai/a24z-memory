@@ -17,6 +17,14 @@ describe('A24zMemory askMemory method', () => {
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
 
+    // Create .a24z directory and guidance file for token generation
+    const a24zDir = path.join(testRepoPath, '.a24z');
+    fs.mkdirSync(a24zDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(a24zDir, 'note-guidance.md'),
+      '# Test Guidance\n\nThis is test guidance for the repository.'
+    );
+
     // Initialize A24zMemory with test repo
     memory = new A24zMemory(testRepoPath);
   });

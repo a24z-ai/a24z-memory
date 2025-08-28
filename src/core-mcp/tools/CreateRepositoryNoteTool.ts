@@ -114,32 +114,29 @@ export class CreateRepositoryNoteTool extends BaseTool {
       );
     }
 
-    // Check configuration for tag/type enforcement and token requirement
+    // Check configuration for tag/type enforcement
     const config = getRepositoryConfiguration(parsed.directoryPath);
     const tagEnforcement = config.tags?.enforceAllowedTags || false;
     const typeEnforcement = config.types?.enforceAllowedTypes || false;
-    const requireGuidanceToken = process.env.A24Z_REQUIRE_GUIDANCE_TOKEN === 'true';
 
-    // Validate guidance token if required
-    if (requireGuidanceToken) {
-      if (!parsed.guidanceToken) {
+    // Validate guidance token (always required)
+    if (!parsed.guidanceToken) {
+      throw new Error(
+        `❌ Guidance token required. Please read repository guidance first using get_repository_guidance tool.\n` +
+          `💡 The guidance token proves you have read and understood the current repository guidelines.`
+      );
+    }
+
+    // Load current guidance to validate token
+    const guidance = getRepositoryGuidance(parsed.directoryPath);
+    if (guidance) {
+      const isValid = this.tokenManager.validateToken(parsed.guidanceToken, guidance);
+      if (!isValid) {
         throw new Error(
-          `❌ Guidance token required. Please read repository guidance first using get_repository_guidance tool.\n` +
-            `💡 The guidance token proves you have read and understood the current repository guidelines.`
+          `❌ Invalid or expired guidance token.\n` +
+            `💡 Please read the current repository guidance using get_repository_guidance tool to get a fresh token.\n` +
+            `Tokens expire after 24 hours or when guidance content changes.`
         );
-      }
-
-      // Load current guidance to validate token
-      const guidance = getRepositoryGuidance(parsed.directoryPath);
-      if (guidance) {
-        const isValid = this.tokenManager.validateToken(parsed.guidanceToken, guidance);
-        if (!isValid) {
-          throw new Error(
-            `❌ Invalid or expired guidance token.\n` +
-              `💡 Please read the current repository guidance using get_repository_guidance tool to get a fresh token.\n` +
-              `Tokens expire after 24 hours or when guidance content changes.`
-          );
-        }
       }
     }
 

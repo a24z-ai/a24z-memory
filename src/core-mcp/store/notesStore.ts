@@ -993,6 +993,59 @@ export function checkStaleNotes(repositoryPath: string): StaleNote[] {
   return staleNotes;
 }
 
+/**
+ * Merge multiple notes into a single consolidated note
+ */
+export interface MergeNotesInput {
+  note: string;
+  anchors: string[];
+  tags: string[];
+  type?: NoteType;
+  metadata?: Record<string, any>;
+  noteIds: string[];
+  deleteOriginals?: boolean;
+}
+
+export interface MergeNotesResult {
+  mergedNote: StoredNote;
+  deletedCount: number;
+}
+
+export function mergeNotes(repositoryPath: string, input: MergeNotesInput): MergeNotesResult {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+
+  // Create the merged note with metadata about the merge
+  const mergedNoteData = {
+    note: input.note,
+    directoryPath: normalizedRepo,
+    anchors: [...new Set(input.anchors)], // Deduplicate anchors
+    tags: [...new Set(input.tags)], // Deduplicate tags
+    type: input.type || ('explanation' as NoteType),
+    metadata: {
+      ...input.metadata,
+      mergedFrom: input.noteIds,
+      mergedAt: new Date().toISOString(),
+    },
+  };
+
+  const savedNote = saveNote(mergedNoteData);
+
+  let deletedCount = 0;
+  if (input.deleteOriginals !== false) {
+    // Default to true
+    for (const noteId of input.noteIds) {
+      if (deleteNoteById(normalizedRepo, noteId)) {
+        deletedCount++;
+      }
+    }
+  }
+
+  return {
+    mergedNote: savedNote,
+    deletedCount,
+  };
+}
+
 function getTagsDirectory(repositoryPath: string): string {
   return path.join(getRepositoryDataDir(repositoryPath), 'tags');
 }
