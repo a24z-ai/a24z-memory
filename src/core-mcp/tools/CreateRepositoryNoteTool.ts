@@ -6,7 +6,6 @@ import { BaseTool } from './base-tool';
 import {
   saveNote,
   getRepositoryConfiguration,
-  getRepositoryGuidance,
   getTagDescriptions,
   saveTagDescription,
   getTypeDescriptions,
@@ -127,17 +126,15 @@ export class CreateRepositoryNoteTool extends BaseTool {
       );
     }
 
-    // Load current guidance to validate token
-    const guidance = getRepositoryGuidance(parsed.directoryPath);
-    if (guidance) {
-      const isValid = this.tokenManager.validateToken(parsed.guidanceToken, guidance);
-      if (!isValid) {
-        throw new Error(
-          `❌ Invalid or expired guidance token.\n` +
-            `💡 Please read the current repository guidance using get_repository_guidance tool to get a fresh token.\n` +
-            `Tokens expire after 24 hours or when guidance content changes.`
-        );
-      }
+    // Validate token using the validateTokenForPath method which checks against full guidance
+    try {
+      this.tokenManager.validateTokenForPath(parsed.guidanceToken, parsed.directoryPath);
+    } catch {
+      throw new Error(
+        `❌ Invalid or expired guidance token.\n` +
+          `💡 Please read the current repository guidance using get_repository_guidance tool to get a fresh token.\n` +
+          `Tokens expire after 24 hours or when guidance content changes.`
+      );
     }
 
     // Check for new tags that don't have descriptions

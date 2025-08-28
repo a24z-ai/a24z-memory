@@ -152,6 +152,7 @@ describe('File Operations Integration', () => {
 
     // Retrieve with new tool instance
     const tool2 = new GetNotesTool();
+    const guidanceToken = createTestGuidanceToken(testPath);
     const result = await tool2.execute({
       path: testPath,
       includeParentNotes: true,
@@ -161,6 +162,7 @@ describe('File Operations Integration', () => {
       limit: 10,
       offset: 0,
       includeMetadata: true,
+      guidanceToken,
     });
     const data = JSON.parse(result.content[0].text!);
 

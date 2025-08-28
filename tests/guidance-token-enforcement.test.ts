@@ -60,14 +60,16 @@ describe('Mandatory Guidance Token Enforcement', () => {
     });
 
     it('should accept note creation with valid token', async () => {
-      // Create some guidance content and generate a valid token
+      // Create guidance file first
       const guidanceContent = 'This is test guidance for the repository';
-      const validToken = tokenManager.generateToken(guidanceContent, testRepoPath);
-
-      // Create guidance file
       const a24zDir = path.join(testRepoPath, '.a24z');
       fs.mkdirSync(a24zDir, { recursive: true });
       fs.writeFileSync(path.join(a24zDir, 'note-guidance.md'), guidanceContent);
+
+      // Import generateFullGuidanceContent to generate the full content like the tool does
+      const { generateFullGuidanceContent } = require('../src/core-mcp/utils/guidanceGenerator');
+      const fullContent = generateFullGuidanceContent(testRepoPath);
+      const validToken = tokenManager.generateToken(fullContent, testRepoPath);
 
       const input = {
         note: 'Test note with valid token',

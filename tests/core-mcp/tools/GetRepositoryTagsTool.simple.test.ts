@@ -4,7 +4,6 @@ import { GetRepositoryTagsTool } from '../../../src/core-mcp/tools/GetRepository
 import { saveNote } from '../../../src/core-mcp/store/notesStore';
 import { TEST_DIR } from '../../setup';
 import { createTestGuidanceToken } from '../../test-helpers';
-import { GuidanceTokenManager } from '../../../src/core-mcp/services/guidance-token-manager';
 
 describe('GetRepositoryTagsTool (Simple)', () => {
   let tool: GetRepositoryTagsTool;
@@ -88,9 +87,16 @@ describe('GetRepositoryTagsTool (Simple)', () => {
     const customGuidance = '# Custom Project Guidance\n\nThis is specific to our project.';
     fs.writeFileSync(path.join(a24zDir, 'note-guidance.md'), customGuidance);
 
-    // Generate token AFTER writing the custom guidance using the test helper
-    // which generates the full content like the actual tool does
-    const guidanceToken = createTestGuidanceToken(testPath);
+    // Generate token manually without overwriting the custom guidance
+    const {
+      generateFullGuidanceContent,
+    } = require('../../../src/core-mcp/utils/guidanceGenerator');
+    const {
+      GuidanceTokenManager,
+    } = require('../../../src/core-mcp/services/guidance-token-manager');
+    const tokenManager = new GuidanceTokenManager();
+    const fullContent = generateFullGuidanceContent(testPath);
+    const guidanceToken = tokenManager.generateToken(fullContent, testPath);
 
     const result = await tool.handler({ path: testPath, guidanceToken });
     const data = JSON.parse(result.content[0].text!);
