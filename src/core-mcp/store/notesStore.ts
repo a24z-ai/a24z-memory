@@ -996,12 +996,15 @@ export function checkStaleNotes(repositoryPath: string): StaleNote[] {
 /**
  * Merge multiple notes into a single consolidated note
  */
+// Metadata for merged notes includes merged note IDs and any user-provided metadata
+type MergeNoteMetadata = Record<string, unknown>;
+
 export interface MergeNotesInput {
   note: string;
   anchors: string[];
   tags: string[];
   type?: NoteType;
-  metadata?: Record<string, any>;
+  metadata?: MergeNoteMetadata;
   noteIds: string[];
   deleteOriginals?: boolean;
 }

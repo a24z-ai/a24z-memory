@@ -1,67 +1,134 @@
 # Repository Note Guidelines
 
+## What Makes a Good Note
+
+Notes should capture knowledge that isn't obvious from reading the code itself. Focus on:
+
+- **Why** decisions were made (not just what was done)
+- **Context** that influenced the implementation
+- **Trade-offs** that were considered
+- **Gotchas** that might trip up future developers
+
 ## Preferred Note Types
 
-### 🏗️ Architecture Decisions
+### Architecture Decisions
 
-- Document major design choices and their rationale
-- Include alternatives considered and why they were rejected
-- Example: "Chose React over Vue for better TypeScript support and team familiarity"
-- **Tags**: `architecture`, `decision`
+Document significant architectural choices and their rationale:
 
-### 🐛 Bug Fixes & Gotchas
+- System design patterns and why they were chosen
+- Technology selections and alternatives considered
+- Performance vs. maintainability trade-offs
+- Integration points and their constraints
 
-- Document tricky bugs and their solutions
-- Include reproduction steps and root cause analysis
-- Example: "Race condition in async data loading - always check component mount status"
-- **Tags**: `bugfix`, `gotcha`
+### Bug Fixes & Gotchas
 
-### 🔧 Implementation Patterns
+Capture non-obvious issues and their solutions:
 
-- Document preferred code patterns and conventions
-- Include examples of good and bad practices
-- Example: "Use custom hooks for data fetching to ensure consistent error handling"
-- **Tags**: `pattern`, relevant tech tags
+- Root causes that weren't immediately apparent
+- Workarounds for third-party limitations
+- Edge cases that required special handling
+- Performance bottlenecks and their fixes
 
-### ⚡ Performance Insights
+### Implementation Patterns
 
-- Document performance optimizations and bottlenecks discovered
-- Include metrics before/after where applicable
-- Example: "Lazy loading components reduced initial bundle size by 40%"
-- **Tags**: `performance`, `optimization`
+Share reusable solutions and best practices:
 
-## Preferred Tags
+- Common patterns used throughout the codebase
+- Helper functions and their intended use cases
+- Configuration strategies
+- Testing approaches for complex scenarios
 
-### Technical Areas
+### Technical Debt & TODOs
 
-- `frontend`, `backend`, `database`, `api`
-- `authentication`, `security`, `performance`
-- `testing`, `deployment`, `configuration`
+Track areas needing future attention:
 
-### Common Frameworks & Tools
+- Temporary solutions that need revisiting
+- Refactoring opportunities
+- Upgrade paths for deprecated dependencies
+- Performance optimizations to consider
 
-- `react`, `typescript`, `node`, `express`
-- `prisma`, `postgresql`, `jest`, `cypress`
-- Add project-specific technologies here
+### Performance Insights
+
+Document performance-related discoveries:
+
+- Bottlenecks and their solutions
+- Optimization strategies that worked
+- Caching decisions and invalidation strategies
+- Scaling considerations
 
 ## Note Quality Guidelines
 
-- **Be specific**: Include code examples and file paths
-- **Be actionable**: Focus on what future developers should know
-- **Be concise**: Aim for 1-3 paragraphs per note
-- **Include context**: Explain why, not just what
-- **Link to related code**: Use `[filename.ts](path/to/file.ts)` format
+**Be specific**: Reference exact files, functions, or line numbers.
 
-## Example Note Structure
+**Add context**: Include links to relevant issues, PRs, or external documentation.
+
+**Use examples**: Show code snippets when explaining complex concepts.
+
+```typescript
+// Example: Document why a specific pattern was chosen
+// Using factory pattern here because we need different
+// implementations based on runtime configuration
+const handler = HandlerFactory.create(config.type);
+```
+
+**Tags**: Use consistent tags to make notes discoverable.
+
+## Best Practices
+
+1. **Be Specific**: Reference specific files, functions, or line numbers
+2. **Add Context**: Include links to issues, PRs, or documentation
+3. **Keep It Fresh**: Update notes when implementations change
+4. **Be Concise**: Get to the point quickly while providing necessary detail
+5. **Think Future**: Write for someone (maybe you) debugging at 3 AM
+
+## Preferred Tags
+
+Use tags to categorize and make notes discoverable:
+
+### Technical Categories
+
+- `architecture`: High-level design decisions
+- `bug-fix`: Solutions to reported bugs
+- `performance`: Optimizations and bottlenecks
+- `security`: Security considerations and fixes
+- `authentication`: Auth flows and access control
+- `refactor`: Code improvement decisions
+- `workaround`: Temporary solutions
+- `gotcha`: Non-obvious behaviors
+- `pattern`: Reusable implementation patterns
+
+### Component Categories
+
+- `frontend`: UI/UX related notes
+- `backend`: Server-side logic and APIs
+- `database`: Data storage and queries
+- `infrastructure`: Deployment and DevOps
+- `testing`: Test strategies and utilities
+- `documentation`: Documentation decisions
+
+## Example Note
 
 ```markdown
-## Component State Management Pattern
+# OAuth Token Refresh Strategy
 
-When creating new React components that need shared state, use the custom `useSharedState` hook located in `src/hooks/useSharedState.ts` instead of prop drilling.
+**Tags**: `architecture`, `security`, `backend`
 
-**Why**: Reduces component coupling and makes state updates more predictable.
+## Context
 
-**Example**: See `src/components/UserProfile.tsx` for proper implementation.
+Implemented automatic token refresh to prevent user logouts during active sessions.
 
-**Tags**: react, pattern, state-management
+## Decision
+
+Using interceptor pattern to catch 401 responses and retry with refreshed token.
+Chose this over proactive refresh to minimize unnecessary API calls.
+
+## Trade-offs
+
+- Pro: Reduces server load
+- Pro: Simpler implementation
+- Con: First failed request adds latency
+
+## Implementation
+
+See `src/auth/tokenInterceptor.ts:45-72`
 ```

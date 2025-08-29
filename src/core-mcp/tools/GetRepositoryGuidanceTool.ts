@@ -4,6 +4,11 @@ import { BaseTool } from './base-tool';
 import { GuidanceTokenManager } from '../services/guidance-token-manager';
 import { generateFullGuidanceContent } from '../utils/guidanceGenerator';
 
+// Extended result type that includes optional guidanceToken
+interface GuidanceToolResult extends McpToolResult {
+  guidanceToken?: string;
+}
+
 export class GetRepositoryGuidanceTool extends BaseTool {
   name = 'get_repository_guidance';
   description =
@@ -52,9 +57,7 @@ export class GetRepositoryGuidanceTool extends BaseTool {
       output.push('Token expires in 24 hours.');
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result: any = {
-      // Dynamic result shape with optional guidanceToken
+    const result: GuidanceToolResult = {
       content: [
         {
           type: 'text',

@@ -8,3 +8,4 @@ export { GetRepositoryGuidanceTool } from './GetRepositoryGuidanceTool';
 export { DiscoverToolsTool } from './DiscoverToolsTool';
 export { GetNoteByIdTool } from './GetNoteByIdTool';
 export { DeleteNoteTool } from './DeleteNoteTool';
+export { CreateHandoffBriefTool } from './CreateHandoffBriefTool';

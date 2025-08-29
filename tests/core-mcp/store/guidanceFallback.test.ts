@@ -12,10 +12,10 @@ describe('Repository Guidance Fallback Logic', () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'guidance-fallback-test-'));
     repoDir = path.join(tempDir, 'test-repo');
     fs.mkdirSync(repoDir, { recursive: true });
-    
+
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(repoDir, '.git'), { recursive: true });
-    
+
     // Create a package.json to make it look like a proper project root
     fs.writeFileSync(path.join(repoDir, 'package.json'), '{}');
   });
@@ -31,7 +31,7 @@ describe('Repository Guidance Fallback Logic', () => {
       // Create repository-specific guidance
       const a24zDir = path.join(repoDir, '.a24z');
       fs.mkdirSync(a24zDir, { recursive: true });
-      
+
       const customGuidance = '# Custom Repository Guidance\n\nThis is project-specific guidance.';
       fs.writeFileSync(path.join(a24zDir, 'note-guidance.md'), customGuidance);
 
@@ -41,7 +41,7 @@ describe('Repository Guidance Fallback Logic', () => {
 
     it('should fallback to bundled default template when no repository guidance exists', () => {
       const result = getRepositoryGuidance(repoDir);
-      
+
       // Should return content from the bundled default template
       expect(result).toBeTruthy();
       expect(result).toContain('Repository Note Guidelines');
@@ -53,18 +53,27 @@ describe('Repository Guidance Fallback Logic', () => {
     it('should verify bundled templates exist and have correct content', () => {
       // Test that all bundled templates exist and have expected content
       const templatesDir = path.join(__dirname, '../../../templates');
-      
+
       const templates = [
         { file: 'default-note-guidance.md', expectedContent: 'Repository Note Guidelines' },
-        { file: 'react-typescript-note-guidance.md', expectedContent: 'React TypeScript Project Note Guidelines' },
-        { file: 'nodejs-api-note-guidance.md', expectedContent: 'Node.js API Project Note Guidelines' },
-        { file: 'python-data-science-note-guidance.md', expectedContent: 'Python Data Science Project Note Guidelines' }
+        {
+          file: 'react-typescript-note-guidance.md',
+          expectedContent: 'React TypeScript Project Note Guidelines',
+        },
+        {
+          file: 'nodejs-api-note-guidance.md',
+          expectedContent: 'Node.js API Project Note Guidelines',
+        },
+        {
+          file: 'python-data-science-note-guidance.md',
+          expectedContent: 'Python Data Science Project Note Guidelines',
+        },
       ];
 
       templates.forEach(({ file, expectedContent }) => {
         const templatePath = path.join(templatesDir, file);
         expect(fs.existsSync(templatePath)).toBe(true);
-        
+
         const content = fs.readFileSync(templatePath, 'utf8');
         expect(content).toContain(expectedContent);
         expect(content.length).toBeGreaterThan(100); // Ensure it's not empty
@@ -74,7 +83,7 @@ describe('Repository Guidance Fallback Logic', () => {
     it('should demonstrate fallback behavior works correctly', () => {
       // Test that when no repository guidance exists, we get default template
       const result = getRepositoryGuidance(repoDir);
-      
+
       // Should contain default template content, not null
       expect(result).toBeTruthy();
       expect(result).toContain('Repository Note Guidelines');
@@ -84,7 +93,7 @@ describe('Repository Guidance Fallback Logic', () => {
       // Create guidance at repository root
       const a24zDir = path.join(repoDir, '.a24z');
       fs.mkdirSync(a24zDir, { recursive: true });
-      
+
       const customGuidance = '# Root Level Guidance';
       fs.writeFileSync(path.join(a24zDir, 'note-guidance.md'), customGuidance);
 
@@ -120,7 +129,7 @@ describe('Repository Guidance Fallback Logic', () => {
   describe('template content validation', () => {
     it('should verify default template has comprehensive structure', () => {
       const result = getRepositoryGuidance(repoDir);
-      
+
       expect(result).toContain('# Repository Note Guidelines');
       expect(result).toContain('## Preferred Note Types');
       expect(result).toContain('## Preferred Tags');
@@ -133,17 +142,17 @@ describe('Repository Guidance Fallback Logic', () => {
 
     it('should verify template includes practical examples', () => {
       const result = getRepositoryGuidance(repoDir);
-      
+
       // Should have concrete examples and guidance
       expect(result).toContain('Example');
       expect(result).toContain('**Tags**:');
       expect(result).toContain('**Be specific**:');
-      expect(result).toContain('```');  // Just check for code blocks, not specific text
+      expect(result).toContain('```'); // Just check for code blocks, not specific text
     });
 
     it('should verify template has appropriate tags structure', () => {
       const result = getRepositoryGuidance(repoDir);
-      
+
       // Should include common tag categories
       expect(result).toContain('frontend');
       expect(result).toContain('backend');

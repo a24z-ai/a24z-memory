@@ -198,6 +198,9 @@ import {
   getValidationMessagesPath as getValidationMessagesPathImport,
 } from './core-mcp/validation/messages';
 
+// User-provided metadata for notes - can contain arbitrary data
+type NoteMetadata = Record<string, unknown>;
+
 /**
  * High-level API for easy use
  */
@@ -223,8 +226,7 @@ export class A24zMemory {
     anchors: string[];
     tags: string[];
     type?: NoteTypeType;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    metadata?: Record<string, any>; // Metadata can contain arbitrary user data
+    metadata?: NoteMetadata; // Metadata can contain arbitrary user data
   }): StoredNoteType {
     return saveNoteFunc({
       ...params,
@@ -455,7 +457,10 @@ export class A24zMemory {
     // This allows the library to work without requiring users to manage tokens
     const guidanceResult = await this.guidanceTool.execute({ path: params.filePath });
     // The token is returned at the root level of the result
-    const guidanceToken = (guidanceResult as any).guidanceToken;
+    interface GuidanceResultWithToken {
+      guidanceToken?: string;
+    }
+    const guidanceToken = (guidanceResult as GuidanceResultWithToken).guidanceToken;
 
     if (!guidanceToken) {
       throw new Error(
