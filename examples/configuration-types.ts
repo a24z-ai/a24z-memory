@@ -45,7 +45,15 @@ const exampleNote: StoredNote = {
 };
 
 // Note types - now supports any string value
-const noteTypes: NoteType[] = ['decision', 'pattern', 'gotcha', 'explanation', 'incident', 'research', 'custom-type'];
+const noteTypes: NoteType[] = [
+  'decision',
+  'pattern',
+  'gotcha',
+  'explanation',
+  'incident',
+  'research',
+  'custom-type',
+];
 
 // Validation error structure
 const exampleError: ValidationError = {

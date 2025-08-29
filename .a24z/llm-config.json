@@ -1,5 +1,3 @@
 {
-  "provider": "ollama",
-  "model": "nomic-embed-text",
-  "apiKey": ""
+  "provider": "none"
 }

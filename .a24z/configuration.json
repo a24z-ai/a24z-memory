@@ -3,11 +3,18 @@
   "limits": {
     "noteMaxLength": 10000,
     "maxTagsPerNote": 10,
-    "maxTagLength": 50,
-    "maxAnchorsPerNote": 20
+    "maxAnchorsPerNote": 20,
+    "tagDescriptionMaxLength": 2000,
+    "maxTagLength": 50
   },
   "storage": {
     "backupOnMigration": true,
     "compressionEnabled": false
+  },
+  "tags": {
+    "enforceAllowedTags": false
+  },
+  "types": {
+    "enforceAllowedTypes": false
   }
 }
