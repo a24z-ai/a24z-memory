@@ -107,6 +107,7 @@ export { zodToJsonSchema } from './core-mcp/utils/zod-to-json-schema';
 export { CreateRepositoryNoteTool } from './core-mcp/tools/CreateRepositoryNoteTool';
 export { AskA24zMemoryTool, type AskMemoryResponse } from './core-mcp/tools/AskA24zMemoryTool';
 export { GetRepositoryTagsTool } from './core-mcp/tools/GetRepositoryTagsTool';
+export { GetRepositoryTypesTool } from './core-mcp/tools/GetRepositoryTypesTool';
 export { GetRepositoryGuidanceTool } from './core-mcp/tools/GetRepositoryGuidanceTool';
 export { GetNoteByIdTool } from './core-mcp/tools/GetNoteByIdTool';
 export { DeleteNoteTool } from './core-mcp/tools/DeleteNoteTool';

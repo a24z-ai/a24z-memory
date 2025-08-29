@@ -17,6 +17,7 @@ import {
   CreateRepositoryNoteTool,
   GetNotesTool,
   GetRepositoryTagsTool,
+  GetRepositoryTypesTool,
   GetRepositoryGuidanceTool,
   DiscoverToolsTool,
   DeleteNoteTool,
@@ -66,6 +67,7 @@ export class McpServer {
     this.addTool(new CreateRepositoryNoteTool());
     this.addTool(new GetNotesTool());
     this.addTool(new GetRepositoryTagsTool());
+    this.addTool(new GetRepositoryTypesTool());
     this.addTool(new GetRepositoryGuidanceTool());
     this.addTool(new DiscoverToolsTool());
     this.addTool(new DeleteNoteTool());
