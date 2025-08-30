@@ -8,18 +8,18 @@ const TIMEOUT = 10000; // 10 seconds timeout
 
 async function testMCPServer() {
   console.log('🧪 Testing MCP server build and startup...');
-  
+
   return new Promise((resolve, reject) => {
     // Start the MCP server
-    const server = spawn('node', ['dist/index.js'], {
+    const server = spawn('node', ['dist/cli.js'], {
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: { ...process.env }
+      env: { ...process.env },
     });
-    
+
     let output = '';
     let errorOutput = '';
     let resolved = false;
-    
+
     // Set timeout
     const timeoutId = setTimeout(() => {
       if (!resolved) {
@@ -28,27 +28,28 @@ async function testMCPServer() {
         reject(new Error(`Server failed to start within ${TIMEOUT}ms`));
       }
     }, TIMEOUT);
-    
+
     // Send initial MCP handshake
-    const initMessage = JSON.stringify({
-      jsonrpc: '2.0',
-      method: 'initialize',
-      params: {
-        protocolVersion: '0.1.0',
-        capabilities: {},
-        clientInfo: {
-          name: 'test-client',
-          version: '1.0.0'
-        }
-      },
-      id: 1
-    }) + '\n';
-    
+    const initMessage =
+      JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'initialize',
+        params: {
+          protocolVersion: '0.1.0',
+          capabilities: {},
+          clientInfo: {
+            name: 'test-client',
+            version: '1.0.0',
+          },
+        },
+        id: 1,
+      }) + '\n';
+
     server.stdout.on('data', (data) => {
       output += data.toString();
-      
+
       // Check if server is ready (look for MCP response)
-      if (!resolved && (output.includes('"jsonrpc"') && output.includes('"result"'))) {
+      if (!resolved && output.includes('"jsonrpc"') && output.includes('"result"')) {
         resolved = true;
         clearTimeout(timeoutId);
         console.log('✅ MCP server started successfully and responded to initialization');
@@ -56,7 +57,7 @@ async function testMCPServer() {
         resolve(true);
       }
     });
-    
+
     server.stderr.on('data', (data) => {
       errorOutput += data.toString();
       // MCP servers may output debug info to stderr, which is normal
@@ -69,7 +70,7 @@ async function testMCPServer() {
         }
       }
     });
-    
+
     server.on('error', (error) => {
       if (!resolved) {
         resolved = true;
@@ -77,7 +78,7 @@ async function testMCPServer() {
         reject(new Error(`Failed to start server: ${error.message}`));
       }
     });
-    
+
     server.on('exit', (code) => {
       if (!resolved) {
         resolved = true;
@@ -87,7 +88,7 @@ async function testMCPServer() {
         }
       }
     });
-    
+
     // Send initialization after a brief delay to ensure server is listening
     setTimeout(() => {
       try {

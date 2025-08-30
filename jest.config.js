@@ -16,4 +16,7 @@ export default {
   coverageReporters: ['text', 'lcov', 'html'],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   extensionsToTreatAsEsm: ['.ts'],
+  moduleNameMapper: {
+    '^globby$': '<rootDir>/tests/__mocks__/globby.js',
+  },
 };

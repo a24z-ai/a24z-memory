@@ -12,17 +12,18 @@ await esbuild.build({
   format: 'esm',
   outfile: 'dist/cli.js',
   banner: {
-    js: `#!/usr/bin/env node
-import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);`,
+    js: `#!/usr/bin/env node`,
   },
   external: [
     // Keep node built-ins external
     'node:*',
-    // Keep peer dependencies external if needed
+    // Keep problematic packages external to avoid dynamic require issues
+    'fast-glob',
+    'glob',
+    '@modelcontextprotocol/sdk',
+    '@mintlify/mcp',
   ],
+  packages: 'external', // Keep all node_modules external
   minify: false, // Keep readable for debugging
   sourcemap: true,
 });

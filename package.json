@@ -48,7 +48,9 @@
   "dependencies": {
     "@mintlify/mcp": "^1.1.216",
     "@modelcontextprotocol/sdk": "^1.0.4",
+    "globby": "^14.1.0",
     "gpt-tokenizer": "^3.0.1",
+    "ignore": "^7.0.5",
     "zod": "^3.25.76"
   },
   "devDependencies": {

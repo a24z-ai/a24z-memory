@@ -3,6 +3,8 @@
  * Main server class that manages tools and resources
  */
 
+// import { fileURLToPath } from 'node:url';
+// import { dirname } from 'node:path';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
@@ -26,6 +28,8 @@ import {
   GetStaleNotesTool,
   GetTagUsageTool,
   DeleteTagTool,
+  GetNoteCoverageTool,
+  StartDocumentationQuestTool,
 } from '../tools';
 import { McpServerConfig, McpTool, McpResource } from '../types';
 import { McpLLMConfigurator } from '../services/mcp-llm-configurator';
@@ -111,6 +115,12 @@ export class McpServer {
     if (enabledTools.delete_tag !== false) {
       this.addTool(new DeleteTagTool());
     }
+    if (enabledTools.get_note_coverage !== false) {
+      this.addTool(new GetNoteCoverageTool());
+    }
+    if (enabledTools.start_documentation_quest !== false) {
+      this.addTool(new StartDocumentationQuestTool());
+    }
   }
 
   private setupDefaultResources() {
@@ -157,7 +167,7 @@ export class McpServer {
         JSON.stringify(request.params.arguments, null, 2)
       );
       console.error('[McpServer] DEBUG: current working directory:', process.cwd());
-      console.error('[McpServer] DEBUG: __dirname:', __dirname);
+      // console.error('[McpServer] DEBUG: __dirname:', dirname(fileURLToPath(import.meta.url)));
       const { name, arguments: args } = request.params;
       const tool = this.tools.get(name);
 
@@ -227,7 +237,7 @@ export class McpServer {
     await this.server.connect(transport);
     console.error(`✅ ${this.config.name} MCP server started successfully`);
     console.error(`📁 MCP Server working directory: ${process.cwd()}`);
-    console.error(`📁 MCP Server __dirname: ${__dirname}`);
+    // console.error(`📁 MCP Server __dirname: ${dirname(fileURLToPath(import.meta.url))}`);
 
     // Initialize LLM configuration after server starts
     this.initializeLLMService();

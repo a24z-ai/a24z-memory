@@ -1,16 +1,12 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import {
-  saveNote,
-  getNotesForPath,
-  getUsedTagsForPath,
-} from '../../../src/core-mcp/store/notesStore';
+import { saveNote, getNotesForPath, getUsedTagsForPath } from '../../src/core-mcp/store/notesStore';
 import {
   normalizeRepositoryPath,
   findProjectRoot,
   getRepositoryName,
-} from '../../../src/core-mcp/utils/pathNormalization';
-import { withGuidanceToken, createTestGuidanceToken } from '../../test-helpers';
+} from '../../src/core-mcp/utils/pathNormalization';
+import { withGuidanceToken, createTestGuidanceToken } from '../test-helpers';
 
 describe('Repository-Specific Storage', () => {
   const testRepoPath = '/tmp/test-repo-storage';
@@ -232,9 +228,9 @@ describe('Repository-Specific Storage', () => {
     it('should save and retrieve notes through the actual MCP tools', async () => {
       // Import the actual MCP tools
       const { CreateRepositoryNoteTool } = await import(
-        '../../../src/core-mcp/tools/CreateRepositoryNoteTool'
+        '../../src/core-mcp/tools/CreateRepositoryNoteTool'
       );
-      const { GetNotesTool } = await import('../../../src/core-mcp/tools/GetNotesTool');
+      const { GetNotesTool } = await import('../../src/core-mcp/tools/GetNotesTool');
 
       const saveTool = new CreateRepositoryNoteTool();
       const getTool = new GetNotesTool();
@@ -293,7 +289,7 @@ describe('Repository-Specific Storage', () => {
       });
 
       // Import and use the MCP tool
-      const { GetNotesTool } = await import('../../../src/core-mcp/tools/GetNotesTool');
+      const { GetNotesTool } = await import('../../src/core-mcp/tools/GetNotesTool');
       const getTool = new GetNotesTool();
 
       // Try to retrieve from a deeply nested path

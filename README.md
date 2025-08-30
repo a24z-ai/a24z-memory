@@ -12,7 +12,7 @@
 Every codebase accumulates tribal knowledge—those critical insights about why things work the way they do, what pitfalls to avoid, and which patterns to follow. But this knowledge gets lost in:
 
 - 🧠 **Developers' heads** when they leave or forget
-- 💬 **Slack threads** that disappear into history  
+- 💬 **Slack threads** that disappear into history
 - 📝 **PR comments** that nobody reads again
 - 📚 **Documentation** that becomes stale the moment it's written
 
@@ -49,6 +49,7 @@ AI: "Found a known issue: Auth middleware breaks with null headers in src/auth/m
 ### 🔄 Knowledge That Evolves
 
 As your code changes, the knowledge remains relevant:
+
 - **Anchors point to files**, not embedded content
 - **Git tracks changes**, showing how understanding evolved
 - **Types organize knowledge** by its nature (decision, pattern, gotcha, explanation)
@@ -60,8 +61,8 @@ We use a four-layer stack that keeps knowledge organized, meaningful, current, a
 
 ```
 📊 Type Layer    → What kind of knowledge (decision, pattern, gotcha, explanation)
-🏷️  Tag Layer     → Semantic categories for discovery  
-📝 Note Layer    → Your team's insights and explanations  
+🏷️  Tag Layer     → Semantic categories for discovery
+📝 Note Layer    → Your team's insights and explanations
 🔗 Anchor Layer  → Live connections to code locations
 ```
 
@@ -72,16 +73,19 @@ This isn't just storage—it's a living memory system that grows smarter with ev
 ## Real-World Impact
 
 ### For Individual Developers
+
 - **Never lose context** when switching between projects
 - **Learn from past mistakes** without repeating them
 - **Understand "why"** not just "what" in unfamiliar code
 
 ### For Teams
+
 - **Onboard faster** with accumulated team knowledge
 - **Share insights** automatically through git
 - **Build institutional memory** that survives team changes
 
 ### For AI Assistants
+
 - **Context-aware responses** based on real team knowledge
 - **Avoid known pitfalls** documented by your team
 - **Follow established patterns** specific to your codebase
@@ -106,7 +110,8 @@ The convenience buttons above handle everything—just click to install. For man
 <summary><b>Manual Installation Steps</b></summary>
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - Git repository (for knowledge storage)
 - MCP-compatible editor (Cursor, VS Code, Claude Code, etc.)
 
@@ -137,6 +142,7 @@ npx a24z-memory
 ### Configure Your Editor
 
 **For Cursor/VS Code/Claude Code:**
+
 ```json
 {
   "mcpServers": {
@@ -165,15 +171,23 @@ When working on development tasks, you have access to a a24z-memory MCP server..
 ### Available Tools
 
 #### discover_a24z_tools - Discover all available tools and capabilities
-#### askA24zMemory - Search tribal knowledge and get contextual guidance  
+
+#### askA24zMemory - Search tribal knowledge and get contextual guidance
+
 #### create_repository_note - Document insights and decisions
+
 #### get_notes - Browse raw notes without AI processing
+
 #### get_repository_tags - Manage note categorization
+
 #### get_repository_types - Get available note types
+
 #### get_repository_guidance - Get repository-specific guidelines
+
 ...
 
 ### Best Practices
+
 1. Check existing knowledge before starting work
 2. Use absolute paths starting with /
 3. Document insights after solving problems
@@ -190,6 +204,7 @@ Full system prompt available in [USAGE_GUIDE.md](./USAGE_GUIDE.md).
 <summary><b>Common Issues and Solutions</b></summary>
 
 ### 🔍 Server Not Starting
+
 ```bash
 npx a24z-memory
 # Should show: "✅ a24z-Memory MCP server started successfully"
@@ -197,24 +212,29 @@ npx a24z-memory
 ```
 
 ### 🔍 AI Not Using Tools
+
 1. Verify server is running in separate terminal
 2. Check system prompt includes tool definitions
 3. Test with: "What a24z-Memory tools are available?"
 
 ### 🔍 Path Errors
+
 Always use absolute paths:
+
 ```bash
 pwd  # Get current directory
 # Use this path in your commands
 ```
 
 ### 🔍 Repository Errors
+
 ```bash
 git status  # Verify you're in a git repo
 git init    # Initialize if needed
 ```
 
 ### 🔍 Debug Mode
+
 ```bash
 DEBUG=a24z-memory:* npx a24z-memory
 ```
@@ -235,12 +255,14 @@ For detailed troubleshooting, see the [complete checklist](./USAGE_GUIDE.md#comp
 When transitioning work—whether switching projects, onboarding teammates, or handing off tasks—create a **handoff brief** that captures everything the next person needs to know:
 
 ### What Gets Included
+
 - **Context & Current State**: Where things stand and what's been done
 - **Code References**: Specific files with explanations of their role
 - **Key Decisions**: Why certain approaches were taken
 - **Next Steps**: What needs attention moving forward
 
 ### How It Works
+
 ```
 You: "Create a handoff brief for the auth refactoring"
 AI: *Generates comprehensive handoff document*
@@ -269,13 +291,13 @@ Your AI assistant gains access to powerful knowledge management tools:
 
 ## Why This Is Different
 
-| Traditional Approach | a24z-Memory |
-|---------------------|------------|
-| Static documentation that rots | Dynamic knowledge anchored to code |
-| Embeddings that become stale | Fresh context read from current files |
-| Knowledge in silos (Slack, wikis) | Knowledge in your repository |
-| Manual knowledge sharing | Automatic distribution via git |
-| AI without context | AI with your team's wisdom |
+| Traditional Approach              | a24z-Memory                           |
+| --------------------------------- | ------------------------------------- |
+| Static documentation that rots    | Dynamic knowledge anchored to code    |
+| Embeddings that become stale      | Fresh context read from current files |
+| Knowledge in silos (Slack, wikis) | Knowledge in your repository          |
+| Manual knowledge sharing          | Automatic distribution via git        |
+| AI without context                | AI with your team's wisdom            |
 
 ## Programmatic Usage
 

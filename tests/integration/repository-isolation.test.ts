@@ -4,14 +4,10 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import {
-  saveNote,
-  getNotesForPath,
-  getUsedTagsForPath,
-} from '../../../src/core-mcp/store/notesStore';
-import { CreateRepositoryNoteTool } from '../../../src/core-mcp/tools/CreateRepositoryNoteTool';
-import { GetNotesTool } from '../../../src/core-mcp/tools/GetNotesTool';
-import { withGuidanceToken, createTestGuidanceToken } from '../../test-helpers';
+import { saveNote, getNotesForPath, getUsedTagsForPath } from '../../src/core-mcp/store/notesStore';
+import { CreateRepositoryNoteTool } from '../../src/core-mcp/tools/CreateRepositoryNoteTool';
+import { GetNotesTool } from '../../src/core-mcp/tools/GetNotesTool';
+import { withGuidanceToken, createTestGuidanceToken } from '../test-helpers';
 
 describe('Repository Isolation and Cross-Repository Testing', () => {
   const tempBase = path.join(os.tmpdir(), 'a24z-repo-isolation-test-' + Date.now());
@@ -520,9 +516,9 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       expect(gammaNotes).toHaveLength(5);
 
       // Verify no cross-contamination
-      expect(alphaNotes.every((n) => n.note.includes('Alpha'))).toBe(true);
-      expect(betaNotes.every((n) => n.note.includes('Beta'))).toBe(true);
-      expect(gammaNotes.every((n) => n.note.includes('Gamma'))).toBe(true);
+      expect(alphaNotes.every((n: any) => n.note.includes('Alpha'))).toBe(true);
+      expect(betaNotes.every((n: any) => n.note.includes('Beta'))).toBe(true);
+      expect(gammaNotes.every((n: any) => n.note.includes('Gamma'))).toBe(true);
     });
   });
 });

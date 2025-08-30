@@ -11,13 +11,7 @@
     "src/cli.ts",
     "package.json"
   ],
-  "tags": [
-    "architecture",
-    "mcp",
-    "integration",
-    "tools",
-    "pattern"
-  ],
+  "tags": ["architecture", "mcp", "integration", "tools", "pattern"],
   "type": "architecture",
   "metadata": {
     "toolVersion": "2.0.0",

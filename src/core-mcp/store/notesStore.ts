@@ -59,6 +59,8 @@ export interface RepositoryConfiguration {
     get_stale_notes?: boolean;
     get_tag_usage?: boolean;
     delete_tag?: boolean;
+    get_note_coverage?: boolean;
+    start_documentation_quest?: boolean;
   };
 }
 

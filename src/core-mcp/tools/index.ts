@@ -12,3 +12,5 @@ export { CreateHandoffBriefTool } from './CreateHandoffBriefTool';
 export { GetStaleNotesTool } from './GetStaleNotesTool';
 export { GetTagUsageTool } from './GetTagUsageTool';
 export { DeleteTagTool } from './DeleteTagTool';
+export { GetNoteCoverageTool } from './GetNoteCoverageTool';
+export { StartDocumentationQuestTool } from './StartDocumentationQuestTool';
