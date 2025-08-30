@@ -38,10 +38,11 @@ export class DiscoverToolsTool extends BaseTool {
           "taskContext: Additional context about what you're trying to accomplish",
           'filterTags: Filter results by specific tags',
           'filterTypes: Filter by note types (decision, pattern, gotcha, explanation)',
+          'guidanceToken: Token from get_repository_guidance (required)',
         ],
         examples: [
-          'askA24zMemory({ filePath: "/Users/user/project/src/AuthService.ts", query: "What authentication patterns are used here?" })',
-          'askA24zMemory({ filePath: "/Users/user/project/src/api/", query: "How should I handle API error responses?", filterTypes: ["pattern"] })',
+          'askA24zMemory({ filePath: "/Users/user/project/src/AuthService.ts", query: "What authentication patterns are used here?", guidanceToken: "token-xyz" })',
+          'askA24zMemory({ filePath: "/Users/user/project/src/api/", query: "How should I handle API error responses?", filterTypes: ["pattern"], guidanceToken: "token-xyz" })',
         ],
       },
       {
@@ -62,9 +63,37 @@ export class DiscoverToolsTool extends BaseTool {
           'tags: Semantic tags for categorization',
           'type: Note type (decision/pattern/gotcha/explanation)',
           'metadata: Additional context (optional)',
+          'guidanceToken: Token from get_repository_guidance (optional)',
         ],
         examples: [
           'create_repository_note({ note: "Fixed race condition in validation middleware", directoryPath: "/Users/user/project", anchors: ["/Users/user/project/src/middleware/validation.ts"], tags: ["bugfix", "concurrency", "validation"], type: "gotcha" })',
+        ],
+      },
+      {
+        name: 'get_notes',
+        category: 'knowledge',
+        description:
+          'Retrieve raw notes from the repository without AI processing. Returns actual note content, metadata, and anchors.',
+        useCases: [
+          'Browse through existing knowledge',
+          'See exact notes stored in repository',
+          'Get raw data for further processing',
+          'Review notes with specific filters',
+        ],
+        parameters: [
+          'path: File or directory path to get notes for',
+          'guidanceToken: Token from get_repository_guidance (required)',
+          'filterTags: Filter by specific tags (optional)',
+          'filterTypes: Filter by note types (optional)',
+          'filterReviewed: Filter by review status (all/reviewed/unreviewed)',
+          'includeParentNotes: Include notes from parent directories',
+          'includeStale: Include notes with stale anchors',
+          'sortBy: Sort results (timestamp/reviewed/type/relevance)',
+          'limit: Maximum number of notes to return',
+          'offset: Pagination offset',
+        ],
+        examples: [
+          'get_notes({ path: "/Users/user/project/src", guidanceToken: "token-xyz", filterTags: ["bugfix"], limit: 10 })',
         ],
       },
       {
@@ -79,22 +108,48 @@ export class DiscoverToolsTool extends BaseTool {
         ],
         parameters: [
           'path: File or directory path',
+          'guidanceToken: Token from get_repository_guidance (required)',
           'includeUsedTags: Include previously used tags',
           'includeSuggestedTags: Include path-based tag suggestions',
           'includeGuidance: Include repository guidance',
         ],
-        examples: ['get_repository_tags({ path: "/Users/user/project/src/components/" })'],
+        examples: [
+          'get_repository_tags({ path: "/Users/user/project/src/components/", guidanceToken: "token-xyz" })',
+        ],
+      },
+      {
+        name: 'get_repository_types',
+        category: 'repository',
+        description: 'Get available note types for categorizing notes in a repository.',
+        useCases: [
+          'See available note types (decision, pattern, gotcha, explanation)',
+          'Understand how to categorize different kinds of knowledge',
+          'Get repository-specific type guidance',
+        ],
+        parameters: [
+          'path: File or directory path',
+          'guidanceToken: Token from get_repository_guidance (required)',
+          'includeGuidance: Include repository-specific guidance',
+        ],
+        examples: [
+          'get_repository_types({ path: "/Users/user/project", guidanceToken: "token-xyz" })',
+        ],
       },
       {
         name: 'get_repository_guidance',
         category: 'guidance',
-        description: 'Get repository-specific guidance for creating effective notes.',
+        description:
+          'Get repository-specific guidance for creating effective notes and obtain guidance token.',
         useCases: [
+          'Get guidance token required for other tools',
           'Understand how to document knowledge in this repository',
           'Get guidance templates and best practices',
           'Learn repository-specific documentation standards',
         ],
-        parameters: ['path: Any path within the repository'],
+        parameters: [
+          'path: Any path within the repository',
+          'includeToken: Whether to include guidance token (default: true)',
+        ],
         examples: ['get_repository_guidance({ path: "/Users/user/project" })'],
       },
       {
@@ -115,7 +170,7 @@ export class DiscoverToolsTool extends BaseTool {
         ],
       },
       {
-        name: 'check_stale_notes',
+        name: 'get_stale_notes',
         category: 'repository',
         description:
           'Check for notes with stale anchors (file paths that no longer exist) in a repository.',
@@ -125,7 +180,7 @@ export class DiscoverToolsTool extends BaseTool {
           'Clean up outdated documentation',
         ],
         parameters: ['directoryPath: Repository path (absolute)'],
-        examples: ['check_stale_notes({ directoryPath: "/Users/user/project" })'],
+        examples: ['get_stale_notes({ directoryPath: "/Users/user/project" })'],
       },
       {
         name: 'discover_a24z_tools',
@@ -140,7 +195,7 @@ export class DiscoverToolsTool extends BaseTool {
         examples: ['discover_a24z_tools({ category: "repository" })'],
       },
       {
-        name: 'delete_note',
+        name: 'delete_repository_note',
         category: 'repository',
         description: 'Delete a specific note from the knowledge base.',
         useCases: [
@@ -153,65 +208,98 @@ export class DiscoverToolsTool extends BaseTool {
           'directoryPath: Repository path (absolute)',
         ],
         examples: [
-          'delete_note({ noteId: "note-1734567890123-abc123def", directoryPath: "/Users/user/project" })',
+          'delete_repository_note({ noteId: "note-1734567890123-abc123def", directoryPath: "/Users/user/project" })',
         ],
       },
       {
-        name: 'find_similar_notes',
-        category: 'knowledge',
+        name: 'create_handoff_brief',
+        category: 'guidance',
+        description: 'Create a comprehensive handoff brief for a specific part of the codebase.',
+        useCases: [
+          'Transfer knowledge when switching team members',
+          'Create onboarding documentation for new developers',
+          'Document project state before leaving',
+          'Provide context for code reviews',
+        ],
+        parameters: [
+          'path: File or directory path to create brief for',
+          'context: Additional context about the handoff',
+          'includeNotes: Include related repository notes',
+          'includeStructure: Include file structure overview',
+        ],
+        examples: [
+          'create_handoff_brief({ path: "/Users/user/project/src/auth", context: "Handing off authentication module to new developer" })',
+        ],
+      },
+      {
+        name: 'get_tag_usage',
+        category: 'repository',
+        description: 'Get detailed usage statistics for tags in the repository.',
+        useCases: [
+          'Understand tag usage patterns',
+          'Find overused or underused tags',
+          'Identify tag inconsistencies',
+          'Plan tag cleanup or reorganization',
+        ],
+        parameters: [
+          'directoryPath: Repository path (absolute)',
+          'sortBy: Sort by count or name',
+          'limit: Maximum number of tags to return',
+        ],
+        examples: [
+          'get_tag_usage({ directoryPath: "/Users/user/project", sortBy: "count", limit: 20 })',
+        ],
+      },
+      {
+        name: 'delete_tag',
+        category: 'repository',
+        description: 'Delete a tag from all notes in the repository.',
+        useCases: [
+          'Clean up unused or deprecated tags',
+          'Rename tags by deleting old and adding new',
+          'Maintain consistent tag taxonomy',
+        ],
+        parameters: ['tag: Tag name to delete', 'directoryPath: Repository path (absolute)'],
+        examples: ['delete_tag({ tag: "deprecated-tag", directoryPath: "/Users/user/project" })'],
+      },
+      {
+        name: 'get_note_coverage',
+        category: 'repository',
         description:
-          'Find notes with similar content to avoid duplication and discover related information.',
+          'Analyze note coverage for a repository to identify well-documented and under-documented areas.',
         useCases: [
-          'Check for existing content before creating new notes',
-          'Find related information and patterns',
-          'Identify potential duplicates to merge',
-        ],
-        parameters: [
-          'query: Search query for similar content',
-          'content: Content to compare similarity against',
-          'directoryPath: Repository path (absolute)',
-          'limit: Maximum number of results',
-          'minSimilarity: Minimum similarity score (0-1)',
-        ],
-        examples: [
-          'find_similar_notes({ query: "authentication error handling", directoryPath: "/Users/user/project", limit: 5 })',
-        ],
-      },
-      {
-        name: 'merge_notes',
-        category: 'repository',
-        description: 'Combine multiple related notes into a comprehensive note.',
-        useCases: [
-          'Consolidate duplicate information',
-          'Create comprehensive guides from fragments',
-          'Organize scattered knowledge',
-        ],
-        parameters: [
-          'noteIds: Array of note IDs to merge',
-          'directoryPath: Repository path (absolute)',
-          'newNote: Content for the merged note',
-          'deleteOriginals: Whether to delete original notes',
-        ],
-        examples: [
-          'merge_notes({ noteIds: ["note-123", "note-456"], directoryPath: "/Users/user/project", newNote: { note: "Comprehensive auth guide", tags: ["auth", "guide"] } })',
-        ],
-      },
-      {
-        name: 'review_duplicates',
-        category: 'repository',
-        description: 'Analyze the knowledge base to identify duplicate or highly similar notes.',
-        useCases: [
-          'Find duplicate content to consolidate',
-          'Identify similar notes for merging',
-          'Maintain knowledge base quality',
+          'Identify areas lacking documentation',
+          'Find well-documented areas as examples',
+          'Plan documentation efforts',
+          'Generate coverage reports',
         ],
         parameters: [
           'directoryPath: Repository path to analyze',
-          'similarityThreshold: Similarity threshold (0-1)',
-          'groupBy: Group by content or tags',
+          'includeDetails: Include detailed file-by-file analysis',
+          'minComplexity: Minimum file complexity to include',
         ],
         examples: [
-          'review_duplicates({ directoryPath: "/Users/user/project", similarityThreshold: 0.9 })',
+          'get_note_coverage({ directoryPath: "/Users/user/project", includeDetails: true })',
+        ],
+      },
+      {
+        name: 'start_documentation_quest',
+        category: 'guidance',
+        description:
+          'Start an interactive documentation quest to systematically document a codebase.',
+        useCases: [
+          'Systematically document undocumented code',
+          'Onboard new team members through guided documentation',
+          'Improve overall documentation coverage',
+          'Learn codebase while documenting',
+        ],
+        parameters: [
+          'directoryPath: Repository path to document',
+          'focusArea: Specific area to focus on (optional)',
+          'difficulty: Quest difficulty (easy/medium/hard)',
+        ],
+        examples: [
+          'start_documentation_quest({ directoryPath: "/Users/user/project", focusArea: "authentication", difficulty: "medium" })',
         ],
       },
     ];

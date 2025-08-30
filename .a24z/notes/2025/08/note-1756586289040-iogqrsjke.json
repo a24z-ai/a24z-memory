@@ -1,0 +1,23 @@
+{
+  "note": "## MCP Server-Side LLM Configuration Architecture\n\n### Key Decisions\n- **Server-side config**: MCP server handles prompting AND storage to avoid cross-process keychain issues\n- **Bun.secrets exclusive**: No fallback storage - requires Bun runtime for security\n- **Provider priority**: Automatic selection ['openrouter', 'openai', 'anthropic', 'ollama']\n- **No env vars**: Consistent with library philosophy\n\n### Components\n- `api-key-manager.ts` - Secure OS keychain storage\n- `mcp-llm-configurator.ts` - Priority-based config loading  \n- `AskA24zMemoryTool.ts` - Interactive LLM management\n- `llm-service.ts` - Provider integration\n\n### Config Methods\n1. .a24z/llm-config.json file\n2. Stored API keys via MCP tools\n\nCross-process challenge solved: Server manages credentials in its own context.",
+  "anchors": [
+    "src/core-mcp/services/api-key-manager.ts",
+    "src/core-mcp/services/mcp-llm-configurator.ts",
+    "src/core-mcp/tools/AskA24zMemoryTool.ts"
+  ],
+  "tags": [
+    "mcp",
+    "architecture",
+    "llm-integration",
+    "security"
+  ],
+  "type": "decision",
+  "metadata": {
+    "toolVersion": "2.0.0",
+    "createdBy": "create_repository_note_tool"
+  },
+  "reviewed": false,
+  "guidanceToken": "eyJwYXlsb2FkIjp7Imd1aWRhbmNlSGFzaCI6IjIzYjIyOGJkYjI2MTliYTM5ZmFjNGE4YzgxN2JkMDUwIiwicGF0aCI6Ii9Vc2Vycy9ncmlldmVyL0RldmVsb3Blci9hMjR6LU1lbW9yeSIsInRpbWVzdGFtcCI6MTc1NjU4NjI3ODA2NSwiZXhwaXJlcyI6MTc1NjY3MjY3ODA2NX0sInNpZ25hdHVyZSI6Ijk4MTM2ZDQ2YzRlNjk2ZWM3NGFlYWU2NTk5MWU2MjVjOGYxNTc4ZWFlNzg3ZjAxNTU1MGEzYjg3ZDkxMGYxMDMifQ==",
+  "id": "note-1756586289040-iogqrsjke",
+  "timestamp": 1756586289040
+}
