@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /**
  * Standalone a24z Memory MCP server
  * Re-exports the local server and provides a run() helper.
@@ -22,9 +20,5 @@ export function run(config?: Partial<McpServerConfig>): Promise<void> {
   return server.start();
 }
 
-if (require.main === module) {
-  run().catch((err: unknown) => {
-    console.error('Failed to start MCP server:', err);
-    process.exit(1);
-  });
-}
+// This check is for when index.js is run directly (not typical for ESM)
+// The actual CLI entry point is cli.ts

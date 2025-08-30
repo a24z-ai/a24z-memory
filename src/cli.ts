@@ -1,9 +1,7 @@
-#!/usr/bin/env node
-
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { run } from './index';
+import { run } from './index.js';
 import { migrateRepository } from './core-mcp/store/notesStore';
 
 type Command = 'start' | 'install-cursor' | 'install-claude' | 'migrate' | 'help';
