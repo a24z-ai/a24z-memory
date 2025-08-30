@@ -1,100 +1,142 @@
 <img width="2816" height="1536" alt="Gemini_Generated_Image_rx8a19rx8a19rx8a (1)" src="https://github.com/user-attachments/assets/f892952e-5955-4513-9670-7e0a6f67b01d" />
 
-# a24z-memory: Layered Knowledge Architecture
+# a24z-memory: Your Codebase's Living Memory
 
 [![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=a24z-memory&config=eyJjb21tYW5kIjoibnB4IC15IGEyNHotbWVtb3J5In0%3D) [![Install in VS Code](https://img.shields.io/badge/Install%20in%20VS%20Code-0098FF?style=for-the-badge&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%7B%22name%22%3A%22a24z-memory%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22a24z-memory%22%5D%7D)
 [![Documentation](https://img.shields.io/badge/docs-a24z.ai-blue.svg)](https://docs.a24z.ai)
 
-A retrieval-oriented memory system that prevents knowledge staleness through anchor-based context.
+**One-click install for Cursor & VS Code** ↑ • Works with Claude Code, Windsurf, Gemini CLI & Jules
 
-## The Knowledge Stack
+## The Problem We Solve
 
-**Tag Layer** - Semantic categories for discovery (`bug`, `pattern`, `decision`)  
-**Note Layer** - Insights and explanations  
-**Anchor Layer** - Connections to actual code locations  
-**Git Layer** - Distribution + evolution history of team understanding
+Every codebase accumulates tribal knowledge—those critical insights about why things work the way they do, what pitfalls to avoid, and which patterns to follow. But this knowledge gets lost in:
 
-This stack means knowledge stays organized (tags), meaningful (notes), current (anchors), and shared (git). Plus git history shows how insights accumulated over time - you can see not just what the team knows, but how they learned it.
+- 🧠 **Developers' heads** when they leave or forget
+- 💬 **Slack threads** that disappear into history  
+- 📝 **PR comments** that nobody reads again
+- 📚 **Documentation** that becomes stale the moment it's written
 
-### Knowledge Creation
+## Our Solution: Knowledge That Lives With Your Code
 
-When you discover something important:
+**a24z-memory** captures and preserves your team's hard-won insights by anchoring them directly to your code. Unlike traditional documentation that rots or embeddings that become stale, our knowledge stays fresh because it's connected to the actual files.
 
-```mermaid
-flowchart LR
-    K1[Discover Issue] --> K2[Tag: gotcha]
-    K2 --> K3[Note: Auth breaks with null headers]
-    K3 --> K4[Anchor: src/auth/middleware.ts]
-    K4 --> K5[Git: Commit & Share]
+When your AI assistant needs context, it doesn't get outdated embeddings—it gets your team's accumulated wisdom plus the current state of your code.
+
+## How It Works
+
+### 🎯 Capture Knowledge Where It Happens
+
+When you discover something important—a tricky bug, a design pattern, an architectural decision—document it instantly:
+
+```
+"Auth middleware breaks with null headers - always validate before parsing"
+→ Type: gotcha
+→ Tagged as: authentication, middleware, validation
+→ Anchored to: src/auth/middleware.ts
+→ Stored in: .a24z/notes/ (synced via git)
 ```
 
-### Knowledge Retrieval
+### 🔍 Surface Knowledge When You Need It
 
-When you need to understand something:
+Your AI assistant automatically accesses this knowledge:
 
-```mermaid
-flowchart LR
-    R1[Ask: Auth problems?] --> R2[Find gotcha tags]
-    R2 --> R3[Load relevant notes]
-    R3 --> R4[Read anchored files]
-    R4 --> R5[Fresh context + insights]
+```
+You: "Why does our auth sometimes fail?"
+AI: *Searches a24z-memory for auth-related gotchas*
+AI: "Found a known issue: Auth middleware breaks with null headers in src/auth/middleware.ts. The team discovered this needs validation before parsing."
 ```
 
-### Why This Works
+### 🔄 Knowledge That Evolves
 
-Unlike traditional RAG that embeds content and hopes it stays relevant, we anchor knowledge to code locations:
+As your code changes, the knowledge remains relevant:
+- **Anchors point to files**, not embedded content
+- **Git tracks changes**, showing how understanding evolved
+- **Types organize knowledge** by its nature (decision, pattern, gotcha, explanation)
+- **Team contributions** accumulate over time
 
-- **Notes point to code** via file/directory anchors, not embedded content
-- **Context stays fresh** because we read the current state of your files
-- **Knowledge doesn't rot** - anchors ensure notes remain relevant to actual code
-- **Retrieval-first design** - optimized for finding the right context, not storing it
+## The Layered Knowledge Architecture
 
-MCP Server Bundle for Cursor, Windsurf, Claude Code, Gemini CLI, VS Code, and Jules.
+We use a four-layer stack that keeps knowledge organized, meaningful, current, and shared:
 
-## Quick Start
+```
+📊 Type Layer    → What kind of knowledge (decision, pattern, gotcha, explanation)
+🏷️  Tag Layer     → Semantic categories for discovery  
+📝 Note Layer    → Your team's insights and explanations  
+🔗 Anchor Layer  → Live connections to code locations
+```
 
-### 1. Installation
+Plus **Git distribution** ensures knowledge travels with your code and evolves with your team.
+
+This isn't just storage—it's a living memory system that grows smarter with every insight your team adds.
+
+## Real-World Impact
+
+### For Individual Developers
+- **Never lose context** when switching between projects
+- **Learn from past mistakes** without repeating them
+- **Understand "why"** not just "what" in unfamiliar code
+
+### For Teams
+- **Onboard faster** with accumulated team knowledge
+- **Share insights** automatically through git
+- **Build institutional memory** that survives team changes
+
+### For AI Assistants
+- **Context-aware responses** based on real team knowledge
+- **Avoid known pitfalls** documented by your team
+- **Follow established patterns** specific to your codebase
+
+## Getting Started
+
+The convenience buttons above handle everything—just click to install. For manual setup or advanced configuration, see the [detailed installation guide](#detailed-installation) below.
+
+---
+
+## Learn More
+
+📖 **[Complete Documentation](https://docs.a24z.ai)** - Comprehensive guides and API reference  
+📚 **[Usage Guide](./USAGE_GUIDE.md)** - Quick reference and examples  
+🔧 **[Advanced Configuration](#advanced-configuration)** - Customize for your workflow
+
+---
+
+## Detailed Installation
+
+<details>
+<summary><b>Manual Installation Steps</b></summary>
+
+### Prerequisites
+- Node.js 18+ 
+- Git repository (for knowledge storage)
+- MCP-compatible editor (Cursor, VS Code, Claude Code, etc.)
+
+### Install Package
 
 ```bash
-# Install globally (recommended)
+# Global installation (recommended)
 npm install -g a24z-memory
 
-# Or install locally in your project
+# Or project-specific
 npm install a24z-memory --save-dev
 
 # Verify installation
 npx a24z-memory --help
 ```
 
-### 2. Start the MCP Server
+### Start the Server
 
 ```bash
-# Start the server (keep this terminal running)
+# Keep this running in a terminal
 npx a24z-memory
 
 # Expected output:
 # ✅ a24z-Memory MCP server started successfully
 # 📁 MCP Server working directory: /path/to/cwd
-# 📁 MCP Server __dirname: /path/to/installation
 ```
 
-### 3. Test Your Setup
+### Configure Your Editor
 
-```bash
-# In another terminal, test basic functionality
-# Try calling: discover_a24z_tools({ category: "all" })
-```
-
-## Automated Setup
-
-For some editors, you can run the following commands for a one-click install:
-
-**Cursor:**
-
-[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=a24z-memory&config=eyJjb21tYW5kIjoibnB4IC15IGEyNHotbWVtb3J5In0%3D)
-
-## Manual Integration
-
+**For Cursor/VS Code/Claude Code:**
 ```json
 {
   "mcpServers": {
@@ -106,141 +148,156 @@ For some editors, you can run the following commands for a one-click install:
 }
 ```
 
-### Jules
+**For other editors**, consult their MCP configuration documentation.
 
-Refer to Jules MCP configuration; define a server named `a24z-memory` with the same `command`, `args`, and `env`.
+</details>
 
-## Usage with AI Agents
+## Advanced Configuration
 
-### Quick Setup (2 minutes)
+<details>
+<summary><b>System Prompt for AI Assistants</b></summary>
 
-1. **Start the server**: `npx a24z-memory` (keep running)
-2. **Copy system prompt** from below into your AI agent
-3. **Test**: Ask your AI "What a24z-Memory tools are available?"
+Add this to your AI assistant's system prompt for optimal integration:
 
 ```markdown
 When working on development tasks, you have access to a a24z-memory MCP server...
 
 ### Available Tools
 
-#### discover_a24z_tools
-
-#### askA24zMemory
-
-#### create_repository_note
-
-#### get_repository_tags
-
-#### get_repository_guidance
-
-#### get_repository_note
-
-#### find_similar_notes
-
-#### merge_notes
-
-#### check_stale_notes
-
-#### delete_repository_note
-
-#### review_duplicates
+#### discover_a24z_tools - Discover all available tools and capabilities
+#### askA24zMemory - Search tribal knowledge and get contextual guidance  
+#### create_repository_note - Document insights and decisions
+#### get_notes - Browse raw notes without AI processing
+#### get_repository_tags - Manage note categorization
+#### get_repository_types - Get available note types
+#### get_repository_guidance - Get repository-specific guidelines
+...
 
 ### Best Practices
-
 1. Check existing knowledge before starting work
 2. Use absolute paths starting with /
 3. Document insights after solving problems
+4. Read guidance token before creating notes
 ```
 
-### Advanced Configuration
+Full system prompt available in [USAGE_GUIDE.md](./USAGE_GUIDE.md).
 
-For detailed setup instructions, comprehensive troubleshooting, and complete system prompt examples:
-
-📖 **[Complete Documentation at docs.a24z.ai](https://docs.a24z.ai)**
-
-- ✅ Complete system prompt with all 11 tools
-- ✅ IDE-specific setup instructions
-- ✅ Troubleshooting checklist for common issues
-- ✅ Advanced configuration options
-- ✅ API reference and examples
-- ✅ Best practices and advanced usage
-
-📚 **[Local Documentation](./USAGE_GUIDE.md)** - Quick reference for local setup
+</details>
 
 ## Troubleshooting
 
-If your LLM isn't using the a24z-Memory tools, check these common issues:
+<details>
+<summary><b>Common Issues and Solutions</b></summary>
 
-### 🔍 **Server Not Starting**
-
+### 🔍 Server Not Starting
 ```bash
-# Check if the server starts without errors
 npx a24z-memory
-
-# Expected: "✅ a24z-Memory MCP server started successfully"
-# If you see errors, check Node.js version (requires v16+)
-node --version
+# Should show: "✅ a24z-Memory MCP server started successfully"
+# If errors, check Node version: node --version (needs 18+)
 ```
 
-### 🔍 **LLM Not Discovering Tools**
+### 🔍 AI Not Using Tools
+1. Verify server is running in separate terminal
+2. Check system prompt includes tool definitions
+3. Test with: "What a24z-Memory tools are available?"
 
-1. **Verify server is running** in a separate terminal
-2. **Check system prompt** includes the complete tool definitions
-3. **Test tool discovery**: Try calling `discover_a24z_tools({ category: "all" })`
-4. **Verify tool names** match exactly (no `mcp__` prefixes needed)
-
-### 🔍 **"Path must be absolute" Errors**
-
+### 🔍 Path Errors
+Always use absolute paths:
 ```bash
-# Always use absolute paths starting with /
-pwd  # Get your current directory
-# Example: /Users/username/projects/my-repo
+pwd  # Get current directory
+# Use this path in your commands
 ```
 
-### 🔍 **"Not a git repository" Errors**
-
+### 🔍 Repository Errors
 ```bash
-# Ensure you're in a git repository
-git status
-
-# If not a git repo, initialize one
-git init
+git status  # Verify you're in a git repo
+git init    # Initialize if needed
 ```
 
-### 🔍 **Empty Query Results**
-
-- Try broader queries like "What's known about this file?"
-- Check if any notes exist in `.a24z/repository-notes.json`
-- Use different file paths or remove filters
-
-### 🔍 **Debug Mode**
-
+### 🔍 Debug Mode
 ```bash
-# Enable debug logging
 DEBUG=a24z-memory:* npx a24z-memory
 ```
 
-For detailed troubleshooting steps, see the **[Complete MCP Setup Checklist](./USAGE_GUIDE.md#complete-mcp-setup-checklist-for-llm-integration)**.
+For detailed troubleshooting, see the [complete checklist](./USAGE_GUIDE.md#complete-mcp-setup-checklist-for-llm-integration).
+
+</details>
+
+## Quick Demo
+
+1. **Install with one click** using the buttons above
+2. **Ask your AI**: "What a24z-Memory tools are available?"
+3. **Start capturing**: Document your first insight about your code
+4. **Experience the difference**: Watch your AI leverage accumulated knowledge
+
+## Handoff Briefs: Seamless Knowledge Transfer
+
+When transitioning work—whether switching projects, onboarding teammates, or handing off tasks—create a **handoff brief** that captures everything the next person needs to know:
+
+### What Gets Included
+- **Context & Current State**: Where things stand and what's been done
+- **Code References**: Specific files with explanations of their role
+- **Key Decisions**: Why certain approaches were taken
+- **Next Steps**: What needs attention moving forward
+
+### How It Works
+```
+You: "Create a handoff brief for the auth refactoring"
+AI: *Generates comprehensive handoff document*
+    - Overview of changes made
+    - References to modified files with context
+    - Outstanding tasks and considerations
+    - Saved to .a24z/handoffs/ for sharing
+```
+
+Your teammate receives a complete picture—not just what changed, but **why** and **what's next**. The brief lives in your repository, traveling with the code it describes.
 
 ## Available Tools
 
-The MCP server provides these tools:
+Your AI assistant gains access to powerful knowledge management tools:
 
-- **`askA24zMemory`** - Search tribal knowledge and get contextual guidance
-- **`create_repository_note`** - Document insights and decisions
-- **`get_repository_tags`** - Manage note categorization tags
-- **`get_repository_guidance`** - Get repository-specific guidance
-- **`get_repository_note`** - Retrieve a specific note by ID
-- **`find_similar_notes`** - Find notes with similar content to avoid duplication
-- **`merge_notes`** - Combine multiple related notes into a consolidated note
-- **`check_stale_notes`** - Check for notes with stale anchors (file paths that no longer exist)
-- **`delete_repository_note`** - Delete a specific note from the knowledge base
-- **`review_duplicates`** - Analyze the knowledge base to identify duplicate or highly similar notes
-- **`discover_a24z_tools`** - Discover all available tools and capabilities
+- **`askA24zMemory`** - Query tribal knowledge with semantic search
+- **`create_repository_note`** - Document new insights and decisions
+- **`get_notes`** - Browse existing knowledge
+- **`get_repository_tags`** - Get available tags for categorization
+- **`get_repository_types`** - Get available note types
+- **`get_repository_guidance`** - Access team guidelines
+- **`get_repository_note`** - Retrieve specific note by ID
+- **`delete_repository_note`** - Remove outdated notes
+- **`create_handoff_brief`** - Generate handoff documentation
+- **`discover_a24z_tools`** - Explore all capabilities
 
-## Programmatic use
+## Why This Is Different
 
-```ts
+| Traditional Approach | a24z-Memory |
+|---------------------|------------|
+| Static documentation that rots | Dynamic knowledge anchored to code |
+| Embeddings that become stale | Fresh context read from current files |
+| Knowledge in silos (Slack, wikis) | Knowledge in your repository |
+| Manual knowledge sharing | Automatic distribution via git |
+| AI without context | AI with your team's wisdom |
+
+## Programmatic Usage
+
+```typescript
 import { run } from 'a24z-memory';
 run();
 ```
+
+## Contributing
+
+We welcome contributions! See our [contribution guidelines](./CONTRIBUTING.md) for details.
+
+## License
+
+MIT License - see [LICENSE](./LICENSE) for details.
+
+## Support
+
+- 📧 [Email Support](mailto:support@a24z.ai)
+- 🐛 [Report Issues](https://github.com/a24z-ai/a24z-memory/issues)
+- 💬 [Join Discord](https://discord.gg/a24z-memory)
+
+---
+
+Built with ❤️ by the [a24z team](https://a24z.ai) to make every codebase smarter.

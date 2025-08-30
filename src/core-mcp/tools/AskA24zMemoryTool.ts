@@ -210,7 +210,7 @@ export class AskA24zMemoryTool extends BaseTool {
 
     // Apply type filter if specified
     if (filterTypes && filterTypes.length > 0) {
-      filteredNotes = filteredNotes.filter((n) => filterTypes.includes(n.type));
+      filteredNotes = filteredNotes.filter((n) => n.type && filterTypes.includes(n.type));
     }
 
     // Convert to TribalNote format and limit to configured max
@@ -221,7 +221,7 @@ export class AskA24zMemoryTool extends BaseTool {
       content: n.note,
       context: {
         when: new Date(n.timestamp),
-        type: n.type,
+        type: n.type || 'note',
       },
       relevanceScore: Math.max(0, 1 - (n.pathDistance || 0) / 10),
     }));
@@ -316,7 +316,7 @@ export class AskA24zMemoryTool extends BaseTool {
         const note = notes[i];
         enhancedResponse += `**[Note ${i + 1}]** \`${note.id}\`\n`;
         enhancedResponse += `📁 Anchored to: ${note.anchors.map((a) => `\`${a}\``).join(', ')}\n`;
-        enhancedResponse += `🏷️ Tags: ${note.tags.join(', ')} | Type: ${note.context.type}\n`;
+        enhancedResponse += `🏷️ Tags: ${note.tags.join(', ')} | Type: ${note.context.type || 'note'}\n`;
         enhancedResponse += `💡 ${note.content}\n\n`;
       }
 
@@ -354,7 +354,7 @@ export class AskA24zMemoryTool extends BaseTool {
         response += `📚 **Found ${notes.length} related notes** (showing top ${topNotes.length}):\n\n`;
         for (let i = 0; i < topNotes.length; i++) {
           const n = topNotes[i];
-          response += `**${i + 1}. ${n.context.type.toUpperCase()}**\n`;
+          response += `**${i + 1}. ${n.context.type ? n.context.type.toUpperCase() : 'NOTE'}**\n`;
           response += `   ${n.content}\n\n`;
         }
 
@@ -462,7 +462,7 @@ export class AskA24zMemoryTool extends BaseTool {
         const note = notes[i];
         enhancedResponse += `**[Note ${i + 1}]** \`${note.id}\`\n`;
         enhancedResponse += `📁 Anchored to: ${note.anchors.map((a) => `\`${a}\``).join(', ')}\n`;
-        enhancedResponse += `🏷️ Tags: ${note.tags.join(', ')} | Type: ${note.context.type}\n`;
+        enhancedResponse += `🏷️ Tags: ${note.tags.join(', ')} | Type: ${note.context.type || 'note'}\n`;
         enhancedResponse += `💡 ${note.content}\n\n`;
       }
 
@@ -500,7 +500,7 @@ export class AskA24zMemoryTool extends BaseTool {
       response += `📚 **Found ${notes.length} related notes** (showing top ${topNotes.length}):\n\n`;
       for (let i = 0; i < topNotes.length; i++) {
         const n = topNotes[i];
-        response += `**${i + 1}. ${n.context.type.toUpperCase()}**\n`;
+        response += `**${i + 1}. ${n.context.type ? n.context.type.toUpperCase() : 'NOTE'}**\n`;
         response += `   ${n.content}\n\n`;
       }
 

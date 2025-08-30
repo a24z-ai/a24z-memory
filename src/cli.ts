@@ -2,9 +2,8 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import { run } from './index.js';
-import { migrateRepository } from './core-mcp/store/notesStore';
 
-type Command = 'start' | 'install-cursor' | 'install-claude' | 'migrate' | 'help';
+type Command = 'start' | 'install-cursor' | 'install-claude' | 'help';
 
 function getHome(): string {
   const homedir = os.homedir();
@@ -87,14 +86,12 @@ Commands:
   start                Start the MCP server (stdio)
   install-cursor       Add MCP config to ~/.cursor/mcp.json
   install-claude       Add MCP config to ~/.claude.json (or ~/.config/claude/config.json)
-  migrate [path]       Migrate repository notes from JSON to file-based storage
-                       Options: --force (re-migrate), --verbose (detailed output)
   help                 Show this help
 `);
 }
 
 async function main(): Promise<void> {
-  const [, , cmdArg, ...args] = process.argv;
+  const [, , cmdArg] = process.argv;
   const cmd: Command = (cmdArg as Command) || 'start';
   switch (cmd) {
     case 'start':
@@ -106,35 +103,6 @@ async function main(): Promise<void> {
     case 'install-claude':
       installClaude();
       break;
-    case 'migrate': {
-      // Parse arguments
-      const force = args.includes('--force');
-      const verbose = args.includes('--verbose');
-      const pathArg = args.find((arg) => !arg.startsWith('--'));
-      const targetPath = pathArg || process.cwd();
-
-      console.log(`\nMigrating repository: ${targetPath}`);
-      console.log('='.repeat(50));
-
-      const result = migrateRepository(targetPath, { force, verbose });
-
-      if (result.success) {
-        console.log(`✅ ${result.message}`);
-        if (result.notesCount !== undefined) {
-          console.log(`📊 Total notes: ${result.notesCount}`);
-        }
-        if (result.backupPath) {
-          console.log(`💾 Backup created: ${result.backupPath}`);
-        }
-      } else {
-        console.error(`❌ ${result.message}`);
-        if (result.error) {
-          console.error(`   Error details: ${result.error}`);
-        }
-        process.exit(1);
-      }
-      break;
-    }
     default:
       printHelp();
   }

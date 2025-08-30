@@ -37,7 +37,6 @@ export interface RepositoryConfiguration {
     tagDescriptionMaxLength: number; // Maximum length for tag description markdown files
   };
   storage: {
-    backupOnMigration: boolean;
     compressionEnabled: boolean;
   };
   tags?: {
@@ -58,18 +57,9 @@ export interface ValidationError {
   data?: any; // Dynamic validation data shape varies by error type
 }
 
-interface NotesFileSchema {
-  version: number;
-  notes: StoredNote[];
-}
-
 function getRepositoryDataDir(repositoryPath: string): string {
   // Always use repository-specific directory
   return path.join(repositoryPath, '.a24z');
-}
-
-function getNotesFile(repositoryPath: string): string {
-  return path.join(getRepositoryDataDir(repositoryPath), 'repository-notes.json');
 }
 
 function getNotesDir(repositoryPath: string): string {
@@ -112,7 +102,6 @@ function getDefaultConfiguration(): RepositoryConfiguration {
       tagDescriptionMaxLength: 2000, // 2KB limit for tag description markdown files
     },
     storage: {
-      backupOnMigration: true,
       compressionEnabled: false,
     },
     tags: {
@@ -318,33 +307,10 @@ function ensureDataDir(repositoryPath: string): void {
   }
 }
 
-function readAllNotesFromLegacyFile(repositoryPath: string): StoredNote[] {
-  try {
-    const notesFile = getNotesFile(repositoryPath);
-    if (!fs.existsSync(notesFile)) {
-      return [];
-    }
-    const raw = fs.readFileSync(notesFile, 'utf8');
-    const parsed = JSON.parse(raw) as Partial<NotesFileSchema>;
-    if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.notes)) {
-      return [];
-    }
-    return parsed.notes as StoredNote[];
-  } catch {
-    return [];
-  }
-}
-
 export function readAllNotes(repositoryPath: string): StoredNote[] {
   try {
     ensureDataDir(repositoryPath);
     const notesDir = getNotesDir(repositoryPath);
-
-    // Check if migration is needed
-    const legacyFile = getNotesFile(repositoryPath);
-    if (fs.existsSync(legacyFile)) {
-      migrateNotesToFiles(repositoryPath);
-    }
 
     // Read all notes from individual files
     const notes: StoredNote[] = [];
@@ -365,6 +331,10 @@ export function readAllNotes(repositoryPath: string): StoredNote[] {
             const noteContent = fs.readFileSync(fullPath, 'utf8');
             const note = JSON.parse(noteContent) as StoredNote;
             if (note && typeof note === 'object' && note.id) {
+              // Ensure type field exists for backward compatibility
+              if (!note.type) {
+                note.type = 'note';
+              }
               notes.push(note);
             }
           } catch {
@@ -393,28 +363,6 @@ export function deleteNoteFile(repositoryPath: string, note: StoredNote): void {
   const notePath = getNoteFilePath(repositoryPath, note.id, note.timestamp);
   if (fs.existsSync(notePath)) {
     fs.unlinkSync(notePath);
-  }
-}
-
-function migrateNotesToFiles(repositoryPath: string): void {
-  const legacyFile = getNotesFile(repositoryPath);
-  if (!fs.existsSync(legacyFile)) {
-    return;
-  }
-
-  try {
-    const legacyNotes = readAllNotesFromLegacyFile(repositoryPath);
-
-    // Write each note to its own file
-    for (const note of legacyNotes) {
-      writeNoteToFile(repositoryPath, note);
-    }
-
-    // Backup and remove the legacy file
-    const backupPath = `${legacyFile}.backup-${Date.now()}`;
-    fs.renameSync(legacyFile, backupPath);
-  } catch (error) {
-    console.error('Failed to migrate notes to individual files:', error);
   }
 }
 
@@ -639,131 +587,6 @@ export function getSuggestedTagsForPath(
 ): Array<{ name: string; reason?: string }> {
   // Return empty array - users manage their own tags
   return [];
-}
-
-export interface MigrationResult {
-  success: boolean;
-  migrated: boolean;
-  notesCount?: number;
-  backupPath?: string;
-  error?: string;
-  message: string;
-}
-
-export function migrateNotesIfNeeded(repositoryPath: string): boolean {
-  const legacyFile = getNotesFile(repositoryPath);
-  if (fs.existsSync(legacyFile)) {
-    migrateNotesToFiles(repositoryPath);
-    return true;
-  }
-  return false;
-}
-
-export function migrateRepository(
-  repositoryPath: string,
-  options?: { force?: boolean; verbose?: boolean }
-): MigrationResult {
-  const repoRoot = normalizeRepositoryPath(repositoryPath);
-  const legacyFile = getNotesFile(repoRoot);
-  const notesDir = getNotesDir(repoRoot);
-
-  // Check if already migrated
-  if (!fs.existsSync(legacyFile) && fs.existsSync(notesDir)) {
-    const noteCount = countNotesInDirectory(notesDir);
-    return {
-      success: true,
-      migrated: false,
-      notesCount: noteCount,
-      message: `Repository already migrated. Found ${noteCount} notes in file-based storage.`,
-    };
-  }
-
-  // Check if legacy file exists
-  if (!fs.existsSync(legacyFile)) {
-    return {
-      success: true,
-      migrated: false,
-      message: 'No legacy notes file found. Repository is using file-based storage.',
-    };
-  }
-
-  // Check if migration is already in progress (both exist)
-  if (fs.existsSync(legacyFile) && fs.existsSync(notesDir) && !options?.force) {
-    return {
-      success: false,
-      migrated: false,
-      error: 'Both legacy and new storage exist. Use force option to re-migrate.',
-      message: 'Migration may be incomplete. Use --force to retry migration.',
-    };
-  }
-
-  try {
-    const legacyNotes = readAllNotesFromLegacyFile(repoRoot);
-    const noteCount = legacyNotes.length;
-
-    if (options?.verbose) {
-      console.log(`Found ${noteCount} notes to migrate`);
-    }
-
-    // Write each note to its own file
-    let migrated = 0;
-    for (const note of legacyNotes) {
-      writeNoteToFile(repoRoot, note);
-      migrated++;
-      if (options?.verbose && migrated % 10 === 0) {
-        console.log(`  Migrated ${migrated}/${noteCount} notes...`);
-      }
-    }
-
-    // Get configuration for backup settings
-    const config = readConfiguration(repoRoot);
-    let backupPath: string | undefined;
-
-    if (config.storage.backupOnMigration) {
-      // Backup the legacy file
-      backupPath = `${legacyFile}.backup-${Date.now()}`;
-      fs.renameSync(legacyFile, backupPath);
-    } else {
-      // Just remove the legacy file
-      fs.unlinkSync(legacyFile);
-    }
-
-    return {
-      success: true,
-      migrated: true,
-      notesCount: noteCount,
-      backupPath,
-      message: `Successfully migrated ${noteCount} notes to file-based storage.${backupPath ? ` Backup saved to ${path.basename(backupPath)}` : ''}`,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      migrated: false,
-      error: error instanceof Error ? error.message : String(error),
-      message: `Migration failed: ${error instanceof Error ? error.message : String(error)}`,
-    };
-  }
-}
-
-function countNotesInDirectory(notesDir: string): number {
-  let count = 0;
-
-  const countRecursive = (dir: string): void => {
-    if (!fs.existsSync(dir)) return;
-
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
-    for (const entry of entries) {
-      const fullPath = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        countRecursive(fullPath);
-      } else if (entry.isFile() && entry.name.endsWith('.json')) {
-        count++;
-      }
-    }
-  };
-
-  countRecursive(notesDir);
-  return count;
 }
 
 export function getRepositoryConfiguration(repositoryPath: string): RepositoryConfiguration {

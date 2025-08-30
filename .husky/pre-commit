@@ -9,6 +9,10 @@ npm run typecheck
 echo "Running lint-staged..."
 npx lint-staged
 
+# Test MCP server build and startup
+echo "Testing MCP server build..."
+npm run test:mcp
+
 # Run tests
 echo "Running tests..."
 npm test

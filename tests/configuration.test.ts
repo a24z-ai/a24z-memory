@@ -39,7 +39,6 @@ describe('Configuration System', () => {
         tagDescriptionMaxLength: 2000,
       },
       storage: {
-        backupOnMigration: true,
         compressionEnabled: false,
       },
       tags: {
@@ -170,7 +169,7 @@ describe('Configuration System', () => {
     // First set some custom values
     updateRepositoryConfiguration(testRepoPath, {
       limits: { noteMaxLength: 5000 },
-      storage: { backupOnMigration: false },
+      storage: { compressionEnabled: false },
     });
 
     // Then update only one value
@@ -181,7 +180,7 @@ describe('Configuration System', () => {
     // Should preserve other values
     expect(updatedConfig.limits.noteMaxLength).toBe(5000);
     expect(updatedConfig.limits.maxTagsPerNote).toBe(15);
-    expect(updatedConfig.storage.backupOnMigration).toBe(false);
+    expect(updatedConfig.storage.compressionEnabled).toBe(false);
   });
 
   it('should handle corrupted configuration gracefully', () => {

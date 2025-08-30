@@ -12,8 +12,8 @@
   "scripts": {
     "build": "npm run build:lib && npm run fix:imports && npm run build:cli",
     "build:lib": "tsc",
-    "fix:imports": "node fix-esm-imports.mjs",
-    "build:cli": "node build-cli.mjs",
+    "fix:imports": "node fix-esm-imports.js",
+    "build:cli": "node build-cli.js",
     "prepare": "husky",
     "release": "semantic-release",
     "test": "jest",
@@ -23,7 +23,8 @@
     "lint:fix": "eslint . --ext .ts,.js --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:mcp": "./scripts/test-mcp-build.sh"
   },
   "repository": {
     "type": "git",

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-env node */
 import { readdir, readFile, writeFile, stat } from 'fs/promises';
 import { join, dirname } from 'path';
 

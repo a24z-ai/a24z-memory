@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { saveNote, getNotesForPath, migrateNotesIfNeeded } from '../src/core-mcp/store/notesStore';
+import { saveNote, getNotesForPath } from '../src/core-mcp/store/notesStore';
 
 describe('File-based note storage', () => {
   let tempDir: string;
@@ -84,62 +84,6 @@ describe('File-based note storage', () => {
 
     expect(notes.length).toBe(2);
     expect(notes.map((n) => n.note).sort()).toEqual(['First note', 'Second note'].sort());
-  });
-
-  it('should migrate legacy JSON file to individual files', () => {
-    // Create a legacy notes file
-    const legacyNotes = {
-      version: 1,
-      notes: [
-        {
-          id: 'legacy-note-1',
-          note: 'Legacy note 1',
-          anchors: ['legacy1.ts'],
-          tags: ['legacy'],
-          type: 'explanation',
-          metadata: {},
-          timestamp: Date.now() - 10000,
-        },
-        {
-          id: 'legacy-note-2',
-          note: 'Legacy note 2',
-          anchors: ['legacy2.ts'],
-          tags: ['legacy'],
-          type: 'gotcha',
-          metadata: {},
-          timestamp: Date.now() - 5000,
-        },
-      ],
-    };
-
-    const a24zDir = path.join(testRepoPath, '.a24z');
-    fs.mkdirSync(a24zDir, { recursive: true });
-    fs.writeFileSync(
-      path.join(a24zDir, 'repository-notes.json'),
-      JSON.stringify(legacyNotes, null, 2)
-    );
-
-    // Trigger migration
-    const migrated = migrateNotesIfNeeded(testRepoPath);
-    expect(migrated).toBe(true);
-
-    // Check that individual files were created
-    const notesDir = path.join(a24zDir, 'notes');
-    expect(fs.existsSync(notesDir)).toBe(true);
-
-    // Check that backup was created
-    const backupFiles = fs
-      .readdirSync(a24zDir)
-      .filter((f) => f.startsWith('repository-notes.json.backup-'));
-    expect(backupFiles.length).toBe(1);
-
-    // Verify notes can be read
-    const notes = getNotesForPath(testRepoPath, true);
-    expect(notes.length).toBe(2);
-    expect(notes.map((n) => n.note).sort()).toEqual(['Legacy note 1', 'Legacy note 2'].sort());
-
-    // Verify original file no longer exists
-    expect(fs.existsSync(path.join(a24zDir, 'repository-notes.json'))).toBe(false);
   });
 
   it('should handle concurrent note creation without conflicts', async () => {
