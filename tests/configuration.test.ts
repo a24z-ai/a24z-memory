@@ -47,6 +47,21 @@ describe('Configuration System', () => {
       types: {
         enforceAllowedTypes: false,
       },
+      enabled_mcp_tools: {
+        askA24zMemory: true,
+        create_repository_note: true,
+        get_notes: true,
+        get_repository_tags: true,
+        get_repository_types: true,
+        get_repository_guidance: true,
+        discover_a24z_tools: true,
+        delete_repository_note: true,
+        get_repository_note: true,
+        create_handoff_brief: true,
+        get_stale_notes: true,
+        get_tag_usage: true,
+        delete_tag: true,
+      },
     });
 
     // Check that configuration file was created
@@ -192,5 +207,47 @@ describe('Configuration System', () => {
     // Should fall back to defaults
     const config = getRepositoryConfiguration(testRepoPath);
     expect(config.limits.noteMaxLength).toBe(10000); // Default value
+  });
+
+  it('should update enabled_mcp_tools configuration', () => {
+    // Disable specific tools
+    const updatedConfig = updateRepositoryConfiguration(testRepoPath, {
+      enabled_mcp_tools: {
+        delete_repository_note: false,
+        create_handoff_brief: false,
+      },
+    });
+
+    // Check that tools were disabled
+    expect(updatedConfig.enabled_mcp_tools?.delete_repository_note).toBe(false);
+    expect(updatedConfig.enabled_mcp_tools?.create_handoff_brief).toBe(false);
+
+    // Check that other tools remain enabled (default)
+    expect(updatedConfig.enabled_mcp_tools?.askA24zMemory).toBe(true);
+    expect(updatedConfig.enabled_mcp_tools?.create_repository_note).toBe(true);
+  });
+
+  it('should merge enabled_mcp_tools with defaults', () => {
+    // Create config with only some tools specified
+    const configFile = path.join(testRepoPath, '.a24z', 'configuration.json');
+    fs.mkdirSync(path.dirname(configFile), { recursive: true });
+    fs.writeFileSync(
+      configFile,
+      JSON.stringify({
+        version: 1,
+        enabled_mcp_tools: {
+          askA24zMemory: false,
+        },
+      })
+    );
+
+    const config = getRepositoryConfiguration(testRepoPath);
+
+    // Specified tool should be disabled
+    expect(config.enabled_mcp_tools?.askA24zMemory).toBe(false);
+
+    // Unspecified tools should default to true
+    expect(config.enabled_mcp_tools?.create_repository_note).toBe(true);
+    expect(config.enabled_mcp_tools?.get_notes).toBe(true);
   });
 });

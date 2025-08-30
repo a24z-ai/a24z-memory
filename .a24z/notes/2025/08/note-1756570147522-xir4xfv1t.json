@@ -1,0 +1,30 @@
+{
+  "note": "## Dual-Interface Architecture: MCP Server + Library\n\nThe a24z-Memory system implements a dual-interface architecture that serves both AI assistants (via MCP server) and developers (via library API), with all MCP tools backed by library functions for consistency and maintainability.\n\n### Architecture Overview\n\n**Three Interface Layers:**\n1. **MCP Server** (`src/index.ts`) - For AI assistants (Cursor, Claude, etc.)\n2. **Library API** (`src/lib.ts`) - For programmatic use by developers  \n3. **CLI Interface** (`src/cli.ts`) - For direct user interaction\n\n**Core Principle:** All MCP tools must wrap library functions, ensuring consistent behavior across all interfaces.\n\n### Interface Connections\n\n**MCP Server Flow:**\n```\nAI Assistant → MCP Protocol → McpServer → Tool.execute() → Library Function → Data Store\n```\n\n**Library Flow:**\n```\nDeveloper Code → A24zMemory Class → Library Function → Data Store\n```\n\n**Shared Components:**\n- `src/core-mcp/store/notesStore.ts` - Central data persistence layer\n- `src/core-mcp/types/index.ts` - Common type definitions\n- `src/core-mcp/utils/` - Shared utility functions\n\n### Tool Implementation Pattern\n\nAll MCP tools follow this pattern:\n\n```typescript\n// Tool wraps library function\nclass ExampleTool extends BaseTool {\n  async execute(args: ToolArgs): Promise<Result> {\n    // Call library function directly\n    return libraryFunction(args);\n  }\n}\n```\n\n**Benefits:**\n- **Consistency**: Same behavior across MCP and library interfaces\n- **Maintainability**: Single implementation point for business logic\n- **Testing**: Library functions can be tested independently\n- **Reusability**: Library functions can be used in multiple contexts\n\n### Why Dual Interface?\n\n**MCP Server Benefits:**\n- Seamless integration with AI assistants\n- Standardized protocol for tool discovery and execution\n- No custom client code needed\n\n**Library Benefits:**\n- Full programmatic control for developers\n- Better error handling and type safety\n- Integration with existing applications\n- Advanced use cases and automation\n\n**Combined Benefits:**\n- Maximum flexibility for different user types\n- Consistent core functionality\n- Future-proof architecture\n\n### Implementation Details\n\n**Package Configuration** (`package.json`):\n- `main`: Points to library entry (`dist/lib.js`)\n- `types`: Library TypeScript definitions (`dist/lib.d.ts`) \n- `bin`: CLI executable (`dist/cli.js`)\n\n**Library Exports** (`src/lib.ts`):\n- Core functions: `saveNote()`, `getNotesForPath()`, etc.\n- High-level class: `A24zMemory` for easy integration\n- Tool classes: Direct access to MCP tools if needed\n\n**MCP Server** (`src/core-mcp/server/McpServer.ts`):\n- Registers tools that wrap library functions\n- Handles MCP protocol communication\n- Provides consistent interface to AI assistants\n\n### Files Involved\n\n**Core Architecture:**\n- `src/lib.ts` - Main library interface and exports\n- `src/index.ts` - MCP server entry point\n- `src/core-mcp/server/McpServer.ts` - MCP server implementation\n- `package.json` - Dual interface packaging\n\n**Tool Pattern:**\n- `src/core-mcp/tools/base-tool.ts` - Base tool implementation\n- `src/core-mcp/tools/AskA24zMemoryTool.ts` - Example tool wrapping library\n- `src/core-mcp/store/notesStore.ts` - Library functions that tools call\n\n**Supporting Infrastructure:**\n- `src/core-mcp/types/index.ts` - Shared type definitions\n- `src/cli.ts` - CLI interface implementation\n\n### Key Design Decisions\n\n**Single Source of Truth:** Library functions contain all business logic, MCP tools are thin wrappers.\n\n**Shared Types:** Common type definitions ensure consistency between interfaces.\n\n**Progressive Enhancement:** Library works without MCP, MCP enhances with AI integration.\n\n**Backwards Compatibility:** Library API remains stable while MCP features can evolve.\n\n**Tags**: architecture, mcp, integration, tools, pattern",
+  "anchors": [
+    "src/lib.ts",
+    "src/index.ts",
+    "src/core-mcp/server/McpServer.ts",
+    "src/core-mcp/tools/base-tool.ts",
+    "src/core-mcp/tools/AskA24zMemoryTool.ts",
+    "src/core-mcp/store/notesStore.ts",
+    "src/core-mcp/types/index.ts",
+    "src/cli.ts",
+    "package.json"
+  ],
+  "tags": [
+    "architecture",
+    "mcp",
+    "integration",
+    "tools",
+    "pattern"
+  ],
+  "type": "architecture",
+  "metadata": {
+    "toolVersion": "2.0.0",
+    "createdBy": "create_repository_note_tool"
+  },
+  "reviewed": false,
+  "guidanceToken": "eyJwYXlsb2FkIjp7Imd1aWRhbmNlSGFzaCI6IjQzMGYxNmYxMmRlNDY0NTUzMTg0Y2M0OTI1OWJmOTkyIiwicGF0aCI6Ii9Vc2Vycy9ncmlldmVyL0RldmVsb3Blci9hMjR6LU1lbW9yeSIsInRpbWVzdGFtcCI6MTc1NjU3MDEzNzU1OSwiZXhwaXJlcyI6MTc1NjY1NjUzNzU1OX0sInNpZ25hdHVyZSI6ImQ0Nzg5Zjg0M2I0OTcwYjQyZGVmZGQzMjAyMmQ5MTU3OWM3NmRiNmQzYTk0MDllM2UyZDk3MmMwM2UyNzkyYjUifQ==",
+  "id": "note-1756570147522-xir4xfv1t",
+  "timestamp": 1756570147522
+}

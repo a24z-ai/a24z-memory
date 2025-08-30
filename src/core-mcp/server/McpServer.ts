@@ -22,10 +22,15 @@ import {
   DiscoverToolsTool,
   DeleteNoteTool,
   GetNoteByIdTool,
+  CreateHandoffBriefTool,
+  GetStaleNotesTool,
+  GetTagUsageTool,
+  DeleteTagTool,
 } from '../tools';
 import { McpServerConfig, McpTool, McpResource } from '../types';
 import { McpLLMConfigurator } from '../services/mcp-llm-configurator';
 import { LLMService } from '../services/llm-service';
+import { getRepositoryConfiguration } from '../store/notesStore';
 
 export class McpServer {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -61,17 +66,51 @@ export class McpServer {
   }
 
   private setupDefaultTools() {
-    // Add default tools
-    // this.addTool(new AppInfoTool(this.config.name, this.config.version, this.config.version));
-    this.addTool(new AskA24zMemoryTool());
-    this.addTool(new CreateRepositoryNoteTool());
-    this.addTool(new GetNotesTool());
-    this.addTool(new GetRepositoryTagsTool());
-    this.addTool(new GetRepositoryTypesTool());
-    this.addTool(new GetRepositoryGuidanceTool());
-    this.addTool(new DiscoverToolsTool());
-    this.addTool(new DeleteNoteTool());
-    this.addTool(new GetNoteByIdTool());
+    // Get configuration to check which tools are enabled
+    // Use current working directory as default repository path
+    const config = getRepositoryConfiguration(process.cwd());
+    const enabledTools = config.enabled_mcp_tools || {};
+
+    // Add tools based on configuration (default to true if not specified)
+    if (enabledTools.askA24zMemory !== false) {
+      this.addTool(new AskA24zMemoryTool());
+    }
+    if (enabledTools.create_repository_note !== false) {
+      this.addTool(new CreateRepositoryNoteTool());
+    }
+    if (enabledTools.get_notes !== false) {
+      this.addTool(new GetNotesTool());
+    }
+    if (enabledTools.get_repository_tags !== false) {
+      this.addTool(new GetRepositoryTagsTool());
+    }
+    if (enabledTools.get_repository_types !== false) {
+      this.addTool(new GetRepositoryTypesTool());
+    }
+    if (enabledTools.get_repository_guidance !== false) {
+      this.addTool(new GetRepositoryGuidanceTool());
+    }
+    if (enabledTools.discover_a24z_tools !== false) {
+      this.addTool(new DiscoverToolsTool());
+    }
+    if (enabledTools.delete_repository_note !== false) {
+      this.addTool(new DeleteNoteTool());
+    }
+    if (enabledTools.get_repository_note !== false) {
+      this.addTool(new GetNoteByIdTool());
+    }
+    if (enabledTools.create_handoff_brief !== false) {
+      this.addTool(new CreateHandoffBriefTool());
+    }
+    if (enabledTools.get_stale_notes !== false) {
+      this.addTool(new GetStaleNotesTool());
+    }
+    if (enabledTools.get_tag_usage !== false) {
+      this.addTool(new GetTagUsageTool());
+    }
+    if (enabledTools.delete_tag !== false) {
+      this.addTool(new DeleteTagTool());
+    }
   }
 
   private setupDefaultResources() {

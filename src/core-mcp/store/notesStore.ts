@@ -45,6 +45,21 @@ export interface RepositoryConfiguration {
   types?: {
     enforceAllowedTypes?: boolean; // Whether to enforce allowed types (based on type descriptions)
   };
+  enabled_mcp_tools?: {
+    askA24zMemory?: boolean;
+    create_repository_note?: boolean;
+    get_notes?: boolean;
+    get_repository_tags?: boolean;
+    get_repository_types?: boolean;
+    get_repository_guidance?: boolean;
+    discover_a24z_tools?: boolean;
+    delete_repository_note?: boolean;
+    get_repository_note?: boolean;
+    create_handoff_brief?: boolean;
+    get_stale_notes?: boolean;
+    get_tag_usage?: boolean;
+    delete_tag?: boolean;
+  };
 }
 
 export interface ValidationError {
@@ -110,6 +125,21 @@ function getDefaultConfiguration(): RepositoryConfiguration {
     types: {
       enforceAllowedTypes: false, // Disabled by default
     },
+    enabled_mcp_tools: {
+      askA24zMemory: true,
+      create_repository_note: true,
+      get_notes: true,
+      get_repository_tags: true,
+      get_repository_types: true,
+      get_repository_guidance: true,
+      discover_a24z_tools: true,
+      delete_repository_note: true,
+      get_repository_note: true,
+      create_handoff_brief: true,
+      get_stale_notes: true,
+      get_tag_usage: true,
+      delete_tag: true,
+    },
   };
 }
 
@@ -144,6 +174,10 @@ function readConfiguration(repositoryPath: string): RepositoryConfiguration {
       types: {
         ...defaultConfig.types,
         ...parsed.types,
+      },
+      enabled_mcp_tools: {
+        ...defaultConfig.enabled_mcp_tools,
+        ...parsed.enabled_mcp_tools,
       },
     };
 
@@ -602,6 +636,7 @@ export function updateRepositoryConfiguration(
     storage?: Partial<RepositoryConfiguration['storage']>;
     tags?: Partial<RepositoryConfiguration['tags']>;
     types?: Partial<RepositoryConfiguration['types']>;
+    enabled_mcp_tools?: Partial<RepositoryConfiguration['enabled_mcp_tools']>;
   }
 ): RepositoryConfiguration {
   const repoRoot = normalizeRepositoryPath(repositoryPath);
@@ -625,6 +660,10 @@ export function updateRepositoryConfiguration(
     types: {
       ...currentConfig.types,
       ...config.types,
+    },
+    enabled_mcp_tools: {
+      ...currentConfig.enabled_mcp_tools,
+      ...config.enabled_mcp_tools,
     },
   };
 

@@ -111,6 +111,9 @@ export { GetRepositoryTypesTool } from './core-mcp/tools/GetRepositoryTypesTool'
 export { GetRepositoryGuidanceTool } from './core-mcp/tools/GetRepositoryGuidanceTool';
 export { GetNoteByIdTool } from './core-mcp/tools/GetNoteByIdTool';
 export { DeleteNoteTool } from './core-mcp/tools/DeleteNoteTool';
+export { GetStaleNotesTool } from './core-mcp/tools/GetStaleNotesTool';
+export { GetTagUsageTool } from './core-mcp/tools/GetTagUsageTool';
+export { DeleteTagTool } from './core-mcp/tools/DeleteTagTool';
 export { BaseTool } from './core-mcp/tools/base-tool';
 
 // LLM Service exports

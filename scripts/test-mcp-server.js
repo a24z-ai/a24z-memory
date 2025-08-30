@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 /* eslint-env node */
+/* global setTimeout, clearTimeout */
 
 import { spawn } from 'child_process';
 
@@ -77,7 +78,7 @@ async function testMCPServer() {
       }
     });
     
-    server.on('exit', (code, signal) => {
+    server.on('exit', (code) => {
       if (!resolved) {
         resolved = true;
         clearTimeout(timeoutId);
@@ -91,7 +92,7 @@ async function testMCPServer() {
     setTimeout(() => {
       try {
         server.stdin.write(initMessage);
-      } catch (error) {
+      } catch {
         // Ignore write errors as server might have already responded
       }
     }, 500);

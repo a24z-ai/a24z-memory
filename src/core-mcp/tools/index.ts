@@ -9,3 +9,6 @@ export { DiscoverToolsTool } from './DiscoverToolsTool';
 export { GetNoteByIdTool } from './GetNoteByIdTool';
 export { DeleteNoteTool } from './DeleteNoteTool';
 export { CreateHandoffBriefTool } from './CreateHandoffBriefTool';
+export { GetStaleNotesTool } from './GetStaleNotesTool';
+export { GetTagUsageTool } from './GetTagUsageTool';
+export { DeleteTagTool } from './DeleteTagTool';

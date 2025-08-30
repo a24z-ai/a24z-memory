@@ -1,7 +1,7 @@
 {
   "version": 1,
   "limits": {
-    "noteMaxLength": 10000,
+    "noteMaxLength": 800,
     "maxTagsPerNote": 10,
     "maxAnchorsPerNote": 20,
     "tagDescriptionMaxLength": 2000,
