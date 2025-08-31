@@ -15,6 +15,7 @@ import {
 } from '../store/notesStore';
 import { findGitRoot } from '../utils/pathNormalization';
 import { GuidanceTokenManager } from '../services/guidance-token-manager';
+import { generateFullGuidanceContent } from '../utils/guidanceGenerator';
 
 export class CreateRepositoryNoteTool extends BaseTool {
   name = 'create_repository_note';
@@ -279,6 +280,21 @@ export class CreateRepositoryNoteTool extends BaseTool {
       `- Use \`askA24zMemory\` to retrieve this note later\n` +
       `- Share this knowledge with your team by committing the \`.a24z/\` directory\n` +
       `- Consider adding more context or examples to make this note even more valuable!`;
+
+    // If we auto-created new tags or types, generate a fresh guidance token
+    // This prevents the user's token from becoming invalid due to guidance changes
+    if (autoCreatedTags.length > 0 || autoCreatedType) {
+      const updatedGuidanceContent = generateFullGuidanceContent(parsed.directoryPath);
+      const freshToken = this.tokenManager.generateToken(
+        updatedGuidanceContent,
+        parsed.directoryPath
+      );
+
+      response += `\n\n🔄 **Updated Guidance Token**\n`;
+      response += `Since new tags/types were created, here's a fresh guidance token:\n`;
+      response += `\`${freshToken}\`\n`;
+      response += `(Your previous token is now invalid due to guidance changes)`;
+    }
 
     return { content: [{ type: 'text', text: response }] };
   }
