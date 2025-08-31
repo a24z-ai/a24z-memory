@@ -28,7 +28,7 @@ describe('GetNoteByIdTool', () => {
 
   it('should retrieve and format a note by ID', async () => {
     // Save a test note
-    const savedNote = saveNote({
+    const savedNoteWithPath = saveNote({
       note: '# Test Note\n\nThis is a test note with **markdown** content.',
       anchors: ['src/test.ts', 'docs/readme.md'],
       tags: ['testing', 'documentation', 'example'],
@@ -40,6 +40,7 @@ describe('GetNoteByIdTool', () => {
       },
       directoryPath: testRepoPath,
     });
+    const savedNote = savedNoteWithPath.note;
 
     const result = await tool.execute({
       noteId: savedNote.id,
@@ -84,7 +85,7 @@ describe('GetNoteByIdTool', () => {
   });
 
   it('should handle notes without metadata', async () => {
-    const savedNote = saveNote({
+    const savedNoteWithPath = saveNote({
       note: 'Simple note',
       anchors: ['file.ts'],
       tags: ['simple'],
@@ -92,6 +93,7 @@ describe('GetNoteByIdTool', () => {
       metadata: {},
       directoryPath: testRepoPath,
     });
+    const savedNote = savedNoteWithPath.note;
 
     const result = await tool.execute({
       noteId: savedNote.id,
@@ -109,7 +111,7 @@ describe('GetNoteByIdTool', () => {
   });
 
   it('should work from subdirectory path', async () => {
-    const savedNote = saveNote({
+    const savedNoteWithPath = saveNote({
       note: 'Subdirectory test note',
       anchors: ['src/components/Component.tsx'],
       tags: ['component'],
@@ -117,6 +119,7 @@ describe('GetNoteByIdTool', () => {
       metadata: {},
       directoryPath: testRepoPath,
     });
+    const savedNote = savedNoteWithPath.note;
 
     // Create a subdirectory
     const subDir = path.join(testRepoPath, 'src', 'components');
@@ -175,14 +178,14 @@ describe('GetNoteByIdTool', () => {
     });
 
     const result = await tool.execute({
-      noteId: savedNote.id,
+      noteId: savedNote.note.id,
       directoryPath: testRepoPath,
     });
 
     const text = result.content[0].text as string;
 
     // Check that the timestamp is formatted as ISO string
-    const timestamp = new Date(savedNote.timestamp).toISOString();
+    const timestamp = new Date(savedNote.note.timestamp).toISOString();
     expect(text).toContain(`**Created:** ${timestamp}`);
   });
 
@@ -206,7 +209,7 @@ describe('GetNoteByIdTool', () => {
     });
 
     const result = await tool.execute({
-      noteId: savedNote.id,
+      noteId: savedNote.note.id,
       directoryPath: testRepoPath,
     });
 
@@ -240,7 +243,7 @@ describe('GetNoteByIdTool', () => {
       });
 
       const result = await tool.execute({
-        noteId: savedNote.id,
+        noteId: savedNote.note.id,
         directoryPath: testRepoPath,
       });
 

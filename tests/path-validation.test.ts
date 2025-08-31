@@ -78,7 +78,7 @@ describe('Path Validation for saveNote', () => {
     });
 
     expect(result).toBeDefined();
-    expect(result.id).toBeDefined();
+    expect(result.note.id).toBeDefined();
 
     // Verify the note was saved in the correct location
     const notesDir = path.join(gitRepoPath, '.a24z', 'notes');

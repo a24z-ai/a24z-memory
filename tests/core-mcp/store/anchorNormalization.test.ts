@@ -28,7 +28,7 @@ describe('Anchor Normalization and Matching', () => {
 
   describe('anchor normalization on save', () => {
     it('should normalize anchor paths to be relative to repo root', () => {
-      const note = saveNote({
+      const noteWithPath = saveNote({
         note: 'Test note with relative anchors',
         directoryPath: repoDir,
         anchors: ['src/components/Button.tsx', './lib/utils.ts', 'docs/README.md'],
@@ -36,6 +36,7 @@ describe('Anchor Normalization and Matching', () => {
         type: 'explanation',
         metadata: {},
       });
+      const note = noteWithPath.note;
 
       // All anchors should be relative paths to repo root
       expect(note.anchors).toHaveLength(3);
@@ -52,7 +53,7 @@ describe('Anchor Normalization and Matching', () => {
     it('should convert absolute anchor paths to relative', () => {
       const absoluteAnchor = path.join(repoDir, 'src/api/endpoint.ts');
 
-      const note = saveNote({
+      const noteWithPath = saveNote({
         note: 'Test note with absolute anchor',
         directoryPath: repoDir,
         anchors: [absoluteAnchor],
@@ -60,6 +61,7 @@ describe('Anchor Normalization and Matching', () => {
         type: 'explanation',
         metadata: {},
       });
+      const note = noteWithPath.note;
 
       expect(note.anchors).toHaveLength(1);
       expect(path.isAbsolute(note.anchors[0])).toBe(false);
@@ -69,7 +71,7 @@ describe('Anchor Normalization and Matching', () => {
     it('should handle mixed relative and absolute anchors', () => {
       const absoluteAnchor = path.join(repoDir, 'absolute/path.ts');
 
-      const note = saveNote({
+      const noteWithPath = saveNote({
         note: 'Test note with mixed anchors',
         directoryPath: repoDir,
         anchors: ['relative/path.ts', absoluteAnchor, './another/relative.ts'],
@@ -77,6 +79,7 @@ describe('Anchor Normalization and Matching', () => {
         type: 'explanation',
         metadata: {},
       });
+      const note = noteWithPath.note;
 
       expect(note.anchors).toHaveLength(3);
       expect(note.anchors[0]).toBe('relative/path.ts');
@@ -203,8 +206,8 @@ describe('Anchor Normalization and Matching', () => {
       });
 
       // Anchors should be normalized to relative paths from repo root
-      expect(note.anchors[0]).toBe('src/utils/shared.ts');
-      expect(note.anchors[1]).toBe('src/components/Button.tsx');
+      expect(note.note.anchors[0]).toBe('src/utils/shared.ts');
+      expect(note.note.anchors[1]).toBe('src/components/Button.tsx');
 
       // Should find the note when querying the normalized paths
       const sharedNotes = getNotesForPath(path.join(repoDir, 'src/utils/shared.ts'), false);

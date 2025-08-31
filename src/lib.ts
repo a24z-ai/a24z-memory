@@ -175,6 +175,7 @@ import {
   markNoteReviewed as markNoteReviewedFunc,
   markAllNotesReviewed as markAllNotesReviewedFunc,
   type StoredNote as StoredNoteType,
+  type NoteWithPath as NoteWithPathType,
   type NoteType as NoteTypeType,
   type RepositoryConfiguration as RepositoryConfigurationType,
   type ValidationError as ValidationErrorType,
@@ -230,7 +231,7 @@ export class A24zMemory {
     tags: string[];
     type?: NoteTypeType;
     metadata?: NoteMetadata; // Metadata can contain arbitrary user data
-  }): StoredNoteType {
+  }): NoteWithPathType {
     return saveNoteFunc({
       ...params,
       directoryPath: this.repositoryPath,

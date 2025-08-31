@@ -149,11 +149,11 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
 
       // Each should only see its own note
       expect(alphaNotesCount).toHaveLength(1);
-      expect(alphaNotesCount[0].id).toBe(note1.id);
+      expect(alphaNotesCount[0].id).toBe(note1.note.id);
       expect(alphaNotesCount[0].note).toContain('alpha');
 
       expect(betaNotesCount).toHaveLength(1);
-      expect(betaNotesCount[0].id).toBe(note2.id);
+      expect(betaNotesCount[0].id).toBe(note2.note.id);
       expect(betaNotesCount[0].note).toContain('beta');
 
       // Verify notes directories contain only their own notes
@@ -222,7 +222,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
 
       // Should find the root note
       expect(notes).toHaveLength(1);
-      expect(notes[0].id).toBe(rootNote.id);
+      expect(notes[0].id).toBe(rootNote.note.id);
       expect(notes[0].isParentDirectory).toBe(true);
       expect(notes[0].pathDistance).toBeGreaterThan(0);
     });
@@ -429,10 +429,10 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       const nestedNotes = getNotesForPath(nestedRepoPath, true);
 
       expect(parentNotes).toHaveLength(1);
-      expect(parentNotes[0].id).toBe(parentNote.id);
+      expect(parentNotes[0].id).toBe(parentNote.note.id);
 
       expect(nestedNotes).toHaveLength(1);
-      expect(nestedNotes[0].id).toBe(nestedNote.id);
+      expect(nestedNotes[0].id).toBe(nestedNote.note.id);
     });
 
     it('should handle repository without package.json but with git', () => {
@@ -461,7 +461,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       // Should be able to retrieve the note
       const notes = getNotesForPath(orphanPath, true);
       expect(notes).toHaveLength(1);
-      expect(notes[0].id).toBe(orphanNote.id);
+      expect(notes[0].id).toBe(orphanNote.note.id);
     });
 
     it('should handle concurrent saves to multiple repositories', () => {

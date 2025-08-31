@@ -263,6 +263,27 @@ export class DiscoverToolsTool extends BaseTool {
         examples: ['delete_tag({ tag: "deprecated-tag", directoryPath: "/Users/user/project" })'],
       },
       {
+        name: 'replace_tag',
+        category: 'repository',
+        description: 'Replace a tag with another tag across all notes in the repository.',
+        useCases: [
+          'Rename tags consistently across all notes',
+          'Merge similar tags into a single tag',
+          'Update tag naming conventions',
+          'Fix typos in tag names',
+        ],
+        parameters: [
+          'oldTag: The tag to replace',
+          'newTag: The replacement tag',
+          'directoryPath: Repository path (absolute)',
+          'confirmReplacement: Must be true to confirm (safety check)',
+          'transferDescription: Transfer old tag description to new tag (default: true)',
+        ],
+        examples: [
+          'replace_tag({ oldTag: "bug-fix", newTag: "bugfix", directoryPath: "/Users/user/project", confirmReplacement: true })',
+        ],
+      },
+      {
         name: 'get_note_coverage',
         category: 'repository',
         description:

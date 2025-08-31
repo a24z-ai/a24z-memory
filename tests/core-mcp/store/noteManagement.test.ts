@@ -39,7 +39,8 @@ describe('Note Management Functions', () => {
         directoryPath: testRepoPath,
       };
 
-      const savedNote = saveNote(note);
+      const savedNoteWithPath = saveNote(note);
+      const savedNote = savedNoteWithPath.note;
 
       // Retrieve the note by ID
       const retrievedNote = getNoteById(testRepoPath, savedNote.id);
@@ -74,7 +75,8 @@ describe('Note Management Functions', () => {
         directoryPath: testRepoPath,
       };
 
-      const savedNote = saveNote(note);
+      const savedNoteWithPath = saveNote(note);
+      const savedNote = savedNoteWithPath.note;
 
       // Verify note exists
       const existsBefore = getNoteById(testRepoPath, savedNote.id);
@@ -120,7 +122,8 @@ describe('Note Management Functions', () => {
           metadata: {},
           directoryPath: testRepoPath,
         };
-        notes.push(saveNote(note));
+        const savedNoteWithPath = saveNote(note);
+        notes.push(savedNoteWithPath.note);
       }
 
       // Delete the middle note
@@ -143,7 +146,7 @@ describe('Note Management Functions', () => {
       fs.writeFileSync(validFile2, 'content2');
 
       // Save notes with various anchor configurations
-      const noteWithValidAnchors = saveNote({
+      const noteWithValidAnchorsWithPath = saveNote({
         note: 'Note with all valid anchors',
         anchors: ['valid1.ts', 'valid2.ts'],
         tags: ['valid'],
@@ -151,8 +154,9 @@ describe('Note Management Functions', () => {
         metadata: {},
         directoryPath: testRepoPath,
       });
+      const noteWithValidAnchors = noteWithValidAnchorsWithPath.note;
 
-      const noteWithMixedAnchors = saveNote({
+      const noteWithMixedAnchorsWithPath = saveNote({
         note: 'Note with mixed anchors',
         anchors: ['valid1.ts', 'stale1.ts', 'stale2.ts'],
         tags: ['mixed'],
@@ -160,8 +164,9 @@ describe('Note Management Functions', () => {
         metadata: {},
         directoryPath: testRepoPath,
       });
+      const noteWithMixedAnchors = noteWithMixedAnchorsWithPath.note;
 
-      const noteWithAllStaleAnchors = saveNote({
+      const noteWithAllStaleAnchorsWithPath = saveNote({
         note: 'Note with all stale anchors',
         anchors: ['stale3.ts', 'stale4.ts'],
         tags: ['stale'],
@@ -169,6 +174,7 @@ describe('Note Management Functions', () => {
         metadata: {},
         directoryPath: testRepoPath,
       });
+      const noteWithAllStaleAnchors = noteWithAllStaleAnchorsWithPath.note;
 
       // Check for stale notes
       const staleNotes = checkStaleNotes(testRepoPath);
@@ -238,7 +244,7 @@ describe('Note Management Functions', () => {
         directoryPath: testRepoPath,
       });
 
-      const noteWithStaleDir = saveNote({
+      const noteWithStaleDirWithPath = saveNote({
         note: 'Note with stale directory anchor',
         anchors: ['non-existent-dir'],
         tags: ['directory'],
@@ -246,6 +252,7 @@ describe('Note Management Functions', () => {
         metadata: {},
         directoryPath: testRepoPath,
       });
+      const noteWithStaleDir = noteWithStaleDirWithPath.note;
 
       const staleNotes = checkStaleNotes(testRepoPath);
 

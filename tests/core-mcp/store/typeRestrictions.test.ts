@@ -149,7 +149,8 @@ describe('Type Restrictions', () => {
       };
 
       // Should not throw
-      const savedNote = saveNote(note);
+      const savedNoteWithPath = saveNote(note);
+      const savedNote = savedNoteWithPath.note;
       expect(savedNote.type).toEqual('pattern');
     });
 

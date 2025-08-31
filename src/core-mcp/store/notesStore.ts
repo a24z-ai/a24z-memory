@@ -26,7 +26,11 @@ export interface StoredNote {
   metadata: Record<string, unknown>;
   timestamp: number;
   reviewed?: boolean;
-  guidanceToken?: string;
+}
+
+export interface NoteWithPath {
+  note: StoredNote;
+  path: string; // File system path where this note is stored (relative to repository root)
 }
 
 export interface RepositoryConfiguration {
@@ -61,6 +65,7 @@ export interface RepositoryConfiguration {
     get_stale_notes?: boolean;
     get_tag_usage?: boolean;
     delete_tag?: boolean;
+    replace_tag?: boolean;
     get_note_coverage?: boolean;
     start_documentation_quest?: boolean;
   };
@@ -313,13 +318,13 @@ function ensureDataDir(repositoryPath: string): void {
   }
 }
 
-export function readAllNotes(repositoryPath: string): StoredNote[] {
+export function readAllNotes(repositoryPath: string): NoteWithPath[] {
   try {
     ensureDataDir(repositoryPath);
     const notesDir = getNotesDir(repositoryPath);
 
     // Read all notes from individual files
-    const notes: StoredNote[] = [];
+    const notes: NoteWithPath[] = [];
 
     if (!fs.existsSync(notesDir)) {
       return [];
@@ -341,7 +346,11 @@ export function readAllNotes(repositoryPath: string): StoredNote[] {
               if (!note.type) {
                 note.type = 'note';
               }
-              notes.push(note);
+              // Wrap the note with its path
+              notes.push({
+                note,
+                path: path.relative(repositoryPath, fullPath),
+              });
             }
           } catch {
             // Skip invalid note files
@@ -374,7 +383,7 @@ export function deleteNoteFile(repositoryPath: string, note: StoredNote): void {
 
 export function saveNote(
   note: Omit<StoredNote, 'id' | 'timestamp'> & { directoryPath: string }
-): StoredNote {
+): NoteWithPath {
   // Validate that directoryPath is absolute
   if (!path.isAbsolute(note.directoryPath)) {
     throw new Error(
@@ -415,7 +424,6 @@ export function saveNote(
     type: note.type,
     metadata: note.metadata,
     reviewed: note.reviewed,
-    guidanceToken: note.guidanceToken,
   };
 
   // Validate the note before processing
@@ -458,18 +466,38 @@ export function saveNote(
     return path.relative(repoRoot, resolved);
   });
 
+  const baseTimestamp = Date.now();
+  const noteId = `note-${baseTimestamp}-${Math.random().toString(36).slice(2, 11)}`;
+
+  // Ensure unique timestamp by adding a small counter if needed
+  let timestamp = baseTimestamp;
+
+  // Check if any existing note has this timestamp (though unlikely with millisecond precision)
+  const existingNotes = readAllNotes(repoRoot);
+  const timestampExists = existingNotes.some((n) => n.note.timestamp === timestamp);
+  if (timestampExists) {
+    // Add 1ms to ensure uniqueness
+    timestamp = baseTimestamp + 1;
+  }
+  const notePath = getNoteFilePath(repoRoot, noteId, timestamp);
+
   const saved: StoredNote = {
     ...noteWithoutDirectoryPath,
     anchors: normalizedAnchors, // Use normalized anchors
-    id: `note-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
-    timestamp: Date.now(),
+    id: noteId,
+    timestamp: timestamp,
     reviewed:
       noteWithoutDirectoryPath.reviewed !== undefined ? noteWithoutDirectoryPath.reviewed : false,
   };
 
   // Write the note to its own file
   writeNoteToFile(repoRoot, saved);
-  return saved;
+
+  // Return the note wrapped with its path
+  return {
+    note: saved,
+    path: path.relative(repoRoot, notePath),
+  };
 }
 
 export interface NotesResult {
@@ -495,7 +523,8 @@ export function getNotesForPath(
 
   const all = readAllNotes(normalizedRepo);
   return all
-    .map((n: StoredNote) => {
+    .map((noteWithPath: NoteWithPath) => {
+      const n = noteWithPath.note;
       const base = normalizedRepo;
       let isParent = false;
 
@@ -676,14 +705,16 @@ export function getRepositoryGuidance(targetPath: string): string | null {
 
 export function getNoteById(repositoryPath: string, noteId: string): StoredNote | null {
   const normalizedRepo = normalizeRepositoryPath(repositoryPath);
-  const notes = readAllNotes(normalizedRepo);
-  return notes.find((note) => note.id === noteId) || null;
+  const notesWithPaths = readAllNotes(normalizedRepo);
+  const found = notesWithPaths.find((nwp) => nwp.note.id === noteId);
+  return found ? found.note : null;
 }
 
 export function deleteNoteById(repositoryPath: string, noteId: string): boolean {
   const normalizedRepo = normalizeRepositoryPath(repositoryPath);
-  const notes = readAllNotes(normalizedRepo);
-  const noteToDelete = notes.find((note) => note.id === noteId);
+  const notesWithPaths = readAllNotes(normalizedRepo);
+  const found = notesWithPaths.find((nwp) => nwp.note.id === noteId);
+  const noteToDelete = found ? found.note : null;
 
   if (!noteToDelete) {
     return false;
@@ -707,8 +738,9 @@ export function getUnreviewedNotes(repositoryPath: string, directoryPath?: strin
  */
 export function markNoteReviewed(repositoryPath: string, noteId: string): boolean {
   const normalizedRepo = normalizeRepositoryPath(repositoryPath);
-  const notes = readAllNotes(normalizedRepo);
-  const note = notes.find((n) => n.id === noteId);
+  const notesWithPaths = readAllNotes(normalizedRepo);
+  const found = notesWithPaths.find((nwp) => nwp.note.id === noteId);
+  const note = found ? found.note : null;
 
   if (!note) {
     return false;
@@ -796,10 +828,11 @@ export function setEnforceAllowedTags(repositoryPath: string, enforce: boolean):
 
 export function checkStaleNotes(repositoryPath: string): StaleNote[] {
   const normalizedRepo = normalizeRepositoryPath(repositoryPath);
-  const notes = readAllNotes(normalizedRepo);
+  const notesWithPaths = readAllNotes(normalizedRepo);
   const staleNotes: StaleNote[] = [];
 
-  for (const note of notes) {
+  for (const noteWithPath of notesWithPaths) {
+    const note = noteWithPath.note;
     const staleAnchors: string[] = [];
     const validAnchors: string[] = [];
 
@@ -865,7 +898,7 @@ export function mergeNotes(repositoryPath: string, input: MergeNotesInput): Merg
     },
   };
 
-  const savedNote = saveNote(mergedNoteData);
+  const savedNoteWithPath = saveNote(mergedNoteData);
 
   let deletedCount = 0;
   if (input.deleteOriginals !== false) {
@@ -878,7 +911,7 @@ export function mergeNotes(repositoryPath: string, input: MergeNotesInput): Merg
   }
 
   return {
-    mergedNote: savedNote,
+    mergedNote: savedNoteWithPath.note,
     deletedCount,
   };
 }
@@ -948,13 +981,37 @@ export function saveTagDescription(repositoryPath: string, tag: string, descript
 
 export function removeTagFromNotes(repositoryPath: string, tag: string): number {
   const normalizedRepo = normalizeRepositoryPath(repositoryPath);
-  const notes = readAllNotes(normalizedRepo);
+  const notesWithPaths = readAllNotes(normalizedRepo);
   let modifiedCount = 0;
 
-  for (const note of notes) {
+  for (const noteWithPath of notesWithPaths) {
+    const note = noteWithPath.note;
     if (note.tags.includes(tag)) {
       // Remove the tag from the note
       note.tags = note.tags.filter((t) => t !== tag);
+      // Save the updated note
+      writeNoteToFile(normalizedRepo, note);
+      modifiedCount++;
+    }
+  }
+
+  return modifiedCount;
+}
+
+export function replaceTagInNotes(repositoryPath: string, oldTag: string, newTag: string): number {
+  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
+  const notesWithPaths = readAllNotes(normalizedRepo);
+  let modifiedCount = 0;
+
+  for (const noteWithPath of notesWithPaths) {
+    const note = noteWithPath.note;
+    if (note.tags.includes(oldTag)) {
+      // Replace the old tag with the new tag
+      note.tags = note.tags.map((t) => (t === oldTag ? newTag : t));
+
+      // Remove duplicates if the new tag was already present
+      note.tags = [...new Set(note.tags)];
+
       // Save the updated note
       writeNoteToFile(normalizedRepo, note);
       modifiedCount++;

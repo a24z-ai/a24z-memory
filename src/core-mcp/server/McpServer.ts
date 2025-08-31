@@ -29,6 +29,7 @@ import {
   GetStaleNotesTool,
   GetTagUsageTool,
   DeleteTagTool,
+  ReplaceTagTool,
   GetNoteCoverageTool,
   StartDocumentationQuestTool,
 } from '../tools';
@@ -118,6 +119,9 @@ export class McpServer {
     }
     if (enabledTools.delete_tag !== false) {
       this.addTool(new DeleteTagTool());
+    }
+    if (enabledTools.replace_tag !== false) {
+      this.addTool(new ReplaceTagTool());
     }
     if (enabledTools.get_note_coverage !== false) {
       this.addTool(new GetNoteCoverageTool());

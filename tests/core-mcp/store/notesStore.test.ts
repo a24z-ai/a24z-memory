@@ -81,7 +81,8 @@ describe('notesStore', () => {
 
   describe('File Operations', () => {
     it('should create data directory when saving first note', () => {
-      const saved = saveNote(testNote);
+      const savedWithPath = saveNote(testNote);
+      const saved = savedWithPath.note;
 
       // Check that data directory was created
       const dataDir = path.join(testNotePath, '.a24z');
@@ -104,7 +105,8 @@ describe('notesStore', () => {
     });
 
     it('should write notes to individual JSON files with correct structure', () => {
-      const saved = saveNote(testNote);
+      const savedWithPath = saveNote(testNote);
+      const saved = savedWithPath.note;
 
       const dataDir = path.join(testNotePath, '.a24z');
       const date = new Date(saved.timestamp);
@@ -124,7 +126,8 @@ describe('notesStore', () => {
     });
 
     it('should use atomic writes with temporary files', () => {
-      const saved = saveNote(testNote);
+      const savedWithPath = saveNote(testNote);
+      const saved = savedWithPath.note;
 
       const date = new Date(saved.timestamp);
       const year = date.getFullYear();
@@ -151,7 +154,8 @@ describe('notesStore', () => {
     });
 
     it('should handle corrupted JSON gracefully', () => {
-      const saved = saveNote(testNote);
+      const savedWithPath = saveNote(testNote);
+      const saved = savedWithPath.note;
 
       // Corrupt the saved note file
       const date = new Date(saved.timestamp);
@@ -177,7 +181,8 @@ describe('notesStore', () => {
 
   describe('saveNote', () => {
     it('should save a note and return it with id and timestamp', () => {
-      const saved = saveNote(testNote);
+      const savedWithPath = saveNote(testNote);
+      const saved = savedWithPath.note;
 
       expect(saved).toHaveProperty('id');
       expect(saved).toHaveProperty('timestamp');
@@ -187,20 +192,24 @@ describe('notesStore', () => {
     });
 
     it('should generate unique IDs for multiple notes', async () => {
-      const note1 = saveNote(testNote);
+      const note1WithPath = saveNote(testNote);
+      const note1 = note1WithPath.note;
 
       // Wait a bit to ensure different timestamp
       await new Promise((resolve) => setTimeout(resolve, 1));
 
-      const note2 = saveNote(testNote);
+      const note2WithPath = saveNote(testNote);
+      const note2 = note2WithPath.note;
 
       expect(note1.id).not.toBe(note2.id);
       expect(note1.timestamp).not.toBe(note2.timestamp);
     });
 
     it('should persist notes across multiple saves', () => {
-      const note1 = saveNote(testNote);
-      const note2 = saveNote({ ...testNote, note: 'Second note' });
+      const note1WithPath = saveNote(testNote);
+      const note1 = note1WithPath.note;
+      const note2WithPath = saveNote({ ...testNote, note: 'Second note' });
+      const note2 = note2WithPath.note;
 
       const retrieved = getNotesForPath(testNotePath, true);
       expect(retrieved).toHaveLength(2);
@@ -211,7 +220,8 @@ describe('notesStore', () => {
 
   describe('getNotesForPath', () => {
     it('should return notes for exact path match', () => {
-      const saved = saveNote(testNote);
+      const savedWithPath = saveNote(testNote);
+      const saved = savedWithPath.note;
       const notes = getNotesForPath(testNotePath, true);
 
       expect(notes).toHaveLength(1);
@@ -226,7 +236,8 @@ describe('notesStore', () => {
 
       fs.mkdirSync(childPath, { recursive: true });
 
-      const saved = saveNote({ ...testNote, directoryPath: parentPath });
+      const savedWithPath = saveNote({ ...testNote, directoryPath: parentPath });
+      const saved = savedWithPath.note;
       const notes = getNotesForPath(childPath, true);
 
       expect(notes).toHaveLength(1);
@@ -241,10 +252,11 @@ describe('notesStore', () => {
 
       fs.mkdirSync(path.dirname(searchPath), { recursive: true });
 
-      const saved = saveNote({
+      const savedWithPath = saveNote({
         ...testNote,
         anchors: [testNote.directoryPath, 'special-file.ts'],
       });
+      const saved = savedWithPath.note;
 
       const notes = getNotesForPath(searchPath, true);
 
@@ -271,23 +283,25 @@ describe('notesStore', () => {
       fs.mkdirSync(childPath, { recursive: true });
 
       // Save parent note first (older timestamp) - anchored to parent path
-      const parentNote = saveNote({
+      const parentNoteWithPath = saveNote({
         ...testNote,
         directoryPath: testNotePath,
         anchors: [testNotePath], // Anchor to parent directory
         note: 'Parent note',
       });
+      const parentNote = parentNoteWithPath.note;
 
       // Wait to ensure different timestamp
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Save another note anchored to child directory
-      const childNote = saveNote({
+      const childNoteWithPath = saveNote({
         ...testNote,
         directoryPath: testNotePath, // Same repository
         anchors: [childPath], // But anchored to child path
         note: 'Child note',
       });
+      const childNote = childNoteWithPath.note;
 
       const notes = getNotesForPath(childPath, true);
 
@@ -309,12 +323,13 @@ describe('notesStore', () => {
       fs.mkdirSync(path.join(childPath, '.git'), { recursive: true });
 
       saveNote({ ...testNote, directoryPath: parentPath });
-      const childNote = saveNote({
+      const childNoteWithPath = saveNote({
         ...testNote,
         directoryPath: childPath,
         anchors: [childPath, 'test-anchor'],
         note: 'Child note',
       });
+      const childNote = childNoteWithPath.note;
 
       const notes = getNotesForPath(childPath, false);
 

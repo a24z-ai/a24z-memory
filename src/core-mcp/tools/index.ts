@@ -13,5 +13,6 @@ export { ListHandoffBriefsTool } from './ListHandoffBriefsTool';
 export { GetStaleNotesTool } from './GetStaleNotesTool';
 export { GetTagUsageTool } from './GetTagUsageTool';
 export { DeleteTagTool } from './DeleteTagTool';
+export { ReplaceTagTool } from './ReplaceTagTool';
 export { GetNoteCoverageTool } from './GetNoteCoverageTool';
 export { StartDocumentationQuestTool } from './StartDocumentationQuestTool';

@@ -32,7 +32,8 @@ describe('File-based note storage', () => {
       directoryPath: testRepoPath,
     };
 
-    const savedNote = saveNote(note);
+    const savedNoteWithPath = saveNote(note);
+    const savedNote = savedNoteWithPath.note;
 
     // Check that the note was saved
     expect(savedNote.id).toBeDefined();
@@ -104,7 +105,7 @@ describe('File-based note storage', () => {
     const savedNotes = await Promise.all(promises);
 
     // All notes should have unique IDs
-    const ids = savedNotes.map((n) => n.id);
+    const ids = savedNotes.map((n) => n.note.id);
     expect(new Set(ids).size).toBe(5);
 
     // All notes should be readable

@@ -74,7 +74,8 @@ describe('Repository-Specific Storage', () => {
     };
 
     it('should store notes in repository .a24z directory', () => {
-      const saved = saveNote(testNote);
+      const savedWithPath = saveNote(testNote);
+      const saved = savedWithPath.note;
 
       // Check that note was saved
       expect(saved.id).toMatch(/^note-\d+-[a-z0-9]+$/);
@@ -93,7 +94,8 @@ describe('Repository-Specific Storage', () => {
 
     it('should retrieve notes from repository storage', () => {
       // Save a note
-      const saved = saveNote(testNote);
+      const savedWithPath = saveNote(testNote);
+      const saved = savedWithPath.note;
 
       // Retrieve notes using exact repository path
       const notes = getNotesForPath(testRepoPath, true);
@@ -105,7 +107,8 @@ describe('Repository-Specific Storage', () => {
 
     it('should retrieve notes from nested paths within repository', () => {
       // Save a note
-      const saved = saveNote(testNote);
+      const savedWithPath = saveNote(testNote);
+      const saved = savedWithPath.note;
 
       // Retrieve notes using nested path (should find the note at repo root)
       const nestedPath = path.join(testRepoPath, 'src', 'components', 'Button.tsx');
@@ -119,12 +122,14 @@ describe('Repository-Specific Storage', () => {
 
     it('should handle multiple notes in same repository', () => {
       // Save multiple notes
-      const note1 = saveNote(testNote);
-      const note2 = saveNote({
+      const note1WithPath = saveNote(testNote);
+      const note1 = note1WithPath.note;
+      const note2WithPath = saveNote({
         ...testNote,
         note: 'Second test note',
         tags: ['test', 'second-note'],
       });
+      const note2 = note2WithPath.note;
 
       // Retrieve all notes
       const notes = getNotesForPath(testRepoPath, true);
@@ -183,7 +188,7 @@ describe('Repository-Specific Storage', () => {
 
     it('should isolate notes between different repositories', () => {
       // Save note in first repository
-      const note1 = saveNote({
+      const note1WithPath = saveNote({
         note: 'Note in first repo',
         directoryPath: testRepoPath,
         tags: ['repo1'],
@@ -191,9 +196,10 @@ describe('Repository-Specific Storage', () => {
         anchors: [testRepoPath],
         metadata: {},
       });
+      const note1 = note1WithPath.note;
 
       // Save note in second repository
-      const note2 = saveNote({
+      const note2WithPath = saveNote({
         note: 'Note in second repo',
         directoryPath: secondRepoPath,
         tags: ['repo2'],
@@ -201,6 +207,7 @@ describe('Repository-Specific Storage', () => {
         anchors: [secondRepoPath],
         metadata: {},
       });
+      const note2 = note2WithPath.note;
 
       // Check that each repository only sees its own notes
       const repo1Notes = getNotesForPath(testRepoPath, true);
@@ -279,7 +286,7 @@ describe('Repository-Specific Storage', () => {
 
     it('should retrieve notes from nested paths using MCP tools', async () => {
       // Save a note first
-      const saved = saveNote({
+      const savedWithPath = saveNote({
         note: 'Nested path retrieval test',
         directoryPath: testRepoPath,
         tags: ['nested-test'],
@@ -287,6 +294,7 @@ describe('Repository-Specific Storage', () => {
         anchors: [testSubPath],
         metadata: {},
       });
+      const saved = savedWithPath.note;
 
       // Import and use the MCP tool
       const { GetNotesTool } = await import('../../src/core-mcp/tools/GetNotesTool');

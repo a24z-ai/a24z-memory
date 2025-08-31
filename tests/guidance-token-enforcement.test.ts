@@ -5,7 +5,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { saveNote } from '../src/core-mcp/store/notesStore';
+// import { saveNote } from '../src/core-mcp/store/notesStore'; - removed unused import
 import { CreateRepositoryNoteTool } from '../src/core-mcp/tools/CreateRepositoryNoteTool';
 import { GuidanceTokenManager } from '../src/core-mcp/services/guidance-token-manager';
 
@@ -105,37 +105,6 @@ describe('Mandatory Guidance Token Enforcement', () => {
       };
 
       await expect(tool.execute(input)).rejects.toThrow('Invalid or expired guidance token');
-    });
-  });
-
-  describe('Integration with existing storage', () => {
-    it('should store guidance token in saved note', () => {
-      const testToken = 'test-token-123';
-
-      const savedNote = saveNote({
-        note: 'Test note with token',
-        directoryPath: testRepoPath,
-        anchors: ['test.ts'],
-        tags: ['test'],
-        type: 'explanation',
-        metadata: {},
-        guidanceToken: testToken,
-      });
-
-      expect(savedNote.guidanceToken).toBe(testToken);
-    });
-
-    it('should handle notes without guidance token', () => {
-      const savedNote = saveNote({
-        note: 'Test note without token',
-        directoryPath: testRepoPath,
-        anchors: ['test.ts'],
-        tags: ['test'],
-        type: 'explanation',
-        metadata: {},
-      });
-
-      expect(savedNote.guidanceToken).toBeUndefined();
     });
   });
 });

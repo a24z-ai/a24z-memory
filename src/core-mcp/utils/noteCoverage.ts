@@ -113,7 +113,8 @@ export function calculateNoteCoverage(
   });
 
   // Get all notes for the repository
-  const notes = readAllNotes(repoPath);
+  const notesWithPaths = readAllNotes(repoPath);
+  const notes = notesWithPaths.map((nwp) => nwp.note);
 
   // Initialize coverage maps
   const fileCoverageMap = new Map<string, FileWithCoverage>();

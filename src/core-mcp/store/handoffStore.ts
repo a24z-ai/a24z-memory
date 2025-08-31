@@ -107,34 +107,26 @@ export function getHandoffBriefs(
   }
 ): HandoffBrief[] {
   const handoffsDir = getHandoffsDir(repositoryPath);
-  const results: HandoffBrief[] = [];
+  const allBriefs: HandoffBrief[] = [];
 
   if (!fs.existsSync(handoffsDir)) {
-    return results;
+    return allBriefs;
   }
 
   // Read year directories
   const years = fs
     .readdirSync(handoffsDir)
-    .filter((y) => fs.statSync(path.join(handoffsDir, y)).isDirectory())
-    .sort()
-    .reverse(); // Most recent first
+    .filter((y) => fs.statSync(path.join(handoffsDir, y)).isDirectory());
 
   for (const year of years) {
     const yearDir = path.join(handoffsDir, year);
     const months = fs
       .readdirSync(yearDir)
-      .filter((m) => fs.statSync(path.join(yearDir, m)).isDirectory())
-      .sort()
-      .reverse(); // Most recent first
+      .filter((m) => fs.statSync(path.join(yearDir, m)).isDirectory());
 
     for (const month of months) {
       const monthDir = path.join(yearDir, month);
-      const files = fs
-        .readdirSync(monthDir)
-        .filter((f) => f.endsWith('.md'))
-        .sort()
-        .reverse(); // Most recent first
+      const files = fs.readdirSync(monthDir).filter((f) => f.endsWith('.md'));
 
       for (const file of files) {
         // Extract timestamp from filename
@@ -144,26 +136,34 @@ export function getHandoffBriefs(
         const timestamp = parseInt(match[1], 10);
         const id = `handoff-${match[1]}-${match[2]}`;
 
-        // Apply filters
+        // Apply since filter early
         if (options?.since && timestamp < options.since) continue;
 
         const filepath = path.join(monthDir, file);
 
-        results.push({
+        allBriefs.push({
           id,
           timestamp,
           filepath,
         });
-
-        // Apply limit
-        if (options?.limit && results.length >= options.limit) {
-          return results;
-        }
       }
     }
   }
 
-  return results;
+  // Sort all briefs by timestamp (most recent first), then by ID for stable ordering
+  allBriefs.sort((a, b) => {
+    if (b.timestamp !== a.timestamp) {
+      return b.timestamp - a.timestamp;
+    }
+    return b.id.localeCompare(a.id);
+  });
+
+  // Apply limit after sorting
+  if (options?.limit && allBriefs.length > options.limit) {
+    return allBriefs.slice(0, options.limit);
+  }
+
+  return allBriefs;
 }
 
 /**

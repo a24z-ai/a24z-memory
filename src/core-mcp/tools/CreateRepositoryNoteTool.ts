@@ -227,7 +227,7 @@ export class CreateRepositoryNoteTool extends BaseTool {
       }
     }
 
-    const saved = saveNote({
+    const savedWithPath = saveNote({
       note: parsed.note,
       directoryPath: parsed.directoryPath,
       anchors: parsed.anchors,
@@ -239,8 +239,9 @@ export class CreateRepositoryNoteTool extends BaseTool {
         createdBy: 'create_repository_note_tool',
       },
       reviewed: false, // New notes start as unreviewed
-      guidanceToken: parsed.guidanceToken,
     });
+
+    const saved = savedWithPath.note;
 
     // Build response message with guidance about auto-created tags/types
     let response =

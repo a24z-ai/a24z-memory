@@ -142,7 +142,8 @@ describe('Tag Restrictions', () => {
       };
 
       // Should not throw
-      const savedNote = saveNote(note);
+      const savedNoteWithPath = saveNote(note);
+      const savedNote = savedNoteWithPath.note;
       expect(savedNote.tags).toEqual(['feature', 'documentation']);
     });
 
@@ -245,7 +246,8 @@ describe('Tag Restrictions', () => {
         directoryPath: testRepoPath,
       };
 
-      const saved1 = saveNote(note1);
+      const saved1WithPath = saveNote(note1);
+      const saved1 = saved1WithPath.note;
       expect(saved1.tags).toEqual(['feature', 'testing']);
 
       // Second note with invalid tags
@@ -270,7 +272,8 @@ describe('Tag Restrictions', () => {
         directoryPath: testRepoPath,
       };
 
-      const saved3 = saveNote(note3);
+      const saved3WithPath = saveNote(note3);
+      const saved3 = saved3WithPath.note;
       expect(saved3.tags).toEqual(['bugfix']);
     });
   });

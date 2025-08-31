@@ -60,7 +60,7 @@ describe('GetTagUsageTool', () => {
     saveTagDescription(testRepoPath, 'unused-tag', 'This tag is not used');
 
     // Save notes with tags
-    const note1 = saveNote({
+    const note1WithPath = saveNote({
       note: 'Note 1',
       anchors: ['file1.ts'],
       tags: ['used-tag', 'no-description-tag'],
@@ -68,8 +68,9 @@ describe('GetTagUsageTool', () => {
       metadata: {},
       directoryPath: testRepoPath,
     });
+    const note1 = note1WithPath.note;
 
-    const note2 = saveNote({
+    const note2WithPath = saveNote({
       note: 'Note 2',
       anchors: ['file2.ts'],
       tags: ['used-tag'],
@@ -77,6 +78,7 @@ describe('GetTagUsageTool', () => {
       metadata: {},
       directoryPath: testRepoPath,
     });
+    const note2 = note2WithPath.note;
 
     // Execute the tool
     const result = await tool.execute({

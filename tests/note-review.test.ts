@@ -33,7 +33,7 @@ describe('Note Review Functionality', () => {
 
   describe('reviewed field', () => {
     it('should create notes with reviewed=false by default', () => {
-      const note = saveNote({
+      const noteWithPath = saveNote({
         note: 'Test note content',
         directoryPath: testRepoRoot,
         anchors: ['test.ts'],
@@ -41,12 +41,13 @@ describe('Note Review Functionality', () => {
         type: 'explanation',
         metadata: {},
       });
+      const note = noteWithPath.note;
 
       expect(note.reviewed).toBe(false);
     });
 
     it('should preserve reviewed field when explicitly set', () => {
-      const note = saveNote({
+      const noteWithPath = saveNote({
         note: 'Pre-reviewed note',
         directoryPath: testRepoRoot,
         anchors: ['test.ts'],
@@ -55,23 +56,9 @@ describe('Note Review Functionality', () => {
         metadata: {},
         reviewed: true,
       });
+      const note = noteWithPath.note;
 
       expect(note.reviewed).toBe(true);
-    });
-
-    it('should preserve guidanceToken field', () => {
-      const testToken = 'test-token-abc123';
-      const note = saveNote({
-        note: 'Note with token',
-        directoryPath: testRepoRoot,
-        anchors: ['test.ts'],
-        tags: ['test'],
-        type: 'explanation',
-        metadata: {},
-        guidanceToken: testToken,
-      });
-
-      expect(note.guidanceToken).toBe(testToken);
     });
   });
 
@@ -154,7 +141,7 @@ describe('Note Review Functionality', () => {
     let noteId: string;
 
     beforeEach(() => {
-      const note = saveNote({
+      const noteWithPath = saveNote({
         note: 'Note to review',
         directoryPath: testRepoRoot,
         anchors: ['test.ts'],
@@ -163,7 +150,7 @@ describe('Note Review Functionality', () => {
         reviewed: false,
         metadata: {},
       });
-      noteId = note.id;
+      noteId = noteWithPath.note.id;
     });
 
     it('should mark a note as reviewed', () => {
@@ -278,7 +265,7 @@ describe('Note Review Functionality', () => {
 
   describe('integration with existing note operations', () => {
     it('should preserve review status through note updates', () => {
-      const note = saveNote({
+      const noteWithPath = saveNote({
         note: 'Original content',
         directoryPath: testRepoRoot,
         anchors: ['test.ts'],
@@ -287,6 +274,7 @@ describe('Note Review Functionality', () => {
         reviewed: false,
         metadata: {},
       });
+      const note = noteWithPath.note;
 
       markNoteReviewed(testRepoRoot, note.id);
 
@@ -323,48 +311,6 @@ describe('Note Review Functionality', () => {
 
       expect(reviewedCount).toBe(2);
       expect(unreviewedCount).toBe(2);
-    });
-  });
-
-  describe('guidanceToken field', () => {
-    it('should preserve guidanceToken through operations', () => {
-      const token = 'test-guidance-token-xyz';
-      const note = saveNote({
-        note: 'Note with token',
-        directoryPath: testRepoRoot,
-        anchors: ['test.ts'],
-        tags: ['test'],
-        type: 'explanation',
-        guidanceToken: token,
-        reviewed: false,
-        metadata: {},
-      });
-
-      expect(note.guidanceToken).toBe(token);
-
-      // Mark as reviewed
-      markNoteReviewed(testRepoRoot, note.id);
-
-      // Token should still be there
-      const reviewedNote = getNoteById(testRepoRoot, note.id);
-      expect(reviewedNote?.guidanceToken).toBe(token);
-      expect(reviewedNote?.reviewed).toBe(true);
-    });
-
-    it('should handle notes without guidanceToken', () => {
-      const note = saveNote({
-        note: 'Note without token',
-        directoryPath: testRepoRoot,
-        anchors: ['test.ts'],
-        tags: ['test'],
-        type: 'explanation',
-        metadata: {},
-      });
-
-      expect(note.guidanceToken).toBeUndefined();
-
-      const retrieved = getNoteById(testRepoRoot, note.id);
-      expect(retrieved?.guidanceToken).toBeUndefined();
     });
   });
 });

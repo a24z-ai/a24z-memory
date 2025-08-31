@@ -140,6 +140,7 @@ describe('MCP Server Integration', () => {
             'get_stale_notes',
             'get_tag_usage',
             'delete_tag',
+            'replace_tag',
             'get_note_coverage',
             'start_documentation_quest',
           ];

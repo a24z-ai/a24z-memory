@@ -60,7 +60,7 @@ describe('DeleteTagTool', () => {
     saveTagDescription(testRepoPath, 'delete-me', 'This tag will be deleted');
 
     // Save notes with the tag
-    const note1 = saveNote({
+    const note1WithPath = saveNote({
       note: 'Note 1 with tag',
       anchors: ['file1.ts'],
       tags: ['delete-me', 'keep-me'],
@@ -68,8 +68,9 @@ describe('DeleteTagTool', () => {
       metadata: {},
       directoryPath: testRepoPath,
     });
+    const note1 = note1WithPath.note;
 
-    const note2 = saveNote({
+    const note2WithPath = saveNote({
       note: 'Note 2 with tag',
       anchors: ['file2.ts'],
       tags: ['delete-me'],
@@ -77,8 +78,9 @@ describe('DeleteTagTool', () => {
       metadata: {},
       directoryPath: testRepoPath,
     });
+    const note2 = note2WithPath.note;
 
-    const note3 = saveNote({
+    const note3WithPath = saveNote({
       note: 'Note 3 without tag',
       anchors: ['file3.ts'],
       tags: ['keep-me'],
@@ -86,6 +88,7 @@ describe('DeleteTagTool', () => {
       metadata: {},
       directoryPath: testRepoPath,
     });
+    const note3 = note3WithPath.note;
 
     // Delete the tag with confirmation
     const result = await tool.execute({
@@ -123,7 +126,7 @@ describe('DeleteTagTool', () => {
 
   it('should handle deletion of tag with no description', async () => {
     // Save notes with a tag that has no description
-    const note1 = saveNote({
+    const note1WithPath = saveNote({
       note: 'Note with undescribed tag',
       anchors: ['file.ts'],
       tags: ['no-description'],
@@ -131,6 +134,7 @@ describe('DeleteTagTool', () => {
       metadata: {},
       directoryPath: testRepoPath,
     });
+    const note1 = note1WithPath.note;
 
     // Delete the tag
     const result = await tool.execute({
@@ -224,7 +228,7 @@ describe('DeleteTagTool', () => {
 
     // Verify other tags are preserved
     const allNotes = getNotesForPath(testRepoPath, true);
-    const updatedNote = allNotes.find((n) => n.id === note.id);
+    const updatedNote = allNotes.find((n) => n.id === note.note.id);
     expect(updatedNote?.tags).toEqual(['tag1', 'tag3']);
   });
 
@@ -254,7 +258,7 @@ describe('DeleteTagTool', () => {
 
   it('should handle multiple notes with the same tag', async () => {
     // Create multiple notes with the same tag
-    const notes: Array<{ id: string }> = [];
+    const notes: Array<{ note: { id: string } }> = [];
     for (let i = 0; i < 5; i++) {
       notes.push(
         saveNote({
@@ -282,7 +286,7 @@ describe('DeleteTagTool', () => {
     // Verify tag is removed from all notes but unique tags remain
     const allNotes = getNotesForPath(testRepoPath, true);
     for (let i = 0; i < 5; i++) {
-      const updatedNote = allNotes.find((n) => n.id === notes[i].id);
+      const updatedNote = allNotes.find((n) => n.id === notes[i].note.id);
       expect(updatedNote?.tags).toEqual([`unique-${i}`]);
       expect(updatedNote?.tags).not.toContain('common-tag');
     }

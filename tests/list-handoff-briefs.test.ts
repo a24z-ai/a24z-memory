@@ -67,7 +67,7 @@ describe('ListHandoffBriefsTool', () => {
   });
 
   it('should respect limit parameter', async () => {
-    // Create 3 handoff briefs
+    // Create 3 handoff briefs with small delays to ensure different timestamps
     for (let i = 1; i <= 3; i++) {
       saveHandoffBrief({
         title: `Handoff ${i}`,
@@ -75,6 +75,8 @@ describe('ListHandoffBriefsTool', () => {
         references: [],
         directoryPath: tempDir,
       });
+      // Small delay to ensure different timestamps
+      await new Promise((resolve) => setTimeout(resolve, 2));
     }
 
     const tool = new ListHandoffBriefsTool();

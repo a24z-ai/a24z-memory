@@ -28,7 +28,7 @@ describe('DeleteNoteTool', () => {
 
   it('should successfully delete an existing note', async () => {
     // Save a test note
-    const savedNote = saveNote({
+    const savedNoteWithPath = saveNote({
       note: 'This is a test note for deletion',
       anchors: ['src/test.ts'],
       tags: ['testing', 'deletion'],
@@ -36,6 +36,7 @@ describe('DeleteNoteTool', () => {
       metadata: { key: 'value' },
       directoryPath: testRepoPath,
     });
+    const savedNote = savedNoteWithPath.note;
 
     // Verify note exists
     expect(getNoteById(testRepoPath, savedNote.id)).toBeDefined();
@@ -71,7 +72,7 @@ describe('DeleteNoteTool', () => {
 
   it('should handle deletion from subdirectory path', async () => {
     // Save a test note
-    const savedNote = saveNote({
+    const savedNoteWithPath = saveNote({
       note: 'Test note in subdirectory',
       anchors: ['src/components/Component.tsx'],
       tags: ['component'],
@@ -79,6 +80,7 @@ describe('DeleteNoteTool', () => {
       metadata: {},
       directoryPath: testRepoPath,
     });
+    const savedNote = savedNoteWithPath.note;
 
     // Create a subdirectory
     const subDir = path.join(testRepoPath, 'src', 'components');
@@ -131,7 +133,7 @@ describe('DeleteNoteTool', () => {
   it('should handle notes with long content in preview', async () => {
     const longContent = 'A'.repeat(300);
 
-    const savedNote = saveNote({
+    const savedNoteWithPath = saveNote({
       note: longContent,
       anchors: ['file.ts'],
       tags: ['long'],
@@ -139,6 +141,7 @@ describe('DeleteNoteTool', () => {
       metadata: {},
       directoryPath: testRepoPath,
     });
+    const savedNote = savedNoteWithPath.note;
 
     const result = await tool.execute({
       noteId: savedNote.id,
@@ -165,7 +168,7 @@ describe('DeleteNoteTool', () => {
     });
 
     const result = await tool.execute({
-      noteId: savedNote.id,
+      noteId: savedNote.note.id,
       directoryPath: testRepoPath,
     });
 

@@ -59,7 +59,7 @@ describe('GetStaleNotesTool', () => {
     fs.writeFileSync(validFile, 'content');
 
     // Save notes with both valid and stale anchors
-    const note1 = saveNote({
+    const note1WithPath = saveNote({
       note: 'This note has mixed anchors',
       anchors: ['exists.ts', 'deleted.ts'],
       tags: ['test'],
@@ -67,8 +67,9 @@ describe('GetStaleNotesTool', () => {
       metadata: {},
       directoryPath: testRepoPath,
     });
+    const note1 = note1WithPath.note;
 
-    const note2 = saveNote({
+    const note2WithPath = saveNote({
       note: 'This note has only stale anchors',
       anchors: ['missing1.ts', 'missing2.ts'],
       tags: ['stale'],
@@ -76,6 +77,7 @@ describe('GetStaleNotesTool', () => {
       metadata: {},
       directoryPath: testRepoPath,
     });
+    const note2 = note2WithPath.note;
 
     // Save a note with only valid anchors (should not appear in results)
     saveNote({
