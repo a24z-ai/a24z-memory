@@ -104,6 +104,9 @@ describe('Allowed Tags Helper Functions', () => {
     });
 
     it('should default to false for new repositories', () => {
+      // Explicitly ensure enforcement is disabled for this test
+      setEnforceAllowedTags(testRepoPath, false);
+      
       const allowedTags = getAllowedTags(testRepoPath);
       expect(allowedTags.enforced).toBe(false);
     });
@@ -111,6 +114,9 @@ describe('Allowed Tags Helper Functions', () => {
 
   describe('Integration', () => {
     it('should work together to manage tag restrictions', () => {
+      // Explicitly reset enforcement state for this test
+      setEnforceAllowedTags(testRepoPath, false);
+      
       // Start with no restrictions
       const initial = getAllowedTags(testRepoPath);
       expect(initial.enforced).toBe(false);
