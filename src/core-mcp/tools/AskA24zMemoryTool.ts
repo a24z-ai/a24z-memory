@@ -7,21 +7,9 @@ import { normalizeRepositoryPath } from '../utils/pathNormalization';
 import { LLMService, type LLMContext } from '../services/llm-service';
 import { readAnchorFiles, selectOptimalContent } from '../utils/fileReader';
 import { GuidanceTokenManager } from '../services/guidance-token-manager';
+import { DEFAULT_A24Z_MEMORY_CONFIG, type A24zMemoryConfig } from '../config/defaultConfig';
 
-export interface A24zMemoryConfig {
-  llm: { model: string; temperature: number; systemPrompt: string; maxTokens: number };
-  noteFetching: {
-    maxNotesPerQuery: number;
-    relevanceThreshold: number;
-    includeParentPaths: boolean;
-    searchDepth: number;
-  };
-  responseStyle: {
-    acknowledgeLimitations: boolean;
-    suggestNoteSaving: boolean;
-    conversationalTone: 'mentor' | 'peer' | 'expert';
-  };
-}
+// A24zMemoryConfig type is now imported from defaultConfig.ts
 
 interface TribalNote {
   id: string;
@@ -89,25 +77,7 @@ export class AskA24zMemoryTool extends BaseTool {
       ),
   });
 
-  private defaultConfig: A24zMemoryConfig = {
-    llm: {
-      model: 'gpt-4',
-      temperature: 0.3,
-      systemPrompt: 'You are a principal engineer with deep knowledge of this codebase.',
-      maxTokens: 1000,
-    },
-    noteFetching: {
-      maxNotesPerQuery: 20,
-      relevanceThreshold: 0.3,
-      includeParentPaths: true,
-      searchDepth: 3,
-    },
-    responseStyle: {
-      acknowledgeLimitations: true,
-      suggestNoteSaving: true,
-      conversationalTone: 'mentor',
-    },
-  };
+  private defaultConfig: A24zMemoryConfig = DEFAULT_A24Z_MEMORY_CONFIG;
 
   private llmService: LLMService | null;
   private tokenManager: GuidanceTokenManager;
@@ -148,13 +118,7 @@ export class AskA24zMemoryTool extends BaseTool {
       );
     }
 
-    const relevantNotes = await this.fetchRelevantNotes(
-      filePath,
-      query,
-      taskContext,
-      filterTags,
-      filterTypes
-    );
+    const relevantNotes = await this.fetchRelevantNotes(filePath, filterTags, filterTypes);
 
     if (relevantNotes.length === 0) {
       const filterInfo = this.getFilterDescription(filterTags, filterTypes);
@@ -174,7 +138,8 @@ export class AskA24zMemoryTool extends BaseTool {
       };
     }
 
-    const result = await this.generateA24zMemoryResponseWithMetadata(
+    // Generate the response using LLM if available
+    const responseText = await this.generateA24zMemoryResponse(
       query,
       filePath,
       taskContext || '',
@@ -182,13 +147,34 @@ export class AskA24zMemoryTool extends BaseTool {
       filterTags,
       filterTypes
     );
-    return result;
+
+    // Count files that were actually read
+    const filesRead = relevantNotes.reduce((count, note) => {
+      return count + (note.anchors ? note.anchors.length : 0);
+    }, 0);
+
+    // Determine if LLM was used (this is a simplified check)
+    const llmUsed = responseText.includes('🤖 **AI-Enhanced Synthesis**');
+
+    return {
+      response: responseText,
+      metadata: {
+        llmUsed,
+        llmProvider: llmUsed ? 'configured-provider' : undefined,
+        notesFound: relevantNotes.length,
+        notesUsed: Math.min(relevantNotes.length, 5), // Top 5 notes used for synthesis
+        filesRead,
+        filters: {
+          tags: filterTags,
+          types: filterTypes,
+        },
+      },
+      notes: relevantNotes,
+    };
   }
 
   private async fetchRelevantNotes(
     filePath: string,
-    query?: string,
-    taskContext?: string,
     filterTags?: string[],
     filterTypes?: string[]
   ): Promise<TribalNote[]> {
@@ -225,162 +211,6 @@ export class AskA24zMemoryTool extends BaseTool {
       },
       relevanceScore: Math.max(0, 1 - (n.pathDistance || 0) / 10),
     }));
-  }
-
-  private async generateA24zMemoryResponseWithMetadata(
-    query: string,
-    filePath: string,
-    taskContext: string,
-    notes: TribalNote[],
-    filterTags?: string[],
-    filterTypes?: string[]
-  ): Promise<AskMemoryResponse> {
-    // Try to get repository path for file reading
-    const repoPath = normalizeRepositoryPath(filePath);
-    let filesRead = 0;
-    let llmUsed = false;
-    let llmProvider: string | undefined;
-
-    // Prepare notes with optional file contents for LLM
-    const notesWithContext = await Promise.all(
-      notes.map(async (n) => {
-        const noteContext = {
-          id: n.id,
-          content: n.content,
-          type: n.context.type,
-          tags: n.tags,
-          anchors: n.anchors,
-          anchorContents: undefined as any,
-        };
-
-        // Only try to read files if LLM config says to include them
-        const llmConfig = await LLMService.loadConfig();
-        if (llmConfig?.includeFileContents) {
-          // Limit to first 3 anchors to avoid token explosion
-          const anchorsToRead = n.anchors.slice(0, 3);
-
-          try {
-            const fileContents = await readAnchorFiles(anchorsToRead, repoPath, {
-              maxFileSize: 5 * 1024, // 5KB per file
-              maxTotalSize: 15 * 1024, // 15KB total per note
-              maxFiles: 3,
-            });
-
-            filesRead += fileContents.filter((f) => !f.error).length;
-
-            // Select optimal content based on token budget
-            const tokenBudget = Math.floor((llmConfig.fileContentBudget || 2000) / notes.length);
-            const optimal = selectOptimalContent(fileContents, tokenBudget);
-
-            if (optimal.length > 0) {
-              noteContext.anchorContents = optimal.map((f) => ({
-                path: f.path,
-                content: f.content,
-                error: f.error,
-              }));
-            }
-          } catch (error) {
-            // If file reading fails, continue without file contents
-            console.error('Failed to read anchor files:', error);
-          }
-        }
-
-        return noteContext;
-      })
-    );
-
-    // Try to use LLM service first if available
-    const llmContext: LLMContext = {
-      query,
-      filePath,
-      taskContext: taskContext || undefined,
-      notes: notesWithContext,
-    };
-
-    await this.ensureLLMService();
-    const llmResponse = await this.llmService!.synthesizeNotes(llmContext);
-
-    let responseText: string;
-
-    if (llmResponse && llmResponse.content) {
-      llmUsed = true;
-      llmProvider = llmResponse.provider;
-
-      // Got an LLM-enhanced response - include both synthesis and source notes
-      let enhancedResponse = `🤖 **AI-Enhanced Synthesis** (via ${llmResponse.provider})\n\n`;
-      enhancedResponse += llmResponse.content;
-      enhancedResponse += `\n\n---\n\n📚 **Source Notes Referenced:**\n\n`;
-
-      // Include the actual notes with their paths for transparency
-      for (let i = 0; i < notes.length; i++) {
-        const note = notes[i];
-        enhancedResponse += `**[Note ${i + 1}]** \`${note.id}\`\n`;
-        enhancedResponse += `📁 Anchored to: ${note.anchors.map((a) => `\`${a}\``).join(', ')}\n`;
-        enhancedResponse += `🏷️ Tags: ${note.tags.join(', ')} | Type: ${note.context.type || 'note'}\n`;
-        enhancedResponse += `💡 ${note.content}\n\n`;
-      }
-
-      responseText = enhancedResponse;
-    } else {
-      // Fall back to local synthesis
-      const topNotes = notes
-        .sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0))
-        .slice(0, 5);
-      const tagCounts = new Map<string, number>();
-      for (const n of topNotes)
-        for (const t of n.tags) tagCounts.set(t, (tagCounts.get(t) || 0) + 1);
-      const topTags = [...tagCounts.entries()]
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
-        .map(([t]) => t);
-
-      let response = `🎯 **Context-aware guidance for:** ${filePath}\n`;
-      response += `❓ **Your question:** ${query}\n`;
-
-      // Show active filters
-      if (filterTags && filterTags.length > 0) {
-        response += `🏷️ **Tag filters applied:** ${filterTags.join(', ')}\n`;
-      }
-      if (filterTypes && filterTypes.length > 0) {
-        response += `📋 **Type filters applied:** ${filterTypes.join(', ')}\n`;
-      }
-      response += '\n';
-
-      if (topTags.length > 0) {
-        response += `🔑 **Most relevant tags in this area:** ${topTags.join(', ')}\n\n`;
-      }
-
-      if (topNotes.length > 0) {
-        response += `📚 **Found ${notes.length} related notes** (showing top ${topNotes.length}):\n\n`;
-        for (let i = 0; i < topNotes.length; i++) {
-          const n = topNotes[i];
-          response += `**${i + 1}. ${n.context.type ? n.context.type.toUpperCase() : 'NOTE'}**\n`;
-          response += `   ${n.content}\n\n`;
-        }
-
-        response += `💡 **Pro tip:** Use this information to guide your implementation. If you discover something new or make a decision, consider documenting it with \`create_repository_note\` so future developers can benefit!\n`;
-      } else {
-        response += `No prior notes found matching criteria. Consider documenting findings once done.`;
-      }
-
-      responseText = response;
-    }
-
-    return {
-      response: responseText,
-      metadata: {
-        llmUsed,
-        llmProvider,
-        notesFound: notes.length,
-        notesUsed: Math.min(notes.length, 5), // We use top 5 for local synthesis, all for LLM
-        filesRead,
-        filters: {
-          tags: filterTags,
-          types: filterTypes,
-        },
-      },
-      notes,
-    };
   }
 
   private async generateA24zMemoryResponse(

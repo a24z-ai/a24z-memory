@@ -1,0 +1,20 @@
+{
+  "note": "Integration test note from MCP server - this will be cleaned up",
+  "anchors": [
+    "tests"
+  ],
+  "tags": [
+    "integration",
+    "mcp-test",
+    "temp"
+  ],
+  "type": "explanation",
+  "metadata": {
+    "toolVersion": "2.0.0",
+    "createdBy": "create_repository_note_tool"
+  },
+  "reviewed": false,
+  "guidanceToken": "eyJwYXlsb2FkIjp7Imd1aWRhbmNlSGFzaCI6ImUyMGMyNGE5MjFjYzg3M2ZkYjJiZGIzZmE1ZGZiYmIwIiwicGF0aCI6Ii9Vc2Vycy9ncmlldmVyL0RldmVsb3Blci9hMjR6LU1lbW9yeSIsInRpbWVzdGFtcCI6MTc1NjU4NjY3MzMyMCwiZXhwaXJlcyI6MTc1NjY3MzA3MzMyMH0sInNpZ25hdHVyZSI6IjhiNTA1MjYwNGVkMjU1YmJiOWQ1ZmQ4N2ExZmQwZGE4NDZmMjcwNGNkODE4YjZlZTJkODI2MzY4ZDUyYWY3ZjAifQ==",
+  "id": "note-1756586673324-2ef9zo901",
+  "timestamp": 1756586673324
+}

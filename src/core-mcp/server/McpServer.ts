@@ -25,6 +25,7 @@ import {
   DeleteNoteTool,
   GetNoteByIdTool,
   CreateHandoffBriefTool,
+  ListHandoffBriefsTool,
   GetStaleNotesTool,
   GetTagUsageTool,
   DeleteTagTool,
@@ -105,6 +106,9 @@ export class McpServer {
     }
     if (enabledTools.create_handoff_brief !== false) {
       this.addTool(new CreateHandoffBriefTool());
+    }
+    if (enabledTools.list_handoff_briefs !== false) {
+      this.addTool(new ListHandoffBriefsTool());
     }
     if (enabledTools.get_stale_notes !== false) {
       this.addTool(new GetStaleNotesTool());

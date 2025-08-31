@@ -216,3 +216,43 @@ export function deleteHandoffBrief(repositoryPath: string, handoffId: string): b
     return false;
   }
 }
+
+export interface HandoffBriefWithTitle extends HandoffBrief {
+  title: string;
+}
+
+/**
+ * Get all handoff briefs with their titles extracted from the markdown files
+ */
+export function getHandoffBriefsWithTitles(
+  repositoryPath: string,
+  options?: {
+    limit?: number;
+    since?: number;
+  }
+): HandoffBriefWithTitle[] {
+  const briefs = getHandoffBriefs(repositoryPath, options);
+  const results: HandoffBriefWithTitle[] = [];
+
+  for (const brief of briefs) {
+    try {
+      const content = fs.readFileSync(brief.filepath, 'utf8');
+      // Extract title from the first markdown heading
+      const titleMatch = content.match(/^#\s+(.+)$/m);
+      const title = titleMatch ? titleMatch[1] : 'Untitled Handoff';
+
+      results.push({
+        ...brief,
+        title,
+      });
+    } catch {
+      // If we can't read the file, skip it or use a fallback title
+      results.push({
+        ...brief,
+        title: `Handoff ${brief.id}`,
+      });
+    }
+  }
+
+  return results;
+}

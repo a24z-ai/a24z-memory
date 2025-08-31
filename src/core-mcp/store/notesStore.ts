@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { normalizeRepositoryPath } from '../utils/pathNormalization';
+import { DEFAULT_REPOSITORY_CONFIG, DEFAULT_PATH_CONFIG } from '../config/defaultConfig';
 import {
   ValidationMessageFormatter,
   ValidationMessageData,
@@ -56,6 +57,7 @@ export interface RepositoryConfiguration {
     delete_repository_note?: boolean;
     get_repository_note?: boolean;
     create_handoff_brief?: boolean;
+    list_handoff_briefs?: boolean;
     get_stale_notes?: boolean;
     get_tag_usage?: boolean;
     delete_tag?: boolean;
@@ -76,11 +78,11 @@ export interface ValidationError {
 
 function getRepositoryDataDir(repositoryPath: string): string {
   // Always use repository-specific directory
-  return path.join(repositoryPath, '.a24z');
+  return path.join(repositoryPath, DEFAULT_PATH_CONFIG.dataDir);
 }
 
 function getNotesDir(repositoryPath: string): string {
-  return path.join(getRepositoryDataDir(repositoryPath), 'notes');
+  return path.join(getRepositoryDataDir(repositoryPath), DEFAULT_PATH_CONFIG.notesDir);
 }
 
 function getNoteFilePath(repositoryPath: string, noteId: string, timestamp: number): string {
@@ -106,43 +108,11 @@ function getGuidanceFile(repositoryPath: string): string {
 }
 
 function getConfigurationFile(repositoryPath: string): string {
-  return path.join(getRepositoryDataDir(repositoryPath), 'configuration.json');
+  return path.join(getRepositoryDataDir(repositoryPath), DEFAULT_PATH_CONFIG.configFile);
 }
 
 function getDefaultConfiguration(): RepositoryConfiguration {
-  return {
-    version: 1,
-    limits: {
-      noteMaxLength: 10000,
-      maxTagsPerNote: 10,
-      maxAnchorsPerNote: 20,
-      tagDescriptionMaxLength: 2000, // 2KB limit for tag description markdown files
-    },
-    storage: {
-      compressionEnabled: false,
-    },
-    tags: {
-      enforceAllowedTags: false, // Disabled by default
-    },
-    types: {
-      enforceAllowedTypes: false, // Disabled by default
-    },
-    enabled_mcp_tools: {
-      askA24zMemory: true,
-      create_repository_note: true,
-      get_notes: true,
-      get_repository_tags: true,
-      get_repository_types: true,
-      get_repository_guidance: true,
-      discover_a24z_tools: true,
-      delete_repository_note: true,
-      get_repository_note: true,
-      create_handoff_brief: true,
-      get_stale_notes: true,
-      get_tag_usage: true,
-      delete_tag: true,
-    },
-  };
+  return DEFAULT_REPOSITORY_CONFIG;
 }
 
 function readConfiguration(repositoryPath: string): RepositoryConfiguration {

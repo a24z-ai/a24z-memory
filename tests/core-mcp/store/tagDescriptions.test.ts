@@ -150,7 +150,7 @@ describe('Tag Descriptions', () => {
         fail('Should have thrown an error');
       } catch (error: unknown) {
         expect((error as Error).message).toContain('Current length: 2500');
-        expect((error as Error).message).toContain('exceeds maximum length of 2000');
+        expect((error as Error).message).toContain('exceeds maximum length of 500');
       }
     });
   });

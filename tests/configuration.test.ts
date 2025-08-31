@@ -33,10 +33,10 @@ describe('Configuration System', () => {
     expect(config).toEqual({
       version: 1,
       limits: {
-        noteMaxLength: 10000,
-        maxTagsPerNote: 10,
-        maxAnchorsPerNote: 20,
-        tagDescriptionMaxLength: 2000,
+        noteMaxLength: 500,
+        maxTagsPerNote: 3,
+        maxAnchorsPerNote: 5,
+        tagDescriptionMaxLength: 500,
       },
       storage: {
         compressionEnabled: false,
@@ -58,9 +58,12 @@ describe('Configuration System', () => {
         delete_repository_note: true,
         get_repository_note: true,
         create_handoff_brief: true,
+        list_handoff_briefs: true,
         get_stale_notes: true,
         get_tag_usage: true,
         delete_tag: true,
+        get_note_coverage: true,
+        start_documentation_quest: true,
       },
     });
 
@@ -206,7 +209,7 @@ describe('Configuration System', () => {
 
     // Should fall back to defaults
     const config = getRepositoryConfiguration(testRepoPath);
-    expect(config.limits.noteMaxLength).toBe(10000); // Default value
+    expect(config.limits.noteMaxLength).toBe(500); // Default value
   });
 
   it('should update enabled_mcp_tools configuration', () => {

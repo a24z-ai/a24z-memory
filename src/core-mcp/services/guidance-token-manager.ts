@@ -6,6 +6,7 @@
 import * as crypto from 'crypto';
 import { normalizeRepositoryPath } from '../utils/pathNormalization';
 import { generateFullGuidanceContent } from '../utils/guidanceGenerator';
+import { DEFAULT_SECURITY_CONFIG } from '../config/defaultConfig';
 
 export interface TokenPayload {
   guidanceHash: string;
@@ -23,7 +24,7 @@ export class GuidanceTokenManager {
   private readonly secret: string;
 
   constructor(secret?: string) {
-    this.secret = secret || 'default-a24z-guidance-secret';
+    this.secret = secret || DEFAULT_SECURITY_CONFIG.guidanceTokenSecret;
   }
 
   /**

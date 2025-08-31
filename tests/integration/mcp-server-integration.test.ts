@@ -136,6 +136,7 @@ describe('MCP Server Integration', () => {
             'delete_repository_note',
             'get_repository_note',
             'create_handoff_brief',
+            'list_handoff_briefs',
             'get_stale_notes',
             'get_tag_usage',
             'delete_tag',
