@@ -1,8 +1,31 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import ignore from 'ignore';
 
 /**
- * Parse an ignore file (like .gitignore or .a24zignore) and return patterns
+ * Create an ignore instance from a file (like .gitignore or .a24zignore)
+ * @param filePath Path to the ignore file
+ * @returns An ignore instance with patterns loaded
+ */
+export function createIgnoreFromFile(filePath: string): ReturnType<typeof ignore> {
+  const ig = ignore();
+
+  if (!fs.existsSync(filePath)) {
+    return ig;
+  }
+
+  try {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    ig.add(content);
+    return ig;
+  } catch (error) {
+    console.error(`Error parsing ignore file ${filePath}:`, error);
+    return ig;
+  }
+}
+
+/**
+ * Parse an ignore file and return patterns (for backward compatibility and testing)
  * @param filePath Path to the ignore file
  * @returns Array of ignore patterns
  */
@@ -13,50 +36,10 @@ export function parseIgnoreFile(filePath: string): string[] {
 
   try {
     const content = fs.readFileSync(filePath, 'utf-8');
-    const patterns: string[] = [];
-
-    // Split by lines and process each line
-    const lines = content.split(/\r?\n/);
-
-    for (const line of lines) {
-      // Trim whitespace
-      const trimmed = line.trim();
-
-      // Skip empty lines and comments
-      if (!trimmed || trimmed.startsWith('#')) {
-        continue;
-      }
-
-      // Add the pattern
-      patterns.push(trimmed);
-
-      // If it's a directory pattern (ends with /), also add patterns for its contents
-      if (trimmed.endsWith('/')) {
-        // Add pattern to match all files in the directory
-        patterns.push(`${trimmed}**`);
-        patterns.push(`${trimmed}*`);
-
-        // If it doesn't start with /, add recursive version
-        if (!trimmed.startsWith('/')) {
-          patterns.push(`**/${trimmed}**`);
-          patterns.push(`**/${trimmed}*`);
-        }
-      } else {
-        // For glob patterns and other patterns
-        if (!trimmed.startsWith('/') && !trimmed.startsWith('**/')) {
-          // Add recursive version for patterns that don't start with /
-          patterns.push(`**/${trimmed}`);
-
-          // For non-glob patterns that look like directories, also match contents
-          if (!trimmed.includes('*') && !trimmed.includes('.')) {
-            patterns.push(`${trimmed}/**`);
-            patterns.push(`**/${trimmed}/**`);
-          }
-        }
-      }
-    }
-
-    return patterns;
+    return content
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith('#'));
   } catch (error) {
     console.error(`Error parsing ignore file ${filePath}:`, error);
     return [];
@@ -71,4 +54,14 @@ export function parseIgnoreFile(filePath: string): string[] {
 export function loadA24zIgnorePatterns(repositoryPath: string): string[] {
   const a24zIgnorePath = path.join(repositoryPath, '.a24zignore');
   return parseIgnoreFile(a24zIgnorePath);
+}
+
+/**
+ * Create an ignore instance for .a24zignore from a repository
+ * @param repositoryPath Path to the repository root
+ * @returns An ignore instance with .a24zignore patterns loaded
+ */
+export function createA24zIgnore(repositoryPath: string): ReturnType<typeof ignore> {
+  const a24zIgnorePath = path.join(repositoryPath, '.a24zignore');
+  return createIgnoreFromFile(a24zIgnorePath);
 }

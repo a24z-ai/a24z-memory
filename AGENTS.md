@@ -1,7 +1,1 @@
----
-description: a24z-memory
-globs:
-alwaysApply: true 
----
-
 Always start by asking a24z-memory mcp to ask questions about files.

@@ -42,16 +42,17 @@ node_modules
 
       const patterns = parseIgnoreFile(ignorePath);
 
+      // The new implementation returns raw patterns as they appear in the file
       expect(patterns).toContain('dist/');
       expect(patterns).toContain('*.test.ts');
       expect(patterns).toContain('build/**');
       expect(patterns).toContain('*.min.js');
       expect(patterns).toContain('node_modules');
 
-      // Should also add recursive patterns
-      expect(patterns).toContain('**/dist/**'); // Updated to match actual pattern
-      expect(patterns).toContain('**/*.test.ts');
-      expect(patterns).toContain('**/node_modules/**'); // Updated to match actual pattern
+      // Should NOT contain extra patterns - the ignore package handles these internally
+      expect(patterns).not.toContain('**/dist/**');
+      expect(patterns).not.toContain('**/*.test.ts');
+      expect(patterns).not.toContain('**/node_modules/**');
     });
 
     it('should return empty array for non-existent file', () => {

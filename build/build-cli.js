@@ -21,7 +21,6 @@ await esbuild.build({
     'fast-glob',
     'glob',
     '@modelcontextprotocol/sdk',
-    '@mintlify/mcp',
   ],
   packages: 'external', // Keep all node_modules external
   minify: false, // Keep readable for debugging

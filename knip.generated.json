@@ -1,7 +1,17 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "entry": ["dist/lib.js", "dist/cli.js"],
-  "project": ["src/**/*.{ts,tsx,js,jsx}"],
-  "ignore": ["**/*.test.*", "**/*.spec.*", "dist/**", "lib/**", "build/**"],
+  "project": ["src/**/*.{ts,tsx,js,jsx}", "tests/**/*.{ts,tsx,js,jsx}", "!examples/**", "!tests/cross-process-test.js", "!tests/test-anchor-validation.js", "!tests/test-mcp-server.js"],
+  "ignore": [
+    "**/*.test.*", 
+    "**/*.spec.*", 
+    "dist/**", 
+    "lib/**", 
+    "build/**",
+    "examples/**",
+    "tests/cross-process-test.js",
+    "tests/test-anchor-validation.js", 
+    "tests/test-mcp-server.js"
+  ],
   "ignoreDependencies": []
 }

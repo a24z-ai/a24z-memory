@@ -12,8 +12,8 @@
   "scripts": {
     "build": "npm run build:lib && npm run fix:imports && npm run build:cli",
     "build:lib": "tsc",
-    "fix:imports": "node fix-esm-imports.js",
-    "build:cli": "node build-cli.js",
+    "fix:imports": "node build/fix-esm-imports.js",
+    "build:cli": "node build/build-cli.js",
     "prepare": "husky",
     "release": "semantic-release",
     "test": "jest",
@@ -24,7 +24,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
-    "test:mcp": "./scripts/test-mcp-build.sh"
+    "test:mcp": "./tests/test-mcp-build.sh"
   },
   "repository": {
     "type": "git",
@@ -46,7 +46,6 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@mintlify/mcp": "^1.1.216",
     "@modelcontextprotocol/sdk": "^1.0.4",
     "globby": "^14.1.0",
     "gpt-tokenizer": "^3.0.1",
@@ -54,6 +53,8 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "@jest/globals": "^29.7.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
     "@types/jest": "^29.5.0",
@@ -63,7 +64,7 @@
     "esbuild": "^0.25.9",
     "eslint": "^9.34.0",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.4",
+    "fast-glob": "^3.3.3",
     "husky": "^9.1.7",
     "jest": "^29.5.0",
     "lint-staged": "^16.1.5",

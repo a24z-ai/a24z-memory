@@ -16,26 +16,26 @@
         "groups": [
           {
             "group": "Getting Started",
-            "pages": ["index", "quickstart", "installation"]
+            "pages": ["docs/mintlify/index", "docs/mintlify/quickstart", "docs/mintlify/installation"]
           },
           {
             "group": "Usage Guide",
-            "pages": ["docs/usage/ai-agent-integration", "docs/usage/tools-overview", "docs/usage/best-practices"]
+            "pages": ["docs/mintlify/ai-agent-integration", "docs/mintlify/tools-overview", "docs/mintlify/best-practices"]
           },
           {
             "group": "API Reference",
             "pages": [
-              "docs/api/askA24zMemory",
-              "docs/api/create-repository-note",
-              "docs/api/get-repository-tags",
-              "docs/api/get-repository-guidance",
-              "docs/api/check-stale-notes",
-              "docs/api/discover-tools",
-              "docs/api/get-note-by-id",
-              "docs/api/delete-note",
-              "docs/api/find-similar-notes",
-              "docs/api/merge-notes",
-              "docs/api/review-duplicates"
+              "docs/mintlify/askA24zMemory",
+              "docs/mintlify/create-repository-note",
+              "docs/mintlify/get-repository-tags",
+              "docs/mintlify/get-repository-guidance",
+              "docs/mintlify/check-stale-notes",
+              "docs/mintlify/discover-tools",
+              "docs/mintlify/get-note-by-id",
+              "docs/mintlify/delete-note",
+              "docs/mintlify/find-similar-notes",
+              "docs/mintlify/merge-notes",
+              "docs/mintlify/review-duplicates"
             ]
           }
         ]

@@ -1,5 +1,4 @@
 const { saveNote } = require('./dist/core-mcp/store/notesStore.js');
-const path = require('path');
 
 // Test 1: Try to save a note without anchors
 console.log('Test 1: Saving note without anchors...');

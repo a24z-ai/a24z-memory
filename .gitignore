@@ -7,3 +7,6 @@ dist
 .env.local
 .a24z/lancedb
 coverage/
+.claude/
+.vscode/
+*.tgz

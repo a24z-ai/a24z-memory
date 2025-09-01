@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { globby, globbySync } from 'globby';
 import { normalizeRepositoryPath } from './pathNormalization';
-import { loadA24zIgnorePatterns } from './ignoreFileParser';
+import { createA24zIgnore } from './ignoreFileParser';
 
 export interface FileInfo {
   absolutePath: string;
@@ -37,18 +37,18 @@ export async function getEligibleFiles(
   // Default patterns to match all files
   const patterns = options.patterns || ['**/*'];
 
-  // Load .a24zignore patterns if file exists
-  const a24zIgnorePatterns = loadA24zIgnorePatterns(repoPath);
+  // Create ignore instance for .a24zignore
+  const a24zIgnore = createA24zIgnore(repoPath);
 
-  // Build ignore patterns - always exclude .git and .a24z, plus .a24zignore patterns
-  const ignorePatterns = [
+  // Build ignore patterns for globby - always exclude .git and .a24z
+  // Note: globby handles these as glob patterns, not gitignore patterns
+  const globIgnorePatterns = [
     '.git',
     '**/.git',
     '**/.git/**',
     '.a24z',
     '**/.a24z',
     '**/.a24z/**',
-    ...a24zIgnorePatterns, // Add .a24zignore patterns (additive filtering)
     ...(options.additionalIgnorePatterns || []),
   ];
 
@@ -61,14 +61,21 @@ export async function getEligibleFiles(
       onlyFiles: false,
       markDirectories: true,
       gitignore: true, // This enables .gitignore support
-      ignore: ignorePatterns,
+      ignore: globIgnorePatterns,
       dot: true, // Include dotfiles (except .git and .a24z which we explicitly ignore)
+    });
+
+    // Filter entries using .a24zignore patterns (proper gitignore semantics)
+    const filteredEntries = entries.filter((entry) => {
+      // Remove trailing slash for directories before checking
+      const pathToCheck = entry.endsWith('/') ? entry.slice(0, -1) : entry;
+      return !a24zIgnore.ignores(pathToCheck);
     });
 
     const files: FileInfo[] = [];
     const directories: FileInfo[] = [];
 
-    for (const entry of entries) {
+    for (const entry of filteredEntries) {
       const relativePath = entry;
       const absolutePath = path.join(repoPath, relativePath);
 
@@ -135,18 +142,17 @@ export function getEligibleFilesSync(
 
   const patterns = options.patterns || ['**/*'];
 
-  // Load .a24zignore patterns if file exists
-  const a24zIgnorePatterns = loadA24zIgnorePatterns(repoPath);
+  // Create ignore instance for .a24zignore
+  const a24zIgnore = createA24zIgnore(repoPath);
 
-  // Always exclude .git and .a24z, plus .a24zignore patterns
-  const ignorePatterns = [
+  // Build ignore patterns for globby - always exclude .git and .a24z
+  const globIgnorePatterns = [
     '.git',
     '**/.git',
     '**/.git/**',
     '.a24z',
     '**/.a24z',
     '**/.a24z/**',
-    ...a24zIgnorePatterns, // Add .a24zignore patterns (additive filtering)
     ...(options.additionalIgnorePatterns || []),
   ];
 
@@ -157,14 +163,21 @@ export function getEligibleFilesSync(
       onlyFiles: false,
       markDirectories: true,
       gitignore: true,
-      ignore: ignorePatterns,
+      ignore: globIgnorePatterns,
       dot: true,
+    });
+
+    // Filter entries using .a24zignore patterns (proper gitignore semantics)
+    const filteredEntries = entries.filter((entry) => {
+      // Remove trailing slash for directories before checking
+      const pathToCheck = entry.endsWith('/') ? entry.slice(0, -1) : entry;
+      return !a24zIgnore.ignores(pathToCheck);
     });
 
     const files: FileInfo[] = [];
     const directories: FileInfo[] = [];
 
-    for (const entry of entries) {
+    for (const entry of filteredEntries) {
       const relativePath = entry;
       const absolutePath = path.join(repoPath, relativePath);
 
