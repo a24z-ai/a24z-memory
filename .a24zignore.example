@@ -1,0 +1,66 @@
+# .a24zignore - Exclude files from note coverage calculation
+# This file works in addition to .gitignore (both must pass)
+# Files matching these patterns won't count towards coverage metrics
+
+# Build output and generated files
+dist/
+build/
+out/
+*.min.js
+*.min.css
+*.bundle.js
+*.map
+
+# Dependencies and vendor code
+node_modules/
+vendor/
+bower_components/
+
+# Test files that don't need documentation
+**/__tests__/
+**/__snapshots__/
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+tests/fixtures/
+test-data/
+
+# Type definitions (usually auto-generated)
+*.d.ts
+
+# Configuration and metadata
+.vscode/
+.idea/
+*.config.js
+jest.config.*
+webpack.config.*
+
+# Generated documentation
+docs/api/
+coverage/
+
+# Temporary and cache files
+tmp/
+temp/
+cache/
+.cache/
+
+# Example and demo files
+examples/
+demo/
+samples/
+
+# Database migrations and seeds
+migrations/
+seeds/
+
+# Generated code
+*.generated.ts
+*.generated.js
+src/generated/
+
+# Specific files you want to exclude from coverage
+# Uncomment and modify as needed:
+# src/legacy/
+# src/deprecated/

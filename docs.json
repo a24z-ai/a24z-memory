@@ -20,22 +20,22 @@
           },
           {
             "group": "Usage Guide",
-            "pages": ["usage/ai-agent-integration", "usage/tools-overview", "usage/best-practices"]
+            "pages": ["docs/usage/ai-agent-integration", "docs/usage/tools-overview", "docs/usage/best-practices"]
           },
           {
             "group": "API Reference",
             "pages": [
-              "api/askA24zMemory",
-              "api/create-repository-note",
-              "api/get-repository-tags",
-              "api/get-repository-guidance",
-              "api/check-stale-notes",
-              "api/discover-tools",
-              "api/get-note-by-id",
-              "api/delete-note",
-              "api/find-similar-notes",
-              "api/merge-notes",
-              "api/review-duplicates"
+              "docs/api/askA24zMemory",
+              "docs/api/create-repository-note",
+              "docs/api/get-repository-tags",
+              "docs/api/get-repository-guidance",
+              "docs/api/check-stale-notes",
+              "docs/api/discover-tools",
+              "docs/api/get-note-by-id",
+              "docs/api/delete-note",
+              "docs/api/find-similar-notes",
+              "docs/api/merge-notes",
+              "docs/api/review-duplicates"
             ]
           }
         ]

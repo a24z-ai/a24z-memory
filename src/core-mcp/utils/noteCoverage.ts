@@ -100,9 +100,14 @@ export function calculateNoteCoverage(
   options: {
     includeDirectories?: boolean;
     maxStaleNotesToReport?: number;
+    excludeDirectoryAnchors?: boolean;
   } = {}
 ): NoteCoverageReport {
-  const { includeDirectories = true, maxStaleNotesToReport = 50 } = options;
+  const {
+    includeDirectories = true,
+    maxStaleNotesToReport = 50,
+    excludeDirectoryAnchors = false,
+  } = options;
 
   // Normalize repository path
   const repoPath = normalizeRepositoryPath(repositoryPath);
@@ -146,6 +151,10 @@ export function calculateNoteCoverage(
     note.anchors.forEach((anchor) => {
       let anchorMatched = false;
 
+      // Check if this anchor itself is a directory (for exclusion purposes)
+      const normalizedAnchor = normalizeAnchorPath(anchor, repoPath);
+      const isDirectoryAnchor = directoryCoverageMap.has(normalizedAnchor);
+
       // Try to match against files
       fileCoverageMap.forEach((fileCoverage, filePath) => {
         if (anchorMatchesPath(anchor, filePath, repoPath)) {
@@ -156,15 +165,21 @@ export function calculateNoteCoverage(
         }
       });
 
-      // Try to match against directories
-      directoryCoverageMap.forEach((dirCoverage, dirPath) => {
-        if (anchorMatchesPath(anchor, dirPath, repoPath)) {
-          dirCoverage.hasNotes = true;
-          dirCoverage.noteCount++;
-          dirCoverage.noteIds.push(note.id);
-          anchorMatched = true;
-        }
-      });
+      // Try to match against directories (skip if excludeDirectoryAnchors is true and anchor IS a directory)
+      if (!excludeDirectoryAnchors || !isDirectoryAnchor) {
+        directoryCoverageMap.forEach((dirCoverage, dirPath) => {
+          if (anchorMatchesPath(anchor, dirPath, repoPath)) {
+            dirCoverage.hasNotes = true;
+            dirCoverage.noteCount++;
+            dirCoverage.noteIds.push(note.id);
+            anchorMatched = true;
+          }
+        });
+      } else if (isDirectoryAnchor) {
+        // If we're excluding directory anchors and this IS a directory anchor,
+        // mark it as matched so it's not considered stale
+        anchorMatched = true;
+      }
 
       // Check if this is a stale anchor (doesn't match any eligible file)
       if (!anchorMatched) {

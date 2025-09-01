@@ -88,6 +88,7 @@ export class StartDocumentationQuestTool extends BaseTool {
       // Calculate coverage to find uncovered files
       const report = calculateNoteCoverage(params.path, {
         includeDirectories: false,
+        excludeDirectoryAnchors: true, // Exclude directory anchors for more accurate file coverage
       });
 
       // Filter uncovered files by type if specified

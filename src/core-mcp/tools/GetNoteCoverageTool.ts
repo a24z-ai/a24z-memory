@@ -38,6 +38,13 @@ const inputSchema = z.object({
     .array(z.string())
     .optional()
     .describe('Filter coverage analysis to specific file extensions (e.g., ["ts", "js", "py"])'),
+  excludeDirectoryAnchors: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      'Whether to exclude notes that are directly anchored to directories from coverage calculation'
+    ),
 });
 
 type ToolInput = z.infer<typeof inputSchema>;
@@ -55,6 +62,7 @@ export class GetNoteCoverageTool extends BaseTool {
       const report = calculateNoteCoverage(params.path, {
         includeDirectories: params.includeDirectories,
         maxStaleNotesToReport: params.maxStaleNotes,
+        excludeDirectoryAnchors: params.excludeDirectoryAnchors,
       });
 
       // Filter by file type if specified

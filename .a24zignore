@@ -1,0 +1,26 @@
+# a24z-Memory repository .a24zignore
+# Files matching these patterns won't count towards coverage metrics
+
+# Documentation (already IS documentation, doesn't need notes)
+docs/
+
+# Build output
+dist/
+cli-bundle.js
+
+# Test files (already have their own documentation standards)
+*.test.ts
+*.test.js
+**/__tests__/
+
+# Generated/compiled files
+*.js.map
+*.d.ts
+
+# Development and configuration
+jest.config.js
+build-cli.js
+fix-esm-imports.js
+
+# Coverage reports
+coverage/
