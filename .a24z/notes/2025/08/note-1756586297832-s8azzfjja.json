@@ -1,15 +1,7 @@
 {
   "note": "## Guidance Template System\n\nFlexible system for repository-specific note creation guidance. Templates ensure consistency and help onboard team members.\n\n### Templates Available\n- Default, React TypeScript, Node.js API, Python Data Science\n\n### How It Works  \n1. Copy template via GetRepositoryGuidanceTool\n2. Creates `.a24z/note-guidance.md` per repository\n3. Provides context-aware suggestions and patterns\n\n### Benefits\n- Consistent note quality across team\n- Project-specific guidance\n- Evolvable as needs change\n- Immediate context for new members\n\n### Implementation\n- Templates in `templates/` directory\n- `GetRepositoryGuidanceTool.ts` handles retrieval\n- Token-based validation ensures compliance",
-  "anchors": [
-    "templates",
-    "src/core-mcp/tools/GetRepositoryGuidanceTool.ts"
-  ],
-  "tags": [
-    "pattern",
-    "guidance",
-    "templates",
-    "onboarding"
-  ],
+  "anchors": ["templates", "src/core-mcp/tools/GetRepositoryGuidanceTool.ts"],
+  "tags": ["note-guidance"],
   "type": "pattern",
   "metadata": {
     "toolVersion": "2.0.0",

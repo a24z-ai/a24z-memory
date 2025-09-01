@@ -11,7 +11,7 @@
     "src/cli.ts",
     "package.json"
   ],
-  "tags": ["architecture", "mcp", "integration", "tools", "pattern"],
+  "tags": ["dual-interface-architecture", "mcp-tools"],
   "type": "architecture",
   "metadata": {
     "toolVersion": "2.0.0",

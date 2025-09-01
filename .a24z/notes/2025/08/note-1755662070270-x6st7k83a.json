@@ -2,7 +2,7 @@
   "note": "## Zod Schema Description Propagation Fix\n\n**Problem**: When using Zod schemas with `.describe()` for MCP tool parameters, descriptions weren't showing up in the final JSON Schema, making tools less user-friendly.\n\n**Root cause**: The original `zodToJsonSchema` function was stripping descriptions from nested schemas, particularly when dealing with `ZodOptional` and `ZodDefault` wrappers.\n\n**Solution**: Modified the schema converter to preserve descriptions at all levels:\n- Check for descriptions on the wrapper types themselves\n- Preserve descriptions when processing optional/default types\n- Ensure descriptions propagate through the entire schema tree\n\n**Before (descriptions lost)**:\n```typescript\nconst schema = z.object({\n  path: z.string().describe('File path to process').optional()\n});\n// Description was lost in JSON Schema\n```\n\n**After (descriptions preserved)**:\n```typescript\n// Description now appears in JSON Schema for the optional field\n```\n\n**Files involved**:\n- `src/core-mcp/utils/zod-to-json-schema.ts` - Schema converter with description preservation\n- `src/core-mcp/tools/base-tool.ts` - Uses converter via `inputSchema` getter\n\n**Tags**: mcp, schema, gotcha, tools",
   "directoryPath": "/Users/griever/Developer/a24z-Memory",
   "anchors": ["src/core-mcp/utils/zod-to-json-schema.ts", "src/core-mcp/tools/base-tool.ts"],
-  "tags": ["mcp", "schema", "gotcha", "tools"],
+  "tags": ["mcp-tools", "gotcha"],
   "confidence": "high",
   "type": "gotcha",
   "metadata": {

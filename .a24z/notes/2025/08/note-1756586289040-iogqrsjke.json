@@ -5,12 +5,7 @@
     "src/core-mcp/services/mcp-llm-configurator.ts",
     "src/core-mcp/tools/AskA24zMemoryTool.ts"
   ],
-  "tags": [
-    "mcp",
-    "architecture",
-    "llm-integration",
-    "security"
-  ],
+  "tags": ["mcp-tools", "llm-integration", "security"],
   "type": "decision",
   "metadata": {
     "toolVersion": "2.0.0",

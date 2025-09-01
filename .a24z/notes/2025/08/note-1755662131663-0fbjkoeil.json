@@ -6,7 +6,7 @@
     "src/core-mcp/tools/base-tool.ts",
     "src/core-mcp/store/notesStore.ts"
   ],
-  "tags": ["architecture", "data-flow", "components", "design"],
+  "tags": ["component-architecture", "data-flow"],
   "confidence": "high",
   "type": "explanation",
   "metadata": {

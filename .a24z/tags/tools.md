@@ -1,1 +1,0 @@
-MCP tools, their implementation patterns, validation, and execution mechanisms.
