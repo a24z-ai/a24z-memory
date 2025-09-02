@@ -1,0 +1,17 @@
+{
+  "note": "Guidance token validation system that ensures users have read repository guidelines before performing operations. Uses HMAC-SHA256 signatures with expiration (24 hours) to prevent token reuse and enforce compliance. Validates token integrity and path context to prevent cross-repository attacks.",
+  "anchors": [
+    "src/core-mcp/services/guidance-token-manager.ts:36"
+  ],
+  "tags": [
+    "guardrails"
+  ],
+  "type": "explanation",
+  "metadata": {
+    "toolVersion": "2.0.0",
+    "createdBy": "create_repository_note_tool"
+  },
+  "reviewed": false,
+  "id": "note-1756754660852-82pc7tfio",
+  "timestamp": 1756754660852
+}

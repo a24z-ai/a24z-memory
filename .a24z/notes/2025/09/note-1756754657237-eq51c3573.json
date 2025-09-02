@@ -1,0 +1,17 @@
+{
+  "note": "Path traversal protection that prevents malicious file access outside the repository. Validates that all note anchors resolve to paths within the repository root using path.resolve() and startsWith() checks. Blocks attempts to access files above the repository directory.",
+  "anchors": [
+    "src/core-mcp/store/notesStore.ts:289"
+  ],
+  "tags": [
+    "guardrails"
+  ],
+  "type": "explanation",
+  "metadata": {
+    "toolVersion": "2.0.0",
+    "createdBy": "create_repository_note_tool"
+  },
+  "reviewed": false,
+  "id": "note-1756754657237-eq51c3573",
+  "timestamp": 1756754657237
+}

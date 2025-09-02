@@ -1,0 +1,18 @@
+{
+  "note": "When creating notes, be intentional about tag usage. Use existing tags first, and only create new tags when they represent distinct concepts that need their own category. This prevents tag proliferation and maintains a clean, organized taxonomy. Consider the tag hierarchy and relationships before adding new tags.",
+  "anchors": [
+    "src/core-mcp/store/notesStore.ts:175"
+  ],
+  "tags": [
+    "documentation",
+    "organization"
+  ],
+  "type": "pattern",
+  "metadata": {
+    "toolVersion": "2.0.0",
+    "createdBy": "create_repository_note_tool"
+  },
+  "reviewed": false,
+  "id": "note-1756754584330-hf7x1p9zm",
+  "timestamp": 1756754584330
+}
