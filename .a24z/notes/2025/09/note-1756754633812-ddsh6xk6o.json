@@ -1,0 +1,17 @@
+{
+  "note": "Configuration settings that control repository behavior and limits. Defines content constraints (note length, tags per note, anchors per note), storage options (compression), tag and type enforcement policies, and which MCP tools are enabled. This configuration ensures consistent behavior across the repository and prevents abuse.",
+  "anchors": [
+    "src/core-mcp/store/notesStore.ts:36"
+  ],
+  "tags": [
+    "core-types"
+  ],
+  "type": "explanation",
+  "metadata": {
+    "toolVersion": "2.0.0",
+    "createdBy": "create_repository_note_tool"
+  },
+  "reviewed": false,
+  "id": "note-1756754633812-ddsh6xk6o",
+  "timestamp": 1756754633812
+}

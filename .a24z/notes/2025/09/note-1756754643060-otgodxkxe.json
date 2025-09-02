@@ -1,0 +1,17 @@
+{
+  "note": "Configuration structure for Large Language Model integration. Defines the provider (OpenAI, Ollama, etc.), model specifications, API endpoints, authentication credentials, and context/token limits. This configuration enables the system to connect to different LLM services and control their behavior for knowledge processing and question answering.",
+  "anchors": [
+    "src/core-mcp/services/llm-service.ts:8"
+  ],
+  "tags": [
+    "core-types"
+  ],
+  "type": "explanation",
+  "metadata": {
+    "toolVersion": "2.0.0",
+    "createdBy": "create_repository_note_tool"
+  },
+  "reviewed": false,
+  "id": "note-1756754643060-otgodxkxe",
+  "timestamp": 1756754643060
+}

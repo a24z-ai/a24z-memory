@@ -1,0 +1,17 @@
+{
+  "note": "The primary data structure representing a knowledge note in the system. Contains a unique identifier, timestamp, note content, metadata, file/directory anchors for context, tags for categorization, type classification, and optional review status. This interface is the foundation of all knowledge storage in a24z-Memory.",
+  "anchors": [
+    "src/core-mcp/store/notesStore.ts:20"
+  ],
+  "tags": [
+    "core-types"
+  ],
+  "type": "explanation",
+  "metadata": {
+    "toolVersion": "2.0.0",
+    "createdBy": "create_repository_note_tool"
+  },
+  "reviewed": false,
+  "id": "note-1756754630714-m6cvqvoe5",
+  "timestamp": 1756754630714
+}

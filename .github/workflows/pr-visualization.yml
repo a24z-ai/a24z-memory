@@ -1,0 +1,60 @@
+name: PR Visualization
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  post-visualization:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for PR data to be available
+        run: sleep 5
+        
+      - name: Post PR Visualization Comment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prNumber = context.issue.number;
+            
+            // Check if we already posted a visualization comment
+            const comments = await github.rest.issues.listComments({
+              owner: owner,
+              repo: repo,
+              issue_number: prNumber
+            });
+            
+            const existingComment = comments.data.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('PR Visualization')
+            );
+            
+            const baseUrl = 'https://git-gallery.com';
+            
+            // Simple URL - server checks S3 allowlist
+            const imageUrl = `${baseUrl}/api/pr-image/${owner}/${repo}/${prNumber}`;
+            const interactiveUrl = `${baseUrl}/pr/${owner}/${repo}/${prNumber}`;
+            
+            const commentBody = `## 📊 PR Visualization\n\n![PR Changes](${imageUrl})\n\n[View Interactive Version](${interactiveUrl}) | [Download Image](${imageUrl})\n\n---\n*Visualization updates automatically when PR changes*`;
+            
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: owner,
+                repo: repo,
+                comment_id: existingComment.id,
+                body: commentBody
+              });
+              console.log('Updated existing visualization comment');
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: owner,
+                repo: repo,
+                issue_number: prNumber,
+                body: commentBody
+              });
+              console.log('Posted new visualization comment');
+            }

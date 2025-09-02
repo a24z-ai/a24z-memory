@@ -1,0 +1,17 @@
+{
+  "note": "Metadata structure for tags used to categorize and organize notes. Contains the tag name and an optional description that explains the tag's purpose and usage guidelines. TagInfo structures are used throughout the system for tag management, validation, and user interface display.",
+  "anchors": [
+    "src/core-mcp/store/notesStore.ts:82"
+  ],
+  "tags": [
+    "core-types"
+  ],
+  "type": "explanation",
+  "metadata": {
+    "toolVersion": "2.0.0",
+    "createdBy": "create_repository_note_tool"
+  },
+  "reviewed": false,
+  "id": "note-1756754636857-x9mk1gsmx",
+  "timestamp": 1756754636857
+}
