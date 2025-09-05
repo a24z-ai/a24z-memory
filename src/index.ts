@@ -9,6 +9,22 @@ import { BRANDING } from './branding';
 
 export { McpServer } from './core-mcp/server/McpServer';
 
+// CodebaseView exports for VS Code extension integration
+export {
+  codebaseViewsStore,
+  CodebaseViewsStore,
+  generateViewIdFromName,
+} from './core-mcp/store/codebaseViewsStore';
+
+export type {
+  CodebaseView,
+  CodebaseViewFileCell,
+  CodebaseViewScope,
+  CodebaseViewLinks,
+  ViewValidationResult,
+  PatternValidationResult,
+} from './core-mcp/store/codebaseViewsStore';
+
 export function run(config?: Partial<McpServerConfig>): Promise<void> {
   const resolved: McpServerConfig = {
     name: BRANDING.MCP_SERVER_NAME,
