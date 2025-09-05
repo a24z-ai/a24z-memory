@@ -3,8 +3,8 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { CreateRepositoryNoteTool } from '../../src/core-mcp/tools/CreateRepositoryNoteTool';
-import { GetNotesTool } from '../../src/core-mcp/tools/GetNotesTool';
+import { CreateRepositoryAnchoredNoteTool } from '../../src/core-mcp/tools/CreateRepositoryAnchoredNoteTool';
+import { GetAnchoredNotesTool } from '../../src/core-mcp/tools/GetAnchoredNotesTool';
 import { GetRepositoryTagsTool } from '../../src/core-mcp/tools/GetRepositoryTagsTool';
 import { TEST_DIR } from '../setup';
 import { withGuidanceToken, createTestGuidanceToken } from '../test-helpers';
@@ -40,7 +40,7 @@ describe('File Operations Integration', () => {
 
   it('should complete full create-retrieve-query workflow', async () => {
     // Step 1: Create a note
-    const createTool = new CreateRepositoryNoteTool();
+    const createTool = new CreateRepositoryAnchoredNoteTool();
     const createResult = await createTool.execute(
       withGuidanceToken({
         note: '# Integration Test\\n\\nThis tests file operations.',
@@ -58,7 +58,7 @@ describe('File Operations Integration', () => {
     expect(fs.existsSync(notesDir)).toBe(true);
 
     // Step 3: Retrieve notes
-    const getTool = new GetNotesTool();
+    const getTool = new GetAnchoredNotesTool();
     const guidanceToken = createTestGuidanceToken(testPath);
     const getResult = await getTool.execute({
       path: testPath,
@@ -93,7 +93,7 @@ describe('File Operations Integration', () => {
   });
 
   it('should handle concurrent file writes safely', async () => {
-    const createTool = new CreateRepositoryNoteTool();
+    const createTool = new CreateRepositoryAnchoredNoteTool();
 
     // Create 10 notes concurrently
     const promises = Array.from({ length: 10 }, (_: unknown, i: number) =>
@@ -116,7 +116,7 @@ describe('File Operations Integration', () => {
     });
 
     // Verify all were saved
-    const getTool = new GetNotesTool();
+    const getTool = new GetAnchoredNotesTool();
     const verifyToken = createTestGuidanceToken(testPath);
     const getResult = await getTool.execute({
       path: testPath,
@@ -136,7 +136,7 @@ describe('File Operations Integration', () => {
 
   it('should persist notes across tool instances', async () => {
     // Create note with first tool instance
-    const tool1 = new CreateRepositoryNoteTool();
+    const tool1 = new CreateRepositoryAnchoredNoteTool();
     await tool1.execute(
       withGuidanceToken({
         note: 'Persistence test',
@@ -148,7 +148,7 @@ describe('File Operations Integration', () => {
     );
 
     // Retrieve with new tool instance
-    const tool2 = new GetNotesTool();
+    const tool2 = new GetAnchoredNotesTool();
     const guidanceToken = createTestGuidanceToken(testPath);
     const result = await tool2.execute({
       path: testPath,

@@ -5,7 +5,7 @@ import {
   getTagDescriptions,
   saveTagDescription,
   deleteTagDescription,
-} from '../store/notesStore';
+} from '../store/anchoredNotesStore';
 import { findGitRoot } from '../utils/pathNormalization';
 import { McpToolResult } from '../types';
 import path from 'path';

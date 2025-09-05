@@ -8,7 +8,7 @@ import {
   getTagsWithDescriptions,
   updateRepositoryConfiguration,
   getRepositoryConfiguration,
-} from '../../../src/core-mcp/store/notesStore';
+} from '../../../src/core-mcp/store/anchoredNotesStore';
 
 describe('Tag Descriptions', () => {
   let tempDir: string;

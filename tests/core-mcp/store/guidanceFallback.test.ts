@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { getRepositoryGuidance } from '../../../src/core-mcp/store/notesStore';
+import { getRepositoryGuidance } from '../../../src/core-mcp/store/anchoredNotesStore';
 
 describe('Repository Guidance Fallback Logic', () => {
   let tempDir: string;

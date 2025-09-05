@@ -7,7 +7,7 @@ import {
   saveTagDescription,
   getTagDescriptions,
   getNotesForPath,
-} from '../../../src/core-mcp/store/notesStore';
+} from '../../../src/core-mcp/store/anchoredNotesStore';
 
 describe('DeleteTagTool', () => {
   let tempDir: string;

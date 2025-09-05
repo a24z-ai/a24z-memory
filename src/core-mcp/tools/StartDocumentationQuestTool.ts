@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { BaseTool } from './base-tool';
 import { McpToolResult } from '../types';
-import { calculateNoteCoverage, NoteCoverageReport } from '../utils/noteCoverage';
+import { calculateAnchoredNoteCoverage, NoteCoverageReport } from '../utils/anchoredNoteCoverage';
 import { FileInfo } from '../utils/eligibleFiles';
 import {
   loadQuestInstructions,
@@ -86,7 +86,7 @@ export class StartDocumentationQuestTool extends BaseTool {
       }
 
       // Calculate coverage to find uncovered files
-      const report = calculateNoteCoverage(params.path, {
+      const report = calculateAnchoredNoteCoverage(params.path, {
         includeDirectories: false,
         excludeDirectoryAnchors: true, // Exclude directory anchors for more accurate file coverage
       });

@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import { GetTagUsageTool } from '../../../src/core-mcp/tools/GetTagUsageTool';
-import { saveNote, saveTagDescription } from '../../../src/core-mcp/store/notesStore';
+import { saveNote, saveTagDescription } from '../../../src/core-mcp/store/anchoredNotesStore';
 
 interface TagUsageResponse {
   tag: string;

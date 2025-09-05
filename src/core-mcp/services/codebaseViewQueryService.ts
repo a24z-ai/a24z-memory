@@ -7,13 +7,13 @@
  */
 
 import {
-  StoredNote,
+  StoredAnchoredNote,
   getNotesForView,
   getNotesForCell,
   getOrphanedNotes,
   getViewStatistics,
-} from '../store/notesStore';
-import { viewsStore } from '../store/codebaseViewsStore';
+} from '../store/anchoredNotesStore';
+import { codebaseViewsStore } from '../store/codebaseViewsStore';
 
 /**
  * Query options for view-based note searches
@@ -32,7 +32,7 @@ export interface ViewQueryOptions {
  * Result of a view-based query
  */
 export interface ViewQueryResult {
-  notes: StoredNote[];
+  notes: StoredAnchoredNote[];
   totalCount: number;
   hasMore: boolean;
   viewInfo?: {
@@ -50,7 +50,7 @@ export interface MultiViewSearchResult {
   results: Array<{
     viewId: string;
     viewName: string;
-    notes: StoredNote[];
+    notes: StoredAnchoredNote[];
     relevanceScore: number;
   }>;
   totalNotes: number;
@@ -116,7 +116,7 @@ export function queryNotesInView(
     filteredNotes = filteredNotes.slice(offset, offset + limit);
   }
 
-  const view = viewsStore.getView(repositoryPath, viewId);
+  const view = codebaseViewsStore.getView(repositoryPath, viewId);
 
   return {
     notes: filteredNotes,
@@ -173,7 +173,7 @@ export function queryNotesInCell(
     filteredNotes = filteredNotes.slice(offset, offset + limit);
   }
 
-  const view = viewsStore.getView(repositoryPath, viewId);
+  const view = codebaseViewsStore.getView(repositoryPath, viewId);
   let cellName: string | undefined;
 
   // Find cell name by coordinates
@@ -214,7 +214,7 @@ export function searchAcrossViews(
     tags?: string[];
   } = {}
 ): MultiViewSearchResult {
-  const availableViews = viewsStore.listViews(repositoryPath);
+  const availableViews = codebaseViewsStore.listViews(repositoryPath);
   const viewsToSearch = options.viewIds
     ? availableViews.filter((v) => options.viewIds!.includes(v.id))
     : availableViews;
@@ -309,7 +309,7 @@ export function analyzeViewCoverage(
   repositoryPath: string,
   viewId: string
 ): ViewCoverageAnalysis | null {
-  const view = viewsStore.getView(repositoryPath, viewId);
+  const view = codebaseViewsStore.getView(repositoryPath, viewId);
   if (!view) {
     return null;
   }
@@ -359,14 +359,14 @@ export function analyzeViewCoverage(
 export function findSimilarNotesInView(
   repositoryPath: string,
   viewId: string,
-  referenceNote: StoredNote,
+  referenceNote: StoredAnchoredNote,
   options: {
     limit?: number;
     minSimilarity?: number; // 0-1 scale
   } = {}
-): StoredNote[] {
+): StoredAnchoredNote[] {
   const viewNotes = getNotesForView(repositoryPath, viewId);
-  const similarities: Array<{ note: StoredNote; score: number }> = [];
+  const similarities: Array<{ note: StoredAnchoredNote; score: number }> = [];
 
   for (const note of viewNotes) {
     if (note.id === referenceNote.id) continue;
@@ -386,7 +386,7 @@ export function findSimilarNotesInView(
 /**
  * Calculate relevance score for search results
  */
-function calculateRelevanceScore(notes: StoredNote[], query: string): number {
+function calculateRelevanceScore(notes: StoredAnchoredNote[], query: string): number {
   if (notes.length === 0) return 0;
 
   const queryLower = query.toLowerCase();
@@ -421,7 +421,7 @@ function calculateRelevanceScore(notes: StoredNote[], query: string): number {
 /**
  * Calculate similarity between two notes
  */
-function calculateNoteSimilarity(note1: StoredNote, note2: StoredNote): number {
+function calculateNoteSimilarity(note1: StoredAnchoredNote, note2: StoredAnchoredNote): number {
   let similarity = 0;
   let factors = 0;
 

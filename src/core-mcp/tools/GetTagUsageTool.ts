@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseTool } from './base-tool';
-import { getTagDescriptions, StoredNote } from '../store/notesStore';
+import { getTagDescriptions, StoredAnchoredNote } from '../store/anchoredNotesStore';
 import { findGitRoot } from '../utils/pathNormalization';
 import { McpToolResult } from '../types';
 import path from 'path';
@@ -84,7 +84,7 @@ export class GetTagUsageTool extends BaseTool {
           for (const noteFile of noteFiles) {
             const notePath = path.join(monthPath, noteFile);
             try {
-              const noteContent = JSON.parse(readFileSync(notePath, 'utf-8')) as StoredNote;
+              const noteContent = JSON.parse(readFileSync(notePath, 'utf-8')) as StoredAnchoredNote;
 
               for (const tag of noteContent.tags || []) {
                 if (!tagUsageMap.has(tag)) {

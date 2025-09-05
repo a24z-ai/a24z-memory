@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { BaseTool } from './base-tool';
 import { McpToolResult } from '../types';
-import { calculateNoteCoverage } from '../utils/noteCoverage';
+import { calculateAnchoredNoteCoverage } from '../utils/anchoredNoteCoverage';
 import {
   formatCoverageReport,
   formatCoverageReportAsJson,
@@ -29,7 +29,7 @@ const inputSchema = z.object({
     .optional()
     .default(false)
     .describe('Whether to include the full list of uncovered files in the response'),
-  maxStaleNotes: z
+  maxStaleAnchoredNotes: z
     .number()
     .optional()
     .default(10)
@@ -49,7 +49,7 @@ const inputSchema = z.object({
 
 type ToolInput = z.infer<typeof inputSchema>;
 
-export class GetNoteCoverageTool extends BaseTool {
+export class GetAnchoredNoteCoverageTool extends BaseTool {
   name = 'get_note_coverage';
   description =
     'Analyze note coverage for a repository, showing which files have documentation and coverage statistics';
@@ -59,9 +59,9 @@ export class GetNoteCoverageTool extends BaseTool {
     const params = input as ToolInput;
     try {
       // Calculate coverage
-      const report = calculateNoteCoverage(params.path, {
+      const report = calculateAnchoredNoteCoverage(params.path, {
         includeDirectories: params.includeDirectories,
-        maxStaleNotesToReport: params.maxStaleNotes,
+        maxStaleAnchoredNotesToReport: params.maxStaleAnchoredNotes,
         excludeDirectoryAnchors: params.excludeDirectoryAnchors,
       });
 

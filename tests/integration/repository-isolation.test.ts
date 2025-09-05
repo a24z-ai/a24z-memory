@@ -4,9 +4,13 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { saveNote, getNotesForPath, getUsedTagsForPath } from '../../src/core-mcp/store/notesStore';
-import { CreateRepositoryNoteTool } from '../../src/core-mcp/tools/CreateRepositoryNoteTool';
-import { GetNotesTool } from '../../src/core-mcp/tools/GetNotesTool';
+import {
+  saveNote,
+  getNotesForPath,
+  getUsedTagsForPath,
+} from '../../src/core-mcp/store/anchoredNotesStore';
+import { CreateRepositoryAnchoredNoteTool } from '../../src/core-mcp/tools/CreateRepositoryAnchoredNoteTool';
+import { GetAnchoredNotesTool } from '../../src/core-mcp/tools/GetAnchoredNotesTool';
 import { withGuidanceToken, createTestGuidanceToken } from '../test-helpers';
 
 describe('Repository Isolation and Cross-Repository Testing', () => {
@@ -305,8 +309,8 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
 
   describe('MCP Tool Repository Isolation', () => {
     it('should maintain isolation through MCP tools', async () => {
-      const createTool = new CreateRepositoryNoteTool();
-      const getTool = new GetNotesTool();
+      const createTool = new CreateRepositoryAnchoredNoteTool();
+      const getTool = new GetAnchoredNotesTool();
 
       // Create notes in different repositories using MCP tool
       await createTool.execute(

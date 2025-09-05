@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { saveNote, getNotesForPath } from '../../../src/core-mcp/store/notesStore';
+import { saveNote, getNotesForPath } from '../../../src/core-mcp/store/anchoredNotesStore';
 
 describe('Anchor Normalization and Matching', () => {
   let tempDir: string;

@@ -1,17 +1,17 @@
-import { CreateRepositoryNoteTool } from '../../../src/core-mcp/tools/CreateRepositoryNoteTool';
+import { CreateRepositoryAnchoredNoteTool } from '../../../src/core-mcp/tools/CreateRepositoryAnchoredNoteTool';
 import { GetRepositoryGuidanceTool } from '../../../src/core-mcp/tools/GetRepositoryGuidanceTool';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 
-describe('CreateRepositoryNoteTool - Token Refresh', () => {
-  let tool: CreateRepositoryNoteTool;
+describe('CreateRepositoryAnchoredNoteTool - Token Refresh', () => {
+  let tool: CreateRepositoryAnchoredNoteTool;
   let guidanceTool: GetRepositoryGuidanceTool;
   let repoPath: string;
   const TEST_DIR = path.join(os.tmpdir(), 'a24z-memory-tests', Date.now().toString());
 
   beforeEach(() => {
-    tool = new CreateRepositoryNoteTool();
+    tool = new CreateRepositoryAnchoredNoteTool();
     guidanceTool = new GetRepositoryGuidanceTool();
 
     // Set up test repository

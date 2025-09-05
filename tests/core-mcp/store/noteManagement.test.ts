@@ -5,8 +5,8 @@ import {
   saveNote,
   getNoteById,
   deleteNoteById,
-  checkStaleNotes,
-} from '../../../src/core-mcp/store/notesStore';
+  checkStaleAnchoredNotes,
+} from '../../../src/core-mcp/store/anchoredNotesStore';
 
 describe('Note Management Functions', () => {
   let tempDir: string;
@@ -171,7 +171,7 @@ describe('Note Management Functions', () => {
       const noteWithAllStaleAnchors = noteWithAllStaleAnchorsWithPath.note;
 
       // Check for stale notes
-      const staleNotes = checkStaleNotes(testRepoPath);
+      const staleNotes = checkStaleAnchoredNotes(testRepoPath);
 
       // Should find 2 notes with stale anchors
       expect(staleNotes).toHaveLength(2);
@@ -217,7 +217,7 @@ describe('Note Management Functions', () => {
         directoryPath: testRepoPath,
       });
 
-      const staleNotes = checkStaleNotes(testRepoPath);
+      const staleNotes = checkStaleAnchoredNotes(testRepoPath);
       expect(staleNotes).toEqual([]);
     });
 
@@ -244,7 +244,7 @@ describe('Note Management Functions', () => {
       });
       const noteWithStaleDir = noteWithStaleDirWithPath.note;
 
-      const staleNotes = checkStaleNotes(testRepoPath);
+      const staleNotes = checkStaleAnchoredNotes(testRepoPath);
 
       // Should only find the note with stale directory
       expect(staleNotes).toHaveLength(1);
@@ -253,7 +253,7 @@ describe('Note Management Functions', () => {
     });
 
     it('should handle empty repository', () => {
-      const staleNotes = checkStaleNotes(testRepoPath);
+      const staleNotes = checkStaleAnchoredNotes(testRepoPath);
       expect(staleNotes).toEqual([]);
     });
   });

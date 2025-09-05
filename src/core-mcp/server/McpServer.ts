@@ -16,26 +16,26 @@ import {
 
 import {
   /*AppInfoTool,*/ AskA24zMemoryTool,
-  CreateRepositoryNoteTool,
-  GetNotesTool,
+  CreateRepositoryAnchoredNoteTool,
+  GetAnchoredNotesTool,
   GetRepositoryTagsTool,
   GetRepositoryGuidanceTool,
   DiscoverToolsTool,
-  DeleteNoteTool,
-  GetNoteByIdTool,
+  DeleteAnchoredNoteTool,
+  GetAnchoredNoteByIdTool,
   CreateHandoffBriefTool,
   ListHandoffBriefsTool,
-  GetStaleNotesTool,
+  GetStaleAnchoredNotesTool,
   GetTagUsageTool,
   DeleteTagTool,
   ReplaceTagTool,
-  GetNoteCoverageTool,
+  GetAnchoredNoteCoverageTool,
   StartDocumentationQuestTool,
 } from '../tools';
 import { McpServerConfig, McpTool, McpResource } from '../types';
 import { McpLLMConfigurator } from '../services/mcp-llm-configurator';
 import { LLMService } from '../services/llm-service';
-import { getRepositoryConfiguration } from '../store/notesStore';
+import { getRepositoryConfiguration } from '../store/anchoredNotesStore';
 
 export class McpServer {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -81,10 +81,10 @@ export class McpServer {
       this.addTool(new AskA24zMemoryTool());
     }
     if (enabledTools.create_repository_note !== false) {
-      this.addTool(new CreateRepositoryNoteTool());
+      this.addTool(new CreateRepositoryAnchoredNoteTool());
     }
     if (enabledTools.get_notes !== false) {
-      this.addTool(new GetNotesTool());
+      this.addTool(new GetAnchoredNotesTool());
     }
     if (enabledTools.get_repository_tags !== false) {
       this.addTool(new GetRepositoryTagsTool());
@@ -96,10 +96,10 @@ export class McpServer {
       this.addTool(new DiscoverToolsTool());
     }
     if (enabledTools.delete_repository_note !== false) {
-      this.addTool(new DeleteNoteTool());
+      this.addTool(new DeleteAnchoredNoteTool());
     }
     if (enabledTools.get_repository_note !== false) {
-      this.addTool(new GetNoteByIdTool());
+      this.addTool(new GetAnchoredNoteByIdTool());
     }
     if (enabledTools.create_handoff_brief !== false) {
       this.addTool(new CreateHandoffBriefTool());
@@ -108,7 +108,7 @@ export class McpServer {
       this.addTool(new ListHandoffBriefsTool());
     }
     if (enabledTools.get_stale_notes !== false) {
-      this.addTool(new GetStaleNotesTool());
+      this.addTool(new GetStaleAnchoredNotesTool());
     }
     if (enabledTools.get_tag_usage !== false) {
       this.addTool(new GetTagUsageTool());
@@ -120,7 +120,7 @@ export class McpServer {
       this.addTool(new ReplaceTagTool());
     }
     if (enabledTools.get_note_coverage !== false) {
-      this.addTool(new GetNoteCoverageTool());
+      this.addTool(new GetAnchoredNoteCoverageTool());
     }
     if (enabledTools.start_documentation_quest !== false) {
       this.addTool(new StartDocumentationQuestTool());

@@ -12,11 +12,11 @@ import {
   getTokenLimitInfo,
   type TokenLimitInfo,
 } from '../utils/tokenCounter';
-import { viewsStore } from './codebaseViewsStore';
+import { codebaseViewsStore } from './codebaseViewsStore';
 
 export { TokenLimitInfo } from '../utils/tokenCounter';
 
-export interface StoredNote {
+export interface StoredAnchoredNote {
   id: string;
   note: string;
   anchors: string[];
@@ -28,8 +28,8 @@ export interface StoredNote {
   cellCoordinates?: [number, number]; // Specific cell location in the view grid
 }
 
-export interface NoteWithPath {
-  note: StoredNote;
+export interface AnchoredNoteWithPath {
+  note: StoredAnchoredNote;
   path: string; // File system path where this note is stored (relative to repository root)
 }
 
@@ -166,7 +166,7 @@ function writeConfiguration(repositoryPath: string, config: RepositoryConfigurat
 }
 
 function validateNote(
-  note: Omit<StoredNote, 'id' | 'timestamp'>,
+  note: Omit<StoredAnchoredNote, 'id' | 'timestamp'>,
   config: RepositoryConfiguration,
   normalizedRepo: string
 ): ValidationError[] {
@@ -293,13 +293,13 @@ function ensureDataDir(repositoryPath: string): void {
   }
 }
 
-export function readAllNotes(repositoryPath: string): NoteWithPath[] {
+export function readAllNotes(repositoryPath: string): AnchoredNoteWithPath[] {
   try {
     ensureDataDir(repositoryPath);
     const notesDir = getNotesDir(repositoryPath);
 
     // Read all notes from individual files
-    const notes: NoteWithPath[] = [];
+    const notes: AnchoredNoteWithPath[] = [];
 
     if (!fs.existsSync(notesDir)) {
       return [];
@@ -315,7 +315,7 @@ export function readAllNotes(repositoryPath: string): NoteWithPath[] {
         } else if (entry.isFile() && entry.name.endsWith('.json')) {
           try {
             const noteContent = fs.readFileSync(fullPath, 'utf8');
-            const note = JSON.parse(noteContent) as StoredNote;
+            const note = JSON.parse(noteContent) as StoredAnchoredNote;
             if (note && typeof note === 'object' && note.id) {
               // Wrap the note with its path
               notes.push({
@@ -337,7 +337,7 @@ export function readAllNotes(repositoryPath: string): NoteWithPath[] {
   }
 }
 
-function writeNoteToFile(repositoryPath: string, note: StoredNote): void {
+function writeNoteToFile(repositoryPath: string, note: StoredAnchoredNote): void {
   ensureNotesDir(repositoryPath, note.timestamp);
   const notePath = getNoteFilePath(repositoryPath, note.id, note.timestamp);
   const tmp = `${notePath}.tmp`;
@@ -345,7 +345,7 @@ function writeNoteToFile(repositoryPath: string, note: StoredNote): void {
   fs.renameSync(tmp, notePath);
 }
 
-export function deleteNoteFile(repositoryPath: string, note: StoredNote): void {
+export function deleteNoteFile(repositoryPath: string, note: StoredAnchoredNote): void {
   const notePath = getNoteFilePath(repositoryPath, note.id, note.timestamp);
   if (fs.existsSync(notePath)) {
     fs.unlinkSync(notePath);
@@ -353,8 +353,8 @@ export function deleteNoteFile(repositoryPath: string, note: StoredNote): void {
 }
 
 export function saveNote(
-  note: Omit<StoredNote, 'id' | 'timestamp'> & { directoryPath: string }
-): NoteWithPath {
+  note: Omit<StoredAnchoredNote, 'id' | 'timestamp'> & { directoryPath: string }
+): AnchoredNoteWithPath {
   // Validate that directoryPath is absolute
   if (!path.isAbsolute(note.directoryPath)) {
     throw new Error(
@@ -451,7 +451,7 @@ export function saveNote(
   }
   const notePath = getNoteFilePath(repoRoot, noteId, timestamp);
 
-  const saved: StoredNote = {
+  const saved: StoredAnchoredNote = {
     ...noteWithoutDirectoryPath,
     anchors: normalizedAnchors, // Use normalized anchors
     id: noteId,
@@ -470,8 +470,8 @@ export function saveNote(
   };
 }
 
-export interface NotesResult {
-  notes: Array<StoredNote & { isParentDirectory: boolean; pathDistance: number }>;
+export interface AnchoredNotesResult {
+  notes: Array<StoredAnchoredNote & { isParentDirectory: boolean; pathDistance: number }>;
   tokenInfo?: TokenLimitInfo;
 }
 
@@ -481,7 +481,7 @@ export interface NotesResult {
 export function getNotesForPath(
   targetPath: string,
   includeParentNotes: boolean
-): Array<StoredNote & { isParentDirectory: boolean; pathDistance: number }> {
+): Array<StoredAnchoredNote & { isParentDirectory: boolean; pathDistance: number }> {
   // Resolve the path to absolute
   const normalized = path.resolve(targetPath);
 
@@ -493,7 +493,7 @@ export function getNotesForPath(
 
   const all = readAllNotes(normalizedRepo);
   return all
-    .map((noteWithPath: NoteWithPath) => {
+    .map((noteWithPath: AnchoredNoteWithPath) => {
       const n = noteWithPath.note;
       const base = normalizedRepo;
       let isParent = false;
@@ -524,15 +524,16 @@ export function getNotesForPath(
       return { ...n, isParentDirectory: isParent, pathDistance: distance };
     })
     .filter(
-      (x): x is StoredNote & { isParentDirectory: boolean; pathDistance: number } => x !== null
+      (x): x is StoredAnchoredNote & { isParentDirectory: boolean; pathDistance: number } =>
+        x !== null
     )
-    .filter((x: StoredNote & { isParentDirectory: boolean; pathDistance: number }) =>
+    .filter((x: StoredAnchoredNote & { isParentDirectory: boolean; pathDistance: number }) =>
       includeParentNotes ? true : !x.isParentDirectory
     )
     .sort(
       (
-        a: StoredNote & { isParentDirectory: boolean; pathDistance: number },
-        b: StoredNote & { isParentDirectory: boolean; pathDistance: number }
+        a: StoredAnchoredNote & { isParentDirectory: boolean; pathDistance: number },
+        b: StoredAnchoredNote & { isParentDirectory: boolean; pathDistance: number }
       ) => a.pathDistance - b.pathDistance || b.timestamp - a.timestamp
     );
 }
@@ -545,12 +546,12 @@ export function getNotesForPathWithLimit(
   includeParentNotes: boolean,
   limitType: 'count' | 'tokens',
   limit: number
-): NotesResult {
+): AnchoredNotesResult {
   // Get all notes first
   const allNotes = getNotesForPath(targetPath, includeParentNotes);
 
   // Apply limit based on type
-  let results: Array<StoredNote & { isParentDirectory: boolean; pathDistance: number }>;
+  let results: Array<StoredAnchoredNote & { isParentDirectory: boolean; pathDistance: number }>;
   let tokenInfo: TokenLimitInfo | undefined;
 
   if (limitType === 'count') {
@@ -560,7 +561,7 @@ export function getNotesForPathWithLimit(
     // Token-based limiting
     tokenInfo = getTokenLimitInfo(allNotes, limit);
     results = filterNotesByTokenLimit(allNotes, limit) as Array<
-      StoredNote & { isParentDirectory: boolean; pathDistance: number }
+      StoredAnchoredNote & { isParentDirectory: boolean; pathDistance: number }
     >;
 
     // Ensure at least one note is returned if any exist
@@ -638,7 +639,7 @@ export function updateRepositoryConfiguration(
 }
 
 export function validateNoteAgainstConfig(
-  note: Omit<StoredNote, 'id' | 'timestamp'>,
+  note: Omit<StoredAnchoredNote, 'id' | 'timestamp'>,
   repositoryPath: string
 ): ValidationError[] {
   const repoRoot = normalizeRepositoryPath(repositoryPath);
@@ -668,7 +669,7 @@ export function getRepositoryGuidance(targetPath: string): string | null {
   }
 }
 
-export function getNoteById(repositoryPath: string, noteId: string): StoredNote | null {
+export function getNoteById(repositoryPath: string, noteId: string): StoredAnchoredNote | null {
   const normalizedRepo = normalizeRepositoryPath(repositoryPath);
   const notesWithPaths = readAllNotes(normalizedRepo);
   const found = notesWithPaths.find((nwp) => nwp.note.id === noteId);
@@ -692,7 +693,10 @@ export function deleteNoteById(repositoryPath: string, noteId: string): boolean 
 /**
  * Get all unreviewed notes for a given path
  */
-export function getUnreviewedNotes(repositoryPath: string, directoryPath?: string): StoredNote[] {
+export function getUnreviewedNotes(
+  repositoryPath: string,
+  directoryPath?: string
+): StoredAnchoredNote[] {
   const targetPath = directoryPath || repositoryPath;
   const notes = getNotesForPath(targetPath, true);
   return notes.filter((note) => !note.reviewed);
@@ -738,8 +742,8 @@ export function markAllNotesReviewed(repositoryPath: string, directoryPath?: str
   return count;
 }
 
-export interface StaleNote {
-  note: StoredNote;
+export interface StaleAnchoredNote {
+  note: StoredAnchoredNote;
   staleAnchors: string[];
   validAnchors: string[];
 }
@@ -791,10 +795,10 @@ export function setEnforceAllowedTags(repositoryPath: string, enforce: boolean):
   writeConfiguration(normalizedRepo, config);
 }
 
-export function checkStaleNotes(repositoryPath: string): StaleNote[] {
+export function checkStaleAnchoredNotes(repositoryPath: string): StaleAnchoredNote[] {
   const normalizedRepo = normalizeRepositoryPath(repositoryPath);
   const notesWithPaths = readAllNotes(normalizedRepo);
-  const staleNotes: StaleNote[] = [];
+  const staleNotes: StaleAnchoredNote[] = [];
 
   for (const noteWithPath of notesWithPaths) {
     const note = noteWithPath.note;
@@ -831,7 +835,7 @@ export function checkStaleNotes(repositoryPath: string): StaleNote[] {
 // Metadata for merged notes includes merged note IDs and any user-provided metadata
 type MergeNoteMetadata = Record<string, unknown>;
 
-export interface MergeNotesInput {
+export interface MergeAnchoredNotesInput {
   note: string;
   anchors: string[];
   tags: string[];
@@ -840,12 +844,15 @@ export interface MergeNotesInput {
   deleteOriginals?: boolean;
 }
 
-export interface MergeNotesResult {
-  mergedNote: StoredNote;
+export interface MergeAnchoredNotesResult {
+  mergedNote: StoredAnchoredNote;
   deletedCount: number;
 }
 
-export function mergeNotes(repositoryPath: string, input: MergeNotesInput): MergeNotesResult {
+export function mergeNotes(
+  repositoryPath: string,
+  input: MergeAnchoredNotesInput
+): MergeAnchoredNotesResult {
   const normalizedRepo = normalizeRepositoryPath(repositoryPath);
 
   // Create the merged note with metadata about the merge
@@ -861,7 +868,7 @@ export function mergeNotes(repositoryPath: string, input: MergeNotesInput): Merg
     },
   };
 
-  const savedNoteWithPath = saveNote(mergedNoteData);
+  const savedAnchoredNoteWithPath = saveNote(mergedNoteData);
 
   let deletedCount = 0;
   if (input.deleteOriginals !== false) {
@@ -874,7 +881,7 @@ export function mergeNotes(repositoryPath: string, input: MergeNotesInput): Merg
   }
 
   return {
-    mergedNote: savedNoteWithPath.note,
+    mergedNote: savedAnchoredNoteWithPath.note,
     deletedCount,
   };
 }
@@ -1032,7 +1039,7 @@ export function getTagsWithDescriptions(repositoryPath: string): TagInfo[] {
 /**
  * Create a note with view association
  */
-export interface SaveNoteWithViewInput {
+export interface SaveAnchoredNoteWithViewInput {
   note: string;
   anchors: string[];
   tags: string[];
@@ -1041,7 +1048,10 @@ export interface SaveNoteWithViewInput {
   cellCoordinates?: [number, number];
 }
 
-export function saveNoteWithView(repositoryPath: string, input: SaveNoteWithViewInput): StoredNote {
+export function saveNoteWithView(
+  repositoryPath: string,
+  input: SaveAnchoredNoteWithViewInput
+): StoredAnchoredNote {
   const noteData = {
     note: input.note,
     anchors: input.anchors,
@@ -1060,7 +1070,7 @@ export function saveNoteWithView(repositoryPath: string, input: SaveNoteWithView
 /**
  * Get all notes associated with a specific view
  */
-export function getNotesForView(repositoryPath: string, viewId: string): StoredNote[] {
+export function getNotesForView(repositoryPath: string, viewId: string): StoredAnchoredNote[] {
   const allNotes = getNotesForPath(repositoryPath, true);
 
   return allNotes.filter((note) => note.viewId === viewId);
@@ -1073,7 +1083,7 @@ export function getNotesForCell(
   repositoryPath: string,
   viewId: string,
   cellCoordinates: [number, number]
-): StoredNote[] {
+): StoredAnchoredNote[] {
   const viewNotes = getNotesForView(repositoryPath, viewId);
 
   return viewNotes.filter((note) => {
@@ -1093,7 +1103,7 @@ export function detectCellForAnchors(
   viewId: string,
   anchors: string[]
 ): { cellName: string | null; coordinates: [number, number] | null; confidence: number } {
-  const view = viewsStore.getView(repositoryPath, viewId);
+  const view = codebaseViewsStore.getView(repositoryPath, viewId);
   if (!view) {
     return { cellName: null, coordinates: null, confidence: 0 };
   }
@@ -1151,7 +1161,7 @@ export function updateNoteView(
     return false;
   }
 
-  const updatedNote: StoredNote = {
+  const updatedNote: StoredAnchoredNote = {
     ...note,
     viewId: viewUpdate.viewId,
     cellCoordinates: viewUpdate.cellCoordinates,
@@ -1180,7 +1190,7 @@ export function updateNoteView(
 /**
  * Get notes that have no view association (orphaned notes)
  */
-export function getOrphanedNotes(repositoryPath: string): StoredNote[] {
+export function getOrphanedNotes(repositoryPath: string): StoredAnchoredNote[] {
   const allNotes = getNotesForPath(repositoryPath, true);
 
   return allNotes.filter((note) => !note.viewId);
@@ -1198,7 +1208,7 @@ export function getViewStatistics(
   orphanedNotes: number;
 } {
   const viewNotes = getNotesForView(repositoryPath, viewId);
-  const view = viewsStore.getView(repositoryPath, viewId);
+  const view = codebaseViewsStore.getView(repositoryPath, viewId);
 
   const stats = {
     totalNotes: viewNotes.length,

@@ -3,7 +3,7 @@
  * All default values should be defined here for easier maintenance
  */
 
-import type { RepositoryConfiguration } from '../store/notesStore';
+import type { RepositoryConfiguration } from '../store/anchoredNotesStore';
 
 /**
  * Configuration interface for A24z Memory AI functionality

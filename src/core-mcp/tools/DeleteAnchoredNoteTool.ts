@@ -3,17 +3,17 @@ import * as path from 'node:path';
 import * as fs from 'node:fs';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
-import { getNoteById } from '../store/notesStore';
+import { deleteNoteById, getNoteById } from '../store/anchoredNotesStore';
 import { findGitRoot } from '../utils/pathNormalization';
 
-export class GetNoteByIdTool extends BaseTool {
-  name = 'get_repository_note';
-  description = 'Get a repository note by its unique ID';
+export class DeleteAnchoredNoteTool extends BaseTool {
+  name = 'delete_repository_note';
+  description = 'Delete a repository note by its ID';
 
   schema = z.object({
     noteId: z
       .string()
-      .describe('The unique ID of the note to retrieve (e.g., "note-1734567890123-abc123def")'),
+      .describe('The unique ID of the note to delete (e.g., "note-1734567890123-abc123def")'),
     directoryPath: z
       .string()
       .describe(
@@ -50,8 +50,8 @@ export class GetNoteByIdTool extends BaseTool {
       );
     }
 
+    // Check if the note exists before attempting deletion
     const note = getNoteById(gitRoot, parsed.noteId);
-
     if (!note) {
       throw new Error(
         `Note with ID "${parsed.noteId}" not found in repository "${gitRoot}". ` +
@@ -59,35 +59,22 @@ export class GetNoteByIdTool extends BaseTool {
       );
     }
 
-    // Format the note for display
-    const output: string[] = [
-      `# Note ID: ${note.id}`,
-      '',
-      `**Tags:** ${note.tags.join(', ')}`,
-      `**Created:** ${new Date(note.timestamp).toISOString()}`,
-      '',
-      '## Anchors',
-      ...note.anchors.map((anchor) => `- ${anchor}`),
-      '',
-      '## Content',
-      note.note,
-    ];
+    // Delete the note
+    const deleted = deleteNoteById(gitRoot, parsed.noteId);
 
-    // Add metadata if present
-    if (note.metadata && Object.keys(note.metadata).length > 0) {
-      output.push('', '## Metadata');
-      for (const [key, value] of Object.entries(note.metadata)) {
-        output.push(`- **${key}:** ${JSON.stringify(value)}`);
-      }
+    if (deleted) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Successfully deleted note ${parsed.noteId}\n\nDeleted note preview:\n | Tags: ${note.tags.join(', ')}\n${note.note.substring(0, 200)}${note.note.length > 200 ? '...' : ''}`,
+          },
+        ],
+      };
+    } else {
+      throw new Error(
+        `Failed to delete note ${parsed.noteId}. The note may have already been deleted.`
+      );
     }
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: output.join('\n'),
-        },
-      ],
-    };
   }
 }

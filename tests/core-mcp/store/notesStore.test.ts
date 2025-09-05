@@ -5,7 +5,7 @@ import {
   getNotesForPath,
   getUsedTagsForPath,
   getSuggestedTagsForPath,
-} from '../../../src/core-mcp/store/notesStore';
+} from '../../../src/core-mcp/store/anchoredNotesStore';
 import {
   findProjectRoot,
   normalizeRepositoryPath,

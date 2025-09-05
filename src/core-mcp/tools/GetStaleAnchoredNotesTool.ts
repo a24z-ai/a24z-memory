@@ -1,12 +1,12 @@
 import { z } from 'zod';
 import { BaseTool } from './base-tool';
-import { checkStaleNotes, StaleNote } from '../store/notesStore';
+import { checkStaleAnchoredNotes, StaleAnchoredNote } from '../store/anchoredNotesStore';
 import { findGitRoot } from '../utils/pathNormalization';
 import { McpToolResult } from '../types';
 import path from 'path';
 import { existsSync } from 'fs';
 
-const GetStaleNotesSchema = z.object({
+const GetStaleAnchoredNotesSchema = z.object({
   directoryPath: z
     .string()
     .describe(
@@ -26,7 +26,7 @@ const GetStaleNotesSchema = z.object({
     ),
 });
 
-interface FormattedStaleNote {
+interface FormattedStaleAnchoredNote {
   noteId: string;
   tags: string[];
   staleAnchors: string[];
@@ -36,11 +36,11 @@ interface FormattedStaleNote {
   timestamp: number;
 }
 
-export class GetStaleNotesTool extends BaseTool {
+export class GetStaleAnchoredNotesTool extends BaseTool {
   name = 'get_stale_notes';
   description =
     'Get all notes that have stale anchors (references to files that no longer exist) in a repository';
-  schema = GetStaleNotesSchema;
+  schema = GetStaleAnchoredNotesSchema;
 
   async execute(input: z.infer<typeof this.schema>): Promise<McpToolResult> {
     const parsed = this.schema.parse(input);
@@ -63,7 +63,7 @@ export class GetStaleNotesTool extends BaseTool {
     }
 
     // Get all stale notes
-    const staleNotes = checkStaleNotes(repoRoot);
+    const staleNotes = checkStaleAnchoredNotes(repoRoot);
 
     if (staleNotes.length === 0) {
       return {
@@ -77,28 +77,30 @@ export class GetStaleNotesTool extends BaseTool {
     }
 
     // Format the stale notes
-    const formattedNotes: FormattedStaleNote[] = staleNotes.map((staleNote: StaleNote) => {
-      const formatted: FormattedStaleNote = {
-        noteId: staleNote.note.id,
-        tags: staleNote.note.tags,
-        staleAnchors: staleNote.staleAnchors,
-        timestamp: staleNote.note.timestamp,
-      };
+    const formattedNotes: FormattedStaleAnchoredNote[] = staleNotes.map(
+      (staleNote: StaleAnchoredNote) => {
+        const formatted: FormattedStaleAnchoredNote = {
+          noteId: staleNote.note.id,
+          tags: staleNote.note.tags,
+          staleAnchors: staleNote.staleAnchors,
+          timestamp: staleNote.note.timestamp,
+        };
 
-      if (includeValidAnchors) {
-        formatted.validAnchors = staleNote.validAnchors;
+        if (includeValidAnchors) {
+          formatted.validAnchors = staleNote.validAnchors;
+        }
+
+        if (includeContent) {
+          formatted.content = staleNote.note.note;
+        }
+
+        if (staleNote.note.metadata && Object.keys(staleNote.note.metadata).length > 0) {
+          formatted.metadata = staleNote.note.metadata;
+        }
+
+        return formatted;
       }
-
-      if (includeContent) {
-        formatted.content = staleNote.note.note;
-      }
-
-      if (staleNote.note.metadata && Object.keys(staleNote.note.metadata).length > 0) {
-        formatted.metadata = staleNote.note.metadata;
-      }
-
-      return formatted;
-    });
+    );
 
     // Sort by timestamp (newest first)
     formattedNotes.sort((a, b) => b.timestamp - a.timestamp);

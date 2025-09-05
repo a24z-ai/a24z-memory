@@ -3,7 +3,7 @@
  */
 
 import { countTokens } from 'gpt-tokenizer';
-import type { StoredNote } from '../store/notesStore';
+import type { StoredAnchoredNote } from '../store/anchoredNotesStore';
 
 export type LimitType = 'count' | 'tokens';
 
@@ -11,7 +11,7 @@ export type LimitType = 'count' | 'tokens';
  * Calculate the token count for a note
  * Includes all relevant fields that would be sent to an LLM
  */
-export function countNoteTokens(note: StoredNote): number {
+export function countNoteTokens(note: StoredAnchoredNote): number {
   // Format the note as it would appear in context
   const noteText = formatNoteForTokenCount(note);
   return countTokens(noteText);
@@ -21,7 +21,7 @@ export function countNoteTokens(note: StoredNote): number {
  * Format a note for token counting
  * This should match how notes are formatted when sent to LLMs
  */
-function formatNoteForTokenCount(note: StoredNote): string {
+function formatNoteForTokenCount(note: StoredAnchoredNote): string {
   // Match the format used in AskA24zMemoryTool
   const parts = [
     `Note ID: ${note.id}`,
@@ -41,7 +41,7 @@ function formatNoteForTokenCount(note: StoredNote): string {
 /**
  * Calculate cumulative token count for multiple notes
  */
-export function countNotesTokens(notes: StoredNote[]): number {
+export function countNotesTokens(notes: StoredAnchoredNote[]): number {
   return notes.reduce((total, note) => total + countNoteTokens(note), 0);
 }
 
@@ -49,8 +49,11 @@ export function countNotesTokens(notes: StoredNote[]): number {
  * Filter notes to fit within token limit
  * Returns notes that fit within the limit, preserving order
  */
-export function filterNotesByTokenLimit(notes: StoredNote[], maxTokens: number): StoredNote[] {
-  const result: StoredNote[] = [];
+export function filterNotesByTokenLimit(
+  notes: StoredAnchoredNote[],
+  maxTokens: number
+): StoredAnchoredNote[] {
+  const result: StoredAnchoredNote[] = [];
   let currentTokens = 0;
 
   for (const note of notes) {
@@ -79,7 +82,7 @@ export interface TokenLimitInfo {
   truncated: boolean;
 }
 
-export function getTokenLimitInfo(notes: StoredNote[], maxTokens: number): TokenLimitInfo {
+export function getTokenLimitInfo(notes: StoredAnchoredNote[], maxTokens: number): TokenLimitInfo {
   let usedTokens = 0;
   let includedNotes = 0;
 
@@ -108,7 +111,7 @@ export function getTokenLimitInfo(notes: StoredNote[], maxTokens: number): Token
 /**
  * Check if a set of notes fits within token limit
  */
-export function isWithinTokenLimit(notes: StoredNote[], maxTokens: number): boolean {
+export function isWithinTokenLimit(notes: StoredAnchoredNote[], maxTokens: number): boolean {
   const totalTokens = countNotesTokens(notes);
   return totalTokens <= maxTokens;
 }

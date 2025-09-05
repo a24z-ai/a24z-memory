@@ -1,16 +1,16 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { CreateRepositoryNoteTool } from '../../../src/core-mcp/tools/CreateRepositoryNoteTool';
-import { getNotesForPath } from '../../../src/core-mcp/store/notesStore';
+import { CreateRepositoryAnchoredNoteTool } from '../../../src/core-mcp/tools/CreateRepositoryAnchoredNoteTool';
+import { getNotesForPath } from '../../../src/core-mcp/store/anchoredNotesStore';
 import { TEST_DIR } from '../../setup';
 import { withGuidanceToken } from '../../test-helpers';
 
-describe('CreateRepositoryNoteTool', () => {
-  let tool: CreateRepositoryNoteTool;
+describe('CreateRepositoryAnchoredNoteTool', () => {
+  let tool: CreateRepositoryAnchoredNoteTool;
   const testPath = path.join(TEST_DIR, 'test-repo');
 
   beforeEach(() => {
-    tool = new CreateRepositoryNoteTool();
+    tool = new CreateRepositoryAnchoredNoteTool();
 
     // Clean up any existing test directory
     if (fs.existsSync(testPath)) {

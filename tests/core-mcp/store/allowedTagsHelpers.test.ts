@@ -6,7 +6,7 @@ import {
   removeAllowedTag,
   setEnforceAllowedTags,
   getAllowedTags,
-} from '../../../src/core-mcp/store/notesStore';
+} from '../../../src/core-mcp/store/anchoredNotesStore';
 
 describe('Allowed Tags Helper Functions', () => {
   let tempDir: string;
@@ -106,7 +106,7 @@ describe('Allowed Tags Helper Functions', () => {
     it('should default to false for new repositories', () => {
       // Explicitly ensure enforcement is disabled for this test
       setEnforceAllowedTags(testRepoPath, false);
-      
+
       const allowedTags = getAllowedTags(testRepoPath);
       expect(allowedTags.enforced).toBe(false);
     });
@@ -116,7 +116,7 @@ describe('Allowed Tags Helper Functions', () => {
     it('should work together to manage tag restrictions', () => {
       // Explicitly reset enforcement state for this test
       setEnforceAllowedTags(testRepoPath, false);
-      
+
       // Start with no restrictions
       const initial = getAllowedTags(testRepoPath);
       expect(initial.enforced).toBe(false);

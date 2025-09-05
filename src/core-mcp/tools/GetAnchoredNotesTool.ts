@@ -2,7 +2,7 @@ import { z } from 'zod';
 import * as path from 'node:path';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
-import { getNotesForPath, checkStaleNotes } from '../store/notesStore';
+import { getNotesForPath, checkStaleAnchoredNotes } from '../store/anchoredNotesStore';
 import { normalizeRepositoryPath } from '../utils/pathNormalization';
 import { GuidanceTokenManager } from '../services/guidance-token-manager';
 
@@ -44,7 +44,7 @@ interface GetNotesResponse {
   };
 }
 
-export class GetNotesTool extends BaseTool {
+export class GetAnchoredNotesTool extends BaseTool {
   name = 'get_notes';
   description =
     'Retrieve raw notes from the repository without AI processing. Returns the actual note content, metadata, and anchors. Use this when you want to see the exact notes stored, browse through knowledge, or need the raw data for further processing. For AI-synthesized answers, use askA24zMemory instead.';
@@ -172,7 +172,7 @@ export class GetNotesTool extends BaseTool {
     // Get stale note information if needed
     let staleNoteMap: Map<string, string[]> = new Map();
     if (!parsed.includeStale) {
-      const staleNotes = checkStaleNotes(repoRoot);
+      const staleNotes = checkStaleAnchoredNotes(repoRoot);
       for (const staleNote of staleNotes) {
         staleNoteMap.set(staleNote.note.id, staleNote.staleAnchors);
       }
@@ -184,7 +184,7 @@ export class GetNotesTool extends BaseTool {
       });
     } else {
       // Still get stale info for display purposes
-      const staleNotes = checkStaleNotes(repoRoot);
+      const staleNotes = checkStaleAnchoredNotes(repoRoot);
       for (const staleNote of staleNotes) {
         if (staleNote.staleAnchors.length > 0) {
           staleNoteMap.set(staleNote.note.id, staleNote.staleAnchors);

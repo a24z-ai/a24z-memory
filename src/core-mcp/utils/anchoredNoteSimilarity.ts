@@ -1,8 +1,8 @@
-import { StoredNote } from '../store/notesStore';
+import { StoredAnchoredNote } from '../store/anchoredNotesStore';
 
-export interface NoteSimilarity {
-  note1: StoredNote;
-  note2: StoredNote;
+export interface AnchoredNoteSimilarity {
+  note1: StoredAnchoredNote;
+  note2: StoredAnchoredNote;
   score: number; // 0-1, higher = more similar
   reasons: string[];
 }
@@ -16,7 +16,10 @@ export interface SimilarityThresholds {
 /**
  * Calculate similarity between two notes based on multiple factors
  */
-export function calculateNoteSimilarity(note1: StoredNote, note2: StoredNote): NoteSimilarity {
+export function calculateAnchoredNoteSimilarity(
+  note1: StoredAnchoredNote,
+  note2: StoredAnchoredNote
+): AnchoredNoteSimilarity {
   const reasons: string[] = [];
   let score = 0;
 
@@ -107,15 +110,15 @@ function calculateTagSimilarity(tags1: string[], tags2: string[]): number {
 /**
  * Find all similar note pairs in a collection
  */
-export function findSimilarNotePairs(
-  notes: StoredNote[],
+export function findSimilarAnchoredNotePairs(
+  notes: StoredAnchoredNote[],
   threshold: number = 0.6
-): NoteSimilarity[] {
-  const similarities: NoteSimilarity[] = [];
+): AnchoredNoteSimilarity[] {
+  const similarities: AnchoredNoteSimilarity[] = [];
 
   for (let i = 0; i < notes.length; i++) {
     for (let j = i + 1; j < notes.length; j++) {
-      const similarity = calculateNoteSimilarity(notes[i], notes[j]);
+      const similarity = calculateAnchoredNoteSimilarity(notes[i], notes[j]);
       if (similarity.score >= threshold) {
         similarities.push(similarity);
       }
@@ -129,9 +132,12 @@ export function findSimilarNotePairs(
 /**
  * Group notes by similarity clusters
  */
-export function clusterSimilarNotes(notes: StoredNote[], threshold: number = 0.6): StoredNote[][] {
-  const similarities = findSimilarNotePairs(notes, threshold);
-  const clusters: StoredNote[][] = [];
+export function clusterSimilarAnchoredNotes(
+  notes: StoredAnchoredNote[],
+  threshold: number = 0.6
+): StoredAnchoredNote[][] {
+  const similarities = findSimilarAnchoredNotePairs(notes, threshold);
+  const clusters: StoredAnchoredNote[][] = [];
 
   // Simple clustering: put directly similar notes together
   const processed = new Set<string>();
@@ -192,7 +198,7 @@ export const DEFAULT_THRESHOLDS: SimilarityThresholds = {
 /**
  * Check if a note is stale based on age
  */
-export function isNoteStale(note: StoredNote, maxAgeDays: number = 365): boolean {
+export function isAnchoredNoteStale(note: StoredAnchoredNote, maxAgeDays: number = 365): boolean {
   const ageDays = (Date.now() - note.timestamp) / (1000 * 60 * 60 * 24);
   return ageDays > maxAgeDays;
 }

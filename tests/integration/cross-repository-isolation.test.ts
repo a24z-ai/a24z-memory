@@ -4,8 +4,8 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { CreateRepositoryNoteTool } from '../../src/core-mcp/tools/CreateRepositoryNoteTool';
-import { GetNotesTool } from '../../src/core-mcp/tools/GetNotesTool';
+import { CreateRepositoryAnchoredNoteTool } from '../../src/core-mcp/tools/CreateRepositoryAnchoredNoteTool';
+import { GetAnchoredNotesTool } from '../../src/core-mcp/tools/GetAnchoredNotesTool';
 import { withGuidanceToken, createTestGuidanceToken } from '../test-helpers';
 
 describe('Repository-Specific Note Retrieval Integration', () => {
@@ -37,8 +37,8 @@ describe('Repository-Specific Note Retrieval Integration', () => {
   });
 
   it('should correctly store and retrieve notes from specific repositories', async () => {
-    const saveTool = new CreateRepositoryNoteTool();
-    const getTool = new GetNotesTool();
+    const saveTool = new CreateRepositoryAnchoredNoteTool();
+    const getTool = new GetAnchoredNotesTool();
 
     // Save notes in repo1
     console.log('Saving note in repo1...');
@@ -118,8 +118,8 @@ describe('Repository-Specific Note Retrieval Integration', () => {
   });
 
   it('should retrieve notes from nested paths within repository', async () => {
-    const saveTool = new CreateRepositoryNoteTool();
-    const getTool = new GetNotesTool();
+    const saveTool = new CreateRepositoryAnchoredNoteTool();
+    const getTool = new GetAnchoredNotesTool();
 
     const nestedPath = path.join(repo1, 'src', 'components', 'Button.tsx');
     fs.mkdirSync(path.dirname(nestedPath), { recursive: true });
@@ -162,7 +162,7 @@ describe('Repository-Specific Note Retrieval Integration', () => {
   });
 
   it('should not retrieve notes from different repository', async () => {
-    const getTool = new GetNotesTool();
+    const getTool = new GetAnchoredNotesTool();
 
     // Both repositories should have notes from previous tests
     // Query repo1 - should not see repo2 notes

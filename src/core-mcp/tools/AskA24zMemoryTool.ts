@@ -2,7 +2,7 @@ import { z } from 'zod';
 import * as path from 'node:path';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
-import { getNotesForPathWithLimit } from '../store/notesStore';
+import { getNotesForPathWithLimit } from '../store/anchoredNotesStore';
 import { normalizeRepositoryPath } from '../utils/pathNormalization';
 import { LLMService, type LLMContext } from '../services/llm-service';
 import { readAnchorFiles, selectOptimalContent } from '../utils/fileReader';

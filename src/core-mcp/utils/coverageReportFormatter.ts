@@ -1,4 +1,4 @@
-import type { NoteCoverageReport } from './noteCoverage';
+import type { NoteCoverageReport } from './anchoredNoteCoverage';
 
 /**
  * Format coverage report as markdown

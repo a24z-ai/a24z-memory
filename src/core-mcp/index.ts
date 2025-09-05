@@ -3,7 +3,11 @@ export { BaseTool } from './tools';
 export type { McpTool, McpToolResult, McpResource, McpServerConfig } from './types';
 
 // View system exports
-export { viewsStore, ViewsStore, generateViewIdFromName } from './store/codebaseViewsStore';
+export {
+  codebaseViewsStore,
+  CodebaseViewsStore,
+  generateViewIdFromName,
+} from './store/codebaseViewsStore';
 export type {
   CodebaseView,
   CodebaseViewFileCell,
@@ -32,8 +36,8 @@ export {
   updateNoteView,
   getOrphanedNotes,
   getViewStatistics,
-} from './store/notesStore';
-export type { SaveNoteWithViewInput } from './store/notesStore';
+} from './store/anchoredNotesStore';
+export type { SaveAnchoredNoteWithViewInput } from './store/anchoredNotesStore';
 
 // View query service exports
 export {

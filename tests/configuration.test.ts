@@ -6,7 +6,7 @@ import {
   getRepositoryConfiguration,
   updateRepositoryConfiguration,
   validateNoteAgainstConfig,
-} from '../src/core-mcp/store/notesStore';
+} from '../src/core-mcp/store/anchoredNotesStore';
 
 describe('Configuration System', () => {
   let tempDir: string;

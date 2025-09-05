@@ -1,13 +1,13 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { GetNoteByIdTool } from '../../../src/core-mcp/tools/GetNoteByIdTool';
-import { saveNote } from '../../../src/core-mcp/store/notesStore';
+import { GetAnchoredNoteByIdTool } from '../../../src/core-mcp/tools/GetAnchoredNoteByIdTool';
+import { saveNote } from '../../../src/core-mcp/store/anchoredNotesStore';
 
-describe('GetNoteByIdTool', () => {
+describe('GetAnchoredNoteByIdTool', () => {
   let tempDir: string;
   let testRepoPath: string;
-  let tool: GetNoteByIdTool;
+  let tool: GetAnchoredNoteByIdTool;
 
   beforeEach(() => {
     // Create a temporary directory for testing
@@ -18,7 +18,7 @@ describe('GetNoteByIdTool', () => {
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
 
-    tool = new GetNoteByIdTool();
+    tool = new GetAnchoredNoteByIdTool();
   });
 
   afterEach(() => {

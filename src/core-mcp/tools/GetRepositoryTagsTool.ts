@@ -7,7 +7,7 @@ import {
   getRepositoryGuidance,
   getAllowedTags,
   getTagDescriptions,
-} from '../store/notesStore';
+} from '../store/anchoredNotesStore';
 import { GuidanceTokenManager } from '../services/guidance-token-manager';
 
 export class GetRepositoryTagsTool extends BaseTool {

@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import { getEligibleFilesSync } from '../src/core-mcp/utils/eligibleFiles';
-import { calculateNoteCoverage } from '../src/core-mcp/utils/noteCoverage';
+import { calculateAnchoredNoteCoverage } from '../src/core-mcp/utils/anchoredNoteCoverage';
 import { parseIgnoreFile } from '../src/core-mcp/utils/ignoreFileParser';
 
 describe('.a24zignore functionality', () => {
@@ -200,7 +200,7 @@ dist/
 
     it('should exclude .a24zignore files from coverage calculation', () => {
       // Without .a24zignore
-      const reportWithoutIgnore = calculateNoteCoverage(testDir);
+      const reportWithoutIgnore = calculateAnchoredNoteCoverage(testDir);
 
       // Create .a24zignore to exclude test files and dist
       fs.writeFileSync(
@@ -210,7 +210,7 @@ dist/
       );
 
       // With .a24zignore
-      const reportWithIgnore = calculateNoteCoverage(testDir);
+      const reportWithIgnore = calculateAnchoredNoteCoverage(testDir);
 
       // Total eligible files should be less with .a24zignore
       expect(reportWithIgnore.metrics.totalEligibleFiles).toBeLessThan(

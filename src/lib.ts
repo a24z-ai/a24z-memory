@@ -24,7 +24,7 @@ export {
   // Note management
   getNoteById,
   deleteNoteById,
-  checkStaleNotes,
+  checkStaleAnchoredNotes,
   mergeNotes,
   // Review functionality
   getUnreviewedNotes,
@@ -38,16 +38,16 @@ export {
   removeTagFromNotes,
   // Type descriptions
   // Types
-  type StoredNote,
+  type StoredAnchoredNote,
   type RepositoryConfiguration,
   type ValidationError,
-  type StaleNote,
+  type StaleAnchoredNote,
   type TagInfo,
-  type NotesResult,
+  type AnchoredNotesResult as AnchoredNotesResultType,
   type TokenLimitInfo,
-  type MergeNotesInput,
-  type MergeNotesResult,
-} from './core-mcp/store/notesStore';
+  type MergeAnchoredNotesInput,
+  type MergeAnchoredNotesResult,
+} from './core-mcp/store/anchoredNotesStore';
 
 // Validation messages and utilities
 export {
@@ -80,20 +80,20 @@ export {
   type ViewSummary,
   type ViewValidationResult,
   type PatternValidationResult,
-  ViewsStore,
-  viewsStore,
+  CodebaseViewsStore,
+  codebaseViewsStore,
 } from './core-mcp/store/codebaseViewsStore';
 
 // Note similarity and deduplication
 export {
-  calculateNoteSimilarity,
-  findSimilarNotePairs,
-  clusterSimilarNotes,
-  isNoteStale,
+  calculateAnchoredNoteSimilarity,
+  findSimilarAnchoredNotePairs,
+  clusterSimilarAnchoredNotes,
+  isAnchoredNoteStale,
   DEFAULT_THRESHOLDS,
-  type NoteSimilarity,
+  type AnchoredNoteSimilarity,
   type SimilarityThresholds,
-} from './core-mcp/utils/noteSimilarity';
+} from './core-mcp/utils/anchoredNoteSimilarity';
 
 // Path utilities
 export {
@@ -107,13 +107,13 @@ export {
 export { zodToJsonSchema } from './core-mcp/utils/zod-to-json-schema';
 
 // Tool classes for direct use
-export { CreateRepositoryNoteTool } from './core-mcp/tools/CreateRepositoryNoteTool';
+export { CreateRepositoryAnchoredNoteTool } from './core-mcp/tools/CreateRepositoryAnchoredNoteTool';
 export { AskA24zMemoryTool, type AskMemoryResponse } from './core-mcp/tools/AskA24zMemoryTool';
 export { GetRepositoryTagsTool } from './core-mcp/tools/GetRepositoryTagsTool';
 export { GetRepositoryGuidanceTool } from './core-mcp/tools/GetRepositoryGuidanceTool';
-export { GetNoteByIdTool } from './core-mcp/tools/GetNoteByIdTool';
-export { DeleteNoteTool } from './core-mcp/tools/DeleteNoteTool';
-export { GetStaleNotesTool } from './core-mcp/tools/GetStaleNotesTool';
+export { GetAnchoredNoteByIdTool } from './core-mcp/tools/GetAnchoredNoteByIdTool';
+export { DeleteAnchoredNoteTool } from './core-mcp/tools/DeleteAnchoredNoteTool';
+export { GetStaleAnchoredNotesTool } from './core-mcp/tools/GetStaleAnchoredNotesTool';
 export { GetTagUsageTool } from './core-mcp/tools/GetTagUsageTool';
 export { DeleteTagTool } from './core-mcp/tools/DeleteTagTool';
 export { BaseTool } from './core-mcp/tools/base-tool';
@@ -166,7 +166,7 @@ import {
   validateNoteAgainstConfig as validateNoteAgainstConfigFunc,
   getNoteById as getNoteByIdFunc,
   deleteNoteById as deleteNoteByIdFunc,
-  checkStaleNotes as checkStaleNotesFunc,
+  checkStaleAnchoredNotes as checkStaleAnchoredNotesFunc,
   mergeNotes as mergeNotesFunc,
   getTagDescriptions as getTagDescriptionsFunc,
   saveTagDescription as saveTagDescriptionFunc,
@@ -176,16 +176,16 @@ import {
   getUnreviewedNotes as getUnreviewedNotesFunc,
   markNoteReviewed as markNoteReviewedFunc,
   markAllNotesReviewed as markAllNotesReviewedFunc,
-  type StoredNote as StoredNoteType,
-  type NoteWithPath as NoteWithPathType,
+  type StoredAnchoredNote as StoredNoteType,
+  type AnchoredNoteWithPath as AnchoredNoteWithPathType,
   type RepositoryConfiguration as RepositoryConfigurationType,
   type ValidationError as ValidationErrorType,
-  type StaleNote as StaleNoteType,
+  type StaleAnchoredNote as StaleAnchoredNoteType,
   type TagInfo as TagInfoType,
-  type NotesResult,
-  type MergeNotesInput as MergeNotesInputType,
-  type MergeNotesResult as MergeNotesResultType,
-} from './core-mcp/store/notesStore';
+  type AnchoredNotesResult as AnchoredNotesResultType,
+  type MergeAnchoredNotesInput as MergeNotesInputType,
+  type MergeAnchoredNotesResult as MergeAnchoredNotesResultType,
+} from './core-mcp/store/anchoredNotesStore';
 
 import { normalizeRepositoryPath as normalizeRepositoryPathFunc } from './core-mcp/utils/pathNormalization';
 
@@ -231,7 +231,7 @@ export class A24zMemory {
     anchors: string[];
     tags: string[];
     metadata?: NoteMetadata; // Metadata can contain arbitrary user data
-  }): NoteWithPathType {
+  }): AnchoredNoteWithPathType {
     return saveNoteFunc({
       ...params,
       directoryPath: this.repositoryPath,
@@ -254,7 +254,7 @@ export class A24zMemory {
     includeParentNotes: boolean,
     limitType: 'count' | 'tokens',
     limit: number
-  ): NotesResult {
+  ): AnchoredNotesResultType {
     return getNotesForPathWithLimitFunc(targetPath, includeParentNotes, limitType, limit);
   }
 
@@ -357,14 +357,14 @@ export class A24zMemory {
   /**
    * Check for notes with stale anchors
    */
-  checkStaleNotes(): StaleNoteType[] {
-    return checkStaleNotesFunc(this.repositoryPath);
+  checkStaleAnchoredNotes(): StaleAnchoredNoteType[] {
+    return checkStaleAnchoredNotesFunc(this.repositoryPath);
   }
 
   /**
    * Merge multiple notes into a single consolidated note
    */
-  mergeNotes(input: MergeNotesInputType): MergeNotesResultType {
+  mergeNotes(input: MergeNotesInputType): MergeAnchoredNotesResultType {
     return mergeNotesFunc(this.repositoryPath, input);
   }
 

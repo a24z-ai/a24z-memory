@@ -5,14 +5,14 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-// import { saveNote } from '../src/core-mcp/store/notesStore'; - removed unused import
-import { CreateRepositoryNoteTool } from '../src/core-mcp/tools/CreateRepositoryNoteTool';
+// import { saveNote } from "../../../src/core-mcp/store/anchoredNotesStore"; - removed unused import
+import { CreateRepositoryAnchoredNoteTool } from '../src/core-mcp/tools/CreateRepositoryAnchoredNoteTool';
 import { GuidanceTokenManager } from '../src/core-mcp/services/guidance-token-manager';
 
 describe('Mandatory Guidance Token Enforcement', () => {
   let tempDir: string;
   let testRepoPath: string;
-  let tool: CreateRepositoryNoteTool;
+  let tool: CreateRepositoryAnchoredNoteTool;
   let tokenManager: GuidanceTokenManager;
 
   beforeEach(() => {
@@ -24,7 +24,7 @@ describe('Mandatory Guidance Token Enforcement', () => {
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
 
-    tool = new CreateRepositoryNoteTool();
+    tool = new CreateRepositoryAnchoredNoteTool();
     tokenManager = new GuidanceTokenManager();
   });
 

@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { BaseTool } from './base-tool';
-import { removeTagFromNotes, deleteTagDescription, getTagDescriptions } from '../store/notesStore';
+import {
+  removeTagFromNotes,
+  deleteTagDescription,
+  getTagDescriptions,
+} from '../store/anchoredNotesStore';
 import { findGitRoot } from '../utils/pathNormalization';
 import { McpToolResult } from '../types';
 import path from 'path';

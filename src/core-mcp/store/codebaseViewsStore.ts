@@ -209,7 +209,7 @@ export function computeGridDimensions(cells: Record<string, CodebaseViewFileCell
 /**
  * Storage class for managing CodebaseView configurations.
  */
-export class ViewsStore {
+export class CodebaseViewsStore {
   /**
    * Get the directory where view configurations are stored.
    * Views are stored in .a24z/views/ for consistency with other a24z data.
@@ -376,7 +376,7 @@ export class ViewsStore {
 }
 
 // Export a singleton instance
-export const viewsStore = new ViewsStore();
+export const codebaseViewsStore = new CodebaseViewsStore();
 
 /**
  * Generate a URL-safe ID from a view name.

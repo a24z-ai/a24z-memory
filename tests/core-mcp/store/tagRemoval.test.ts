@@ -8,12 +8,12 @@ import {
   removeAllowedTag,
   addAllowedTag,
   getNotesForPath,
-  type StoredNote,
-} from '../../../src/core-mcp/store/notesStore';
+  type StoredAnchoredNote,
+} from '../../../src/core-mcp/store/anchoredNotesStore';
 
 describe('Tag Removal from Notes', () => {
   let testRepoPath: string;
-  let testNote: Omit<StoredNote, 'id' | 'timestamp'>;
+  let testNote: Omit<StoredAnchoredNote, 'id' | 'timestamp'>;
 
   beforeEach(() => {
     // Create a temporary directory for testing

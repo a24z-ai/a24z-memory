@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { GetRepositoryTagsTool } from '../../../src/core-mcp/tools/GetRepositoryTagsTool';
-import { saveNote } from '../../../src/core-mcp/store/notesStore';
+import { saveNote } from '../../../src/core-mcp/store/anchoredNotesStore';
 import { TEST_DIR } from '../../setup';
 import { createTestGuidanceToken } from '../../test-helpers';
 

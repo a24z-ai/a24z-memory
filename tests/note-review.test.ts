@@ -12,7 +12,7 @@ import {
   markAllNotesReviewed,
   getNotesForPath,
   getNoteById,
-} from '../src/core-mcp/store/notesStore';
+} from '../src/core-mcp/store/anchoredNotesStore';
 
 describe('Note Review Functionality', () => {
   let testRepoRoot: string;

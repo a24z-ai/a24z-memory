@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { readAllNotes } from '../store/notesStore';
+import { readAllNotes } from '../store/anchoredNotesStore';
 import { normalizeRepositoryPath } from './pathNormalization';
 import { getEligibleFilesSync, type FileInfo } from './eligibleFiles';
 
@@ -31,7 +31,7 @@ export interface FileWithCoverage extends FileInfo {
   noteIds: string[];
 }
 
-export interface StaleNote {
+export interface StaleAnchoredNote {
   noteId: string;
   anchor: string;
   noteContent: string;
@@ -49,7 +49,7 @@ export interface NoteCoverageReport {
     path: string;
     size: number;
   }>;
-  staleNotes: StaleNote[];
+  staleNotes: StaleAnchoredNote[];
   coveredFiles: FileWithCoverage[];
   uncoveredFiles: FileWithCoverage[];
   coveredDirectories: FileWithCoverage[];
@@ -95,17 +95,17 @@ function anchorMatchesPath(anchor: string, targetPath: string, repoPath: string)
 /**
  * Calculate note coverage for a repository
  */
-export function calculateNoteCoverage(
+export function calculateAnchoredNoteCoverage(
   repositoryPath: string,
   options: {
     includeDirectories?: boolean;
-    maxStaleNotesToReport?: number;
+    maxStaleAnchoredNotesToReport?: number;
     excludeDirectoryAnchors?: boolean;
   } = {}
 ): NoteCoverageReport {
   const {
     includeDirectories = true,
-    maxStaleNotesToReport = 50,
+    maxStaleAnchoredNotesToReport = 50,
     excludeDirectoryAnchors = false,
   } = options;
 
@@ -124,7 +124,7 @@ export function calculateNoteCoverage(
   // Initialize coverage maps
   const fileCoverageMap = new Map<string, FileWithCoverage>();
   const directoryCoverageMap = new Map<string, FileWithCoverage>();
-  const staleNotes: StaleNote[] = [];
+  const staleNotes: StaleAnchoredNote[] = [];
 
   // Initialize all files with no coverage
   files.forEach((file) => {
@@ -274,7 +274,7 @@ export function calculateNoteCoverage(
     }));
 
   // Limit stale notes
-  const limitedStaleNotes = staleNotes.slice(0, maxStaleNotesToReport);
+  const limitedStaleAnchoredNotes = staleNotes.slice(0, maxStaleAnchoredNotesToReport);
 
   return {
     repositoryPath: repoPath,
@@ -282,7 +282,7 @@ export function calculateNoteCoverage(
     coverageByType,
     filesWithMostNotes,
     largestUncoveredFiles,
-    staleNotes: limitedStaleNotes,
+    staleNotes: limitedStaleAnchoredNotes,
     coveredFiles,
     uncoveredFiles,
     coveredDirectories,

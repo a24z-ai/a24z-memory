@@ -7,7 +7,7 @@ import {
   getRepositoryGuidance,
   getAllowedTags,
   getTagDescriptions,
-} from '../store/notesStore';
+} from '../store/anchoredNotesStore';
 
 /**
  * Generate the full guidance content for a repository

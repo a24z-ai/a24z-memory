@@ -8,7 +8,7 @@ import {
   saveTagDescription,
   getTagDescriptions,
   getNotesForPath,
-} from '../../../src/core-mcp/store/notesStore';
+} from '../../../src/core-mcp/store/anchoredNotesStore';
 
 describe('ReplaceTagTool', () => {
   let tempDir: string;

@@ -9,12 +9,12 @@ import {
   getTagDescriptions,
   saveTagDescription,
   getAllowedTags,
-} from '../store/notesStore';
+} from '../store/anchoredNotesStore';
 import { findGitRoot } from '../utils/pathNormalization';
 import { GuidanceTokenManager } from '../services/guidance-token-manager';
 import { generateFullGuidanceContent } from '../utils/guidanceGenerator';
 
-export class CreateRepositoryNoteTool extends BaseTool {
+export class CreateRepositoryAnchoredNoteTool extends BaseTool {
   name = 'create_repository_note';
   description =
     'Document tribal knowledge, architectural decisions, implementation patterns, and important lessons learned. This tool creates searchable notes that help future developers understand context and avoid repeating mistakes. Notes are stored locally in your repository and can be retrieved using the askA24zMemory tool.';

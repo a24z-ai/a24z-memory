@@ -8,7 +8,7 @@ import {
   getAllowedTags,
   validateNoteAgainstConfig,
   saveTagDescription,
-} from '../../../src/core-mcp/store/notesStore';
+} from '../../../src/core-mcp/store/anchoredNotesStore';
 
 describe('Tag Restrictions', () => {
   let tempDir: string;

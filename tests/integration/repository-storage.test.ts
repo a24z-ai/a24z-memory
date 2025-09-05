@@ -1,6 +1,10 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { saveNote, getNotesForPath, getUsedTagsForPath } from '../../src/core-mcp/store/notesStore';
+import {
+  saveNote,
+  getNotesForPath,
+  getUsedTagsForPath,
+} from '../../src/core-mcp/store/anchoredNotesStore';
 import {
   normalizeRepositoryPath,
   findProjectRoot,
@@ -231,13 +235,15 @@ describe('Repository-Specific Storage', () => {
   describe('MCP Tool Integration', () => {
     it('should save and retrieve notes through the actual MCP tools', async () => {
       // Import the actual MCP tools
-      const { CreateRepositoryNoteTool } = await import(
-        '../../src/core-mcp/tools/CreateRepositoryNoteTool'
+      const { CreateRepositoryAnchoredNoteTool } = await import(
+        '../../src/core-mcp/tools/CreateRepositoryAnchoredNoteTool'
       );
-      const { GetNotesTool } = await import('../../src/core-mcp/tools/GetNotesTool');
+      const { GetAnchoredNotesTool } = await import(
+        '../../src/core-mcp/tools/GetAnchoredNotesTool'
+      );
 
-      const saveTool = new CreateRepositoryNoteTool();
-      const getTool = new GetNotesTool();
+      const saveTool = new CreateRepositoryAnchoredNoteTool();
+      const getTool = new GetAnchoredNotesTool();
 
       // Save a note using the MCP tool
       const saveResult = await saveTool.execute(
@@ -292,8 +298,10 @@ describe('Repository-Specific Storage', () => {
       const saved = savedWithPath.note;
 
       // Import and use the MCP tool
-      const { GetNotesTool } = await import('../../src/core-mcp/tools/GetNotesTool');
-      const getTool = new GetNotesTool();
+      const { GetAnchoredNotesTool } = await import(
+        '../../src/core-mcp/tools/GetAnchoredNotesTool'
+      );
+      const getTool = new GetAnchoredNotesTool();
 
       // Try to retrieve from a deeply nested path
       const deepPath = path.join(testRepoPath, 'src', 'components', 'Button.tsx');
