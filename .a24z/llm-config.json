@@ -1,5 +1,0 @@
-{
-  "provider": "ollama",
-  "model": "nomic-embed-text",
-  "endpoint": "http://localhost:11434"
-}
