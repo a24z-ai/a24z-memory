@@ -10,6 +10,7 @@ import {
   ViewFileCell,
   ViewValidationResult,
   PatternValidationResult,
+  computeGridDimensions,
 } from '../store/viewsStore';
 
 /**
@@ -58,24 +59,20 @@ export function validateViewFileCell(cell: ViewFileCell, cellName: string): View
     }
   }
 
-  if (cell.label !== undefined && typeof cell.label !== 'string') {
-    errors.push(`Cell "${cellName}": label must be a string`);
-  }
-
-  if (cell.color !== undefined) {
-    if (typeof cell.color !== 'string') {
-      errors.push(`Cell "${cellName}": color must be a string`);
-    } else if (!/^#[0-9A-Fa-f]{6}$/.test(cell.color)) {
-      warnings.push(`Cell "${cellName}": color should be a valid hex color (e.g., #667eea)`);
+  if (cell.links !== undefined) {
+    if (typeof cell.links !== 'object' || cell.links === null || Array.isArray(cell.links)) {
+      errors.push(`Cell "${cellName}": links must be an object`);
+    } else {
+      // Validate each link
+      for (const [viewId, label] of Object.entries(cell.links)) {
+        if (typeof label !== 'string') {
+          errors.push(`Cell "${cellName}": link label for view "${viewId}" must be a string`);
+        }
+        if (viewId.trim() === '') {
+          errors.push(`Cell "${cellName}": link view ID cannot be empty`);
+        }
+      }
     }
-  }
-
-  if (cell.linkedMapId !== undefined && typeof cell.linkedMapId !== 'string') {
-    errors.push(`Cell "${cellName}": linkedMapId must be a string`);
-  }
-
-  if (cell.linkLabel !== undefined && typeof cell.linkLabel !== 'string') {
-    errors.push(`Cell "${cellName}": linkLabel must be a string`);
   }
 
   if (cell.metadata !== undefined) {
@@ -86,15 +83,6 @@ export function validateViewFileCell(cell: ViewFileCell, cellName: string): View
     ) {
       errors.push(`Cell "${cellName}": metadata must be an object`);
     }
-  }
-
-  // Suggestions
-  if (!cell.label) {
-    suggestions.push(`Cell "${cellName}": consider adding a label for better visualization`);
-  }
-
-  if (!cell.color) {
-    suggestions.push(`Cell "${cellName}": consider adding a color for visual distinction`);
   }
 
   return {
@@ -126,20 +114,22 @@ export function validateCodebaseView(view: CodebaseView): ViewValidationResult {
     errors.push('version is required and must be a string');
   }
 
-  if (typeof view.enabled !== 'boolean') {
-    errors.push('enabled must be a boolean');
+  // Validate rows if provided
+  if (view.rows !== undefined) {
+    if (typeof view.rows !== 'number' || !Number.isInteger(view.rows) || view.rows < 1) {
+      errors.push('rows must be a positive integer');
+    } else if (view.rows > 6) {
+      warnings.push('rows > 6 may not display well in visualizations');
+    }
   }
 
-  if (typeof view.rows !== 'number' || !Number.isInteger(view.rows) || view.rows < 1) {
-    errors.push('rows must be a positive integer');
-  } else if (view.rows > 6) {
-    warnings.push('rows > 6 may not display well in visualizations');
-  }
-
-  if (typeof view.cols !== 'number' || !Number.isInteger(view.cols) || view.cols < 1) {
-    errors.push('cols must be a positive integer');
-  } else if (view.cols > 6) {
-    warnings.push('cols > 6 may not display well in visualizations');
+  // Validate cols if provided
+  if (view.cols !== undefined) {
+    if (typeof view.cols !== 'number' || !Number.isInteger(view.cols) || view.cols < 1) {
+      errors.push('cols must be a positive integer');
+    } else if (view.cols > 6) {
+      warnings.push('cols > 6 may not display well in visualizations');
+    }
   }
 
   if (!view.cells || typeof view.cells !== 'object' || Array.isArray(view.cells)) {
@@ -161,66 +151,24 @@ export function validateCodebaseView(view: CodebaseView): ViewValidationResult {
     errors.push('overviewPath must be a string');
   }
 
-  if (view.cellPadding !== undefined) {
-    if (typeof view.cellPadding !== 'number' || view.cellPadding < 0) {
-      errors.push('cellPadding must be a non-negative number');
-    }
-  }
-
-  if (view.showCellLabels !== undefined && typeof view.showCellLabels !== 'boolean') {
-    errors.push('showCellLabels must be a boolean');
-  }
-
-  if (view.cellLabelPosition !== undefined) {
-    if (!['top', 'bottom', 'none'].includes(view.cellLabelPosition)) {
-      errors.push('cellLabelPosition must be "top", "bottom", or "none"');
-    }
-  }
-
-  if (view.cellLabelHeight !== undefined) {
-    if (typeof view.cellLabelHeight !== 'number' || view.cellLabelHeight < 0) {
-      errors.push('cellLabelHeight must be a non-negative number');
-    }
-  }
-
-  if (view.cellLabelHeightPercent !== undefined) {
-    if (
-      typeof view.cellLabelHeightPercent !== 'number' ||
-      view.cellLabelHeightPercent < 0 ||
-      view.cellLabelHeightPercent > 1
-    ) {
-      errors.push('cellLabelHeightPercent must be a number between 0 and 1');
-    }
-  }
-
-  if (view.repository !== undefined && typeof view.repository !== 'string') {
-    errors.push('repository must be a string');
-  }
-
-  if (view.timestamp !== undefined && typeof view.timestamp !== 'string') {
-    errors.push('timestamp must be a string');
-  }
-
-  if (view.unassignedCell !== undefined) {
-    if (!Array.isArray(view.unassignedCell) || view.unassignedCell.length !== 2) {
-      errors.push('unassignedCell must be an array of two numbers [row, col]');
+  if (view.links !== undefined) {
+    if (typeof view.links !== 'object' || view.links === null || Array.isArray(view.links)) {
+      errors.push('links must be an object');
     } else {
-      const [row, col] = view.unassignedCell;
-      if (
-        typeof row !== 'number' ||
-        typeof col !== 'number' ||
-        !Number.isInteger(row) ||
-        !Number.isInteger(col)
-      ) {
-        errors.push('unassignedCell coordinates must be integers');
+      // Validate each link
+      for (const [viewId, label] of Object.entries(view.links)) {
+        if (typeof label !== 'string') {
+          errors.push(`Link label for view "${viewId}" must be a string`);
+        }
+        if (viewId.trim() === '') {
+          errors.push('Link view ID cannot be empty');
+        }
       }
     }
   }
 
-  if (view.unassignedStrategy !== undefined) {
-    if (!['single-cell', 'distribute', 'hide'].includes(view.unassignedStrategy)) {
-      errors.push('unassignedStrategy must be "single-cell", "distribute", or "hide"');
-    }
+  if (view.timestamp !== undefined && typeof view.timestamp !== 'string') {
+    errors.push('timestamp must be a string');
   }
 
   // Validate individual cells
@@ -236,7 +184,7 @@ export function validateCodebaseView(view: CodebaseView): ViewValidationResult {
   }
 
   // Grid dimension validation
-  if (typeof view.rows === 'number' && typeof view.cols === 'number' && view.cells) {
+  if (view.cells && Object.keys(view.cells).length > 0) {
     const gridValidation = validateGridDimensions(view);
     errors.push(...gridValidation.errors);
     warnings.push(...gridValidation.warnings);
@@ -340,7 +288,15 @@ export function validateGridDimensions(view: CodebaseView): ViewValidationResult
   const warnings: string[] = [];
   const suggestions: string[] = [];
 
-  const { rows, cols, cells } = view;
+  const { cells } = view;
+
+  // Use provided dimensions or compute from cells
+  const dimensions =
+    view.rows !== undefined && view.cols !== undefined
+      ? { rows: view.rows, cols: view.cols }
+      : computeGridDimensions(cells);
+
+  const { rows, cols } = dimensions;
 
   for (const [cellName, cell] of Object.entries(cells)) {
     const [row, col] = cell.coordinates;

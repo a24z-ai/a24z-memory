@@ -3,11 +3,12 @@ export { BaseTool } from './tools';
 export type { McpTool, McpToolResult, McpResource, McpServerConfig } from './types';
 
 // View system exports
-export { viewsStore, ViewsStore } from './store/viewsStore';
+export { viewsStore, ViewsStore, generateViewIdFromName } from './store/viewsStore';
 export type {
   CodebaseView,
   ViewFileCell,
-  ViewScope,
+  CodebaseViewScope,
+  CodebaseViewLinks,
   ViewSummary,
   ViewValidationResult,
   PatternValidationResult,

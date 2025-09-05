@@ -74,7 +74,8 @@ export {
 // CodebaseView types and storage
 export {
   type ViewFileCell,
-  type ViewScope,
+  type CodebaseViewScope,
+  type CodebaseViewLinks,
   type CodebaseView,
   type ViewSummary,
   type ViewValidationResult,

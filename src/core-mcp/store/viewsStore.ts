@@ -13,6 +13,12 @@ import * as path from 'path';
 import { normalizeRepositoryPath } from '../utils/pathNormalization';
 
 /**
+ * Links between codebase views.
+ * Key is the target view ID, value is a descriptive label for the link.
+ */
+export type CodebaseViewLinks = Record<string, string>;
+
+/**
  * A cell in the grid that contains files matching specific patterns.
  * Each cell represents a logical grouping of related files in the codebase.
  */
@@ -36,27 +42,10 @@ export interface ViewFileCell {
   priority?: number;
 
   /**
-   * Display label for the cell.
-   * Used in visualizations and UI.
-   */
-  label?: string;
-
-  /**
-   * Hex color for visualization.
-   * Example: '#667eea'
-   */
-  color?: string;
-
-  /**
-   * Optional link to another view ID.
+   * Links to other views from this cell.
    * Enables navigation between related views.
    */
-  linkedMapId?: string;
-
-  /**
-   * Tooltip or description for the linked view.
-   */
-  linkLabel?: string;
+  links?: CodebaseViewLinks;
 
   /**
    * Custom metadata for extensibility.
@@ -68,12 +57,12 @@ export interface ViewFileCell {
  * Scope configuration for filtering the file tree before grid layout.
  * Allows focusing on specific parts of the repository.
  */
-export interface ViewScope {
+export interface CodebaseViewScope {
   /**
-   * Root path to focus on within the repository.
-   * Example: '/src/frontend'
+   * Base path within the repository to scope the view to.
+   * Relative to the repository root (e.g., 'src/frontend', not '/src/frontend').
    */
-  rootPath?: string;
+  basePath?: string;
 
   /**
    * Patterns for files to include.
@@ -106,8 +95,9 @@ export interface CodebaseView {
 
   /**
    * Human-readable name for the view.
+   * Required for all views to ensure proper display.
    */
-  name?: string;
+  name: string;
 
   /**
    * Description of what this view represents.
@@ -116,27 +106,30 @@ export interface CodebaseView {
   description?: string;
 
   /**
-   * Whether this grid layout is active.
-   */
-  enabled: boolean;
-
-  /**
    * Number of rows in the grid.
+   * If not specified, computed from maximum row coordinate in cells.
    * Recommended: 1-6 for optimal visualization.
    */
-  rows: number;
+  rows?: number;
 
   /**
    * Number of columns in the grid.
+   * If not specified, computed from maximum column coordinate in cells.
    * Recommended: 1-6 for optimal visualization.
    */
-  cols: number;
+  cols?: number;
 
   /**
    * Cell configurations mapped by cell name/identifier.
    * Each entry defines what files belong in that cell.
    */
   cells: Record<string, ViewFileCell>;
+
+  /**
+   * Links to other views from this view.
+   * Enables navigation between related views at the view level.
+   */
+  links?: CodebaseViewLinks;
 
   /**
    * Path to markdown documentation file.
@@ -147,53 +140,12 @@ export interface CodebaseView {
   /**
    * Optional scope filtering before grid layout.
    */
-  scope?: ViewScope;
-
-  /**
-   * Space between cells in pixels for visualization.
-   */
-  cellPadding?: number;
-
-  /**
-   * Whether to display cell labels.
-   */
-  showCellLabels?: boolean;
-
-  /**
-   * Position of cell labels in visualization.
-   */
-  cellLabelPosition?: 'top' | 'bottom' | 'none';
-
-  /**
-   * Height of label area in pixels.
-   */
-  cellLabelHeight?: number;
-
-  /**
-   * Height of label area as percentage of cell height.
-   * Default: 0.1 (10%)
-   */
-  cellLabelHeightPercent?: number;
-
-  /**
-   * Repository identifier this view belongs to.
-   */
-  repository?: string;
+  scope?: CodebaseViewScope;
 
   /**
    * Creation/modification timestamp.
    */
   timestamp?: string;
-
-  /**
-   * Where to place files that don't match any cell patterns.
-   */
-  unassignedCell?: [number, number];
-
-  /**
-   * Strategy for handling unmatched files.
-   */
-  unassignedStrategy?: 'single-cell' | 'distribute' | 'hide';
 }
 
 /**
@@ -206,7 +158,6 @@ export interface ViewSummary {
   rows: number;
   cols: number;
   cellCount: number;
-  enabled: boolean;
   timestamp?: string;
 }
 
@@ -232,6 +183,27 @@ export interface PatternValidationResult {
     patterns: string[];
     cells: string[];
   }>;
+}
+
+/**
+ * Compute grid dimensions from cell coordinates.
+ * Returns the minimum grid size needed to contain all cells.
+ */
+export function computeGridDimensions(cells: Record<string, ViewFileCell>): {
+  rows: number;
+  cols: number;
+} {
+  let maxRow = 0;
+  let maxCol = 0;
+
+  for (const cell of Object.values(cells)) {
+    const [row, col] = cell.coordinates;
+    maxRow = Math.max(maxRow, row);
+    maxCol = Math.max(maxCol, col);
+  }
+
+  // Add 1 since coordinates are 0-indexed
+  return { rows: maxRow + 1, cols: maxCol + 1 };
 }
 
 /**
@@ -310,14 +282,19 @@ export class ViewsStore {
       const view = this.getView(repositoryPath, viewId);
 
       if (view) {
+        // Compute dimensions if not specified
+        const dimensions =
+          view.rows !== undefined && view.cols !== undefined
+            ? { rows: view.rows, cols: view.cols }
+            : computeGridDimensions(view.cells);
+
         summaries.push({
           id: view.id,
-          name: view.name || view.id,
+          name: view.name,
           description: view.description,
-          rows: view.rows,
-          cols: view.cols,
+          rows: dimensions.rows,
+          cols: dimensions.cols,
           cellCount: Object.keys(view.cells).length,
-          enabled: view.enabled,
           timestamp: view.timestamp,
         });
       }
@@ -389,7 +366,7 @@ export class ViewsStore {
     const defaultView: CodebaseView = {
       ...view,
       id: 'default',
-      name: view.name || 'Default View',
+      name: view.name,
       description: view.description || `Default view based on ${viewId}`,
     };
 
@@ -400,3 +377,23 @@ export class ViewsStore {
 
 // Export a singleton instance
 export const viewsStore = new ViewsStore();
+
+/**
+ * Generate a URL-safe ID from a view name.
+ * Converts the name to lowercase, replaces spaces and special characters with hyphens,
+ * and removes any leading/trailing hyphens.
+ *
+ * @param name - The human-readable name to convert
+ * @returns A URL-safe ID suitable for use as a filename
+ *
+ * @example
+ * generateViewIdFromName("My Architecture View") // returns "my-architecture-view"
+ * generateViewIdFromName("Frontend (React + Redux)") // returns "frontend-react-redux"
+ */
+export function generateViewIdFromName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric chars with hyphens
+    .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+    .substring(0, 50); // Limit length for filesystem safety
+}
