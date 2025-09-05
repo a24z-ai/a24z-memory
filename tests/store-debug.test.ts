@@ -1,8 +1,9 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import * as os from 'node:os';
 
 // Import the internal functions by copying them temporarily
-const DATA_DIR = process.env.A24Z_TEST_DATA_DIR || path.join(require('os').homedir(), '.a24z');
+const DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'a24z-store-debug-test-'));
 const NOTES_FILE = path.join(DATA_DIR, 'repository-notes.json');
 
 function ensureDataDir(): void {
@@ -30,6 +31,13 @@ function writeAllNotes(notes: unknown[]): void {
 }
 
 describe('Store Debug Test', () => {
+  afterAll(() => {
+    // Clean up the temp directory
+    if (fs.existsSync(DATA_DIR)) {
+      fs.rmSync(DATA_DIR, { recursive: true, force: true });
+    }
+  });
+
   it('should test the write process manually', () => {
     const testNotes = [
       {

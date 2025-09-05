@@ -252,8 +252,9 @@ describe('MCP Server Integration', () => {
         const server = await startMcpServer();
 
         try {
-          // Use the project directory for testing (simpler and more realistic)
-          const projectDir = process.cwd();
+          // Use the test repository for testing instead of project directory
+          // testRepo is already set up in beforeAll() with a proper .git directory
+          const projectDir = testRepo;
 
           // No guidance token needed for current implementation
 
@@ -412,6 +413,7 @@ describe('MCP Server Integration', () => {
       const server = spawn('node', [path.join(process.cwd(), 'dist/cli.js'), 'start'], {
         stdio: ['pipe', 'pipe', 'pipe'],
         env: { ...process.env },
+        cwd: testRepo, // Run from test repository to avoid creating .a24z in project directory
       });
 
       let output = '';
@@ -490,7 +492,7 @@ describe('MCP Server Integration', () => {
       const server = spawn('node', [path.join(process.cwd(), 'dist/cli.js'), 'start'], {
         stdio: ['pipe', 'pipe', 'pipe'],
         env: { ...process.env },
-        cwd: process.cwd(), // Always run from project directory
+        cwd: testRepo, // Run from test repository to avoid creating .a24z in project directory
       });
 
       let initialized = false;
