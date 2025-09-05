@@ -295,6 +295,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
         directoryPath: testPath,
         anchors: ['src/**/*.ts', 'docs/'],
         tags: ['markdown', 'documentation', 'typescript'],
+        codebaseViewId: 'test-view',
         metadata: {
           author: 'test-user',
           complexity: 'high',

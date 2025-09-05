@@ -10,7 +10,7 @@ import {
   findProjectRoot,
   getRepositoryName,
 } from '../../src/core-mcp/utils/pathNormalization';
-import { withGuidanceToken, createTestGuidanceToken } from '../test-helpers';
+import { withGuidanceToken, createTestGuidanceToken, createTestView } from '../test-helpers';
 
 describe('Repository-Specific Storage', () => {
   const testRepoPath = '/tmp/test-repo-storage';
@@ -31,6 +31,9 @@ describe('Repository-Specific Storage', () => {
       path.join(testRepoPath, '.git', 'config'),
       '[core]\nrepositoryformatversion = 0\n'
     );
+
+    // Create a test view
+    createTestView(testRepoPath, 'test-view');
 
     // Create package.json to make it a project root
     fs.writeFileSync(
@@ -73,6 +76,7 @@ describe('Repository-Specific Storage', () => {
       directoryPath: testRepoPath, // Must be repository root
       anchors: [testSubPath],
       tags: ['test', 'repository-storage'],
+      codebaseViewId: 'test-view',
       metadata: { testRun: true },
     };
 
@@ -131,6 +135,7 @@ describe('Repository-Specific Storage', () => {
         ...testNote,
         note: 'Second test note',
         tags: ['test', 'second-note'],
+        codebaseViewId: 'test-view',
       });
       const note2 = note2WithPath.note;
 
@@ -174,6 +179,9 @@ describe('Repository-Specific Storage', () => {
         '[core]\nrepositoryformatversion = 0\n'
       );
 
+      // Create test view for second repo
+      createTestView(secondRepoPath, 'test-view');
+
       fs.writeFileSync(
         path.join(secondRepoPath, 'package.json'),
         JSON.stringify({
@@ -196,6 +204,7 @@ describe('Repository-Specific Storage', () => {
         directoryPath: testRepoPath,
         tags: ['repo1'],
         anchors: [testRepoPath],
+        codebaseViewId: 'test-view',
         metadata: {},
       });
       const note1 = note1WithPath.note;
@@ -206,6 +215,7 @@ describe('Repository-Specific Storage', () => {
         directoryPath: secondRepoPath,
         tags: ['repo2'],
         anchors: [secondRepoPath],
+        codebaseViewId: 'test-view',
         metadata: {},
       });
       const note2 = note2WithPath.note;
@@ -252,6 +262,7 @@ describe('Repository-Specific Storage', () => {
           directoryPath: testRepoPath,
           tags: ['mcp-test', 'integration'],
           anchors: [testSubPath],
+          codebaseViewId: 'test-view',
           metadata: { mcpTest: true },
         })
       );
@@ -293,6 +304,7 @@ describe('Repository-Specific Storage', () => {
         directoryPath: testRepoPath,
         tags: ['nested-test'],
         anchors: [testSubPath],
+        codebaseViewId: 'test-view',
         metadata: {},
       });
       const saved = savedWithPath.note;

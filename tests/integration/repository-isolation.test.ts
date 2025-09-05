@@ -11,7 +11,7 @@ import {
 } from '../../src/core-mcp/store/anchoredNotesStore';
 import { CreateRepositoryAnchoredNoteTool } from '../../src/core-mcp/tools/CreateRepositoryAnchoredNoteTool';
 import { GetAnchoredNotesTool } from '../../src/core-mcp/tools/GetAnchoredNotesTool';
-import { withGuidanceToken, createTestGuidanceToken } from '../test-helpers';
+import { withGuidanceToken, createTestGuidanceToken, createTestView } from '../test-helpers';
 
 describe('Repository Isolation and Cross-Repository Testing', () => {
   const tempBase = path.join(os.tmpdir(), 'a24z-repo-isolation-test-' + Date.now());
@@ -51,6 +51,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       })
     );
     fs.mkdirSync(path.join(repo1Path, 'src', 'components'), { recursive: true });
+    createTestView(repo1Path, 'test-view');
 
     // Repository 2: Git repository with package.json
     fs.mkdirSync(repo2Path, { recursive: true });
@@ -67,6 +68,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       })
     );
     fs.mkdirSync(path.join(repo2Path, 'lib', 'utils'), { recursive: true });
+    createTestView(repo2Path, 'test-view');
 
     // Repository 3: Git repository without package.json
     fs.mkdirSync(path.join(repo3Path, '.git'), { recursive: true });
@@ -75,6 +77,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       '[core]\nrepositoryformatversion = 0\n'
     );
     fs.mkdirSync(path.join(repo3Path, 'modules', 'core'), { recursive: true });
+    createTestView(repo3Path, 'test-view');
   });
 
   afterEach(() => {
@@ -90,6 +93,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
     it('should create separate .a24z directories for each repository', () => {
       // Save a note in each repository
       saveNote({
+        codebaseViewId: 'test-view',
         note: 'Alpha project note',
         directoryPath: repo1Path,
         tags: ['alpha'],
@@ -98,6 +102,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       });
 
       saveNote({
+        codebaseViewId: 'test-view',
         note: 'Beta project note',
         directoryPath: repo2Path,
         tags: ['beta'],
@@ -106,6 +111,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       });
 
       saveNote({
+        codebaseViewId: 'test-view',
         note: 'Gamma project note',
         directoryPath: repo3Path,
         tags: ['gamma'],
@@ -127,6 +133,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
     it('should not cross-contaminate notes between repositories', () => {
       // Save different notes in each repository
       const note1 = saveNote({
+        codebaseViewId: 'test-view',
         note: 'Secret alpha note',
         directoryPath: repo1Path,
         tags: ['secret', 'alpha-only'],
@@ -135,6 +142,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       });
 
       const note2 = saveNote({
+        codebaseViewId: 'test-view',
         note: 'Private beta note',
         directoryPath: repo2Path,
         tags: ['private', 'beta-only'],
@@ -174,6 +182,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       fs.mkdirSync(path.dirname(subPath2), { recursive: true });
 
       saveNote({
+        codebaseViewId: 'test-view',
         note: 'Component level note',
         directoryPath: repo1Path,
         tags: ['components'],
@@ -182,6 +191,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       });
 
       saveNote({
+        codebaseViewId: 'test-view',
         note: 'Deep button note',
         directoryPath: repo1Path,
         tags: ['button'],
@@ -205,6 +215,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
     it('should retrieve parent notes when querying from subdirectories', () => {
       // Save note at repository root
       const rootNote = saveNote({
+        codebaseViewId: 'test-view',
         note: 'Repository-wide configuration',
         directoryPath: repo1Path,
         tags: ['config', 'root'],
@@ -231,6 +242,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       fs.mkdirSync(path.join(repo1Path, 'src', 'auth'), { recursive: true });
 
       saveNote({
+        codebaseViewId: 'test-view',
         note: 'Authentication implementation in Alpha',
         directoryPath: repo1Path,
         tags: ['auth', 'security'],
@@ -242,6 +254,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       fs.mkdirSync(path.join(repo2Path, 'lib', 'auth'), { recursive: true });
 
       saveNote({
+        codebaseViewId: 'test-view',
         note: 'Authentication implementation in Beta',
         directoryPath: repo2Path,
         tags: ['auth', 'security'],
@@ -253,6 +266,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       fs.mkdirSync(path.join(repo3Path, 'modules', 'auth'), { recursive: true });
 
       saveNote({
+        codebaseViewId: 'test-view',
         note: 'Authentication implementation in Gamma',
         directoryPath: repo3Path,
         tags: ['auth', 'security'],
@@ -279,6 +293,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
     it('should maintain tag isolation between repositories', () => {
       // Save notes with overlapping tags
       saveNote({
+        codebaseViewId: 'test-view',
         note: 'Alpha feature',
         directoryPath: repo1Path,
         tags: ['feature', 'v1'],
@@ -287,6 +302,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       });
 
       saveNote({
+        codebaseViewId: 'test-view',
         note: 'Beta feature',
         directoryPath: repo2Path,
         tags: ['feature', 'v2'],
@@ -319,6 +335,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
           directoryPath: repo1Path,
           anchors: [repo1Path],
           tags: ['mcp', 'alpha'],
+          codebaseViewId: 'test-view',
           metadata: {},
         })
       );
@@ -329,6 +346,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
           directoryPath: repo2Path,
           anchors: [repo2Path],
           tags: ['mcp', 'beta'],
+          codebaseViewId: 'test-view',
           metadata: {},
         })
       );
@@ -389,9 +407,11 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
           version: '1.0.0',
         })
       );
+      createTestView(nestedRepoPath, 'test-view');
 
       // Save notes in parent and nested repositories
       const parentNote = saveNote({
+        codebaseViewId: 'test-view',
         note: 'Parent repository note',
         directoryPath: repo1Path,
         tags: ['parent'],
@@ -400,6 +420,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       });
 
       const nestedNote = saveNote({
+        codebaseViewId: 'test-view',
         note: 'Nested repository note',
         directoryPath: nestedRepoPath,
         tags: ['nested'],
@@ -432,8 +453,10 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         path.join(orphanPath, '.git', 'config'),
         '[core]\nrepositoryformatversion = 0\n'
       );
+      createTestView(orphanPath, 'test-view');
 
       const orphanNote = saveNote({
+        codebaseViewId: 'test-view',
         note: 'Orphan directory note',
         directoryPath: orphanPath,
         tags: ['orphan'],
@@ -457,6 +480,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       for (let i = 0; i < 5; i++) {
         notePromises.push(
           saveNote({
+            codebaseViewId: 'test-view',
             note: `Alpha concurrent note ${i}`,
             directoryPath: repo1Path,
             tags: ['concurrent', 'alpha'],
@@ -467,6 +491,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
 
         notePromises.push(
           saveNote({
+            codebaseViewId: 'test-view',
             note: `Beta concurrent note ${i}`,
             directoryPath: repo2Path,
             tags: ['concurrent', 'beta'],
@@ -477,6 +502,7 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
 
         notePromises.push(
           saveNote({
+            codebaseViewId: 'test-view',
             note: `Gamma concurrent note ${i}`,
             directoryPath: repo3Path,
             tags: ['concurrent', 'gamma'],

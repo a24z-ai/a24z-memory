@@ -84,6 +84,7 @@ describe('Tag Restrictions', () => {
         anchors: ['file.ts'],
         tags: ['custom-tag', 'another-tag'],
         type: 'explanation' as const,
+        codebaseViewId: 'test-view',
         metadata: {},
         directoryPath: testRepoPath,
       };
@@ -110,6 +111,7 @@ describe('Tag Restrictions', () => {
         anchors: ['file.ts'],
         tags: ['feature', 'invalid-tag', 'another-invalid'],
         type: 'explanation' as const,
+        codebaseViewId: 'test-view',
         metadata: {},
         directoryPath: testRepoPath,
       };
@@ -139,6 +141,7 @@ describe('Tag Restrictions', () => {
         anchors: ['file.ts'],
         tags: ['feature', 'documentation'],
         type: 'explanation' as const,
+        codebaseViewId: 'test-view',
         metadata: {},
         directoryPath: testRepoPath,
       };
@@ -166,6 +169,7 @@ describe('Tag Restrictions', () => {
         anchors: ['file.ts'],
         tags: ['feature'], // At least one tag is required by the schema
         type: 'explanation' as const,
+        codebaseViewId: 'test-view',
         metadata: {},
         directoryPath: testRepoPath,
       };
@@ -187,6 +191,7 @@ describe('Tag Restrictions', () => {
         anchors: ['file.ts'],
         tags: ['any-tag', 'custom-tag'],
         type: 'explanation' as const,
+        codebaseViewId: 'test-view',
         metadata: {},
         directoryPath: testRepoPath,
       };
@@ -244,6 +249,7 @@ describe('Tag Restrictions', () => {
         anchors: ['file1.ts'],
         tags: ['feature', 'testing'],
         type: 'explanation' as const,
+        codebaseViewId: 'test-view',
         metadata: {},
         directoryPath: testRepoPath,
       };
@@ -258,6 +264,7 @@ describe('Tag Restrictions', () => {
         anchors: ['file2.ts'],
         tags: ['feature', 'invalid'],
         type: 'explanation' as const,
+        codebaseViewId: 'test-view',
         metadata: {},
         directoryPath: testRepoPath,
       };
@@ -270,6 +277,7 @@ describe('Tag Restrictions', () => {
         anchors: ['file3.ts'],
         tags: ['bugfix'],
         type: 'explanation' as const,
+        codebaseViewId: 'test-view',
         metadata: {},
         directoryPath: testRepoPath,
       };
@@ -287,6 +295,7 @@ describe('Tag Restrictions', () => {
         anchors: ['file.ts'],
         tags: ['custom-tag'],
         type: 'explanation' as const,
+        codebaseViewId: 'test-view',
         metadata: {},
         directoryPath: testRepoPath,
       };

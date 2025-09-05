@@ -7,6 +7,7 @@ import {
   updateRepositoryConfiguration,
   validateNoteAgainstConfig,
 } from '../src/core-mcp/store/anchoredNotesStore';
+import { createTestView } from './test-helpers';
 
 describe('Configuration System', () => {
   let tempDir: string;
@@ -20,6 +21,9 @@ describe('Configuration System', () => {
 
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
+
+    // Create a test view
+    createTestView(testRepoPath, 'test-view');
   });
 
   afterEach(() => {
@@ -98,6 +102,7 @@ describe('Configuration System', () => {
       anchors: ['test.ts'],
       tags: ['test'],
       type: 'explanation' as const,
+      codebaseViewId: 'test-view',
       metadata: {},
       directoryPath: testRepoPath,
     };
@@ -116,6 +121,7 @@ describe('Configuration System', () => {
       anchors: ['test.ts'],
       tags: ['tag1', 'tag2', 'tag3', 'tag4'],
       type: 'explanation' as const,
+      codebaseViewId: 'test-view',
       metadata: {},
       directoryPath: testRepoPath,
     };
@@ -136,6 +142,7 @@ describe('Configuration System', () => {
       anchors: ['file1.ts', 'file2.ts', 'file3.ts'],
       tags: ['test'],
       type: 'explanation' as const,
+      codebaseViewId: 'test-view',
       metadata: {},
       directoryPath: testRepoPath,
     };
@@ -155,6 +162,7 @@ describe('Configuration System', () => {
       anchors: ['test.ts'],
       tags: ['tag1', 'tag2', 'tag3'],
       type: 'explanation' as const,
+      codebaseViewId: 'test-view',
       metadata: {},
     };
 
@@ -173,6 +181,7 @@ describe('Configuration System', () => {
       anchors: ['test.ts'],
       tags: ['valid', 'test'],
       type: 'explanation' as const,
+      codebaseViewId: 'test-view',
       metadata: {},
       directoryPath: testRepoPath,
     };

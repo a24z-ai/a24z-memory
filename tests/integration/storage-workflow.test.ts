@@ -7,7 +7,7 @@ import { CreateRepositoryAnchoredNoteTool } from '../../src/core-mcp/tools/Creat
 import { GetAnchoredNotesTool } from '../../src/core-mcp/tools/GetAnchoredNotesTool';
 import { GetRepositoryTagsTool } from '../../src/core-mcp/tools/GetRepositoryTagsTool';
 import { TEST_DIR } from '../setup';
-import { withGuidanceToken, createTestGuidanceToken } from '../test-helpers';
+import { withGuidanceToken, createTestGuidanceToken, createTestView } from '../test-helpers';
 
 describe('File Operations Integration', () => {
   const testPath = path.join(TEST_DIR, 'file-ops-test');
@@ -29,6 +29,7 @@ describe('File Operations Integration', () => {
       path.join(testPath, '.git', 'config'),
       '[core]\nrepositoryformatversion = 0\n'
     );
+    createTestView(testPath, 'test-view');
   });
 
   afterEach(() => {
@@ -47,6 +48,7 @@ describe('File Operations Integration', () => {
         directoryPath: testPath,
         anchors: [testPath],
         tags: ['integration', 'file-ops'],
+        codebaseViewId: 'test-view',
         metadata: { test: true },
       })
     );
@@ -103,6 +105,7 @@ describe('File Operations Integration', () => {
           directoryPath: testPath,
           anchors: [testPath],
           tags: [`tag-${i}`],
+          codebaseViewId: 'test-view',
           metadata: { index: i },
         })
       )
@@ -143,6 +146,7 @@ describe('File Operations Integration', () => {
         directoryPath: testPath,
         anchors: [testPath],
         tags: ['persistence'],
+        codebaseViewId: 'test-view',
         metadata: {},
       })
     );

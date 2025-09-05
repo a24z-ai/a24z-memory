@@ -113,6 +113,7 @@ describe('A24zMemory askMemory method', () => {
           note: `Note ${i}`,
           anchors: [path.join(testRepoPath, `file${i}.ts`)],
           tags: ['test'],
+          codebaseViewId: 'test-view',
         });
       }
 
@@ -185,6 +186,7 @@ describe('A24zMemory askMemory method', () => {
         note: 'This file contains test exports',
         anchors: [testFilePath],
         tags: ['exports'],
+        codebaseViewId: 'test-view',
       });
 
       // Configure LLM with file contents

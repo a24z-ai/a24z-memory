@@ -8,6 +8,7 @@ import * as os from 'node:os';
 // import { saveNote } from "../../../src/core-mcp/store/anchoredNotesStore"; - removed unused import
 import { CreateRepositoryAnchoredNoteTool } from '../src/core-mcp/tools/CreateRepositoryAnchoredNoteTool';
 import { GuidanceTokenManager } from '../src/core-mcp/services/guidance-token-manager';
+import { createTestView } from './test-helpers';
 
 describe('Mandatory Guidance Token Enforcement', () => {
   let tempDir: string;
@@ -23,6 +24,8 @@ describe('Mandatory Guidance Token Enforcement', () => {
 
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
+    // Create a test view
+    createTestView(testRepoPath, 'test-view');
 
     tool = new CreateRepositoryAnchoredNoteTool();
     tokenManager = new GuidanceTokenManager();
@@ -40,6 +43,7 @@ describe('Mandatory Guidance Token Enforcement', () => {
         directoryPath: testRepoPath,
         anchors: ['test.ts'],
         tags: ['test'],
+        codebaseViewId: 'test-view',
       };
 
       await expect(tool.execute(input)).rejects.toThrow('Guidance token required');
@@ -51,6 +55,7 @@ describe('Mandatory Guidance Token Enforcement', () => {
         directoryPath: testRepoPath,
         anchors: ['test.ts'],
         tags: ['test'],
+        codebaseViewId: 'test-view',
         guidanceToken: 'invalid-token',
       };
 
@@ -74,6 +79,7 @@ describe('Mandatory Guidance Token Enforcement', () => {
         directoryPath: testRepoPath,
         anchors: ['test.ts'],
         tags: ['test'],
+        codebaseViewId: 'test-view',
         guidanceToken: validToken,
       };
 
@@ -97,6 +103,7 @@ describe('Mandatory Guidance Token Enforcement', () => {
         directoryPath: testRepoPath,
         anchors: ['test.ts'],
         tags: ['test'],
+        codebaseViewId: 'test-view',
         guidanceToken: token,
       };
 

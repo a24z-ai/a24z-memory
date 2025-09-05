@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import { saveNote, getNotesForPath } from '../src/core-mcp/store/anchoredNotesStore';
+import { createTestView } from './test-helpers';
 
 describe('File-based note storage', () => {
   let tempDir: string;
@@ -15,6 +16,8 @@ describe('File-based note storage', () => {
 
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
+    // Create a test view
+    createTestView(testRepoPath, 'test-view');
   });
 
   afterEach(() => {
@@ -27,6 +30,7 @@ describe('File-based note storage', () => {
       note: 'Test note content',
       anchors: ['src/test.ts'],
       tags: ['testing'],
+      codebaseViewId: 'test-view',
       metadata: {},
       directoryPath: testRepoPath,
     };
@@ -65,6 +69,7 @@ describe('File-based note storage', () => {
       note: 'First note',
       anchors: ['file1.ts'],
       tags: ['tag1'],
+      codebaseViewId: 'test-view',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -73,6 +78,7 @@ describe('File-based note storage', () => {
       note: 'Second note',
       anchors: ['file2.ts'],
       tags: ['tag2'],
+      codebaseViewId: 'test-view',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -92,6 +98,7 @@ describe('File-based note storage', () => {
           note: `Concurrent note ${i}`,
           anchors: [`file${i}.ts`],
           tags: ['concurrent'],
+          codebaseViewId: 'test-view',
           metadata: {},
           directoryPath: testRepoPath,
         })

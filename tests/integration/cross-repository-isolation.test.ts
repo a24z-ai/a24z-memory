@@ -6,7 +6,7 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 import { CreateRepositoryAnchoredNoteTool } from '../../src/core-mcp/tools/CreateRepositoryAnchoredNoteTool';
 import { GetAnchoredNotesTool } from '../../src/core-mcp/tools/GetAnchoredNotesTool';
-import { withGuidanceToken, createTestGuidanceToken } from '../test-helpers';
+import { withGuidanceToken, createTestGuidanceToken, createTestView } from '../test-helpers';
 
 describe('Repository-Specific Note Retrieval Integration', () => {
   const testBase = path.join(os.tmpdir(), 'retrieval-test-' + Date.now());
@@ -21,6 +21,7 @@ describe('Repository-Specific Note Retrieval Integration', () => {
       path.join(repo1, 'package.json'),
       JSON.stringify({ name: 'repo1', version: '1.0.0' })
     );
+    createTestView(repo1, 'test-view');
 
     fs.mkdirSync(path.join(repo2, '.git'), { recursive: true });
     fs.writeFileSync(path.join(repo2, '.git', 'config'), '[core]\nrepositoryformatversion = 0\n');
@@ -28,6 +29,7 @@ describe('Repository-Specific Note Retrieval Integration', () => {
       path.join(repo2, 'package.json'),
       JSON.stringify({ name: 'repo2', version: '1.0.0' })
     );
+    createTestView(repo2, 'test-view');
   });
 
   afterAll(() => {
@@ -48,6 +50,7 @@ describe('Repository-Specific Note Retrieval Integration', () => {
         directoryPath: repo1,
         anchors: [repo1],
         tags: ['repo1', 'test'],
+        codebaseViewId: 'test-view',
         metadata: { testId: 'repo1-note' },
       })
     );
@@ -61,6 +64,7 @@ describe('Repository-Specific Note Retrieval Integration', () => {
         directoryPath: repo2,
         anchors: [repo2],
         tags: ['repo2', 'test'],
+        codebaseViewId: 'test-view',
         metadata: { testId: 'repo2-note' },
       })
     );
@@ -132,6 +136,7 @@ describe('Repository-Specific Note Retrieval Integration', () => {
         directoryPath: repo1,
         anchors: [repo1],
         tags: ['root', 'nested-test'],
+        codebaseViewId: 'test-view',
         metadata: {},
       })
     );

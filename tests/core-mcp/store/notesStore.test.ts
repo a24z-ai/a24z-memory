@@ -21,6 +21,7 @@ describe('notesStore', () => {
     directoryPath: testNotePath,
     anchors: [testNotePath, 'test-anchor'],
     tags: ['test', 'example'],
+    codebaseViewId: 'test-view',
     metadata: { testData: true },
   };
 
@@ -301,6 +302,7 @@ describe('notesStore', () => {
         directoryPath: testNotePath, // Same repository
         anchors: [childPath], // But anchored to child path
         note: 'Child note',
+        codebaseViewId: 'test-view',
       });
       const childNote = childNoteWithPath.note;
 

@@ -13,6 +13,7 @@ import {
   getNotesForPath,
   getNoteById,
 } from '../src/core-mcp/store/anchoredNotesStore';
+import { createTestView } from './test-helpers';
 
 describe('Note Review Functionality', () => {
   let testRepoRoot: string;
@@ -22,6 +23,7 @@ describe('Note Review Functionality', () => {
     testRepoRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'test-repo-'));
     fs.mkdirSync(path.join(testRepoRoot, '.git'));
     fs.mkdirSync(path.join(testRepoRoot, '.a24z'), { recursive: true });
+    createTestView(testRepoRoot, 'test-view');
   });
 
   afterEach(() => {
@@ -34,6 +36,7 @@ describe('Note Review Functionality', () => {
   describe('reviewed field', () => {
     it('should create notes with reviewed=false by default', () => {
       const noteWithPath = saveNote({
+        codebaseViewId: 'test-view',
         note: 'Test note content',
         directoryPath: testRepoRoot,
         anchors: ['test.ts'],
@@ -47,6 +50,7 @@ describe('Note Review Functionality', () => {
 
     it('should preserve reviewed field when explicitly set', () => {
       const noteWithPath = saveNote({
+        codebaseViewId: 'test-view',
         note: 'Pre-reviewed note',
         directoryPath: testRepoRoot,
         anchors: ['test.ts'],
@@ -64,6 +68,7 @@ describe('Note Review Functionality', () => {
     beforeEach(() => {
       // Create a mix of reviewed and unreviewed notes
       saveNote({
+        codebaseViewId: 'test-view',
         note: 'Unreviewed note 1',
         directoryPath: testRepoRoot,
         anchors: ['file1.ts'],
@@ -73,6 +78,7 @@ describe('Note Review Functionality', () => {
       });
 
       saveNote({
+        codebaseViewId: 'test-view',
         note: 'Reviewed note',
         directoryPath: testRepoRoot,
         anchors: ['file2.ts'],
@@ -82,6 +88,7 @@ describe('Note Review Functionality', () => {
       });
 
       saveNote({
+        codebaseViewId: 'test-view',
         note: 'Unreviewed note 2',
         directoryPath: testRepoRoot,
         anchors: ['file3.ts'],
@@ -114,6 +121,7 @@ describe('Note Review Functionality', () => {
       fs.mkdirSync(subdir, { recursive: true });
 
       saveNote({
+        codebaseViewId: 'test-view',
         note: 'Subdir unreviewed note',
         directoryPath: testRepoRoot,
         anchors: ['subdir/file.ts'],
@@ -136,6 +144,7 @@ describe('Note Review Functionality', () => {
 
     beforeEach(() => {
       const noteWithPath = saveNote({
+        codebaseViewId: 'test-view',
         note: 'Note to review',
         directoryPath: testRepoRoot,
         anchors: ['test.ts'],
@@ -186,6 +195,7 @@ describe('Note Review Functionality', () => {
       // Create multiple unreviewed notes
       for (let i = 1; i <= 5; i++) {
         saveNote({
+          codebaseViewId: 'test-view',
           note: `Note ${i}`,
           directoryPath: testRepoRoot,
           anchors: [`file${i}.ts`],
@@ -197,6 +207,7 @@ describe('Note Review Functionality', () => {
 
       // Add one already reviewed note
       saveNote({
+        codebaseViewId: 'test-view',
         note: 'Already reviewed',
         directoryPath: testRepoRoot,
         anchors: ['reviewed.ts'],
@@ -228,6 +239,7 @@ describe('Note Review Functionality', () => {
 
       // Add notes specific to subdir
       saveNote({
+        codebaseViewId: 'test-view',
         note: 'Subdir note 1',
         directoryPath: testRepoRoot,
         anchors: ['subdir/file1.ts'],
@@ -237,6 +249,7 @@ describe('Note Review Functionality', () => {
       });
 
       saveNote({
+        codebaseViewId: 'test-view',
         note: 'Subdir note 2',
         directoryPath: testRepoRoot,
         anchors: ['subdir/file2.ts'],
@@ -255,6 +268,7 @@ describe('Note Review Functionality', () => {
   describe('integration with existing note operations', () => {
     it('should preserve review status through note updates', () => {
       const noteWithPath = saveNote({
+        codebaseViewId: 'test-view',
         note: 'Original content',
         directoryPath: testRepoRoot,
         anchors: ['test.ts'],
@@ -283,6 +297,7 @@ describe('Note Review Functionality', () => {
 
       notes.map((noteData, i) =>
         saveNote({
+          codebaseViewId: 'test-view',
           note: `Note ${i}`,
           directoryPath: testRepoRoot,
           anchors: [`file${i}.ts`],

@@ -3,6 +3,7 @@ import { GetRepositoryGuidanceTool } from '../../../src/core-mcp/tools/GetReposi
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
+import { createTestView } from '../../test-helpers';
 
 describe('CreateRepositoryAnchoredNoteTool - Token Refresh', () => {
   let tool: CreateRepositoryAnchoredNoteTool;
@@ -22,6 +23,8 @@ describe('CreateRepositoryAnchoredNoteTool - Token Refresh', () => {
     fs.mkdirSync(repoPath, { recursive: true });
     // Create a .git directory to make it a valid git repo
     fs.mkdirSync(path.join(repoPath, '.git'), { recursive: true });
+    // Create a test view
+    createTestView(repoPath, 'test-view');
   });
 
   afterEach(() => {
@@ -50,6 +53,7 @@ describe('CreateRepositoryAnchoredNoteTool - Token Refresh', () => {
       directoryPath: repoPath,
       anchors: [path.join(repoPath, 'test.ts')],
       tags: ['new-auto-tag'],
+      codebaseViewId: 'test-view',
       guidanceToken: initialToken,
     });
 
@@ -77,6 +81,7 @@ describe('CreateRepositoryAnchoredNoteTool - Token Refresh', () => {
       directoryPath: repoPath,
       anchors: [path.join(repoPath, 'another.ts')],
       tags: ['new-auto-tag'], // Use the same tag, no new creation
+      codebaseViewId: 'test-view',
       guidanceToken: newToken,
     });
 
@@ -104,6 +109,7 @@ describe('CreateRepositoryAnchoredNoteTool - Token Refresh', () => {
       directoryPath: repoPath,
       anchors: [path.join(repoPath, 'test.ts')],
       tags: ['test-tag'], // This will be auto-created
+      codebaseViewId: 'test-view',
       guidanceToken: initialToken,
     });
 
@@ -139,6 +145,7 @@ describe('CreateRepositoryAnchoredNoteTool - Token Refresh', () => {
       directoryPath: repoPath,
       anchors: [path.join(repoPath, 'first.ts')],
       tags: ['existing-tag'],
+      codebaseViewId: 'test-view',
       guidanceToken: initialToken,
     });
 
@@ -158,6 +165,7 @@ describe('CreateRepositoryAnchoredNoteTool - Token Refresh', () => {
       directoryPath: repoPath,
       anchors: [path.join(repoPath, 'second.ts')],
       tags: ['existing-tag'], // Reuse existing tag
+      codebaseViewId: 'test-view',
       guidanceToken: secondToken,
     });
 
