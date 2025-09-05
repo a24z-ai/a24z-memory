@@ -13,7 +13,6 @@ export type {
   CodebaseViewFileCell,
   CodebaseViewScope,
   CodebaseViewLinks,
-  ViewSummary,
   ViewValidationResult,
   PatternValidationResult,
 } from './store/codebaseViewsStore';

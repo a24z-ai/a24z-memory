@@ -22,53 +22,68 @@ Every codebase accumulates tribal knowledge—those critical insights about why 
 
 When your AI assistant needs context, it doesn't get outdated embeddings—it gets your team's accumulated wisdom plus the current state of your code.
 
-## How It Works
+## How It Works: The Memory Palace Approach
 
-### 🎯 Capture Knowledge Where It Happens
+### 🏗️ Create Spatial Knowledge Maps
 
-When you discover something important—a tricky bug, a design pattern, an architectural decision—document it instantly:
+Transform your codebase into navigable **CodebaseViews**—grid-based memory palaces that organize files spatially:
+
+```
+CodebaseView: "Frontend Architecture"
+→ Grid: 3×2 layout
+→ Cell [0,0]: Components (src/components/*)  
+→ Cell [0,1]: Services (src/services/*)
+→ Cell [1,0]: Utils (src/utils/*)
+→ Stored in: .a24z/views/frontend-architecture.json
+```
+
+### 🎯 Anchor Knowledge Spatially
+
+When you discover something important, anchor it to specific view coordinates:
 
 ```
 "Auth middleware breaks with null headers - always validate before parsing"
-→ Type: gotcha
+→ View: "Frontend Architecture"  
+→ Cell: [0,1] (Services grid location)
 → Tagged as: authentication, middleware, validation
-→ Anchored to: src/auth/middleware.ts
+→ Anchored to: src/services/auth/middleware.ts
 → Stored in: .a24z/notes/ (synced via git)
 ```
 
-### 🔍 Surface Knowledge When You Need It
+### 🧠 Navigate Your Memory Palace
 
-Your AI assistant automatically accesses this knowledge:
+Your AI assistant uses spatial context for knowledge discovery:
 
 ```
 You: "Why does our auth sometimes fail?"
-AI: *Searches a24z-memory for auth-related gotchas*
-AI: "Found a known issue: Auth middleware breaks with null headers in src/auth/middleware.ts. The team discovered this needs validation before parsing."
+AI: *Navigates to Services cell [0,1] in Frontend Architecture view*
+AI: "Found spatial knowledge: Auth middleware breaks with null headers in the Services grid location. This is anchored to src/services/auth/middleware.ts where validation is needed before parsing."
 ```
 
-### 🔄 Knowledge That Evolves
+### 🔄 Spatial Knowledge That Evolves
 
-As your code changes, the knowledge remains relevant:
+As your codebase grows, your memory palace adapts:
 
-- **Anchors point to files**, not embedded content
-- **Git tracks changes**, showing how understanding evolved
-- **Types organize knowledge** by its nature (decision, pattern, gotcha, explanation)
-- **Team contributions** accumulate over time
+- **Spatial anchors** connect knowledge to grid coordinates AND file locations
+- **Multiple views** provide different organizational perspectives  
+- **Git tracks evolution** of both code and spatial organization
+- **Cross-view navigation** links related knowledge across different memory palaces
+- **Team contributions** build comprehensive spatial understanding
 
-## The Layered Knowledge Architecture
+## The Spatial Knowledge Architecture
 
-We use a four-layer stack that keeps knowledge organized, meaningful, current, and shared:
+We use a clean **four-layer spatial architecture** that creates navigable memory palaces for your codebase:
 
 ```
-📊 Type Layer    → What kind of knowledge (decision, pattern, gotcha, explanation)
-🏷️  Tag Layer     → Semantic categories for discovery
-📝 Note Layer    → Your team's insights and explanations
-🔗 Anchor Layer  → Live connections to code locations
+🏗️  Views    → Spatial grid layouts organizing your codebase (CodebaseViews)
+📝 Notes    → Your team's spatially-anchored insights and knowledge
+🏷️  Tags     → Semantic categories for discovery (authentication, bugfix, pattern)
+🔗 Anchors  → Direct connections to specific files and code locations
 ```
 
-Plus **Git distribution** ensures knowledge travels with your code and evolves with your team.
+Plus **Git distribution** ensures both your code and spatial organization evolve together with your team.
 
-This isn't just storage—it's a living memory system that grows smarter with every insight your team adds.
+This isn't just storage—it's a **living memory palace system** where knowledge has both semantic meaning and spatial location, making it intuitive to navigate and impossible to lose.
 
 ## Real-World Impact
 

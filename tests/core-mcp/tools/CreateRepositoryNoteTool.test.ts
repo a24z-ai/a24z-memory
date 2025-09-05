@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import { CreateRepositoryAnchoredNoteTool } from '../../../src/core-mcp/tools/CreateRepositoryAnchoredNoteTool';
 import { getNotesForPath } from '../../../src/core-mcp/store/anchoredNotesStore';
 import { TEST_DIR } from '../../setup';
-import { withGuidanceToken, createTestView } from '../../test-helpers';
+import { createTestView } from '../../test-helpers';
 
 describe('CreateRepositoryAnchoredNoteTool', () => {
   let tool: CreateRepositoryAnchoredNoteTool;
@@ -91,15 +91,14 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
 
   describe('Note Storage', () => {
     it('should save note with correct structure', async () => {
-      const input = withGuidanceToken({
+      const input = {
         note: 'Test repository note',
         directoryPath: testPath,
         tags: ['test', 'example'],
         anchors: ['additional-path'],
         codebaseViewId: 'test-view',
-        type: 'pattern' as const,
         metadata: { customField: 'value' },
-      });
+      };
 
       const result = await tool.execute(input);
 
@@ -109,13 +108,13 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
     });
 
     it('should create note file on disk', async () => {
-      const input = withGuidanceToken({
+      const input = {
         note: 'File creation test',
         directoryPath: testPath,
         anchors: ['src/test.ts'],
         codebaseViewId: 'test-view',
         tags: ['file-test'],
-      });
+      };
 
       await tool.execute(input);
 
@@ -130,13 +129,13 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
     });
 
     it('should normalize anchors to relative paths', async () => {
-      const input = withGuidanceToken({
+      const input = {
         note: 'Anchor test',
         directoryPath: testPath,
         tags: ['anchor-test'],
         anchors: ['custom-anchor', 'src/file.ts'],
         codebaseViewId: 'test-view',
-      });
+      };
 
       await tool.execute(input);
 
@@ -151,14 +150,14 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
     });
 
     it('should add metadata with tool information', async () => {
-      const input = withGuidanceToken({
+      const input = {
         note: 'Metadata test',
         directoryPath: testPath,
         anchors: ['src/test.ts'],
         codebaseViewId: 'test-view',
         tags: ['metadata-test'],
         metadata: { userField: 'userValue' },
-      });
+      };
 
       await tool.execute(input);
 
@@ -176,13 +175,13 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
       const subDir = path.join(testPath, 'src', 'components');
       fs.mkdirSync(subDir, { recursive: true });
 
-      const input = withGuidanceToken({
+      const input = {
         note: 'Test note for git root storage',
         directoryPath: testPath, // Git root
         anchors: ['src/components/Button.tsx'],
         codebaseViewId: 'test-view',
         tags: ['test'],
-      });
+      };
 
       await tool.execute(input);
 
@@ -219,7 +218,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
       ];
 
       for (const input of inputs) {
-        await tool.execute(withGuidanceToken(input));
+        await tool.execute(input);
       }
 
       const notes = getNotesForPath(testPath, true);
@@ -291,7 +290,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
     });
 
     it('should preserve all input data in saved note', async () => {
-      const input = withGuidanceToken({
+      const input = {
         note: '# Test Note\\n\\nThis is **markdown** content.',
         directoryPath: testPath,
         anchors: ['src/**/*.ts', 'docs/'],
@@ -302,7 +301,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
           complexity: 'high',
           relatedIssues: [123, 456],
         },
-      });
+      };
 
       await tool.execute(input);
 
@@ -325,23 +324,23 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
       createTestView(repo2Path, 'test-view');
 
       // Save note in first repository
-      const input1 = withGuidanceToken({
+      const input1 = {
         note: 'Note in repo 1',
         directoryPath: testPath,
         anchors: ['file1.ts'],
         codebaseViewId: 'test-view',
         tags: ['repo1'],
-      });
+      };
       await tool.execute(input1);
 
       // Save note in second repository
-      const input2 = withGuidanceToken({
+      const input2 = {
         note: 'Note in repo 2',
         directoryPath: repo2Path,
         anchors: ['file2.ts'],
         codebaseViewId: 'test-view',
         tags: ['repo2'],
-      });
+      };
       await tool.execute(input2);
 
       // Verify each repository has its own .a24z directory with the correct note

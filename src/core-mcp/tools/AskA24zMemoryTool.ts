@@ -6,7 +6,6 @@ import { getNotesForPathWithLimit } from '../store/anchoredNotesStore';
 import { normalizeRepositoryPath } from '../utils/pathNormalization';
 import { LLMService, type LLMContext } from '../services/llm-service';
 import { readAnchorFiles, selectOptimalContent } from '../utils/fileReader';
-import { GuidanceTokenManager } from '../services/guidance-token-manager';
 import { DEFAULT_A24Z_MEMORY_CONFIG, type A24zMemoryConfig } from '../config/defaultConfig';
 
 // A24zMemoryConfig type is now imported from defaultConfig.ts
@@ -63,24 +62,17 @@ export class AskA24zMemoryTool extends BaseTool {
       .describe(
         'Filter results to only notes with these tags. Useful for targeted searches like ["bugfix", "authentication"] or ["performance", "database"].'
       ),
-    guidanceToken: z
-      .string()
-      .describe(
-        'The guidance token obtained from get_repository_guidance. Required to ensure guidance has been read.'
-      ),
   });
 
   private defaultConfig: A24zMemoryConfig = DEFAULT_A24Z_MEMORY_CONFIG;
 
   private llmService: LLMService | null;
-  private tokenManager: GuidanceTokenManager;
 
   constructor(llmConfig?: any) {
     super();
     // Initialize LLM service with config if available
     // Config will be loaded lazily on first use if not provided
     this.llmService = llmConfig ? new LLMService(llmConfig) : null;
-    this.tokenManager = new GuidanceTokenManager();
   }
 
   private async ensureLLMService(): Promise<void> {
@@ -97,10 +89,7 @@ export class AskA24zMemoryTool extends BaseTool {
   }
 
   async executeWithMetadata(input: z.infer<typeof this.schema>): Promise<AskMemoryResponse> {
-    const { filePath, query, taskContext, filterTags, guidanceToken } = input;
-
-    // Validate guidance token
-    this.tokenManager.validateTokenForPath(guidanceToken, filePath);
+    const { filePath, query, taskContext, filterTags } = input;
     // Validate that filePath is absolute
     if (!path.isAbsolute(filePath)) {
       throw new Error(

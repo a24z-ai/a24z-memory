@@ -6,7 +6,7 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 import { CreateRepositoryAnchoredNoteTool } from '../../src/core-mcp/tools/CreateRepositoryAnchoredNoteTool';
 import { GetAnchoredNotesTool } from '../../src/core-mcp/tools/GetAnchoredNotesTool';
-import { withGuidanceToken, createTestGuidanceToken, createTestView } from '../test-helpers';
+import { createTestView } from '../test-helpers';
 
 describe('Repository-Specific Note Retrieval Integration', () => {
   const testBase = path.join(os.tmpdir(), 'retrieval-test-' + Date.now());
@@ -44,30 +44,26 @@ describe('Repository-Specific Note Retrieval Integration', () => {
 
     // Save notes in repo1
     console.log('Saving note in repo1...');
-    const save1Result = await saveTool.execute(
-      withGuidanceToken({
-        note: 'Repository 1 specific note',
-        directoryPath: repo1,
-        anchors: [repo1],
-        tags: ['repo1', 'test'],
-        codebaseViewId: 'test-view',
-        metadata: { testId: 'repo1-note' },
-      })
-    );
+    const save1Result = await saveTool.execute({
+      note: 'Repository 1 specific note',
+      directoryPath: repo1,
+      anchors: [repo1],
+      tags: ['repo1', 'test'],
+      codebaseViewId: 'test-view',
+      metadata: { testId: 'repo1-note' },
+    });
     expect(save1Result.content[0].text).toContain('Note saved successfully');
 
     // Save notes in repo2
     console.log('Saving note in repo2...');
-    const save2Result = await saveTool.execute(
-      withGuidanceToken({
-        note: 'Repository 2 specific note',
-        directoryPath: repo2,
-        anchors: [repo2],
-        tags: ['repo2', 'test'],
-        codebaseViewId: 'test-view',
-        metadata: { testId: 'repo2-note' },
-      })
-    );
+    const save2Result = await saveTool.execute({
+      note: 'Repository 2 specific note',
+      directoryPath: repo2,
+      anchors: [repo2],
+      tags: ['repo2', 'test'],
+      codebaseViewId: 'test-view',
+      metadata: { testId: 'repo2-note' },
+    });
     expect(save2Result.content[0].text).toContain('Note saved successfully');
 
     // Verify notes directories are created in correct locations
@@ -80,7 +76,6 @@ describe('Repository-Specific Note Retrieval Integration', () => {
 
     // Retrieve notes from repo1
     console.log('Retrieving notes from repo1...');
-    const token1 = createTestGuidanceToken(repo1);
     const get1Result = await getTool.execute({
       path: repo1,
       includeParentNotes: true,
@@ -90,7 +85,6 @@ describe('Repository-Specific Note Retrieval Integration', () => {
       limit: 10,
       offset: 0,
       includeMetadata: true,
-      guidanceToken: token1,
     });
 
     const repo1Data = JSON.parse(get1Result.content[0].text!);
@@ -101,7 +95,6 @@ describe('Repository-Specific Note Retrieval Integration', () => {
 
     // Retrieve notes from repo2
     console.log('Retrieving notes from repo2...');
-    const token2 = createTestGuidanceToken(repo2);
     const get2Result = await getTool.execute({
       path: repo2,
       includeParentNotes: true,
@@ -111,7 +104,6 @@ describe('Repository-Specific Note Retrieval Integration', () => {
       limit: 10,
       offset: 0,
       includeMetadata: true,
-      guidanceToken: token2,
     });
 
     const repo2Data = JSON.parse(get2Result.content[0].text!);
@@ -130,20 +122,17 @@ describe('Repository-Specific Note Retrieval Integration', () => {
 
     // Save note at repository root
     console.log('Saving note at repository root...');
-    await saveTool.execute(
-      withGuidanceToken({
-        note: 'Root level note for nested path test',
-        directoryPath: repo1,
-        anchors: [repo1],
-        tags: ['root', 'nested-test'],
-        codebaseViewId: 'test-view',
-        metadata: {},
-      })
-    );
+    await saveTool.execute({
+      note: 'Root level note for nested path test',
+      directoryPath: repo1,
+      anchors: [repo1],
+      tags: ['root', 'nested-test'],
+      codebaseViewId: 'test-view',
+      metadata: {},
+    });
 
     // Try to retrieve from nested path
     console.log('Retrieving from nested path:', nestedPath);
-    const nestedToken = createTestGuidanceToken(repo1);
     const getResult = await getTool.execute({
       path: nestedPath,
       includeParentNotes: true,
@@ -153,7 +142,6 @@ describe('Repository-Specific Note Retrieval Integration', () => {
       limit: 10,
       offset: 0,
       includeMetadata: true,
-      guidanceToken: nestedToken,
     });
 
     const data = JSON.parse(getResult.content[0].text!);
@@ -172,7 +160,6 @@ describe('Repository-Specific Note Retrieval Integration', () => {
     // Both repositories should have notes from previous tests
     // Query repo1 - should not see repo2 notes
     console.log('Querying repo1 for isolation check...');
-    const repo1Token = createTestGuidanceToken(repo1);
     const get1Result = await getTool.execute({
       path: repo1,
       includeParentNotes: true,
@@ -182,7 +169,6 @@ describe('Repository-Specific Note Retrieval Integration', () => {
       limit: 100,
       offset: 0,
       includeMetadata: true,
-      guidanceToken: repo1Token,
     });
 
     const repo1Data = JSON.parse(get1Result.content[0].text!);
@@ -196,7 +182,6 @@ describe('Repository-Specific Note Retrieval Integration', () => {
 
     // Query repo2 - should not see repo1 notes
     console.log('Querying repo2 for isolation check...');
-    const repo2Token = createTestGuidanceToken(repo2);
     const get2Result = await getTool.execute({
       path: repo2,
       includeParentNotes: true,
@@ -206,7 +191,6 @@ describe('Repository-Specific Note Retrieval Integration', () => {
       limit: 100,
       offset: 0,
       includeMetadata: true,
-      guidanceToken: repo2Token,
     });
 
     const repo2Data = JSON.parse(get2Result.content[0].text!);

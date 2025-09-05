@@ -47,7 +47,6 @@ export const DEFAULT_REPOSITORY_CONFIG: RepositoryConfiguration = {
   },
   enabled_mcp_tools: {
     // Core tools - always enabled
-    askA24zMemory: true,
     create_repository_note: true,
     get_notes: true,
     get_repository_tags: true,
@@ -69,6 +68,9 @@ export const DEFAULT_REPOSITORY_CONFIG: RepositoryConfiguration = {
 
     // Interactive tools
     start_documentation_quest: true,
+
+    // Codebase view tools
+    list_codebase_views: true,
   },
 };
 
@@ -111,14 +113,6 @@ export const DEFAULT_A24Z_MEMORY_CONFIG: A24zMemoryConfig = {
 };
 
 /**
- * Security configuration
- */
-export const DEFAULT_SECURITY_CONFIG = {
-  guidanceTokenSecret: 'default-a24z-guidance-secret',
-  tokenExpiryMinutes: 60,
-};
-
-/**
  * File paths and patterns
  */
 export const DEFAULT_PATH_CONFIG = {
@@ -151,7 +145,6 @@ export function getAllDefaultConfigs() {
     noteFetching: DEFAULT_NOTE_FETCHING_CONFIG,
     responseStyle: DEFAULT_RESPONSE_STYLE_CONFIG,
     a24zMemory: DEFAULT_A24Z_MEMORY_CONFIG,
-    security: DEFAULT_SECURITY_CONFIG,
     paths: DEFAULT_PATH_CONFIG,
     tagCategories: DEFAULT_TAG_CATEGORIES,
   };

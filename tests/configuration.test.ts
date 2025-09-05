@@ -49,7 +49,6 @@ describe('Configuration System', () => {
         enforceAllowedTags: false,
       },
       enabled_mcp_tools: {
-        askA24zMemory: true,
         create_repository_note: true,
         get_notes: true,
         get_repository_tags: true,
@@ -65,6 +64,7 @@ describe('Configuration System', () => {
         delete_tag: true,
         get_note_coverage: true,
         start_documentation_quest: true,
+        list_codebase_views: true,
       },
     });
 
@@ -232,7 +232,6 @@ describe('Configuration System', () => {
     expect(updatedConfig.enabled_mcp_tools?.create_handoff_brief).toBe(false);
 
     // Check that other tools remain enabled (default)
-    expect(updatedConfig.enabled_mcp_tools?.askA24zMemory).toBe(true);
     expect(updatedConfig.enabled_mcp_tools?.create_repository_note).toBe(true);
   });
 
@@ -245,7 +244,7 @@ describe('Configuration System', () => {
       JSON.stringify({
         version: 1,
         enabled_mcp_tools: {
-          askA24zMemory: false,
+          create_repository_note: false,
         },
       })
     );
@@ -253,10 +252,9 @@ describe('Configuration System', () => {
     const config = getRepositoryConfiguration(testRepoPath);
 
     // Specified tool should be disabled
-    expect(config.enabled_mcp_tools?.askA24zMemory).toBe(false);
+    expect(config.enabled_mcp_tools?.create_repository_note).toBe(false);
 
     // Unspecified tools should default to true
-    expect(config.enabled_mcp_tools?.create_repository_note).toBe(true);
     expect(config.enabled_mcp_tools?.get_notes).toBe(true);
   });
 });

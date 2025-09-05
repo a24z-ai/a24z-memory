@@ -12,19 +12,15 @@ import {
 } from '../store/anchoredNotesStore';
 import { codebaseViewsStore } from '../store/codebaseViewsStore';
 import { findGitRoot } from '../utils/pathNormalization';
-import { GuidanceTokenManager } from '../services/guidance-token-manager';
-import { generateFullGuidanceContent } from '../utils/guidanceGenerator';
+import { SessionViewCreator } from '../services/sessionViewCreator';
 
 export class CreateRepositoryAnchoredNoteTool extends BaseTool {
   name = 'create_repository_note';
   description =
     'Document tribal knowledge, architectural decisions, implementation patterns, and important lessons learned. This tool creates searchable notes that help future developers understand context and avoid repeating mistakes. Notes are stored locally in your repository and can be retrieved using the askA24zMemory tool.';
 
-  private tokenManager: GuidanceTokenManager;
-
   constructor() {
     super();
-    this.tokenManager = new GuidanceTokenManager();
   }
 
   schema = z.object({
@@ -58,13 +54,10 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
       ),
     codebaseViewId: z
       .string()
-      .describe(
-        'Required CodebaseView ID to associate this note with. Use listViews to see available views or create a new view first.'
-      ),
-    guidanceToken: z
-      .string()
       .optional()
-      .describe('Token from get_repository_guidance proving you have read the current guidance'),
+      .describe(
+        'Optional CodebaseView ID to associate this note with. If not provided, a session view will be auto-created based on your file anchors.'
+      ),
   });
 
   async execute(input: z.input<typeof this.schema>): Promise<McpToolResult> {
@@ -110,44 +103,40 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
       );
     }
 
-    // Validate that the codebaseViewId exists
-    const view = codebaseViewsStore.getView(parsed.directoryPath, parsed.codebaseViewId);
-    if (!view) {
-      const availableViews = codebaseViewsStore.listViews(parsed.directoryPath);
-      const viewsList =
-        availableViews.length > 0
-          ? availableViews.map((v) => `• ${v.id}: ${v.name}`).join('\n')
-          : 'No views found. Please create a view first.';
+    // Get or create the CodebaseView
+    let view;
+    let actualCodebaseViewId: string;
 
-      throw new Error(
-        `❌ CodebaseView with ID "${parsed.codebaseViewId}" not found.\n\n` +
-          `**Available views:**\n${viewsList}\n\n` +
-          `💡 Tip: Use an existing view ID from the list above, or create a new view first.`
+    if (parsed.codebaseViewId) {
+      // User provided a view ID - validate it exists
+      view = codebaseViewsStore.getView(parsed.directoryPath, parsed.codebaseViewId);
+      if (!view) {
+        const availableViews = codebaseViewsStore.listViews(parsed.directoryPath);
+        const viewsList =
+          availableViews.length > 0
+            ? availableViews.map((v) => `• ${v.id}: ${v.name}`).join('\n')
+            : 'No views found. Please create a view first.';
+
+        throw new Error(
+          `❌ CodebaseView with ID "${parsed.codebaseViewId}" not found.\n\n` +
+            `**Available views:**\n${viewsList}\n\n` +
+            `💡 Tip: Use an existing view ID from the list above, or create a new view first.`
+        );
+      }
+      actualCodebaseViewId = parsed.codebaseViewId;
+    } else {
+      // No view ID provided - auto-create a session view
+      const sessionResult = SessionViewCreator.createFromAnchors(
+        parsed.directoryPath,
+        parsed.anchors
       );
+      view = sessionResult.view;
+      actualCodebaseViewId = sessionResult.viewId;
     }
 
     // Check configuration for tag/type enforcement
     const config = getRepositoryConfiguration(parsed.directoryPath);
     const tagEnforcement = config.tags?.enforceAllowedTags || false;
-
-    // Validate guidance token (always required)
-    if (!parsed.guidanceToken) {
-      throw new Error(
-        `❌ Guidance token required. Please read repository guidance first using get_repository_guidance tool.\n` +
-          `💡 The guidance token proves you have read and understood the current repository guidelines.`
-      );
-    }
-
-    // Validate token using the validateTokenForPath method which checks against full guidance
-    try {
-      this.tokenManager.validateTokenForPath(parsed.guidanceToken, parsed.directoryPath);
-    } catch {
-      throw new Error(
-        `❌ Invalid or expired guidance token.\n` +
-          `💡 Please read the current repository guidance using get_repository_guidance tool to get a fresh token.\n` +
-          `Tokens expire after 24 hours or when guidance content changes.`
-      );
-    }
 
     // Check for new tags that don't have descriptions
     const existingTagDescriptions = getTagDescriptions(parsed.directoryPath);
@@ -207,19 +196,36 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
         createdBy: 'create_repository_note_tool',
       },
       reviewed: false, // New notes start as unreviewed
-      codebaseViewId: parsed.codebaseViewId,
+      codebaseViewId: actualCodebaseViewId,
     });
 
     const saved = savedWithPath.note;
+
+    // Log activity for session views
+    if (view.metadata?.generationType === 'session') {
+      SessionViewCreator.appendActivity(
+        parsed.directoryPath,
+        actualCodebaseViewId,
+        saved.id,
+        parsed.note,
+        parsed.anchors[0] || 'unknown'
+      );
+    }
 
     // Build response message with guidance about auto-created tags/types
     let response =
       `✅ **Note saved successfully!**\n\n` +
       `🆔 **Note ID:** ${saved.id}\n` +
       `📁 **Repository:** ${parsed.directoryPath}\n` +
-      `📊 **View:** ${view.name} (${parsed.codebaseViewId})\n` +
-      `🏷️ **Tags:** ${parsed.tags.join(', ')}\n` +
-      `\n`;
+      `📊 **View:** ${view.name} (${actualCodebaseViewId})\n` +
+      `🏷️ **Tags:** ${parsed.tags.join(', ')}\n`;
+
+    // Add info about session view creation
+    if (!parsed.codebaseViewId) {
+      response += `🔄 **Session View:** Auto-created based on your file anchors\n`;
+    }
+
+    response += `\n`;
 
     // Add warnings about auto-created tags
     if (autoCreatedTags.length > 0) {
@@ -239,21 +245,6 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
       `- Use \`askA24zMemory\` to retrieve this note later\n` +
       `- Share this knowledge with your team by committing the \`.a24z/\` directory\n` +
       `- Consider adding more context or examples to make this note even more valuable!`;
-
-    // If we auto-created new tags or types, generate a fresh guidance token
-    // This prevents the user's token from becoming invalid due to guidance changes
-    if (autoCreatedTags.length > 0) {
-      const updatedGuidanceContent = generateFullGuidanceContent(parsed.directoryPath);
-      const freshToken = this.tokenManager.generateToken(
-        updatedGuidanceContent,
-        parsed.directoryPath
-      );
-
-      response += `\n\n🔄 **Updated Guidance Token**\n`;
-      response += `Since new tags/types were created, here's a fresh guidance token:\n`;
-      response += `\`${freshToken}\`\n`;
-      response += `(Your previous token is now invalid due to guidance changes)`;
-    }
 
     return { content: [{ type: 'text', text: response }] };
   }

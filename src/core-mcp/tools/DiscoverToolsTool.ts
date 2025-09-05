@@ -38,11 +38,10 @@ export class DiscoverToolsTool extends BaseTool {
           "taskContext: Additional context about what you're trying to accomplish",
           'filterTags: Filter results by specific tags',
           'filterTypes: Filter by note types (decision, pattern, gotcha, explanation)',
-          'guidanceToken: Token from get_repository_guidance (required)',
         ],
         examples: [
-          'askA24zMemory({ filePath: "/Users/user/project/src/AuthService.ts", query: "What authentication patterns are used here?", guidanceToken: "token-xyz" })',
-          'askA24zMemory({ filePath: "/Users/user/project/src/api/", query: "How should I handle API error responses?", filterTypes: ["pattern"], guidanceToken: "token-xyz" })',
+          'askA24zMemory({ filePath: "/Users/user/project/src/AuthService.ts", query: "What authentication patterns are used here?" })',
+          'askA24zMemory({ filePath: "/Users/user/project/src/api/", query: "How should I handle API error responses?", filterTypes: ["pattern"] }),',
         ],
       },
       {
@@ -63,7 +62,6 @@ export class DiscoverToolsTool extends BaseTool {
           'tags: Semantic tags for categorization',
           'type: Note type (decision/pattern/gotcha/explanation)',
           'metadata: Additional context (optional)',
-          'guidanceToken: Token from get_repository_guidance (optional)',
         ],
         examples: [
           'create_repository_note({ note: "Fixed race condition in validation middleware", directoryPath: "/Users/user/project", anchors: ["/Users/user/project/src/middleware/validation.ts"], tags: ["bugfix", "concurrency", "validation"], type: "gotcha" })',
@@ -82,7 +80,6 @@ export class DiscoverToolsTool extends BaseTool {
         ],
         parameters: [
           'path: File or directory path to get notes for',
-          'guidanceToken: Token from get_repository_guidance (required)',
           'filterTags: Filter by specific tags (optional)',
           'filterTypes: Filter by note types (optional)',
           'filterReviewed: Filter by review status (all/reviewed/unreviewed)',
@@ -93,7 +90,7 @@ export class DiscoverToolsTool extends BaseTool {
           'offset: Pagination offset',
         ],
         examples: [
-          'get_notes({ path: "/Users/user/project/src", guidanceToken: "token-xyz", filterTags: ["bugfix"], limit: 10 })',
+          'get_notes({ path: "/Users/user/project/src", filterTags: ["bugfix"], limit: 10 })',
         ],
       },
       {
@@ -108,14 +105,11 @@ export class DiscoverToolsTool extends BaseTool {
         ],
         parameters: [
           'path: File or directory path',
-          'guidanceToken: Token from get_repository_guidance (required)',
           'includeUsedTags: Include previously used tags',
           'includeSuggestedTags: Include path-based tag suggestions',
           'includeGuidance: Include repository guidance',
         ],
-        examples: [
-          'get_repository_tags({ path: "/Users/user/project/src/components/", guidanceToken: "token-xyz" })',
-        ],
+        examples: ['get_repository_tags({ path: "/Users/user/project/src/components/" })'],
       },
       {
         name: 'get_repository_types',
@@ -128,12 +122,9 @@ export class DiscoverToolsTool extends BaseTool {
         ],
         parameters: [
           'path: File or directory path',
-          'guidanceToken: Token from get_repository_guidance (required)',
           'includeGuidance: Include repository-specific guidance',
         ],
-        examples: [
-          'get_repository_types({ path: "/Users/user/project", guidanceToken: "token-xyz" })',
-        ],
+        examples: ['get_repository_types({ path: "/Users/user/project" })'],
       },
       {
         name: 'get_repository_guidance',

@@ -1,24 +1,15 @@
 import { z } from 'zod';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
-import { GuidanceTokenManager } from '../services/guidance-token-manager';
 import { generateFullGuidanceContent } from '../utils/guidanceGenerator';
-
-// Extended result type that includes optional guidanceToken
-interface GuidanceToolResult extends McpToolResult {
-  guidanceToken?: string;
-}
 
 export class GetRepositoryGuidanceTool extends BaseTool {
   name = 'get_repository_guidance';
   description =
     'Get comprehensive repository configuration including note guidance, tag restrictions, and tag descriptions';
 
-  private tokenManager: GuidanceTokenManager;
-
   constructor() {
     super();
-    this.tokenManager = new GuidanceTokenManager();
   }
 
   schema = z.object({
@@ -27,10 +18,6 @@ export class GetRepositoryGuidanceTool extends BaseTool {
       .describe(
         'The file or directory path to get guidance for. Can be any path within the repository - the tool will find the repository root and provide comprehensive configuration.'
       ),
-    includeToken: z
-      .boolean()
-      .optional()
-      .describe('Whether to include a guidance token for note validation (default: true)'),
   });
 
   async execute(input: z.infer<typeof this.schema>): Promise<McpToolResult> {
@@ -40,24 +27,7 @@ export class GetRepositoryGuidanceTool extends BaseTool {
     // Split into lines for building output
     const output = fullContent.split('\n');
 
-    // Generate guidance token if requested (default to true)
-    const includeToken = input.includeToken !== false;
-    let token: string | undefined;
-
-    if (includeToken) {
-      // Generate token based on the full guidance content
-      token = this.tokenManager.generateToken(fullContent, input.path);
-
-      output.push('');
-      output.push('## Guidance Token');
-      output.push('This token proves you have read the current guidance:');
-      output.push(`\`${token}\``);
-      output.push('');
-      output.push('Include this token when creating notes to verify guidance compliance.');
-      output.push('Token expires in 24 hours.');
-    }
-
-    const result: GuidanceToolResult = {
+    const result: McpToolResult = {
       content: [
         {
           type: 'text',
@@ -65,11 +35,6 @@ export class GetRepositoryGuidanceTool extends BaseTool {
         },
       ],
     };
-
-    // Include token in structured response if generated
-    if (token) {
-      result.guidanceToken = token;
-    }
 
     return result;
   }

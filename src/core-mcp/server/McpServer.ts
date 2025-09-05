@@ -15,8 +15,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 
 import {
-  /*AppInfoTool,*/ AskA24zMemoryTool,
-  CreateRepositoryAnchoredNoteTool,
+  /*AppInfoTool,*/ CreateRepositoryAnchoredNoteTool,
   GetAnchoredNotesTool,
   GetRepositoryTagsTool,
   GetRepositoryGuidanceTool,
@@ -31,6 +30,7 @@ import {
   ReplaceTagTool,
   GetAnchoredNoteCoverageTool,
   StartDocumentationQuestTool,
+  ListCodebaseViewsTool,
 } from '../tools';
 import { McpServerConfig, McpTool, McpResource } from '../types';
 import { McpLLMConfigurator } from '../services/mcp-llm-configurator';
@@ -77,9 +77,6 @@ export class McpServer {
     const enabledTools = config.enabled_mcp_tools || {};
 
     // Add tools based on configuration (default to true if not specified)
-    if (enabledTools.askA24zMemory !== false) {
-      this.addTool(new AskA24zMemoryTool());
-    }
     if (enabledTools.create_repository_note !== false) {
       this.addTool(new CreateRepositoryAnchoredNoteTool());
     }
@@ -124,6 +121,9 @@ export class McpServer {
     }
     if (enabledTools.start_documentation_quest !== false) {
       this.addTool(new StartDocumentationQuestTool());
+    }
+    if (enabledTools.list_codebase_views !== false) {
+      this.addTool(new ListCodebaseViewsTool());
     }
   }
 

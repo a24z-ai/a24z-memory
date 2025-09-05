@@ -4,7 +4,6 @@ import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
 import { getNotesForPath, checkStaleAnchoredNotes } from '../store/anchoredNotesStore';
 import { normalizeRepositoryPath } from '../utils/pathNormalization';
-import { GuidanceTokenManager } from '../services/guidance-token-manager';
 
 type NoteResponse = {
   id: string;
@@ -49,11 +48,8 @@ export class GetAnchoredNotesTool extends BaseTool {
   description =
     'Retrieve raw notes from the repository without AI processing. Returns the actual note content, metadata, and anchors. Use this when you want to see the exact notes stored, browse through knowledge, or need the raw data for further processing. For AI-synthesized answers, use askA24zMemory instead.';
 
-  private tokenManager: GuidanceTokenManager;
-
   constructor() {
     super();
-    this.tokenManager = new GuidanceTokenManager();
   }
 
   schema = z.object({
@@ -125,19 +121,10 @@ export class GetAnchoredNotesTool extends BaseTool {
       .describe(
         'Whether to include full metadata for each note. Set to false for a more compact response'
       ),
-
-    guidanceToken: z
-      .string()
-      .describe(
-        'The guidance token obtained from get_repository_guidance. Required to ensure guidance has been read.'
-      ),
   });
 
   async execute(input: z.infer<typeof this.schema>): Promise<McpToolResult> {
     const parsed = this.schema.parse(input);
-
-    // Validate guidance token
-    this.tokenManager.validateTokenForPath(parsed.guidanceToken, parsed.path);
 
     // Validate that path is absolute
     if (!path.isAbsolute(parsed.path)) {

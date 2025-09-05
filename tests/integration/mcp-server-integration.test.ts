@@ -147,7 +147,6 @@ describe('MCP Server Integration', () => {
 
           // Verify ALL tools are available
           const expectedTools = [
-            'askA24zMemory',
             'create_repository_note',
             'get_notes',
             'get_repository_tags',
@@ -163,6 +162,7 @@ describe('MCP Server Integration', () => {
             'replace_tag',
             'get_note_coverage',
             'start_documentation_quest',
+            'list_codebase_views',
           ];
 
           for (const tool of expectedTools) {
@@ -203,8 +203,7 @@ describe('MCP Server Integration', () => {
           const guidanceResult = guidanceResponse.result as any;
           expect(guidanceResult.content).toBeInstanceOf(Array);
           expect(guidanceResult.content[0]).toHaveProperty('text');
-          expect(guidanceResult).toHaveProperty('guidanceToken');
-          expect(typeof guidanceResult.guidanceToken).toBe('string');
+          // Guidance tokens no longer exist
 
           // Test discover_a24z_tools
           const discoverResponse = await sendMcpRequest(server, {
@@ -219,7 +218,7 @@ describe('MCP Server Integration', () => {
 
           expect(discoverResponse.error).toBeUndefined();
           const discoverResult = discoverResponse.result as any;
-          expect(discoverResult.content[0].text).toContain('askA24zMemory');
+          expect(discoverResult.content[0].text).toContain('discover_a24z_tools');
 
           // Test get_repository_tags
           const tagsResponse = await sendMcpRequest(server, {
@@ -229,7 +228,6 @@ describe('MCP Server Integration', () => {
               name: 'get_repository_tags',
               arguments: {
                 path: testRepo,
-                guidanceToken: guidanceResult.guidanceToken,
               },
             },
             id: 3,
@@ -257,19 +255,7 @@ describe('MCP Server Integration', () => {
           // Use the project directory for testing (simpler and more realistic)
           const projectDir = process.cwd();
 
-          // First get guidance token
-          const guidanceResponse = await sendMcpRequest(server, {
-            jsonrpc: '2.0',
-            method: 'tools/call',
-            params: {
-              name: 'get_repository_guidance',
-              arguments: { path: projectDir },
-            },
-            id: 1,
-          });
-
-          const guidanceResult = guidanceResponse.result as any;
-          const guidanceToken = guidanceResult.guidanceToken;
+          // No guidance token needed for current implementation
 
           // Create a note
           const createResponse = await sendMcpRequest(server, {
@@ -282,8 +268,6 @@ describe('MCP Server Integration', () => {
                 directoryPath: projectDir,
                 anchors: [path.join(projectDir, 'tests')],
                 tags: ['integration', 'mcp-test', 'temp'],
-                codebaseViewId: 'test-view',
-                guidanceToken,
               },
             },
             id: 2,
@@ -300,7 +284,6 @@ describe('MCP Server Integration', () => {
               name: 'get_notes',
               arguments: {
                 path: projectDir,
-                guidanceToken,
                 limit: 10,
                 filterTags: ['mcp-test'],
               },

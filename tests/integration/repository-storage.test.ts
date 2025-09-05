@@ -10,7 +10,7 @@ import {
   findProjectRoot,
   getRepositoryName,
 } from '../../src/core-mcp/utils/pathNormalization';
-import { withGuidanceToken, createTestGuidanceToken, createTestView } from '../test-helpers';
+import { createTestView } from '../test-helpers';
 
 describe('Repository-Specific Storage', () => {
   const testRepoPath = '/tmp/test-repo-storage';
@@ -256,21 +256,18 @@ describe('Repository-Specific Storage', () => {
       const getTool = new GetAnchoredNotesTool();
 
       // Save a note using the MCP tool
-      const saveResult = await saveTool.execute(
-        withGuidanceToken({
-          note: 'MCP integration test note',
-          directoryPath: testRepoPath,
-          tags: ['mcp-test', 'integration'],
-          anchors: [testSubPath],
-          codebaseViewId: 'test-view',
-          metadata: { mcpTest: true },
-        })
-      );
+      const saveResult = await saveTool.execute({
+        note: 'MCP integration test note',
+        directoryPath: testRepoPath,
+        tags: ['mcp-test', 'integration'],
+        anchors: [testSubPath],
+        codebaseViewId: 'test-view',
+        metadata: { mcpTest: true },
+      });
 
       expect(saveResult.content[0].text).toContain('Note saved successfully');
 
       // Retrieve notes using the MCP tool
-      const guidanceToken = createTestGuidanceToken(testRepoPath);
       const getResult = await getTool.execute({
         path: testRepoPath,
         includeParentNotes: true,
@@ -280,7 +277,6 @@ describe('Repository-Specific Storage', () => {
         limit: 10,
         offset: 0,
         includeMetadata: true,
-        guidanceToken,
       });
 
       console.log('MCP Get Result:', JSON.stringify(getResult, null, 2));
@@ -317,7 +313,6 @@ describe('Repository-Specific Storage', () => {
 
       // Try to retrieve from a deeply nested path
       const deepPath = path.join(testRepoPath, 'src', 'components', 'Button.tsx');
-      const deepToken = createTestGuidanceToken(testRepoPath);
       const getResult = await getTool.execute({
         path: deepPath,
         includeParentNotes: true,
@@ -327,7 +322,6 @@ describe('Repository-Specific Storage', () => {
         limit: 10,
         offset: 0,
         includeMetadata: true,
-        guidanceToken: deepToken,
       });
 
       console.log('Nested Path Get Result:', JSON.stringify(getResult, null, 2));

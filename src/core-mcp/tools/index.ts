@@ -1,5 +1,4 @@
 export { BaseTool } from './base-tool';
-export { AskA24zMemoryTool } from './AskA24zMemoryTool';
 export { CreateRepositoryAnchoredNoteTool } from './CreateRepositoryAnchoredNoteTool';
 export { GetAnchoredNotesTool } from './GetAnchoredNotesTool';
 export { GetRepositoryTagsTool } from './GetRepositoryTagsTool';
@@ -15,3 +14,4 @@ export { DeleteTagTool } from './DeleteTagTool';
 export { ReplaceTagTool } from './ReplaceTagTool';
 export { GetAnchoredNoteCoverageTool } from './GetAnchoredNoteCoverageTool';
 export { StartDocumentationQuestTool } from './StartDocumentationQuestTool';
+export { ListCodebaseViewsTool } from './ListCodebaseViewsTool';

@@ -8,18 +8,14 @@ import {
   getAllowedTags,
   getTagDescriptions,
 } from '../store/anchoredNotesStore';
-import { GuidanceTokenManager } from '../services/guidance-token-manager';
 
 export class GetRepositoryTagsTool extends BaseTool {
   name = 'get_repository_tags';
   description =
     'Get available tags for categorizing notes in a repository path, including repository-specific guidance';
 
-  private tokenManager: GuidanceTokenManager;
-
   constructor() {
     super();
-    this.tokenManager = new GuidanceTokenManager();
   }
 
   schema = z.object({
@@ -49,17 +45,9 @@ export class GetRepositoryTagsTool extends BaseTool {
       .describe(
         'Include repository-specific note guidance. Shows either custom guidance from .a24z/note-guidance.md or falls back to default guidance.'
       ),
-    guidanceToken: z
-      .string()
-      .describe(
-        'The guidance token obtained from get_repository_guidance. Required to ensure guidance has been read.'
-      ),
   });
 
   async execute(input: z.infer<typeof this.schema>): Promise<McpToolResult> {
-    // Validate guidance token
-    this.tokenManager.validateTokenForPath(input.guidanceToken, input.path);
-
     const result: Record<string, unknown> = { success: true, path: input.path };
 
     // Get tag descriptions

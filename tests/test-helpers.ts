@@ -4,15 +4,11 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { GuidanceTokenManager } from '../src/core-mcp/services/guidance-token-manager';
-import { generateFullGuidanceContent } from '../src/core-mcp/utils/guidanceGenerator';
 
 /**
- * Create a test guidance token for a repository
+ * Create basic .a24z directory structure for testing
  */
-export function createTestGuidanceToken(repositoryPath: string): string {
-  const tokenManager = new GuidanceTokenManager();
-
+export function createTestRepositoryStructure(repositoryPath: string): void {
   // Create the .a24z directory structure
   const a24zDir = path.join(repositoryPath, '.a24z');
   fs.mkdirSync(a24zDir, { recursive: true });
@@ -27,27 +23,9 @@ This is test guidance for ${repositoryPath}.
 - Use appropriate tags and types
 - Include relevant anchors
 
-This token was generated for testing purposes.`;
+This guidance was created for testing purposes.`;
 
   fs.writeFileSync(path.join(a24zDir, 'note-guidance.md'), guidanceContent);
-
-  // Generate the full guidance content (same as GetRepositoryGuidanceTool)
-  const fullContent = generateFullGuidanceContent(repositoryPath);
-
-  // Generate and return the token based on the full content
-  return tokenManager.generateToken(fullContent, repositoryPath);
-}
-
-/**
- * Add a guidance token to note creation input
- */
-export function withGuidanceToken<T extends { directoryPath: string }>(
-  input: T
-): T & { guidanceToken: string } {
-  return {
-    ...input,
-    guidanceToken: createTestGuidanceToken(input.directoryPath),
-  };
 }
 
 /**

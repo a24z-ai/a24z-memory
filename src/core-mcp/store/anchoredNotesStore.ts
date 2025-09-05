@@ -25,7 +25,7 @@ export interface StoredAnchoredNote {
   timestamp: number;
   reviewed?: boolean;
   codebaseViewId: string; // Required CodebaseView identifier
-  cellCoordinates?: [number, number]; // Specific cell location in the view grid
+  cellCoordinates?: [number, number]; // Optional - computed dynamically via anchor-to-cell pattern matching
 }
 
 export interface AnchoredNoteWithPath {
@@ -48,7 +48,6 @@ export interface RepositoryConfiguration {
     enforceAllowedTags?: boolean; // Whether to enforce allowed tags (based on tag descriptions)
   };
   enabled_mcp_tools?: {
-    askA24zMemory?: boolean;
     create_repository_note?: boolean;
     get_notes?: boolean;
     get_repository_tags?: boolean;
@@ -65,6 +64,7 @@ export interface RepositoryConfiguration {
     replace_tag?: boolean;
     get_note_coverage?: boolean;
     start_documentation_quest?: boolean;
+    list_codebase_views?: boolean;
   };
 }
 

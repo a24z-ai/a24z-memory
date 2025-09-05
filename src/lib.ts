@@ -77,7 +77,6 @@ export {
   type CodebaseViewScope,
   type CodebaseViewLinks,
   type CodebaseView,
-  type ViewSummary,
   type ViewValidationResult,
   type PatternValidationResult,
   CodebaseViewsStore,
@@ -108,7 +107,6 @@ export { zodToJsonSchema } from './core-mcp/utils/zod-to-json-schema';
 
 // Tool classes for direct use
 export { CreateRepositoryAnchoredNoteTool } from './core-mcp/tools/CreateRepositoryAnchoredNoteTool';
-export { AskA24zMemoryTool, type AskMemoryResponse } from './core-mcp/tools/AskA24zMemoryTool';
 export { GetRepositoryTagsTool } from './core-mcp/tools/GetRepositoryTagsTool';
 export { GetRepositoryGuidanceTool } from './core-mcp/tools/GetRepositoryGuidanceTool';
 export { GetAnchoredNoteByIdTool } from './core-mcp/tools/GetAnchoredNoteByIdTool';
@@ -126,15 +124,15 @@ export {
   type LLMResponse,
 } from './core-mcp/services/llm-service';
 
+// Session View Creator exports
+export {
+  SessionViewCreator,
+  type PatternInference,
+  type SessionViewResult,
+} from './core-mcp/services/sessionViewCreator';
+
 // API Key Manager
 export { ApiKeyManager, type StoredApiKey } from './core-mcp/services/api-key-manager';
-
-// Guidance Token Manager
-export {
-  GuidanceTokenManager,
-  type TokenPayload,
-  type TokenResult,
-} from './core-mcp/services/guidance-token-manager';
 
 // LLM Configurator
 export {
@@ -189,9 +187,7 @@ import {
 
 import { normalizeRepositoryPath as normalizeRepositoryPathFunc } from './core-mcp/utils/pathNormalization';
 
-import { AskA24zMemoryTool, type AskMemoryResponse } from './core-mcp/tools/AskA24zMemoryTool';
 import { LLMService, type LLMConfig } from './core-mcp/services/llm-service';
-import { GuidanceTokenManager } from './core-mcp/services/guidance-token-manager';
 import { GetRepositoryGuidanceTool } from './core-mcp/tools/GetRepositoryGuidanceTool';
 import {
   ValidationMessageFormatter as ValidationMessageFormatterImport,
@@ -212,14 +208,11 @@ type NoteMetadata = Record<string, unknown>;
 export class A24zMemory {
   private repositoryPath: string;
   private llmConfig?: LLMConfig;
-  private askTool?: AskA24zMemoryTool;
   private llmService?: LLMService;
-  private tokenManager: GuidanceTokenManager;
   private guidanceTool: GetRepositoryGuidanceTool;
 
   constructor(repositoryPath?: string) {
     this.repositoryPath = repositoryPath || normalizeRepositoryPathFunc(process.cwd());
-    this.tokenManager = new GuidanceTokenManager();
     this.guidanceTool = new GetRepositoryGuidanceTool();
   }
 
@@ -423,74 +416,6 @@ export class A24zMemory {
    */
   markAllNotesReviewed(directoryPath?: string): number {
     return markAllNotesReviewedFunc(this.repositoryPath, directoryPath);
-  }
-
-  /**
-   * Ask the a24z memory system a question with enhanced metadata
-   */
-  async askMemory(params: {
-    filePath: string;
-    query: string;
-    taskContext?: string;
-    filterTags?: string[];
-    filterTypes?: Array<'decision' | 'pattern' | 'gotcha' | 'explanation'>;
-    options?: {
-      includeFileContents?: boolean;
-      maxNotes?: number;
-      llmConfig?: LLMConfig;
-    };
-  }): Promise<AskMemoryResponse> {
-    // Create or reuse the ask tool with the appropriate LLM config
-    const llmConfig = params.options?.llmConfig || this.llmConfig;
-
-    // Recreate the tool if LLM config changed
-    if (!this.askTool || llmConfig !== this.llmConfig) {
-      this.askTool = new AskA24zMemoryTool(llmConfig);
-    }
-
-    // If includeFileContents is specified, update the config
-    if (params.options?.includeFileContents !== undefined && llmConfig) {
-      const updatedConfig = {
-        ...llmConfig,
-        includeFileContents: params.options.includeFileContents,
-      };
-      this.askTool = new AskA24zMemoryTool(updatedConfig);
-    }
-
-    // Auto-generate a guidance token for backward compatibility
-    // This allows the library to work without requiring users to manage tokens
-    const guidanceResult = await this.guidanceTool.execute({ path: params.filePath });
-    // The token is returned at the root level of the result
-    interface GuidanceResultWithToken {
-      guidanceToken?: string;
-    }
-    const guidanceToken = (guidanceResult as GuidanceResultWithToken).guidanceToken;
-
-    if (!guidanceToken) {
-      throw new Error(
-        'Failed to generate guidance token. Please ensure the repository is properly initialized.'
-      );
-    }
-
-    // Execute with metadata
-    const result = await this.askTool.executeWithMetadata({
-      filePath: params.filePath,
-      query: params.query,
-      taskContext: params.taskContext,
-      filterTags: params.filterTags,
-      guidanceToken,
-    });
-
-    return result;
-  }
-
-  /**
-   * Configure LLM settings for this instance
-   */
-  configureLLM(config: LLMConfig): void {
-    this.llmConfig = config;
-    this.llmService = new LLMService(config);
-    this.askTool = new AskA24zMemoryTool(config);
   }
 
   /**

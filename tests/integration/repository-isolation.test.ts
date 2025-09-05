@@ -11,7 +11,7 @@ import {
 } from '../../src/core-mcp/store/anchoredNotesStore';
 import { CreateRepositoryAnchoredNoteTool } from '../../src/core-mcp/tools/CreateRepositoryAnchoredNoteTool';
 import { GetAnchoredNotesTool } from '../../src/core-mcp/tools/GetAnchoredNotesTool';
-import { withGuidanceToken, createTestGuidanceToken, createTestView } from '../test-helpers';
+import { createTestView } from '../test-helpers';
 
 describe('Repository Isolation and Cross-Repository Testing', () => {
   const tempBase = path.join(os.tmpdir(), 'a24z-repo-isolation-test-' + Date.now());
@@ -329,30 +329,25 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
       const getTool = new GetAnchoredNotesTool();
 
       // Create notes in different repositories using MCP tool
-      await createTool.execute(
-        withGuidanceToken({
-          note: 'MCP note in Alpha',
-          directoryPath: repo1Path,
-          anchors: [repo1Path],
-          tags: ['mcp', 'alpha'],
-          codebaseViewId: 'test-view',
-          metadata: {},
-        })
-      );
+      await createTool.execute({
+        note: 'MCP note in Alpha',
+        directoryPath: repo1Path,
+        anchors: [repo1Path],
+        tags: ['mcp', 'alpha'],
+        codebaseViewId: 'test-view',
+        metadata: {},
+      });
 
-      await createTool.execute(
-        withGuidanceToken({
-          note: 'MCP note in Beta',
-          directoryPath: repo2Path,
-          anchors: [repo2Path],
-          tags: ['mcp', 'beta'],
-          codebaseViewId: 'test-view',
-          metadata: {},
-        })
-      );
+      await createTool.execute({
+        note: 'MCP note in Beta',
+        directoryPath: repo2Path,
+        anchors: [repo2Path],
+        tags: ['mcp', 'beta'],
+        codebaseViewId: 'test-view',
+        metadata: {},
+      });
 
       // Retrieve using MCP tool
-      const token1 = createTestGuidanceToken(repo1Path);
       const alphaResult = await getTool.execute({
         path: repo1Path,
         includeParentNotes: true,
@@ -362,10 +357,8 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         limit: 10,
         offset: 0,
         includeMetadata: true,
-        guidanceToken: token1,
       });
 
-      const token2 = createTestGuidanceToken(repo2Path);
       const betaResult = await getTool.execute({
         path: repo2Path,
         includeParentNotes: true,
@@ -375,7 +368,6 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
         limit: 10,
         offset: 0,
         includeMetadata: true,
-        guidanceToken: token2,
       });
 
       // Parse results

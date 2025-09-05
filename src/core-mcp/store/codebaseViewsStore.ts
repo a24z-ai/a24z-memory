@@ -112,7 +112,7 @@ export interface CodebaseView {
    * Description of what this view represents.
    * Helps users understand the organizational principle.
    */
-  description?: string;
+  description: string;
 
   /**
    * Number of rows in the grid.
@@ -160,6 +160,9 @@ export interface CodebaseView {
    * Official metadata with strict types for common visualization needs
    */
   metadata?: {
+    /** How this view was created - used for cleanup and management */
+    generationType?: 'user' | 'session';
+
     /** UI configuration for visualization/rendering */
     ui?: {
       /** Whether grid layout is enabled */
@@ -185,19 +188,6 @@ export interface CodebaseView {
    * No type guarantees - contents may change.
    */
   experimentalMetadata?: Record<string, unknown>;
-}
-
-/**
- * Lightweight summary of a view for listing operations.
- */
-export interface ViewSummary {
-  id: string;
-  name: string;
-  description?: string;
-  rows: number;
-  cols: number;
-  cellCount: number;
-  timestamp?: string;
 }
 
 /**
@@ -306,7 +296,7 @@ export class CodebaseViewsStore {
   /**
    * List all available views in a repository.
    */
-  listViews(repositoryPath: string): ViewSummary[] {
+  listViews(repositoryPath: string): CodebaseView[] {
     const viewsDir = this.getViewsDirectory(repositoryPath);
 
     if (!fs.existsSync(viewsDir)) {
@@ -314,32 +304,18 @@ export class CodebaseViewsStore {
     }
 
     const files = fs.readdirSync(viewsDir).filter((f) => f.endsWith('.json'));
-    const summaries: ViewSummary[] = [];
+    const views: CodebaseView[] = [];
 
     for (const file of files) {
       const viewId = path.basename(file, '.json');
       const view = this.getView(repositoryPath, viewId);
 
       if (view) {
-        // Compute dimensions if not specified
-        const dimensions =
-          view.rows !== undefined && view.cols !== undefined
-            ? { rows: view.rows, cols: view.cols }
-            : computeGridDimensions(view.cells);
-
-        summaries.push({
-          id: view.id,
-          name: view.name,
-          description: view.description,
-          rows: dimensions.rows,
-          cols: dimensions.cols,
-          cellCount: Object.keys(view.cells).length,
-          timestamp: view.timestamp,
-        });
+        views.push(view);
       }
     }
 
-    return summaries.sort((a, b) => a.name.localeCompare(b.name));
+    return views.sort((a, b) => a.name.localeCompare(b.name));
   }
 
   /**

@@ -7,7 +7,7 @@ import { CreateRepositoryAnchoredNoteTool } from '../../src/core-mcp/tools/Creat
 import { GetAnchoredNotesTool } from '../../src/core-mcp/tools/GetAnchoredNotesTool';
 import { GetRepositoryTagsTool } from '../../src/core-mcp/tools/GetRepositoryTagsTool';
 import { TEST_DIR } from '../setup';
-import { withGuidanceToken, createTestGuidanceToken, createTestView } from '../test-helpers';
+import { createTestView } from '../test-helpers';
 
 describe('File Operations Integration', () => {
   const testPath = path.join(TEST_DIR, 'file-ops-test');
@@ -42,16 +42,14 @@ describe('File Operations Integration', () => {
   it('should complete full create-retrieve-query workflow', async () => {
     // Step 1: Create a note
     const createTool = new CreateRepositoryAnchoredNoteTool();
-    const createResult = await createTool.execute(
-      withGuidanceToken({
-        note: '# Integration Test\\n\\nThis tests file operations.',
-        directoryPath: testPath,
-        anchors: [testPath],
-        tags: ['integration', 'file-ops'],
-        codebaseViewId: 'test-view',
-        metadata: { test: true },
-      })
-    );
+    const createResult = await createTool.execute({
+      note: '# Integration Test\\n\\nThis tests file operations.',
+      directoryPath: testPath,
+      anchors: [testPath],
+      tags: ['integration', 'file-ops'],
+      codebaseViewId: 'test-view',
+      metadata: { test: true },
+    });
 
     expect(createResult.content[0].text).toContain('Note saved successfully');
 
@@ -61,7 +59,6 @@ describe('File Operations Integration', () => {
 
     // Step 3: Retrieve notes
     const getTool = new GetAnchoredNotesTool();
-    const guidanceToken = createTestGuidanceToken(testPath);
     const getResult = await getTool.execute({
       path: testPath,
       includeParentNotes: true,
@@ -71,7 +68,6 @@ describe('File Operations Integration', () => {
       limit: 10,
       offset: 0,
       includeMetadata: true,
-      guidanceToken,
     });
     const getData = JSON.parse(getResult.content[0].text!);
 
@@ -85,7 +81,6 @@ describe('File Operations Integration', () => {
       includeUsedTags: true,
       includeSuggestedTags: true,
       includeGuidance: false,
-      guidanceToken,
     });
     const tagsData = JSON.parse(tagsResult.content[0].text!);
 
@@ -99,16 +94,14 @@ describe('File Operations Integration', () => {
 
     // Create 10 notes concurrently
     const promises = Array.from({ length: 10 }, (_: unknown, i: number) =>
-      createTool.execute(
-        withGuidanceToken({
-          note: `Concurrent note ${i}`,
-          directoryPath: testPath,
-          anchors: [testPath],
-          tags: [`tag-${i}`],
-          codebaseViewId: 'test-view',
-          metadata: { index: i },
-        })
-      )
+      createTool.execute({
+        note: `Concurrent note ${i}`,
+        directoryPath: testPath,
+        anchors: [testPath],
+        tags: [`tag-${i}`],
+        codebaseViewId: 'test-view',
+        metadata: { index: i },
+      })
     );
 
     const results = await Promise.all(promises);
@@ -120,7 +113,6 @@ describe('File Operations Integration', () => {
 
     // Verify all were saved
     const getTool = new GetAnchoredNotesTool();
-    const verifyToken = createTestGuidanceToken(testPath);
     const getResult = await getTool.execute({
       path: testPath,
       includeParentNotes: true,
@@ -130,7 +122,6 @@ describe('File Operations Integration', () => {
       limit: 20,
       offset: 0,
       includeMetadata: true,
-      guidanceToken: verifyToken,
     });
     const data = JSON.parse(getResult.content[0].text!);
 
@@ -140,20 +131,17 @@ describe('File Operations Integration', () => {
   it('should persist notes across tool instances', async () => {
     // Create note with first tool instance
     const tool1 = new CreateRepositoryAnchoredNoteTool();
-    await tool1.execute(
-      withGuidanceToken({
-        note: 'Persistence test',
-        directoryPath: testPath,
-        anchors: [testPath],
-        tags: ['persistence'],
-        codebaseViewId: 'test-view',
-        metadata: {},
-      })
-    );
+    await tool1.execute({
+      note: 'Persistence test',
+      directoryPath: testPath,
+      anchors: [testPath],
+      tags: ['persistence'],
+      codebaseViewId: 'test-view',
+      metadata: {},
+    });
 
     // Retrieve with new tool instance
     const tool2 = new GetAnchoredNotesTool();
-    const guidanceToken = createTestGuidanceToken(testPath);
     const result = await tool2.execute({
       path: testPath,
       includeParentNotes: true,
@@ -163,7 +151,6 @@ describe('File Operations Integration', () => {
       limit: 10,
       offset: 0,
       includeMetadata: true,
-      guidanceToken,
     });
     const data = JSON.parse(result.content[0].text!);
 
