@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { createTestView } from '../../test-helpers';
 import {
   saveNote,
   getNoteById,
@@ -20,6 +21,7 @@ describe('Note Management Functions', () => {
 
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
+    createTestView(testRepoPath, 'test-view');
   });
 
   afterEach(() => {
@@ -36,6 +38,7 @@ describe('Note Management Functions', () => {
         tags: ['testing', 'retrieval'],
         metadata: { testKey: 'testValue' },
         directoryPath: testRepoPath,
+        codebaseViewId: 'test-view',
       };
 
       const savedNoteWithPath = saveNote(note);
@@ -71,6 +74,7 @@ describe('Note Management Functions', () => {
         tags: ['testing', 'deletion'],
         metadata: {},
         directoryPath: testRepoPath,
+        codebaseViewId: 'test-view',
       };
 
       const savedNoteWithPath = saveNote(note);
@@ -118,6 +122,7 @@ describe('Note Management Functions', () => {
           tags: ['testing'],
           metadata: {},
           directoryPath: testRepoPath,
+          codebaseViewId: 'test-view',
         };
         const savedNoteWithPath = saveNote(note);
         notes.push(savedNoteWithPath.note);
@@ -148,6 +153,7 @@ describe('Note Management Functions', () => {
         anchors: ['valid1.ts', 'valid2.ts'],
         tags: ['valid'],
         metadata: {},
+        codebaseViewId: 'test-view',
         directoryPath: testRepoPath,
       });
       const noteWithValidAnchors = noteWithValidAnchorsWithPath.note;
@@ -157,6 +163,7 @@ describe('Note Management Functions', () => {
         anchors: ['valid1.ts', 'stale1.ts', 'stale2.ts'],
         tags: ['mixed'],
         metadata: {},
+        codebaseViewId: 'test-view',
         directoryPath: testRepoPath,
       });
       const noteWithMixedAnchors = noteWithMixedAnchorsWithPath.note;
@@ -166,6 +173,7 @@ describe('Note Management Functions', () => {
         anchors: ['stale3.ts', 'stale4.ts'],
         tags: ['stale'],
         metadata: {},
+        codebaseViewId: 'test-view',
         directoryPath: testRepoPath,
       });
       const noteWithAllStaleAnchors = noteWithAllStaleAnchorsWithPath.note;
@@ -206,6 +214,7 @@ describe('Note Management Functions', () => {
         anchors: ['file1.ts'],
         tags: ['test'],
         metadata: {},
+        codebaseViewId: 'test-view',
         directoryPath: testRepoPath,
       });
 
@@ -214,6 +223,7 @@ describe('Note Management Functions', () => {
         anchors: ['file2.ts'],
         tags: ['test'],
         metadata: {},
+        codebaseViewId: 'test-view',
         directoryPath: testRepoPath,
       });
 
@@ -232,6 +242,7 @@ describe('Note Management Functions', () => {
         anchors: ['src'],
         tags: ['directory'],
         metadata: {},
+        codebaseViewId: 'test-view',
         directoryPath: testRepoPath,
       });
 
@@ -240,6 +251,7 @@ describe('Note Management Functions', () => {
         anchors: ['non-existent-dir'],
         tags: ['directory'],
         metadata: {},
+        codebaseViewId: 'test-view',
         directoryPath: testRepoPath,
       });
       const noteWithStaleDir = noteWithStaleDirWithPath.note;

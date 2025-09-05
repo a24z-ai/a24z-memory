@@ -10,6 +10,7 @@ import {
   saveTagDescription,
   getAllowedTags,
 } from '../store/anchoredNotesStore';
+import { codebaseViewsStore } from '../store/codebaseViewsStore';
 import { findGitRoot } from '../utils/pathNormalization';
 import { GuidanceTokenManager } from '../services/guidance-token-manager';
 import { generateFullGuidanceContent } from '../utils/guidanceGenerator';
@@ -54,6 +55,11 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
       .optional()
       .describe(
         'Additional structured data about the note. Can include custom fields like author, related PRs, issue numbers, or any other contextual information that might be useful for future reference.'
+      ),
+    codebaseViewId: z
+      .string()
+      .describe(
+        'Required CodebaseView ID to associate this note with. Use listViews to see available views or create a new view first.'
       ),
     guidanceToken: z
       .string()
@@ -101,6 +107,22 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
           `But the git root is: "${gitRoot}". ` +
           `💡 Tip: Use the git root path (${gitRoot}) instead of the subdirectory. ` +
           `This ensures all notes are stored in the same location and can be found consistently.`
+      );
+    }
+
+    // Validate that the codebaseViewId exists
+    const view = codebaseViewsStore.getView(parsed.directoryPath, parsed.codebaseViewId);
+    if (!view) {
+      const availableViews = codebaseViewsStore.listViews(parsed.directoryPath);
+      const viewsList =
+        availableViews.length > 0
+          ? availableViews.map((v) => `• ${v.id}: ${v.name}`).join('\n')
+          : 'No views found. Please create a view first.';
+
+      throw new Error(
+        `❌ CodebaseView with ID "${parsed.codebaseViewId}" not found.\n\n` +
+          `**Available views:**\n${viewsList}\n\n` +
+          `💡 Tip: Use an existing view ID from the list above, or create a new view first.`
       );
     }
 
@@ -185,6 +207,7 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
         createdBy: 'create_repository_note_tool',
       },
       reviewed: false, // New notes start as unreviewed
+      codebaseViewId: parsed.codebaseViewId,
     });
 
     const saved = savedWithPath.note;
@@ -194,6 +217,7 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
       `✅ **Note saved successfully!**\n\n` +
       `🆔 **Note ID:** ${saved.id}\n` +
       `📁 **Repository:** ${parsed.directoryPath}\n` +
+      `📊 **View:** ${view.name} (${parsed.codebaseViewId})\n` +
       `🏷️ **Tags:** ${parsed.tags.join(', ')}\n` +
       `\n`;
 

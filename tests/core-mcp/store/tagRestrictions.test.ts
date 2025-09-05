@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { createTestView } from '../../test-helpers';
 import {
   saveNote,
   updateRepositoryConfiguration,
@@ -22,6 +23,7 @@ describe('Tag Restrictions', () => {
 
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
+    createTestView(testRepoPath, 'test-view');
   });
 
   afterEach(() => {

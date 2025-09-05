@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { createTestView } from '../../test-helpers';
 import {
   saveNote,
   getNotesForPath,
@@ -33,7 +34,7 @@ describe('notesStore', () => {
 
     // Create a .git directory to make this a valid repository
     fs.mkdirSync(path.join(testNotePath, '.git'), { recursive: true });
-
+    createTestView(testNotePath, 'test-view');
     // Create a package.json to make this look like a project root
     fs.writeFileSync(
       path.join(testNotePath, 'package.json'),
@@ -285,6 +286,7 @@ describe('notesStore', () => {
       const parentNoteWithPath = saveNote({
         ...testNote,
         directoryPath: testNotePath,
+        codebaseViewId: 'test-view',
         anchors: [testNotePath], // Anchor to parent directory
         note: 'Parent note',
       });
@@ -320,11 +322,12 @@ describe('notesStore', () => {
       fs.mkdirSync(childPath, { recursive: true });
       // Create .git directory in child path to make it a valid repository
       fs.mkdirSync(path.join(childPath, '.git'), { recursive: true });
-
+      createTestView(testNotePath, 'test-view');
       saveNote({ ...testNote, directoryPath: parentPath });
       const childNoteWithPath = saveNote({
         ...testNote,
         directoryPath: childPath,
+        codebaseViewId: 'test-view',
         anchors: [childPath, 'test-anchor'],
         note: 'Child note',
       });
@@ -358,12 +361,14 @@ describe('notesStore', () => {
       saveNote({
         ...testNote,
         directoryPath: testNotePath,
+        codebaseViewId: 'test-view',
         anchors: [testNotePath],
         tags: ['parent-tag'],
       });
       saveNote({
         ...testNote,
         directoryPath: testNotePath,
+        codebaseViewId: 'test-view',
         anchors: [childPath],
         tags: ['child-tag'],
       });

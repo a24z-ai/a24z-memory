@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import { GetRepositoryTagsTool } from '../../../src/core-mcp/tools/GetRepositoryTagsTool';
 import { saveNote } from '../../../src/core-mcp/store/anchoredNotesStore';
 import { TEST_DIR } from '../../setup';
-import { createTestGuidanceToken } from '../../test-helpers';
+import { createTestGuidanceToken, createTestView } from '../../test-helpers';
 
 describe('GetRepositoryTagsTool (Simple)', () => {
   let tool: GetRepositoryTagsTool;
@@ -19,6 +19,9 @@ describe('GetRepositoryTagsTool (Simple)', () => {
 
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testPath, '.git'), { recursive: true });
+
+    // Create a test view
+    createTestView(testPath, 'test-view');
 
     // Create a package.json to make it look like a proper project root
     fs.writeFileSync(path.join(testPath, 'package.json'), '{}');
@@ -42,6 +45,7 @@ describe('GetRepositoryTagsTool (Simple)', () => {
       tags: ['custom-tag'],
       anchors: [testPath],
       metadata: {},
+      codebaseViewId: 'test-view',
     });
 
     const guidanceToken = createTestGuidanceToken(testPath);

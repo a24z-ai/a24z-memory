@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import { saveNote } from '../src/core-mcp/store/anchoredNotesStore';
+import { createTestView } from './test-helpers';
 
 describe('Path Validation for saveNote', () => {
   let tempDir: string;
@@ -16,6 +17,7 @@ describe('Path Validation for saveNote', () => {
     gitRepoPath = path.join(tempDir, 'valid-repo');
     fs.mkdirSync(gitRepoPath, { recursive: true });
     fs.mkdirSync(path.join(gitRepoPath, '.git'), { recursive: true });
+    createTestView(gitRepoPath, 'test-view');
 
     // Create a non-git directory
     nonGitPath = path.join(tempDir, 'not-a-repo');
@@ -35,6 +37,7 @@ describe('Path Validation for saveNote', () => {
         anchors: ['test.ts'],
         tags: ['test'],
         metadata: {},
+        codebaseViewId: 'test-view',
       })
     ).toThrow('directoryPath must be an absolute path to a git repository root');
   });
@@ -48,6 +51,7 @@ describe('Path Validation for saveNote', () => {
         anchors: ['test.ts'],
         tags: ['test'],
         metadata: {},
+        codebaseViewId: 'test-view',
       })
     ).toThrow(`directoryPath does not exist: "${fakePath}"`);
   });
@@ -60,6 +64,7 @@ describe('Path Validation for saveNote', () => {
         anchors: ['test.ts'],
         tags: ['test'],
         metadata: {},
+        codebaseViewId: 'test-view',
       })
     ).toThrow(`directoryPath is not a git repository root: "${nonGitPath}"`);
   });
@@ -71,6 +76,7 @@ describe('Path Validation for saveNote', () => {
       anchors: ['test.ts'],
       tags: ['test'],
       metadata: {},
+      codebaseViewId: 'test-view',
     });
 
     expect(result).toBeDefined();
@@ -89,6 +95,7 @@ describe('Path Validation for saveNote', () => {
         anchors: ['test.ts'],
         tags: ['test'],
         metadata: {},
+        codebaseViewId: 'test-view',
       })
     ).toThrow('directoryPath must be an absolute path to a git repository root');
   });
@@ -101,6 +108,7 @@ describe('Path Validation for saveNote', () => {
         anchors: ['test.ts'],
         tags: ['test'],
         metadata: {},
+        codebaseViewId: 'test-view',
       })
     ).toThrow('directoryPath must be an absolute path to a git repository root');
   });
@@ -113,6 +121,7 @@ describe('Path Validation for saveNote', () => {
         anchors: [],
         tags: ['test'],
         metadata: {},
+        codebaseViewId: 'test-view',
       })
     ).toThrow('At least one anchor path is required');
   });
@@ -123,6 +132,7 @@ describe('Path Validation for saveNote', () => {
         note: 'Test note',
         directoryPath: gitRepoPath,
         tags: ['test'],
+        codebaseViewId: 'test-view',
         metadata: {},
       } as Parameters<typeof saveNote>[0])
     ).toThrow('At least one anchor path is required');

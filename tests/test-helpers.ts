@@ -49,3 +49,30 @@ export function withGuidanceToken<T extends { directoryPath: string }>(
     guidanceToken: createTestGuidanceToken(input.directoryPath),
   };
 }
+
+/**
+ * Create a default test view for testing
+ */
+export function createTestView(repositoryPath: string, viewId: string = 'test-view'): void {
+  const viewsDir = path.join(repositoryPath, '.a24z', 'views');
+  fs.mkdirSync(viewsDir, { recursive: true });
+
+  const testView = {
+    id: viewId,
+    version: '1.0.0',
+    name: 'Test View',
+    description: 'Default view for testing',
+    rows: 2,
+    cols: 2,
+    cells: {
+      main: {
+        patterns: ['**/*'],
+        coordinates: [0, 0] as [number, number],
+        priority: 0,
+      },
+    },
+    timestamp: new Date().toISOString(),
+  };
+
+  fs.writeFileSync(path.join(viewsDir, `${viewId}.json`), JSON.stringify(testView, null, 2));
+}

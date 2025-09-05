@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { createTestView } from '../../test-helpers';
 import { DeleteTagTool } from '../../../src/core-mcp/tools/DeleteTagTool';
 import {
   saveNote,
@@ -22,7 +23,7 @@ describe('DeleteTagTool', () => {
 
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
-
+    createTestView(testRepoPath, 'test-view');
     tool = new DeleteTagTool();
   });
 
@@ -66,6 +67,7 @@ describe('DeleteTagTool', () => {
       tags: ['delete-me', 'keep-me'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
     const note1 = note1WithPath.note;
 
@@ -75,6 +77,7 @@ describe('DeleteTagTool', () => {
       tags: ['delete-me'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
     const note2 = note2WithPath.note;
 
@@ -84,6 +87,7 @@ describe('DeleteTagTool', () => {
       tags: ['keep-me'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
     const note3 = note3WithPath.note;
 
@@ -129,6 +133,7 @@ describe('DeleteTagTool', () => {
       tags: ['no-description'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
     const note1 = note1WithPath.note;
 
@@ -208,6 +213,7 @@ describe('DeleteTagTool', () => {
       tags: ['tag1', 'tag2', 'tag3'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
 
     // Delete one tag
@@ -262,6 +268,7 @@ describe('DeleteTagTool', () => {
           tags: ['common-tag', `unique-${i}`],
           metadata: {},
           directoryPath: testRepoPath,
+          codebaseViewId: 'test-view',
         })
       );
     }

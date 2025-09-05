@@ -51,6 +51,27 @@ describe('MCP Server Integration', () => {
       '[core]\nrepositoryformatversion = 0\n'
     );
 
+    // Create default test view
+    const viewsDir = path.join(testRepo, '.a24z', 'views');
+    fs.mkdirSync(viewsDir, { recursive: true });
+    const testView = {
+      id: 'test-view',
+      version: '1.0.0',
+      name: 'Test View',
+      description: 'Default view for integration testing',
+      rows: 2,
+      cols: 2,
+      cells: {
+        main: {
+          patterns: ['**/*'],
+          coordinates: [0, 0],
+          priority: 0,
+        },
+      },
+      timestamp: new Date().toISOString(),
+    };
+    fs.writeFileSync(path.join(viewsDir, 'test-view.json'), JSON.stringify(testView, null, 2));
+
     // Create package.json
     fs.writeFileSync(
       path.join(testRepo, 'package.json'),
@@ -261,6 +282,7 @@ describe('MCP Server Integration', () => {
                 directoryPath: projectDir,
                 anchors: [path.join(projectDir, 'tests')],
                 tags: ['integration', 'mcp-test', 'temp'],
+                codebaseViewId: 'test-view',
                 guidanceToken,
               },
             },

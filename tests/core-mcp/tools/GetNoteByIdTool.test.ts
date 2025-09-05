@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 import { GetAnchoredNoteByIdTool } from '../../../src/core-mcp/tools/GetAnchoredNoteByIdTool';
 import { saveNote } from '../../../src/core-mcp/store/anchoredNotesStore';
+import { createTestView } from '../../test-helpers';
 
 describe('GetAnchoredNoteByIdTool', () => {
   let tempDir: string;
@@ -17,7 +18,7 @@ describe('GetAnchoredNoteByIdTool', () => {
 
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
-
+    createTestView(testRepoPath, 'test-view');
     tool = new GetAnchoredNoteByIdTool();
   });
 
@@ -38,6 +39,7 @@ describe('GetAnchoredNoteByIdTool', () => {
         relatedPR: 123,
       },
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
     const savedNote = savedNoteWithPath.note;
 
@@ -90,6 +92,7 @@ describe('GetAnchoredNoteByIdTool', () => {
       tags: ['simple'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
     const savedNote = savedNoteWithPath.note;
 
@@ -115,6 +118,7 @@ describe('GetAnchoredNoteByIdTool', () => {
       tags: ['component'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
     const savedNote = savedNoteWithPath.note;
 
@@ -171,6 +175,7 @@ describe('GetAnchoredNoteByIdTool', () => {
       tags: ['time'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
 
     const result = await tool.execute({
@@ -201,6 +206,7 @@ describe('GetAnchoredNoteByIdTool', () => {
         nullValue: null,
       },
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
 
     const result = await tool.execute({
@@ -234,6 +240,7 @@ describe('GetAnchoredNoteByIdTool', () => {
         tags: [type],
         metadata: {},
         directoryPath: testRepoPath,
+        codebaseViewId: 'test-view',
       });
 
       const result = await tool.execute({

@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { createTestView } from '../../test-helpers';
 import { GetTagUsageTool } from '../../../src/core-mcp/tools/GetTagUsageTool';
 import { saveNote, saveTagDescription } from '../../../src/core-mcp/store/anchoredNotesStore';
 
@@ -25,7 +26,7 @@ describe('GetTagUsageTool', () => {
 
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
-
+    createTestView(testRepoPath, 'test-view');
     tool = new GetTagUsageTool();
   });
 
@@ -66,6 +67,7 @@ describe('GetTagUsageTool', () => {
       tags: ['used-tag', 'no-description-tag'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
     const note1 = note1WithPath.note;
 
@@ -75,6 +77,7 @@ describe('GetTagUsageTool', () => {
       tags: ['used-tag'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
     const note2 = note2WithPath.note;
 
@@ -132,6 +135,7 @@ describe('GetTagUsageTool', () => {
       tags: ['tag1', 'tag2'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
 
     saveNote({
@@ -140,6 +144,7 @@ describe('GetTagUsageTool', () => {
       tags: ['tag3'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
 
     // Execute the tool with filter
@@ -172,6 +177,7 @@ describe('GetTagUsageTool', () => {
       tags: ['described-tag'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
 
     // Execute the tool without descriptions
@@ -198,6 +204,7 @@ describe('GetTagUsageTool', () => {
       tags: ['test-tag'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
 
     // Execute the tool without note IDs
@@ -224,6 +231,7 @@ describe('GetTagUsageTool', () => {
       tags: ['alpha', 'beta', 'gamma'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
 
     saveNote({
@@ -232,6 +240,7 @@ describe('GetTagUsageTool', () => {
       tags: ['beta', 'gamma'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
 
     saveNote({
@@ -240,6 +249,7 @@ describe('GetTagUsageTool', () => {
       tags: ['gamma'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
 
     // Execute the tool
@@ -272,6 +282,7 @@ describe('GetTagUsageTool', () => {
       tags: ['no-desc'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
 
     // Execute the tool

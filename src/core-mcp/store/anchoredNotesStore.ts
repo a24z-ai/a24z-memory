@@ -24,7 +24,7 @@ export interface StoredAnchoredNote {
   metadata: Record<string, unknown>;
   timestamp: number;
   reviewed?: boolean;
-  viewId?: string; // Associated CodebaseView identifier
+  codebaseViewId: string; // Required CodebaseView identifier
   cellCoordinates?: [number, number]; // Specific cell location in the view grid
 }
 
@@ -394,6 +394,7 @@ export function saveNote(
     tags: note.tags,
     metadata: note.metadata,
     reviewed: note.reviewed,
+    codebaseViewId: note.codebaseViewId,
   };
 
   // Validate the note before processing
@@ -841,6 +842,7 @@ export interface MergeAnchoredNotesInput {
   tags: string[];
   metadata?: MergeNoteMetadata;
   noteIds: string[];
+  codebaseViewId: string;
   deleteOriginals?: boolean;
 }
 
@@ -861,6 +863,7 @@ export function mergeNotes(
     directoryPath: normalizedRepo,
     anchors: [...new Set(input.anchors)], // Deduplicate anchors
     tags: [...new Set(input.tags)], // Deduplicate tags
+    codebaseViewId: input.codebaseViewId,
     metadata: {
       ...input.metadata,
       mergedFrom: input.noteIds,
@@ -1044,7 +1047,7 @@ export interface SaveAnchoredNoteWithViewInput {
   anchors: string[];
   tags: string[];
   metadata?: Record<string, unknown>;
-  viewId?: string;
+  codebaseViewId: string;
   cellCoordinates?: [number, number];
 }
 
@@ -1058,7 +1061,7 @@ export function saveNoteWithView(
     tags: input.tags,
     metadata: input.metadata || {},
     reviewed: false,
-    viewId: input.viewId,
+    codebaseViewId: input.codebaseViewId,
     cellCoordinates: input.cellCoordinates,
     directoryPath: repositoryPath,
   };
@@ -1070,10 +1073,13 @@ export function saveNoteWithView(
 /**
  * Get all notes associated with a specific view
  */
-export function getNotesForView(repositoryPath: string, viewId: string): StoredAnchoredNote[] {
+export function getNotesForView(
+  repositoryPath: string,
+  codebaseViewId: string
+): StoredAnchoredNote[] {
   const allNotes = getNotesForPath(repositoryPath, true);
 
-  return allNotes.filter((note) => note.viewId === viewId);
+  return allNotes.filter((note) => note.codebaseViewId === codebaseViewId);
 }
 
 /**
@@ -1081,10 +1087,10 @@ export function getNotesForView(repositoryPath: string, viewId: string): StoredA
  */
 export function getNotesForCell(
   repositoryPath: string,
-  viewId: string,
+  codebaseViewId: string,
   cellCoordinates: [number, number]
 ): StoredAnchoredNote[] {
-  const viewNotes = getNotesForView(repositoryPath, viewId);
+  const viewNotes = getNotesForView(repositoryPath, codebaseViewId);
 
   return viewNotes.filter((note) => {
     if (!note.cellCoordinates) return false;
@@ -1100,10 +1106,10 @@ export function getNotesForCell(
  */
 export function detectCellForAnchors(
   repositoryPath: string,
-  viewId: string,
+  codebaseViewId: string,
   anchors: string[]
 ): { cellName: string | null; coordinates: [number, number] | null; confidence: number } {
-  const view = codebaseViewsStore.getView(repositoryPath, viewId);
+  const view = codebaseViewsStore.getView(repositoryPath, codebaseViewId);
   if (!view) {
     return { cellName: null, coordinates: null, confidence: 0 };
   }
@@ -1152,7 +1158,7 @@ export function updateNoteView(
   repositoryPath: string,
   noteId: string,
   viewUpdate: {
-    viewId?: string;
+    codebaseViewId?: string;
     cellCoordinates?: [number, number];
   }
 ): boolean {
@@ -1163,7 +1169,7 @@ export function updateNoteView(
 
   const updatedNote: StoredAnchoredNote = {
     ...note,
-    viewId: viewUpdate.viewId,
+    codebaseViewId: viewUpdate.codebaseViewId ?? note.codebaseViewId,
     cellCoordinates: viewUpdate.cellCoordinates,
     timestamp: Date.now(), // Update timestamp when view association changes
   };
@@ -1179,7 +1185,7 @@ export function updateNoteView(
     tags: updatedNote.tags,
     metadata: updatedNote.metadata,
     reviewed: updatedNote.reviewed,
-    viewId: updatedNote.viewId,
+    codebaseViewId: updatedNote.codebaseViewId,
     cellCoordinates: updatedNote.cellCoordinates,
     directoryPath: repositoryPath,
   });
@@ -1193,7 +1199,7 @@ export function updateNoteView(
 export function getOrphanedNotes(repositoryPath: string): StoredAnchoredNote[] {
   const allNotes = getNotesForPath(repositoryPath, true);
 
-  return allNotes.filter((note) => !note.viewId);
+  return allNotes.filter((note) => !note.codebaseViewId);
 }
 
 /**
@@ -1201,14 +1207,14 @@ export function getOrphanedNotes(repositoryPath: string): StoredAnchoredNote[] {
  */
 export function getViewStatistics(
   repositoryPath: string,
-  viewId: string
+  codebaseViewId: string
 ): {
   totalNotes: number;
   cellStats: Record<string, { noteCount: number; coordinates: [number, number] }>;
   orphanedNotes: number;
 } {
-  const viewNotes = getNotesForView(repositoryPath, viewId);
-  const view = codebaseViewsStore.getView(repositoryPath, viewId);
+  const viewNotes = getNotesForView(repositoryPath, codebaseViewId);
+  const view = codebaseViewsStore.getView(repositoryPath, codebaseViewId);
 
   const stats = {
     totalNotes: viewNotes.length,

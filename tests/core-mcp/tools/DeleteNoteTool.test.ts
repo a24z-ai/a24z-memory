@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { createTestView } from '../../test-helpers';
 import { DeleteAnchoredNoteTool } from '../../../src/core-mcp/tools/DeleteAnchoredNoteTool';
 import { saveNote, getNoteById } from '../../../src/core-mcp/store/anchoredNotesStore';
 
@@ -17,7 +18,7 @@ describe('DeleteAnchoredNoteTool', () => {
 
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
-
+    createTestView(testRepoPath, 'test-view');
     tool = new DeleteAnchoredNoteTool();
   });
 
@@ -34,6 +35,7 @@ describe('DeleteAnchoredNoteTool', () => {
       tags: ['testing', 'deletion'],
       metadata: { key: 'value' },
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
     const savedNote = savedNoteWithPath.note;
 
@@ -76,6 +78,7 @@ describe('DeleteAnchoredNoteTool', () => {
       tags: ['component'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
     const savedNote = savedNoteWithPath.note;
 
@@ -136,6 +139,7 @@ describe('DeleteAnchoredNoteTool', () => {
       tags: ['long'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
     const savedNote = savedNoteWithPath.note;
 
@@ -160,6 +164,7 @@ describe('DeleteAnchoredNoteTool', () => {
         customField: 'customValue',
       },
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
 
     const result = await tool.execute({

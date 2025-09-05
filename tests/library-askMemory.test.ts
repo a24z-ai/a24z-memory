@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import { A24zMemory } from '../src/lib';
+import { createTestView } from './test-helpers';
 
 describe('A24zMemory askMemory method', () => {
   let tempDir: string;
@@ -25,6 +26,9 @@ describe('A24zMemory askMemory method', () => {
       '# Test Guidance\n\nThis is test guidance for the repository.'
     );
 
+    // Create a default test view
+    createTestView(testRepoPath, 'test-view');
+
     // Initialize A24zMemory with test repo
     memory = new A24zMemory(testRepoPath);
   });
@@ -41,6 +45,7 @@ describe('A24zMemory askMemory method', () => {
         note: 'Test authentication pattern using JWT',
         anchors: [path.join(testRepoPath, 'src/auth.ts')],
         tags: ['authentication', 'jwt', 'security'],
+        codebaseViewId: 'test-view',
       });
 
       // Ask a question
@@ -62,12 +67,14 @@ describe('A24zMemory askMemory method', () => {
         note: 'Authentication with JWT',
         anchors: [path.join(testRepoPath, 'src/auth.ts')],
         tags: ['authentication', 'jwt'],
+        codebaseViewId: 'test-view',
       });
 
       memory.saveNote({
         note: 'Database connection pooling',
         anchors: [path.join(testRepoPath, 'src/db.ts')],
         tags: ['database', 'performance'],
+        codebaseViewId: 'test-view',
       });
 
       // Ask with tag filter

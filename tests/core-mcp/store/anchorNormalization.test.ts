@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { createTestView } from '../../test-helpers';
 import { saveNote, getNotesForPath } from '../../../src/core-mcp/store/anchoredNotesStore';
 
 describe('Anchor Normalization and Matching', () => {
@@ -15,7 +16,7 @@ describe('Anchor Normalization and Matching', () => {
 
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(repoDir, '.git'), { recursive: true });
-
+    createTestView(repoDir, 'test-view');
     // Create a package.json to make it look like a proper project root
     fs.writeFileSync(path.join(repoDir, 'package.json'), '{}');
   });
@@ -31,6 +32,7 @@ describe('Anchor Normalization and Matching', () => {
       const noteWithPath = saveNote({
         note: 'Test note with relative anchors',
         directoryPath: repoDir,
+        codebaseViewId: 'test-view',
         anchors: ['src/components/Button.tsx', './lib/utils.ts', 'docs/README.md'],
         tags: ['test'],
         metadata: {},
@@ -55,6 +57,7 @@ describe('Anchor Normalization and Matching', () => {
       const noteWithPath = saveNote({
         note: 'Test note with absolute anchor',
         directoryPath: repoDir,
+        codebaseViewId: 'test-view',
         anchors: [absoluteAnchor],
         tags: ['test'],
         metadata: {},
@@ -72,6 +75,7 @@ describe('Anchor Normalization and Matching', () => {
       const noteWithPath = saveNote({
         note: 'Test note with mixed anchors',
         directoryPath: repoDir,
+        codebaseViewId: 'test-view',
         anchors: ['relative/path.ts', absoluteAnchor, './another/relative.ts'],
         tags: ['test'],
         metadata: {},
@@ -91,6 +95,7 @@ describe('Anchor Normalization and Matching', () => {
       saveNote({
         note: 'Button component note',
         directoryPath: repoDir,
+        codebaseViewId: 'test-view',
         anchors: ['src/components/Button.tsx', 'src/components/Button.test.tsx'],
         tags: ['component'],
         metadata: {},
@@ -99,6 +104,7 @@ describe('Anchor Normalization and Matching', () => {
       saveNote({
         note: 'API utils note',
         directoryPath: repoDir,
+        codebaseViewId: 'test-view',
         anchors: ['src/utils/api.ts', 'src/utils'],
         tags: ['utils'],
         metadata: {},
@@ -107,6 +113,7 @@ describe('Anchor Normalization and Matching', () => {
       saveNote({
         note: 'Database config note',
         directoryPath: repoDir,
+        codebaseViewId: 'test-view',
         anchors: ['config/database.yml'],
         tags: ['config'],
         metadata: {},
@@ -174,6 +181,7 @@ describe('Anchor Normalization and Matching', () => {
       saveNote({
         note: 'General components note',
         directoryPath: path.join(repoDir, 'src/components'),
+        codebaseViewId: 'test-view',
         anchors: ['src/components/index.ts'],
         tags: ['general'],
         metadata: {},
@@ -192,6 +200,7 @@ describe('Anchor Normalization and Matching', () => {
       const note = saveNote({
         note: 'Parent directory reference note',
         directoryPath: path.join(repoDir, 'src/components'),
+        codebaseViewId: 'test-view',
         anchors: ['../utils/shared.ts', './Button.tsx'],
         tags: ['test'],
         metadata: {},
@@ -222,6 +231,7 @@ describe('Anchor Normalization and Matching', () => {
       saveNote({
         note: 'First repo note',
         directoryPath: repoDir,
+        codebaseViewId: 'test-view',
         anchors: ['src/file.ts'],
         tags: ['repo1'],
         metadata: {},
@@ -231,6 +241,7 @@ describe('Anchor Normalization and Matching', () => {
       saveNote({
         note: 'Second repo note',
         directoryPath: otherRepo,
+        codebaseViewId: 'test-view',
         anchors: ['src/file.ts'],
         tags: ['repo2'],
         metadata: {},

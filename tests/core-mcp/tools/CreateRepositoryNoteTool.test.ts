@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import { CreateRepositoryAnchoredNoteTool } from '../../../src/core-mcp/tools/CreateRepositoryAnchoredNoteTool';
 import { getNotesForPath } from '../../../src/core-mcp/store/anchoredNotesStore';
 import { TEST_DIR } from '../../setup';
-import { withGuidanceToken } from '../../test-helpers';
+import { withGuidanceToken, createTestView } from '../../test-helpers';
 
 describe('CreateRepositoryAnchoredNoteTool', () => {
   let tool: CreateRepositoryAnchoredNoteTool;
@@ -25,6 +25,8 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
     fs.mkdirSync(testPath, { recursive: true });
     // Create a .git directory to make it a valid git repo
     fs.mkdirSync(path.join(testPath, '.git'), { recursive: true });
+    // Create a test view
+    createTestView(testPath, 'test-view');
   });
 
   afterEach(() => {
@@ -40,6 +42,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
         note: 'Test note content',
         directoryPath: testPath,
         anchors: ['src/test.ts'],
+        codebaseViewId: 'test-view',
         tags: ['test'],
       };
 
@@ -51,6 +54,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
         note: 'Test note',
         directoryPath: testPath,
         anchors: ['src/test.ts'],
+        codebaseViewId: 'test-view',
         tags: [],
       };
 
@@ -73,6 +77,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
         note: 'Test note',
         directoryPath: testPath,
         anchors: ['src/test.ts'],
+        codebaseViewId: 'test-view',
         tags: ['test'],
       };
 
@@ -91,6 +96,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
         directoryPath: testPath,
         tags: ['test', 'example'],
         anchors: ['additional-path'],
+        codebaseViewId: 'test-view',
         type: 'pattern' as const,
         metadata: { customField: 'value' },
       });
@@ -107,6 +113,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
         note: 'File creation test',
         directoryPath: testPath,
         anchors: ['src/test.ts'],
+        codebaseViewId: 'test-view',
         tags: ['file-test'],
       });
 
@@ -147,6 +154,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
         note: 'Metadata test',
         directoryPath: testPath,
         anchors: ['src/test.ts'],
+        codebaseViewId: 'test-view',
         tags: ['metadata-test'],
         metadata: { userField: 'userValue' },
       });
@@ -171,6 +179,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
         note: 'Test note for git root storage',
         directoryPath: testPath, // Git root
         anchors: ['src/components/Button.tsx'],
+        codebaseViewId: 'test-view',
         tags: ['test'],
       });
 
@@ -196,12 +205,14 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
           note: 'First note',
           directoryPath: testPath,
           anchors: ['src/first.ts'],
+          codebaseViewId: 'test-view',
           tags: ['first'],
         },
         {
           note: 'Second note',
           directoryPath: testPath,
           anchors: ['src/second.ts'],
+          codebaseViewId: 'test-view',
           tags: ['second'],
         },
       ];
@@ -225,6 +236,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
         note: 'Test note',
         directoryPath: '.',
         anchors: ['src/test.ts'],
+        codebaseViewId: 'test-view',
         tags: ['test'],
       };
 
@@ -236,6 +248,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
         note: 'Test note',
         directoryPath: '/invalid/path/that/does/not/exist',
         anchors: ['src/test.ts'],
+        codebaseViewId: 'test-view',
         tags: ['test'],
       };
 
@@ -250,6 +263,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
         note: 'Test note',
         directoryPath: subDir,
         anchors: ['test.ts'],
+        codebaseViewId: 'test-view',
         tags: ['test'],
       };
 
@@ -266,6 +280,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
         note: 'Test note',
         directoryPath: nonGitPath,
         anchors: ['test.ts'],
+        codebaseViewId: 'test-view',
         tags: ['test'],
       };
 
@@ -305,12 +320,14 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
       const repo2Path = path.join(TEST_DIR, 'test-repo-2');
       fs.mkdirSync(repo2Path, { recursive: true });
       fs.mkdirSync(path.join(repo2Path, '.git'), { recursive: true });
+      createTestView(repo2Path, 'test-view');
 
       // Save note in first repository
       const input1 = withGuidanceToken({
         note: 'Note in repo 1',
         directoryPath: testPath,
         anchors: ['file1.ts'],
+        codebaseViewId: 'test-view',
         tags: ['repo1'],
       });
       await tool.execute(input1);
@@ -320,6 +337,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
         note: 'Note in repo 2',
         directoryPath: repo2Path,
         anchors: ['file2.ts'],
+        codebaseViewId: 'test-view',
         tags: ['repo2'],
       });
       await tool.execute(input2);

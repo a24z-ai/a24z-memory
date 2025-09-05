@@ -9,6 +9,7 @@ import {
   getTagDescriptions,
   getNotesForPath,
 } from '../../../src/core-mcp/store/anchoredNotesStore';
+import { createTestView } from '../../test-helpers';
 
 describe('ReplaceTagTool', () => {
   let tempDir: string;
@@ -23,6 +24,9 @@ describe('ReplaceTagTool', () => {
 
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
+
+    // Create a test view
+    createTestView(testRepoPath, 'test-view');
 
     tool = new ReplaceTagTool();
   });
@@ -309,6 +313,7 @@ describe('ReplaceTagTool', () => {
           tags: ['old-common', `unique-${i}`],
           metadata: {},
           directoryPath: testRepoPath,
+          codebaseViewId: 'test-view',
         })
       );
     }

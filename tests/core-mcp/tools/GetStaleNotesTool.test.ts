@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { createTestView } from '../../test-helpers';
 import { GetStaleAnchoredNotesTool } from '../../../src/core-mcp/tools/GetStaleAnchoredNotesTool';
 import { saveNote } from '../../../src/core-mcp/store/anchoredNotesStore';
 
@@ -17,7 +18,7 @@ describe('GetStaleAnchoredNotesTool', () => {
 
     // Create a .git directory to make it a valid repository
     fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
-
+    createTestView(testRepoPath, 'test-view');
     tool = new GetStaleAnchoredNotesTool();
   });
 
@@ -38,6 +39,7 @@ describe('GetStaleAnchoredNotesTool', () => {
       tags: ['test'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
 
     // Execute the tool
@@ -64,6 +66,7 @@ describe('GetStaleAnchoredNotesTool', () => {
       tags: ['test'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
     const note1 = note1WithPath.note;
 
@@ -73,6 +76,7 @@ describe('GetStaleAnchoredNotesTool', () => {
       tags: ['stale'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
     const note2 = note2WithPath.note;
 
@@ -83,6 +87,7 @@ describe('GetStaleAnchoredNotesTool', () => {
       tags: ['valid'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
 
     // Execute the tool
@@ -131,6 +136,7 @@ describe('GetStaleAnchoredNotesTool', () => {
       tags: ['test'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
 
     // Execute the tool without content
@@ -161,6 +167,7 @@ describe('GetStaleAnchoredNotesTool', () => {
       tags: ['test'],
       metadata: {},
       directoryPath: testRepoPath,
+      codebaseViewId: 'test-view',
     });
 
     // Execute the tool without valid anchors

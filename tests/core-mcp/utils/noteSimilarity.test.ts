@@ -34,6 +34,7 @@ describe('Note Similarity Utilities', () => {
         tags: ['auth', 'security', 'jwt'],
         metadata: {},
         timestamp: Date.now(),
+        codebaseViewId: 'test-view',
       };
 
       const note2: StoredAnchoredNote = {
@@ -43,6 +44,7 @@ describe('Note Similarity Utilities', () => {
         tags: ['auth', 'security', 'validation'],
         metadata: {},
         timestamp: Date.now(),
+        codebaseViewId: 'test-view',
       };
 
       const similarity = calculateAnchoredNoteSimilarity(note1, note2);
@@ -60,6 +62,7 @@ describe('Note Similarity Utilities', () => {
         tags: ['database', 'config'],
         metadata: {},
         timestamp: Date.now(),
+        codebaseViewId: 'test-view',
       };
 
       const note2: StoredAnchoredNote = {
@@ -69,6 +72,7 @@ describe('Note Similarity Utilities', () => {
         tags: ['frontend', 'routing'],
         metadata: {},
         timestamp: Date.now(),
+        codebaseViewId: 'test-view',
       };
 
       const similarity = calculateAnchoredNoteSimilarity(note1, note2);
@@ -88,6 +92,7 @@ describe('Note Similarity Utilities', () => {
           tags: ['error-handling', 'pattern'],
           metadata: {},
           timestamp: Date.now(),
+          codebaseViewId: 'test-view',
         },
         {
           id: 'note2',
@@ -96,6 +101,7 @@ describe('Note Similarity Utilities', () => {
           tags: ['error-handling', 'logging'],
           metadata: {},
           timestamp: Date.now(),
+          codebaseViewId: 'test-view',
         },
         {
           id: 'note3',
@@ -104,6 +110,7 @@ describe('Note Similarity Utilities', () => {
           tags: ['database', 'migration'],
           metadata: {},
           timestamp: Date.now(),
+          codebaseViewId: 'test-view',
         },
       ];
 
@@ -124,6 +131,7 @@ describe('Note Similarity Utilities', () => {
           tags: ['frontend'],
           metadata: {},
           timestamp: Date.now(),
+          codebaseViewId: 'test-view',
         },
         {
           id: 'note2',
@@ -132,6 +140,7 @@ describe('Note Similarity Utilities', () => {
           tags: ['backend'],
           metadata: {},
           timestamp: Date.now(),
+          codebaseViewId: 'test-view',
         },
       ];
 
@@ -150,6 +159,7 @@ describe('Note Similarity Utilities', () => {
           tags: ['auth', 'jwt'],
           metadata: {},
           timestamp: Date.now(),
+          codebaseViewId: 'test-view',
         },
         {
           id: 'auth2',
@@ -158,6 +168,7 @@ describe('Note Similarity Utilities', () => {
           tags: ['auth', 'jwt', 'refresh'],
           metadata: {},
           timestamp: Date.now(),
+          codebaseViewId: 'test-view',
         },
         {
           id: 'db1',
@@ -166,6 +177,7 @@ describe('Note Similarity Utilities', () => {
           tags: ['database'],
           metadata: {},
           timestamp: Date.now(),
+          codebaseViewId: 'test-view',
         },
       ];
 
@@ -188,6 +200,7 @@ describe('Note Similarity Utilities', () => {
         tags: ['docs'],
         metadata: {},
         timestamp: Date.now() - 400 * 24 * 60 * 60 * 1000, // 400 days ago
+        codebaseViewId: 'test-view',
       };
 
       const recentNote: StoredAnchoredNote = {
@@ -197,6 +210,7 @@ describe('Note Similarity Utilities', () => {
         tags: ['docs'],
         metadata: {},
         timestamp: Date.now() - 10 * 24 * 60 * 60 * 1000, // 10 days ago
+        codebaseViewId: 'test-view',
       };
 
       expect(isAnchoredNoteStale(oldNote, 365)).toBe(true);
@@ -211,6 +225,7 @@ describe('Note Similarity Utilities', () => {
         tags: ['maybe'],
         metadata: {},
         timestamp: Date.now() - 100 * 24 * 60 * 60 * 1000, // 100 days ago
+        codebaseViewId: 'test-view',
       };
 
       // Low confidence notes with 100 days age - check staleness

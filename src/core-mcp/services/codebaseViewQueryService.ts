@@ -48,7 +48,7 @@ export interface ViewQueryResult {
  */
 export interface MultiViewSearchResult {
   results: Array<{
-    viewId: string;
+    codebaseViewId: string;
     viewName: string;
     notes: StoredAnchoredNote[];
     relevanceScore: number;
@@ -61,7 +61,7 @@ export interface MultiViewSearchResult {
  * View coverage analysis
  */
 export interface ViewCoverageAnalysis {
-  viewId: string;
+  codebaseViewId: string;
   viewName: string;
   totalCells: number;
   populatedCells: number;
@@ -80,10 +80,10 @@ export interface ViewCoverageAnalysis {
  */
 export function queryNotesInView(
   repositoryPath: string,
-  viewId: string,
+  codebaseViewId: string,
   options: ViewQueryOptions = {}
 ): ViewQueryResult {
-  const notes = getNotesForView(repositoryPath, viewId);
+  const notes = getNotesForView(repositoryPath, codebaseViewId);
 
   let filteredNotes = notes;
 
@@ -116,7 +116,7 @@ export function queryNotesInView(
     filteredNotes = filteredNotes.slice(offset, offset + limit);
   }
 
-  const view = codebaseViewsStore.getView(repositoryPath, viewId);
+  const view = codebaseViewsStore.getView(repositoryPath, codebaseViewId);
 
   return {
     notes: filteredNotes,
@@ -136,11 +136,11 @@ export function queryNotesInView(
  */
 export function queryNotesInCell(
   repositoryPath: string,
-  viewId: string,
+  codebaseViewId: string,
   cellCoordinates: [number, number],
   options: ViewQueryOptions = {}
 ): ViewQueryResult {
-  const notes = getNotesForCell(repositoryPath, viewId, cellCoordinates);
+  const notes = getNotesForCell(repositoryPath, codebaseViewId, cellCoordinates);
 
   let filteredNotes = notes;
 
@@ -173,7 +173,7 @@ export function queryNotesInCell(
     filteredNotes = filteredNotes.slice(offset, offset + limit);
   }
 
-  const view = codebaseViewsStore.getView(repositoryPath, viewId);
+  const view = codebaseViewsStore.getView(repositoryPath, codebaseViewId);
   let cellName: string | undefined;
 
   // Find cell name by coordinates
@@ -208,15 +208,15 @@ export function searchAcrossViews(
   repositoryPath: string,
   query: string,
   options: {
-    viewIds?: string[]; // Specific views to search, or all if undefined
+    codebaseViewIds?: string[]; // Specific views to search, or all if undefined
     limit?: number;
     includeStale?: boolean;
     tags?: string[];
   } = {}
 ): MultiViewSearchResult {
   const availableViews = codebaseViewsStore.listViews(repositoryPath);
-  const viewsToSearch = options.viewIds
-    ? availableViews.filter((v) => options.viewIds!.includes(v.id))
+  const viewsToSearch = options.codebaseViewIds
+    ? availableViews.filter((v) => options.codebaseViewIds!.includes(v.id))
     : availableViews;
 
   const results: MultiViewSearchResult['results'] = [];
@@ -235,7 +235,7 @@ export function searchAcrossViews(
       const relevanceScore = calculateRelevanceScore(viewResult.notes, query);
 
       results.push({
-        viewId: viewSummary.id,
+        codebaseViewId: viewSummary.id,
         viewName: viewSummary.name,
         notes: viewResult.notes,
         relevanceScore,
@@ -307,14 +307,14 @@ export function queryOrphanedNotes(
  */
 export function analyzeViewCoverage(
   repositoryPath: string,
-  viewId: string
+  codebaseViewId: string
 ): ViewCoverageAnalysis | null {
-  const view = codebaseViewsStore.getView(repositoryPath, viewId);
+  const view = codebaseViewsStore.getView(repositoryPath, codebaseViewId);
   if (!view) {
     return null;
   }
 
-  const stats = getViewStatistics(repositoryPath, viewId);
+  const stats = getViewStatistics(repositoryPath, codebaseViewId);
   const cellDetails = Object.entries(view.cells).map(([cellName, cell]) => {
     const noteCount = stats.cellStats[cellName]?.noteCount || 0;
     let density: 'empty' | 'sparse' | 'normal' | 'dense';
@@ -343,7 +343,7 @@ export function analyzeViewCoverage(
   const averageNotesPerCell = totalCells > 0 ? stats.totalNotes / totalCells : 0;
 
   return {
-    viewId: view.id,
+    codebaseViewId: view.id,
     viewName: view.name || view.id,
     totalCells,
     populatedCells,
@@ -358,14 +358,14 @@ export function analyzeViewCoverage(
  */
 export function findSimilarNotesInView(
   repositoryPath: string,
-  viewId: string,
+  codebaseViewId: string,
   referenceNote: StoredAnchoredNote,
   options: {
     limit?: number;
     minSimilarity?: number; // 0-1 scale
   } = {}
 ): StoredAnchoredNote[] {
-  const viewNotes = getNotesForView(repositoryPath, viewId);
+  const viewNotes = getNotesForView(repositoryPath, codebaseViewId);
   const similarities: Array<{ note: StoredAnchoredNote; score: number }> = [];
 
   for (const note of viewNotes) {

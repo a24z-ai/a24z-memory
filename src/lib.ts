@@ -230,6 +230,7 @@ export class A24zMemory {
     note: string;
     anchors: string[];
     tags: string[];
+    codebaseViewId: string;
     metadata?: NoteMetadata; // Metadata can contain arbitrary user data
   }): AnchoredNoteWithPathType {
     return saveNoteFunc({

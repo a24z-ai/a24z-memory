@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { createTestView } from '../../test-helpers';
 import {
   saveNote,
   removeTagFromNotes,
@@ -22,13 +23,14 @@ describe('Tag Removal from Notes', () => {
 
     // Initialize as a git repo
     fs.mkdirSync(path.join(testRepoPath, '.git'));
-
+    createTestView(testRepoPath, 'test-view');
     // Create a basic test note template
     testNote = {
       note: 'Test note content',
       anchors: ['test.ts'],
       tags: ['feature', 'bugfix'],
       metadata: {},
+      codebaseViewId: 'test-view',
     };
   });
 
@@ -49,6 +51,7 @@ describe('Tag Removal from Notes', () => {
         note: 'Third note',
         tags: ['bugfix', 'urgent'],
         directoryPath: testRepoPath,
+        codebaseViewId: 'test-view',
       });
 
       // Remove the 'bugfix' tag
@@ -75,6 +78,7 @@ describe('Tag Removal from Notes', () => {
         ...testNote,
         tags: ['bugfix'],
         directoryPath: testRepoPath,
+        codebaseViewId: 'test-view',
       });
 
       // Remove the only tag
@@ -202,6 +206,7 @@ describe('Tag Removal from Notes', () => {
           note: `Note ${i}`,
           tags: ['common-tag', `tag-${i % 5}`],
           directoryPath: testRepoPath,
+          codebaseViewId: 'test-view',
         });
       }
 
@@ -231,6 +236,7 @@ describe('Tag Removal from Notes', () => {
         ...testNote,
         tags: ['only-tag'],
         directoryPath: testRepoPath,
+        codebaseViewId: 'test-view',
       });
 
       const modifiedCount = removeTagFromNotes(testRepoPath, 'only-tag');
