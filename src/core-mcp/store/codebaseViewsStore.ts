@@ -48,9 +48,18 @@ export interface CodebaseViewFileCell {
   links?: CodebaseViewLinks;
 
   /**
-   * Custom metadata for extensibility.
+   * Official metadata with strict types for common visualization needs
    */
-  metadata?: Record<string, unknown>;
+  metadata?: {
+    /** UI configuration for this cell */
+    ui?: {
+      /** Color for highlighting this cell */
+      color?: string;
+    };
+  };
+
+  /** Experimental metadata for this cell */
+  experimentalMetadata?: Record<string, unknown>;
 }
 
 /**
@@ -146,6 +155,36 @@ export interface CodebaseView {
    * Creation/modification timestamp.
    */
   timestamp?: string;
+
+  /**
+   * Official metadata with strict types for common visualization needs
+   */
+  metadata?: {
+    /** UI configuration for visualization/rendering */
+    ui?: {
+      /** Whether grid layout is enabled */
+      enabled: boolean;
+      /** Number of rows in the grid */
+      rows?: number;
+      /** Number of columns in the grid */
+      cols?: number;
+      /** Padding between cells in pixels */
+      cellPadding?: number;
+      /** Whether to show labels for grid cells */
+      showCellLabels?: boolean;
+      /** Position of cell labels relative to the cell */
+      cellLabelPosition?: 'none' | 'top' | 'bottom';
+      /** Height of cell labels as percentage of cell height (0-1) */
+      cellLabelHeightPercent?: number;
+    };
+  };
+
+  /**
+   * Experimental metadata for extensions and future features.
+   * Use this for testing new features before they become official.
+   * No type guarantees - contents may change.
+   */
+  experimentalMetadata?: Record<string, unknown>;
 }
 
 /**
