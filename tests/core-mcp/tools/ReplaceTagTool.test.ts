@@ -83,7 +83,6 @@ describe('ReplaceTagTool', () => {
       note: 'Note 1 with old tag',
       anchors: ['file1.ts'],
       tags: ['old-feature', 'keep-me'],
-      type: 'explanation',
       metadata: {},
       directoryPath: testRepoPath,
     } as any);
@@ -93,7 +92,6 @@ describe('ReplaceTagTool', () => {
       note: 'Note 2 with old tag',
       anchors: ['file2.ts'],
       tags: ['old-feature'],
-      type: 'pattern',
       metadata: {},
       directoryPath: testRepoPath,
     } as any);
@@ -103,7 +101,6 @@ describe('ReplaceTagTool', () => {
       note: 'Note 3 without old tag',
       anchors: ['file3.ts'],
       tags: ['keep-me'],
-      type: 'gotcha',
       metadata: {},
       directoryPath: testRepoPath,
     } as any);
@@ -161,7 +158,6 @@ describe('ReplaceTagTool', () => {
       note: 'Note with old tag',
       anchors: ['file.ts'],
       tags: ['old-tag'],
-      type: 'explanation',
       metadata: {},
       directoryPath: testRepoPath,
     } as any);
@@ -201,7 +197,6 @@ describe('ReplaceTagTool', () => {
       note: 'Note with tag',
       anchors: ['file.ts'],
       tags: ['old-tag'],
-      type: 'explanation',
       metadata: {},
       directoryPath: testRepoPath,
     } as any);
@@ -254,7 +249,6 @@ describe('ReplaceTagTool', () => {
       note: 'Note with both tags',
       anchors: ['file.ts'],
       tags: ['old-tag', 'new-tag', 'other-tag'],
-      type: 'explanation',
       metadata: {},
       directoryPath: testRepoPath,
     } as any);
@@ -313,7 +307,6 @@ describe('ReplaceTagTool', () => {
           note: `Note ${i}`,
           anchors: [`file${i}.ts`],
           tags: ['old-common', `unique-${i}`],
-          type: 'explanation',
           metadata: {},
           directoryPath: testRepoPath,
         })

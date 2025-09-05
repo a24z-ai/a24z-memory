@@ -191,7 +191,6 @@ dist/
         note: 'Documentation for documented.ts',
         anchors: ['src/documented.ts'],
         tags: ['test'],
-        type: 'explanation',
         timestamp: Date.now(),
         reviewed: false,
       };

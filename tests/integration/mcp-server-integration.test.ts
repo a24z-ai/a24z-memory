@@ -130,7 +130,6 @@ describe('MCP Server Integration', () => {
             'create_repository_note',
             'get_notes',
             'get_repository_tags',
-            'get_repository_types',
             'get_repository_guidance',
             'discover_a24z_tools',
             'delete_repository_note',
@@ -219,26 +218,6 @@ describe('MCP Server Integration', () => {
           const tagsResult = JSON.parse((tagsResponse.result as any).content[0].text);
           expect(tagsResult).toHaveProperty('usedTags');
           expect(tagsResult).toHaveProperty('suggestedTags');
-
-          // Test get_repository_types
-          const typesResponse = await sendMcpRequest(server, {
-            jsonrpc: '2.0',
-            method: 'tools/call',
-            params: {
-              name: 'get_repository_types',
-              arguments: {
-                path: testRepo,
-                guidanceToken: guidanceResult.guidanceToken,
-              },
-            },
-            id: 4,
-          });
-
-          expect(typesResponse.error).toBeUndefined();
-          const typesResult = JSON.parse((typesResponse.result as any).content[0].text);
-          expect(typesResult).toHaveProperty('commonTypes');
-          expect(Array.isArray(typesResult.commonTypes)).toBe(true);
-          expect(typesResult.commonTypes.length).toBeGreaterThan(0);
         } finally {
           server.kill();
         }
@@ -282,7 +261,6 @@ describe('MCP Server Integration', () => {
                 directoryPath: projectDir,
                 anchors: [path.join(projectDir, 'tests')],
                 tags: ['integration', 'mcp-test', 'temp'],
-                type: 'explanation',
                 guidanceToken,
               },
             },

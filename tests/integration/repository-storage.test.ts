@@ -69,7 +69,6 @@ describe('Repository-Specific Storage', () => {
       directoryPath: testRepoPath, // Must be repository root
       anchors: [testSubPath],
       tags: ['test', 'repository-storage'],
-      type: 'explanation',
       metadata: { testRun: true },
     };
 
@@ -192,7 +191,6 @@ describe('Repository-Specific Storage', () => {
         note: 'Note in first repo',
         directoryPath: testRepoPath,
         tags: ['repo1'],
-        type: 'explanation',
         anchors: [testRepoPath],
         metadata: {},
       });
@@ -203,7 +201,6 @@ describe('Repository-Specific Storage', () => {
         note: 'Note in second repo',
         directoryPath: secondRepoPath,
         tags: ['repo2'],
-        type: 'explanation',
         anchors: [secondRepoPath],
         metadata: {},
       });
@@ -248,7 +245,6 @@ describe('Repository-Specific Storage', () => {
           note: 'MCP integration test note',
           directoryPath: testRepoPath,
           tags: ['mcp-test', 'integration'],
-          type: 'explanation',
           anchors: [testSubPath],
           metadata: { mcpTest: true },
         })
@@ -290,7 +286,6 @@ describe('Repository-Specific Storage', () => {
         note: 'Nested path retrieval test',
         directoryPath: testRepoPath,
         tags: ['nested-test'],
-        type: 'explanation',
         anchors: [testSubPath],
         metadata: {},
       });

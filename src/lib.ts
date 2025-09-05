@@ -37,22 +37,12 @@ export {
   getTagsWithDescriptions,
   removeTagFromNotes,
   // Type descriptions
-  getTypeDescriptions,
-  saveTypeDescription,
-  deleteTypeDescription,
-  getTypesWithDescriptions,
-  getAllowedTypes as getAllowedTypesFunc,
-  addAllowedType as addAllowedTypeFunc,
-  removeAllowedType as removeAllowedTypeFunc,
-  setEnforceAllowedTypes as setEnforceAllowedTypesFunc,
   // Types
   type StoredNote,
-  type NoteType,
   type RepositoryConfiguration,
   type ValidationError,
   type StaleNote,
   type TagInfo,
-  type TypeInfo,
   type NotesResult,
   type TokenLimitInfo,
   type MergeNotesInput,
@@ -81,6 +71,18 @@ export {
   type LimitType,
 } from './core-mcp/utils/tokenCounter';
 
+// CodebaseView types and storage
+export {
+  type ViewFileCell,
+  type ViewScope,
+  type CodebaseView,
+  type ViewSummary,
+  type ViewValidationResult,
+  type PatternValidationResult,
+  ViewsStore,
+  viewsStore,
+} from './core-mcp/store/viewsStore';
+
 // Note similarity and deduplication
 export {
   calculateNoteSimilarity,
@@ -107,7 +109,6 @@ export { zodToJsonSchema } from './core-mcp/utils/zod-to-json-schema';
 export { CreateRepositoryNoteTool } from './core-mcp/tools/CreateRepositoryNoteTool';
 export { AskA24zMemoryTool, type AskMemoryResponse } from './core-mcp/tools/AskA24zMemoryTool';
 export { GetRepositoryTagsTool } from './core-mcp/tools/GetRepositoryTagsTool';
-export { GetRepositoryTypesTool } from './core-mcp/tools/GetRepositoryTypesTool';
 export { GetRepositoryGuidanceTool } from './core-mcp/tools/GetRepositoryGuidanceTool';
 export { GetNoteByIdTool } from './core-mcp/tools/GetNoteByIdTool';
 export { DeleteNoteTool } from './core-mcp/tools/DeleteNoteTool';
@@ -176,7 +177,6 @@ import {
   markAllNotesReviewed as markAllNotesReviewedFunc,
   type StoredNote as StoredNoteType,
   type NoteWithPath as NoteWithPathType,
-  type NoteType as NoteTypeType,
   type RepositoryConfiguration as RepositoryConfigurationType,
   type ValidationError as ValidationErrorType,
   type StaleNote as StaleNoteType,
@@ -229,13 +229,11 @@ export class A24zMemory {
     note: string;
     anchors: string[];
     tags: string[];
-    type?: NoteTypeType;
     metadata?: NoteMetadata; // Metadata can contain arbitrary user data
   }): NoteWithPathType {
     return saveNoteFunc({
       ...params,
       directoryPath: this.repositoryPath,
-      type: params.type || 'explanation',
       metadata: params.metadata || {},
     });
   }
@@ -478,7 +476,6 @@ export class A24zMemory {
       query: params.query,
       taskContext: params.taskContext,
       filterTags: params.filterTags,
-      filterTypes: params.filterTypes,
       guidanceToken,
     });
 

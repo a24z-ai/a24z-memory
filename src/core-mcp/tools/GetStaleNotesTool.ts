@@ -28,7 +28,6 @@ const GetStaleNotesSchema = z.object({
 
 interface FormattedStaleNote {
   noteId: string;
-  type: string;
   tags: string[];
   staleAnchors: string[];
   validAnchors?: string[];
@@ -81,7 +80,6 @@ export class GetStaleNotesTool extends BaseTool {
     const formattedNotes: FormattedStaleNote[] = staleNotes.map((staleNote: StaleNote) => {
       const formatted: FormattedStaleNote = {
         noteId: staleNote.note.id,
-        type: staleNote.note.type || 'note',
         tags: staleNote.note.tags,
         staleAnchors: staleNote.staleAnchors,
         timestamp: staleNote.note.timestamp,

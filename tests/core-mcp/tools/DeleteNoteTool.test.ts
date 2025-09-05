@@ -32,7 +32,6 @@ describe('DeleteNoteTool', () => {
       note: 'This is a test note for deletion',
       anchors: ['src/test.ts'],
       tags: ['testing', 'deletion'],
-      type: 'explanation',
       metadata: { key: 'value' },
       directoryPath: testRepoPath,
     });
@@ -52,7 +51,6 @@ describe('DeleteNoteTool', () => {
     const text = result.content[0].text as string;
     expect(text).toContain(`Successfully deleted note ${savedNote.id}`);
     expect(text).toContain('This is a test note for deletion');
-    expect(text).toContain('Type: explanation');
     expect(text).toContain('Tags: testing, deletion');
 
     // Verify note no longer exists
@@ -76,7 +74,6 @@ describe('DeleteNoteTool', () => {
       note: 'Test note in subdirectory',
       anchors: ['src/components/Component.tsx'],
       tags: ['component'],
-      type: 'pattern',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -137,7 +134,6 @@ describe('DeleteNoteTool', () => {
       note: longContent,
       anchors: ['file.ts'],
       tags: ['long'],
-      type: 'gotcha',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -158,7 +154,6 @@ describe('DeleteNoteTool', () => {
       note: 'Note with metadata',
       anchors: ['file.ts'],
       tags: ['metadata-test'],
-      type: 'decision',
       metadata: {
         author: 'test-user',
         prNumber: 123,
@@ -173,7 +168,6 @@ describe('DeleteNoteTool', () => {
     });
 
     const text = result.content[0].text as string;
-    expect(text).toContain('Type: decision');
     expect(text).toContain('Tags: metadata-test');
     expect(text).toContain('Note with metadata');
   });

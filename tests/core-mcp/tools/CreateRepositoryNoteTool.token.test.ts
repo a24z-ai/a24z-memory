@@ -50,7 +50,6 @@ describe('CreateRepositoryNoteTool - Token Refresh', () => {
       directoryPath: repoPath,
       anchors: [path.join(repoPath, 'test.ts')],
       tags: ['new-auto-tag'],
-      type: 'explanation',
       guidanceToken: initialToken,
     });
 
@@ -78,7 +77,6 @@ describe('CreateRepositoryNoteTool - Token Refresh', () => {
       directoryPath: repoPath,
       anchors: [path.join(repoPath, 'another.ts')],
       tags: ['new-auto-tag'], // Use the same tag, no new creation
-      type: 'explanation',
       guidanceToken: newToken,
     });
 
@@ -88,7 +86,7 @@ describe('CreateRepositoryNoteTool - Token Refresh', () => {
     expect(secondResponseText).not.toContain('Updated Guidance Token');
   });
 
-  it('should return a fresh guidance token when auto-creating new types', async () => {
+  it('should return a fresh guidance token when auto-creating new tags', async () => {
     // Get initial guidance token
     const guidanceResult = await guidanceTool.execute({
       path: repoPath,
@@ -100,27 +98,26 @@ describe('CreateRepositoryNoteTool - Token Refresh', () => {
     expect(tokenMatch).toBeTruthy();
     const initialToken = tokenMatch![1];
 
-    // Create a note with a new type (which will be auto-created)
+    // Create a note with a new tag (which will be auto-created)
     const result = await tool.execute({
-      note: 'Test note with new type',
+      note: 'Test note with new tag',
       directoryPath: repoPath,
       anchors: [path.join(repoPath, 'test.ts')],
-      tags: ['test-tag'], // This will also be auto-created
-      type: 'custom-new-type',
+      tags: ['test-tag'], // This will be auto-created
       guidanceToken: initialToken,
     });
 
-    const typeResponseText = result.content[0].text;
+    const noteResponseText = result.content[0].text;
 
-    // Should mention that a new type was created
-    expect(typeResponseText).toContain('New type created with empty description');
-    expect(typeResponseText).toContain('custom-new-type');
+    // Should mention that a new tag was created
+    expect(noteResponseText).toContain('New tags created with empty descriptions');
+    expect(noteResponseText).toContain('test-tag');
 
     // Should provide a fresh token
-    expect(typeResponseText).toContain('Updated Guidance Token');
+    expect(noteResponseText).toContain('Updated Guidance Token');
 
     // Extract and verify the new token is different
-    const newTokenMatch = typeResponseText.match(/Updated Guidance Token.*?`([^`]+)`/s);
+    const newTokenMatch = noteResponseText.match(/Updated Guidance Token.*?`([^`]+)`/s);
     const newToken = newTokenMatch![1];
     expect(newToken).not.toBe(initialToken);
   });
@@ -142,7 +139,6 @@ describe('CreateRepositoryNoteTool - Token Refresh', () => {
       directoryPath: repoPath,
       anchors: [path.join(repoPath, 'first.ts')],
       tags: ['existing-tag'],
-      type: 'explanation',
       guidanceToken: initialToken,
     });
 
@@ -162,7 +158,6 @@ describe('CreateRepositoryNoteTool - Token Refresh', () => {
       directoryPath: repoPath,
       anchors: [path.join(repoPath, 'second.ts')],
       tags: ['existing-tag'], // Reuse existing tag
-      type: 'explanation', // Use default type
       guidanceToken: secondToken,
     });
 

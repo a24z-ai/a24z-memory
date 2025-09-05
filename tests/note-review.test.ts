@@ -38,7 +38,6 @@ describe('Note Review Functionality', () => {
         directoryPath: testRepoRoot,
         anchors: ['test.ts'],
         tags: ['test'],
-        type: 'explanation',
         metadata: {},
       });
       const note = noteWithPath.note;
@@ -52,7 +51,6 @@ describe('Note Review Functionality', () => {
         directoryPath: testRepoRoot,
         anchors: ['test.ts'],
         tags: ['test'],
-        type: 'explanation',
         metadata: {},
         reviewed: true,
       });
@@ -70,7 +68,6 @@ describe('Note Review Functionality', () => {
         directoryPath: testRepoRoot,
         anchors: ['file1.ts'],
         tags: ['tag1'],
-        type: 'explanation',
         metadata: {},
         reviewed: false,
       });
@@ -80,7 +77,6 @@ describe('Note Review Functionality', () => {
         directoryPath: testRepoRoot,
         anchors: ['file2.ts'],
         tags: ['tag2'],
-        type: 'pattern',
         reviewed: true,
         metadata: {},
       });
@@ -90,7 +86,6 @@ describe('Note Review Functionality', () => {
         directoryPath: testRepoRoot,
         anchors: ['file3.ts'],
         tags: ['tag3'],
-        type: 'gotcha',
         reviewed: false,
         metadata: {},
       });
@@ -123,7 +118,6 @@ describe('Note Review Functionality', () => {
         directoryPath: testRepoRoot,
         anchors: ['subdir/file.ts'],
         tags: ['subdir'],
-        type: 'explanation',
         reviewed: false,
         metadata: {},
       });
@@ -146,7 +140,6 @@ describe('Note Review Functionality', () => {
         directoryPath: testRepoRoot,
         anchors: ['test.ts'],
         tags: ['test'],
-        type: 'explanation',
         reviewed: false,
         metadata: {},
       });
@@ -197,7 +190,6 @@ describe('Note Review Functionality', () => {
           directoryPath: testRepoRoot,
           anchors: [`file${i}.ts`],
           tags: [`tag${i}`],
-          type: 'explanation',
           metadata: {},
           reviewed: false,
         });
@@ -209,7 +201,6 @@ describe('Note Review Functionality', () => {
         directoryPath: testRepoRoot,
         anchors: ['reviewed.ts'],
         tags: ['reviewed'],
-        type: 'pattern',
         reviewed: true,
         metadata: {},
       });
@@ -241,7 +232,6 @@ describe('Note Review Functionality', () => {
         directoryPath: testRepoRoot,
         anchors: ['subdir/file1.ts'],
         tags: ['subdir'],
-        type: 'explanation',
         reviewed: false,
         metadata: {},
       });
@@ -251,7 +241,6 @@ describe('Note Review Functionality', () => {
         directoryPath: testRepoRoot,
         anchors: ['subdir/file2.ts'],
         tags: ['subdir'],
-        type: 'explanation',
         reviewed: false,
         metadata: {},
       });
@@ -270,7 +259,6 @@ describe('Note Review Functionality', () => {
         directoryPath: testRepoRoot,
         anchors: ['test.ts'],
         tags: ['test'],
-        type: 'explanation',
         reviewed: false,
         metadata: {},
       });
@@ -299,7 +287,6 @@ describe('Note Review Functionality', () => {
           directoryPath: testRepoRoot,
           anchors: [`file${i}.ts`],
           tags: ['test'],
-          type: 'explanation',
           metadata: {},
           reviewed: noteData.reviewed,
         })

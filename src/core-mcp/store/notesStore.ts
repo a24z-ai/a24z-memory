@@ -12,20 +12,20 @@ import {
   getTokenLimitInfo,
   type TokenLimitInfo,
 } from '../utils/tokenCounter';
+import { viewsStore } from './viewsStore';
 
 export { TokenLimitInfo } from '../utils/tokenCounter';
-
-export type NoteType = string;
 
 export interface StoredNote {
   id: string;
   note: string;
   anchors: string[];
   tags: string[];
-  type: NoteType;
   metadata: Record<string, unknown>;
   timestamp: number;
   reviewed?: boolean;
+  viewId?: string; // Associated CodebaseView identifier
+  cellCoordinates?: [number, number]; // Specific cell location in the view grid
 }
 
 export interface NoteWithPath {
@@ -46,9 +46,6 @@ export interface RepositoryConfiguration {
   };
   tags?: {
     enforceAllowedTags?: boolean; // Whether to enforce allowed tags (based on tag descriptions)
-  };
-  types?: {
-    enforceAllowedTypes?: boolean; // Whether to enforce allowed types (based on type descriptions)
   };
   enabled_mcp_tools?: {
     askA24zMemory?: boolean;
@@ -147,10 +144,6 @@ function readConfiguration(repositoryPath: string): RepositoryConfiguration {
       tags: {
         ...defaultConfig.tags,
         ...parsed.tags,
-      },
-      types: {
-        ...defaultConfig.types,
-        ...parsed.types,
       },
       enabled_mcp_tools: {
         ...defaultConfig.enabled_mcp_tools,
@@ -252,24 +245,6 @@ function validateNote(
     }
   }
 
-  // Validate against allowed types if configured (based on type descriptions)
-  if (config.types?.enforceAllowedTypes) {
-    const typeDescriptions = getTypeDescriptions(normalizedRepo);
-    const allowedTypes = Object.keys(typeDescriptions);
-    if (allowedTypes.length > 0 && !allowedTypes.includes(note.type)) {
-      const data: ValidationMessageData['invalidType'] = {
-        type: note.type,
-        allowedTypes,
-      };
-      errors.push({
-        field: 'type',
-        type: 'invalidType',
-        data,
-        message: formatter.format('invalidType', data),
-      });
-    }
-  }
-
   // Validate number of anchors (only if anchors exist)
   if (note.anchors && note.anchors.length > config.limits.maxAnchorsPerNote) {
     const data: ValidationMessageData['tooManyAnchors'] = {
@@ -342,10 +317,6 @@ export function readAllNotes(repositoryPath: string): NoteWithPath[] {
             const noteContent = fs.readFileSync(fullPath, 'utf8');
             const note = JSON.parse(noteContent) as StoredNote;
             if (note && typeof note === 'object' && note.id) {
-              // Ensure type field exists for backward compatibility
-              if (!note.type) {
-                note.type = 'note';
-              }
               // Wrap the note with its path
               notes.push({
                 note,
@@ -421,7 +392,6 @@ export function saveNote(
     note: note.note,
     anchors: note.anchors,
     tags: note.tags,
-    type: note.type,
     metadata: note.metadata,
     reviewed: note.reviewed,
   };
@@ -636,7 +606,6 @@ export function updateRepositoryConfiguration(
     limits?: Partial<RepositoryConfiguration['limits']>;
     storage?: Partial<RepositoryConfiguration['storage']>;
     tags?: Partial<RepositoryConfiguration['tags']>;
-    types?: Partial<RepositoryConfiguration['types']>;
     enabled_mcp_tools?: Partial<RepositoryConfiguration['enabled_mcp_tools']>;
   }
 ): RepositoryConfiguration {
@@ -657,10 +626,6 @@ export function updateRepositoryConfiguration(
     tags: {
       ...currentConfig.tags,
       ...config.tags,
-    },
-    types: {
-      ...currentConfig.types,
-      ...config.types,
     },
     enabled_mcp_tools: {
       ...currentConfig.enabled_mcp_tools,
@@ -870,7 +835,6 @@ export interface MergeNotesInput {
   note: string;
   anchors: string[];
   tags: string[];
-  type?: NoteType;
   metadata?: MergeNoteMetadata;
   noteIds: string[];
   deleteOriginals?: boolean;
@@ -890,7 +854,6 @@ export function mergeNotes(repositoryPath: string, input: MergeNotesInput): Merg
     directoryPath: normalizedRepo,
     anchors: [...new Set(input.anchors)], // Deduplicate anchors
     tags: [...new Set(input.tags)], // Deduplicate tags
-    type: input.type || ('explanation' as NoteType),
     metadata: {
       ...input.metadata,
       mergedFrom: input.noteIds,
@@ -918,10 +881,6 @@ export function mergeNotes(repositoryPath: string, input: MergeNotesInput): Merg
 
 function getTagsDirectory(repositoryPath: string): string {
   return path.join(getRepositoryDataDir(repositoryPath), 'tags');
-}
-
-function getTypesDirectory(repositoryPath: string): string {
-  return path.join(getRepositoryDataDir(repositoryPath), 'types');
 }
 
 export function getTagDescriptions(repositoryPath: string): Record<string, string> {
@@ -1066,141 +1025,217 @@ export function getTagsWithDescriptions(repositoryPath: string): TagInfo[] {
   return tags;
 }
 
-// Type Description Functions
+// =============================================================================
+// View-Based Note Association Functions
+// =============================================================================
 
-export interface TypeInfo {
-  name: string;
-  description?: string;
+/**
+ * Create a note with view association
+ */
+export interface SaveNoteWithViewInput {
+  note: string;
+  anchors: string[];
+  tags: string[];
+  metadata?: Record<string, unknown>;
+  viewId?: string;
+  cellCoordinates?: [number, number];
 }
 
-export function getTypeDescriptions(repositoryPath: string): Record<string, string> {
-  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
-  const typesDir = getTypesDirectory(normalizedRepo);
-  const descriptions: Record<string, string> = {};
+export function saveNoteWithView(repositoryPath: string, input: SaveNoteWithViewInput): StoredNote {
+  const noteData = {
+    note: input.note,
+    anchors: input.anchors,
+    tags: input.tags,
+    metadata: input.metadata || {},
+    reviewed: false,
+    viewId: input.viewId,
+    cellCoordinates: input.cellCoordinates,
+    directoryPath: repositoryPath,
+  };
 
-  // Read from the markdown files
-  if (fs.existsSync(typesDir)) {
-    try {
-      const files = fs.readdirSync(typesDir);
-      for (const file of files) {
-        if (file.endsWith('.md')) {
-          const typeName = file.slice(0, -3); // Remove .md extension
-          const filePath = path.join(typesDir, file);
-          try {
-            const content = fs.readFileSync(filePath, 'utf8');
-            descriptions[typeName] = content.trim();
-          } catch (error) {
-            console.error(`Error reading type description for ${typeName}:`, error);
-          }
+  const result = saveNote(noteData);
+  return result.note;
+}
+
+/**
+ * Get all notes associated with a specific view
+ */
+export function getNotesForView(repositoryPath: string, viewId: string): StoredNote[] {
+  const allNotes = getNotesForPath(repositoryPath, true);
+
+  return allNotes.filter((note) => note.viewId === viewId);
+}
+
+/**
+ * Get notes in a specific cell of a view
+ */
+export function getNotesForCell(
+  repositoryPath: string,
+  viewId: string,
+  cellCoordinates: [number, number]
+): StoredNote[] {
+  const viewNotes = getNotesForView(repositoryPath, viewId);
+
+  return viewNotes.filter((note) => {
+    if (!note.cellCoordinates) return false;
+    const [row, col] = note.cellCoordinates;
+    const [targetRow, targetCol] = cellCoordinates;
+    return row === targetRow && col === targetCol;
+  });
+}
+
+/**
+ * Detect which view cell best matches a set of file anchors
+ * This can be used to auto-assign notes to appropriate cells
+ */
+export function detectCellForAnchors(
+  repositoryPath: string,
+  viewId: string,
+  anchors: string[]
+): { cellName: string | null; coordinates: [number, number] | null; confidence: number } {
+  const view = viewsStore.getView(repositoryPath, viewId);
+  if (!view) {
+    return { cellName: null, coordinates: null, confidence: 0 };
+  }
+
+  let bestMatch: { cellName: string; coordinates: [number, number]; confidence: number } = {
+    cellName: '',
+    coordinates: [0, 0],
+    confidence: 0,
+  };
+
+  // Simple pattern matching - in practice you'd want more sophisticated glob matching
+  for (const [cellName, cell] of Object.entries(view.cells)) {
+    let matchCount = 0;
+    let totalAnchors = anchors.length;
+
+    for (const anchor of anchors) {
+      for (const pattern of cell.patterns) {
+        // Simple pattern matching - contains check
+        if (anchor.includes(pattern.replace(/\*+/g, '')) || pattern.includes(anchor)) {
+          matchCount++;
+          break; // Only count each anchor once per cell
         }
       }
-    } catch (error) {
-      console.error('Error reading types directory:', error);
+    }
+
+    const confidence = totalAnchors > 0 ? matchCount / totalAnchors : 0;
+
+    if (confidence > bestMatch.confidence) {
+      bestMatch = {
+        cellName,
+        coordinates: cell.coordinates,
+        confidence,
+      };
     }
   }
 
-  return descriptions;
+  return bestMatch.confidence > 0
+    ? bestMatch
+    : { cellName: null, coordinates: null, confidence: 0 };
 }
 
-export function saveTypeDescription(
+/**
+ * Update a note's view association
+ */
+export function updateNoteView(
   repositoryPath: string,
-  type: string,
-  description: string
-): void {
-  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
-  const config = readConfiguration(normalizedRepo);
-
-  // Check description length against tagDescriptionMaxLength (reuse the same limit)
-  if (description.length > config.limits.tagDescriptionMaxLength) {
-    throw new Error(
-      `Type description exceeds maximum length of ${config.limits.tagDescriptionMaxLength} characters. ` +
-        `Current length: ${description.length}`
-    );
+  noteId: string,
+  viewUpdate: {
+    viewId?: string;
+    cellCoordinates?: [number, number];
+  }
+): boolean {
+  const note = getNoteById(repositoryPath, noteId);
+  if (!note) {
+    return false;
   }
 
-  // Ensure .a24z/types directory exists
-  ensureDataDir(normalizedRepo);
-  const typesDir = getTypesDirectory(normalizedRepo);
-  if (!fs.existsSync(typesDir)) {
-    fs.mkdirSync(typesDir, { recursive: true });
-  }
+  const updatedNote: StoredNote = {
+    ...note,
+    viewId: viewUpdate.viewId,
+    cellCoordinates: viewUpdate.cellCoordinates,
+    timestamp: Date.now(), // Update timestamp when view association changes
+  };
 
-  // Write the description to a markdown file
-  const typeFile = path.join(typesDir, `${type}.md`);
-  const tmp = `${typeFile}.tmp`;
-  fs.writeFileSync(tmp, description, { encoding: 'utf8' });
-  fs.renameSync(tmp, typeFile);
+  // First delete the old note
+  const deleted = deleteNoteById(repositoryPath, noteId);
+  if (!deleted) return false;
+
+  // Save the updated note (it will get a new ID and timestamp)
+  const savedNote = saveNote({
+    note: updatedNote.note,
+    anchors: updatedNote.anchors,
+    tags: updatedNote.tags,
+    metadata: updatedNote.metadata,
+    reviewed: updatedNote.reviewed,
+    viewId: updatedNote.viewId,
+    cellCoordinates: updatedNote.cellCoordinates,
+    directoryPath: repositoryPath,
+  });
+
+  return savedNote !== null;
 }
 
-export function deleteTypeDescription(repositoryPath: string, type: string): boolean {
-  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
-  const typesDir = getTypesDirectory(normalizedRepo);
-  const typeFile = path.join(typesDir, `${type}.md`);
+/**
+ * Get notes that have no view association (orphaned notes)
+ */
+export function getOrphanedNotes(repositoryPath: string): StoredNote[] {
+  const allNotes = getNotesForPath(repositoryPath, true);
 
-  if (fs.existsSync(typeFile)) {
-    fs.unlinkSync(typeFile);
+  return allNotes.filter((note) => !note.viewId);
+}
 
-    // Clean up empty types directory
-    if (fs.existsSync(typesDir)) {
-      const files = fs.readdirSync(typesDir);
-      if (files.length === 0) {
-        fs.rmdirSync(typesDir);
-      }
+/**
+ * Get view statistics - count of notes per cell
+ */
+export function getViewStatistics(
+  repositoryPath: string,
+  viewId: string
+): {
+  totalNotes: number;
+  cellStats: Record<string, { noteCount: number; coordinates: [number, number] }>;
+  orphanedNotes: number;
+} {
+  const viewNotes = getNotesForView(repositoryPath, viewId);
+  const view = viewsStore.getView(repositoryPath, viewId);
+
+  const stats = {
+    totalNotes: viewNotes.length,
+    cellStats: {} as Record<string, { noteCount: number; coordinates: [number, number] }>,
+    orphanedNotes: 0,
+  };
+
+  // Initialize cell stats
+  if (view) {
+    for (const [cellName, cell] of Object.entries(view.cells)) {
+      stats.cellStats[cellName] = {
+        noteCount: 0,
+        coordinates: cell.coordinates,
+      };
     }
-
-    return true;
   }
 
-  return false;
-}
+  // Count notes per cell
+  for (const note of viewNotes) {
+    if (note.cellCoordinates && view) {
+      // Find cell by coordinates
+      const cellEntry = Object.entries(view.cells).find(([, cell]) => {
+        const [row, col] = cell.coordinates;
+        const [noteRow, noteCol] = note.cellCoordinates!;
+        return row === noteRow && col === noteCol;
+      });
 
-export function getTypesWithDescriptions(repositoryPath: string): TypeInfo[] {
-  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
-  const descriptions = getTypeDescriptions(normalizedRepo);
-  const types: TypeInfo[] = [];
-
-  // Return all types that have descriptions (these are the available/allowed types)
-  for (const [name, description] of Object.entries(descriptions)) {
-    types.push({ name, description });
+      if (cellEntry) {
+        const [cellName] = cellEntry;
+        stats.cellStats[cellName].noteCount++;
+      } else {
+        stats.orphanedNotes++;
+      }
+    } else {
+      stats.orphanedNotes++;
+    }
   }
 
-  return types;
-}
-
-export function getAllowedTypes(repositoryPath: string): { enforced: boolean; types: string[] } {
-  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
-  const config = readConfiguration(normalizedRepo);
-  const enforced = config.types?.enforceAllowedTypes || false;
-
-  if (enforced) {
-    // Auto-populate from types directory
-    const typeDescriptions = getTypeDescriptions(normalizedRepo);
-    const types = Object.keys(typeDescriptions);
-    return { enforced, types };
-  }
-
-  return { enforced, types: [] };
-}
-
-export function addAllowedType(repositoryPath: string, type: string, description?: string): void {
-  // Adding an allowed type means creating a type description
-  const desc = description || `Description for ${type} type`;
-  saveTypeDescription(repositoryPath, type, desc);
-}
-
-export function removeAllowedType(repositoryPath: string, type: string): boolean {
-  // Removing an allowed type means deleting the type description
-  return deleteTypeDescription(repositoryPath, type);
-}
-
-export function setEnforceAllowedTypes(repositoryPath: string, enforce: boolean): void {
-  const normalizedRepo = normalizeRepositoryPath(repositoryPath);
-  const config = readConfiguration(normalizedRepo);
-
-  if (!config.types) {
-    config.types = { enforceAllowedTypes: false };
-  }
-
-  config.types.enforceAllowedTypes = enforce;
-  writeConfiguration(normalizedRepo, config);
+  return stats;
 }

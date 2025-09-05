@@ -67,7 +67,7 @@ export class DeleteNoteTool extends BaseTool {
         content: [
           {
             type: 'text',
-            text: `Successfully deleted note ${parsed.noteId}\n\nDeleted note preview:\nType: ${note.type} | Tags: ${note.tags.join(', ')}\n${note.note.substring(0, 200)}${note.note.length > 200 ? '...' : ''}`,
+            text: `Successfully deleted note ${parsed.noteId}\n\nDeleted note preview:\n | Tags: ${note.tags.join(', ')}\n${note.note.substring(0, 200)}${note.note.length > 200 ? '...' : ''}`,
           },
         ],
       };

@@ -34,7 +34,6 @@ describe('Path Validation for saveNote', () => {
         directoryPath: 'relative/path',
         anchors: ['test.ts'],
         tags: ['test'],
-        type: 'explanation',
         metadata: {},
       })
     ).toThrow('directoryPath must be an absolute path to a git repository root');
@@ -48,7 +47,6 @@ describe('Path Validation for saveNote', () => {
         directoryPath: fakePath,
         anchors: ['test.ts'],
         tags: ['test'],
-        type: 'explanation',
         metadata: {},
       })
     ).toThrow(`directoryPath does not exist: "${fakePath}"`);
@@ -61,7 +59,6 @@ describe('Path Validation for saveNote', () => {
         directoryPath: nonGitPath,
         anchors: ['test.ts'],
         tags: ['test'],
-        type: 'explanation',
         metadata: {},
       })
     ).toThrow(`directoryPath is not a git repository root: "${nonGitPath}"`);
@@ -73,7 +70,6 @@ describe('Path Validation for saveNote', () => {
       directoryPath: gitRepoPath,
       anchors: ['test.ts'],
       tags: ['test'],
-      type: 'explanation',
       metadata: {},
     });
 
@@ -92,7 +88,6 @@ describe('Path Validation for saveNote', () => {
         directoryPath: './relative/path',
         anchors: ['test.ts'],
         tags: ['test'],
-        type: 'explanation',
         metadata: {},
       })
     ).toThrow('directoryPath must be an absolute path to a git repository root');
@@ -105,7 +100,6 @@ describe('Path Validation for saveNote', () => {
         directoryPath: '../relative/path',
         anchors: ['test.ts'],
         tags: ['test'],
-        type: 'explanation',
         metadata: {},
       })
     ).toThrow('directoryPath must be an absolute path to a git repository root');
@@ -118,7 +112,6 @@ describe('Path Validation for saveNote', () => {
         directoryPath: gitRepoPath,
         anchors: [],
         tags: ['test'],
-        type: 'explanation',
         metadata: {},
       })
     ).toThrow('At least one anchor path is required');
@@ -130,7 +123,6 @@ describe('Path Validation for saveNote', () => {
         note: 'Test note',
         directoryPath: gitRepoPath,
         tags: ['test'],
-        type: 'explanation',
         metadata: {},
       } as Parameters<typeof saveNote>[0])
     ).toThrow('At least one anchor path is required');

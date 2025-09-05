@@ -18,7 +18,6 @@ interface TribalNote {
   content: string;
   context: {
     when: Date;
-    type: string;
   };
   relevanceScore?: number;
 }
@@ -64,12 +63,6 @@ export class AskA24zMemoryTool extends BaseTool {
       .describe(
         'Filter results to only notes with these tags. Useful for targeted searches like ["bugfix", "authentication"] or ["performance", "database"].'
       ),
-    filterTypes: z
-      .array(z.string())
-      .optional()
-      .describe(
-        'Filter results to only these note types. Common types: decision, pattern, gotcha, explanation. Custom types are also supported. For example, use ["gotcha", "pattern"] when debugging, or ["decision"] when understanding architecture.'
-      ),
     guidanceToken: z
       .string()
       .describe(
@@ -104,7 +97,7 @@ export class AskA24zMemoryTool extends BaseTool {
   }
 
   async executeWithMetadata(input: z.infer<typeof this.schema>): Promise<AskMemoryResponse> {
-    const { filePath, query, taskContext, filterTags, filterTypes, guidanceToken } = input;
+    const { filePath, query, taskContext, filterTags, guidanceToken } = input;
 
     // Validate guidance token
     this.tokenManager.validateTokenForPath(guidanceToken, filePath);
@@ -118,10 +111,10 @@ export class AskA24zMemoryTool extends BaseTool {
       );
     }
 
-    const relevantNotes = await this.fetchRelevantNotes(filePath, filterTags, filterTypes);
+    const relevantNotes = await this.fetchRelevantNotes(filePath, filterTags);
 
     if (relevantNotes.length === 0) {
-      const filterInfo = this.getFilterDescription(filterTags, filterTypes);
+      const filterInfo = this.getFilterDescription(filterTags);
       return {
         response: this.getNoKnowledgeResponse(filePath, query, filterInfo),
         metadata: {
@@ -131,7 +124,6 @@ export class AskA24zMemoryTool extends BaseTool {
           filesRead: 0,
           filters: {
             tags: filterTags,
-            types: filterTypes,
           },
         },
         notes: [],
@@ -144,8 +136,7 @@ export class AskA24zMemoryTool extends BaseTool {
       filePath,
       taskContext || '',
       relevantNotes,
-      filterTags,
-      filterTypes
+      filterTags
     );
 
     // Count files that were actually read
@@ -166,23 +157,17 @@ export class AskA24zMemoryTool extends BaseTool {
         filesRead,
         filters: {
           tags: filterTags,
-          types: filterTypes,
         },
       },
       notes: relevantNotes,
     };
   }
 
-  private async fetchRelevantNotes(
-    filePath: string,
-    filterTags?: string[],
-    filterTypes?: string[]
-  ): Promise<TribalNote[]> {
+  private async fetchRelevantNotes(filePath: string, filterTags?: string[]): Promise<TribalNote[]> {
     // Get more notes initially if we're filtering, to ensure we have enough after filtering
-    const fetchLimit =
-      filterTags || filterTypes
-        ? this.defaultConfig.noteFetching.maxNotesPerQuery * 3
-        : this.defaultConfig.noteFetching.maxNotesPerQuery;
+    const fetchLimit = filterTags
+      ? this.defaultConfig.noteFetching.maxNotesPerQuery * 3
+      : this.defaultConfig.noteFetching.maxNotesPerQuery;
 
     const result = getNotesForPathWithLimit(filePath, true, 'count', fetchLimit);
     const notes = result.notes;
@@ -195,9 +180,6 @@ export class AskA24zMemoryTool extends BaseTool {
     }
 
     // Apply type filter if specified
-    if (filterTypes && filterTypes.length > 0) {
-      filteredNotes = filteredNotes.filter((n) => n.type && filterTypes.includes(n.type));
-    }
 
     // Convert to TribalNote format and limit to configured max
     return filteredNotes.slice(0, this.defaultConfig.noteFetching.maxNotesPerQuery).map((n) => ({
@@ -207,7 +189,6 @@ export class AskA24zMemoryTool extends BaseTool {
       content: n.note,
       context: {
         when: new Date(n.timestamp),
-        type: n.type || 'note',
       },
       relevanceScore: Math.max(0, 1 - (n.pathDistance || 0) / 10),
     }));
@@ -218,8 +199,7 @@ export class AskA24zMemoryTool extends BaseTool {
     filePath: string,
     taskContext: string,
     notes: TribalNote[],
-    filterTags?: string[],
-    filterTypes?: string[]
+    filterTags?: string[]
   ): Promise<string> {
     // Try to get repository path for file reading
     const repoPath = normalizeRepositoryPath(filePath);
@@ -230,7 +210,6 @@ export class AskA24zMemoryTool extends BaseTool {
         const noteContext = {
           id: n.id,
           content: n.content,
-          type: n.context.type,
           tags: n.tags,
           anchors: n.anchors,
           anchorContents: undefined as any,
@@ -292,7 +271,7 @@ export class AskA24zMemoryTool extends BaseTool {
         const note = notes[i];
         enhancedResponse += `**[Note ${i + 1}]** \`${note.id}\`\n`;
         enhancedResponse += `📁 Anchored to: ${note.anchors.map((a) => `\`${a}\``).join(', ')}\n`;
-        enhancedResponse += `🏷️ Tags: ${note.tags.join(', ')} | Type: ${note.context.type || 'note'}\n`;
+        enhancedResponse += `🏷️ Tags: ${note.tags.join(', ')}\n`;
         enhancedResponse += `💡 ${note.content}\n\n`;
       }
 
@@ -317,9 +296,6 @@ export class AskA24zMemoryTool extends BaseTool {
     if (filterTags && filterTags.length > 0) {
       response += `🏷️ **Tag filters applied:** ${filterTags.join(', ')}\n`;
     }
-    if (filterTypes && filterTypes.length > 0) {
-      response += `📋 **Type filters applied:** ${filterTypes.join(', ')}\n`;
-    }
     response += '\n';
 
     if (topTags.length > 0) {
@@ -330,7 +306,7 @@ export class AskA24zMemoryTool extends BaseTool {
       response += `📚 **Found ${notes.length} related notes** (showing top ${topNotes.length}):\n\n`;
       for (let i = 0; i < topNotes.length; i++) {
         const n = topNotes[i];
-        response += `**${i + 1}. ${n.context.type ? n.context.type.toUpperCase() : 'NOTE'}**\n`;
+        response += `**${i + 1}. NOTE**\n`;
         response += `   ${n.content}\n\n`;
       }
 
@@ -368,13 +344,10 @@ create_repository_note({
     return response;
   }
 
-  private getFilterDescription(filterTags?: string[], filterTypes?: string[]): string {
+  private getFilterDescription(filterTags?: string[]): string {
     const parts: string[] = [];
     if (filterTags && filterTags.length > 0) {
       parts.push(`tags: ${filterTags.join(', ')}`);
-    }
-    if (filterTypes && filterTypes.length > 0) {
-      parts.push(`types: ${filterTypes.join(', ')}`);
     }
     return parts.join(', ');
   }

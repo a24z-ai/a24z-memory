@@ -19,7 +19,6 @@ import {
   CreateRepositoryNoteTool,
   GetNotesTool,
   GetRepositoryTagsTool,
-  GetRepositoryTypesTool,
   GetRepositoryGuidanceTool,
   DiscoverToolsTool,
   DeleteNoteTool,
@@ -89,9 +88,6 @@ export class McpServer {
     }
     if (enabledTools.get_repository_tags !== false) {
       this.addTool(new GetRepositoryTagsTool());
-    }
-    if (enabledTools.get_repository_types !== false) {
-      this.addTool(new GetRepositoryTypesTool());
     }
     if (enabledTools.get_repository_guidance !== false) {
       this.addTool(new GetRepositoryGuidanceTool());

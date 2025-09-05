@@ -11,7 +11,6 @@ type NoteResponse = {
   note: string;
   anchors: string[];
   tags: string[];
-  type: string;
   timestamp: number;
   reviewed: boolean;
   metadata?: Record<string, unknown>;
@@ -39,7 +38,6 @@ interface GetNotesResponse {
     };
     available: {
       tags: string[];
-      types: string[];
       reviewedCount: number;
       unreviewedCount: number;
     };
@@ -78,13 +76,6 @@ export class GetNotesTool extends BaseTool {
       .optional()
       .describe(
         'Filter results to only notes containing at least one of these tags. Leave empty to include all tags'
-      ),
-
-    filterTypes: z
-      .array(z.string())
-      .optional()
-      .describe(
-        'Filter results to only these note types. Common types: decision, pattern, gotcha, explanation. Custom types are also supported. Leave empty to include all types'
       ),
 
     filterReviewed: z
@@ -203,13 +194,11 @@ export class GetNotesTool extends BaseTool {
 
     // Track available tags and types before filtering
     const availableTags = new Set<string>();
-    const availableTypes = new Set<string>();
     let totalReviewedCount = 0;
     let totalUnreviewedCount = 0;
 
     for (const note of allNotes) {
       note.tags.forEach((tag) => availableTags.add(tag));
-      availableTypes.add(note.type);
       if (note.reviewed) {
         totalReviewedCount++;
       } else {
@@ -228,9 +217,6 @@ export class GetNotesTool extends BaseTool {
     }
 
     // Filter by types
-    if (parsed.filterTypes && parsed.filterTypes.length > 0) {
-      filteredNotes = filteredNotes.filter((note) => parsed.filterTypes!.includes(note.type));
-    }
 
     // Filter by reviewed status
     if (parsed.filterReviewed !== 'all') {
@@ -253,11 +239,8 @@ export class GetNotesTool extends BaseTool {
           return a.reviewed ? -1 : 1;
 
         case 'type':
-          // Group by type, then by timestamp
-          if (a.type === b.type) {
-            return b.timestamp - a.timestamp;
-          }
-          return a.type.localeCompare(b.type);
+          // Sort by timestamp only (types no longer exist)
+          return b.timestamp - a.timestamp;
 
         case 'relevance': {
           // Sort by path proximity (exact matches first, then parents)
@@ -289,7 +272,6 @@ export class GetNotesTool extends BaseTool {
         note: note.note,
         anchors: note.anchors,
         tags: note.tags,
-        type: note.type,
         timestamp: note.timestamp,
         reviewed: note.reviewed || false,
       };
@@ -320,14 +302,12 @@ export class GetNotesTool extends BaseTool {
       filters: {
         applied: {
           tags: parsed.filterTags,
-          types: parsed.filterTypes,
           reviewStatus: parsed.filterReviewed,
           includeStale: parsed.includeStale,
           includeParentNotes: parsed.includeParentNotes,
         },
         available: {
           tags: Array.from(availableTags).sort(),
-          types: Array.from(availableTypes).sort(),
           reviewedCount: totalReviewedCount,
           unreviewedCount: totalUnreviewedCount,
         },

@@ -45,9 +45,6 @@ export const DEFAULT_REPOSITORY_CONFIG: RepositoryConfiguration = {
   tags: {
     enforceAllowedTags: false, // Disabled by default for flexibility
   },
-  types: {
-    enforceAllowedTypes: false, // Disabled by default for flexibility
-  },
   enabled_mcp_tools: {
     // Core tools - always enabled
     askA24zMemory: true,
@@ -135,18 +132,6 @@ export const DEFAULT_PATH_CONFIG = {
 };
 
 /**
- * Default note types with descriptions
- */
-export const DEFAULT_NOTE_TYPES = {
-  decision: 'Architectural or design decisions with rationale',
-  pattern: 'Reusable implementation patterns and best practices',
-  gotcha: 'Non-obvious issues, bugs, or tricky edge cases',
-  explanation: 'General explanations and documentation',
-  todo: 'Technical debt and future improvements',
-  performance: 'Performance insights and optimizations',
-};
-
-/**
  * Default tag suggestions based on common categories
  */
 export const DEFAULT_TAG_CATEGORIES = {
@@ -168,7 +153,6 @@ export function getAllDefaultConfigs() {
     a24zMemory: DEFAULT_A24Z_MEMORY_CONFIG,
     security: DEFAULT_SECURITY_CONFIG,
     paths: DEFAULT_PATH_CONFIG,
-    noteTypes: DEFAULT_NOTE_TYPES,
     tagCategories: DEFAULT_TAG_CATEGORIES,
   };
 }

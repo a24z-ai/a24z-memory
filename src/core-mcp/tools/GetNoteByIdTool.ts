@@ -63,7 +63,6 @@ export class GetNoteByIdTool extends BaseTool {
     const output: string[] = [
       `# Note ID: ${note.id}`,
       '',
-      `**Type:** ${note.type}`,
       `**Tags:** ${note.tags.join(', ')}`,
       `**Created:** ${new Date(note.timestamp).toISOString()}`,
       '',

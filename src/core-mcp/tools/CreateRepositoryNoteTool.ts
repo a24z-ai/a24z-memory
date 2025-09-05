@@ -8,10 +8,7 @@ import {
   getRepositoryConfiguration,
   getTagDescriptions,
   saveTagDescription,
-  getTypeDescriptions,
-  saveTypeDescription,
   getAllowedTags,
-  getAllowedTypes,
 } from '../store/notesStore';
 import { findGitRoot } from '../utils/pathNormalization';
 import { GuidanceTokenManager } from '../services/guidance-token-manager';
@@ -51,13 +48,6 @@ export class CreateRepositoryNoteTool extends BaseTool {
       .min(1, 'At least one tag is required.')
       .describe(
         "Required semantic tags for categorization. Use get_repository_tags tool to see available tags. New tags will be created automatically if they don't exist."
-      ),
-    type: z
-      .string()
-      .optional()
-      .default('explanation')
-      .describe(
-        'The type of knowledge being documented. Common types: "decision" for architectural choices, "pattern" for reusable solutions, "gotcha" for tricky issues/bugs, "explanation" for general documentation. Custom types are also supported.'
       ),
     metadata: z
       .record(z.any())
@@ -117,7 +107,6 @@ export class CreateRepositoryNoteTool extends BaseTool {
     // Check configuration for tag/type enforcement
     const config = getRepositoryConfiguration(parsed.directoryPath);
     const tagEnforcement = config.tags?.enforceAllowedTags || false;
-    const typeEnforcement = config.types?.enforceAllowedTypes || false;
 
     // Validate guidance token (always required)
     if (!parsed.guidanceToken) {
@@ -142,11 +131,6 @@ export class CreateRepositoryNoteTool extends BaseTool {
     const existingTagDescriptions = getTagDescriptions(parsed.directoryPath);
     const existingTags = Object.keys(existingTagDescriptions);
     const newTags = parsed.tags.filter((tag) => !existingTags.includes(tag));
-
-    // Check for new types that don't have descriptions
-    const existingTypeDescriptions = getTypeDescriptions(parsed.directoryPath);
-    const existingTypes = Object.keys(existingTypeDescriptions);
-    const isNewType = parsed.type && !existingTypes.includes(parsed.type);
 
     // Handle tag enforcement
     if (tagEnforcement && newTags.length > 0) {
@@ -175,36 +159,8 @@ export class CreateRepositoryNoteTool extends BaseTool {
       );
     }
 
-    // Handle type enforcement
-    if (typeEnforcement && isNewType) {
-      // When enforcement is on, reject new types
-      const allowedTypesInfo = getAllowedTypes(parsed.directoryPath);
-      const typeList =
-        allowedTypesInfo.types.length > 0
-          ? allowedTypesInfo.types
-              .map((type) => {
-                const desc = existingTypeDescriptions[type];
-                return desc
-                  ? `• **${type}**: ${desc.split('\n')[0].substring(0, 50)}...`
-                  : `• **${type}**`;
-              })
-              .join('\n')
-          : 'No types with descriptions exist yet.';
-
-      throw new Error(
-        `❌ Type creation is not allowed when type enforcement is enabled.\n\n` +
-          `The type "${parsed.type}" does not exist.\n\n` +
-          `**Available types with descriptions:**\n${typeList}\n\n` +
-          `💡 To use new types, either:\n` +
-          `1. Use one of the existing types above\n` +
-          `2. Ask an administrator to create the type with a proper description\n` +
-          `3. Disable type enforcement in .a24z/configuration.json`
-      );
-    }
-
     // When enforcement is OFF, auto-create empty descriptions for new tags/types
     const autoCreatedTags: string[] = [];
-    let autoCreatedType: string | null = null;
 
     if (!tagEnforcement && newTags.length > 0) {
       // Auto-create empty descriptions for new tags
@@ -218,22 +174,11 @@ export class CreateRepositoryNoteTool extends BaseTool {
       }
     }
 
-    if (!typeEnforcement && isNewType && parsed.type) {
-      // Auto-create empty description for new type
-      try {
-        saveTypeDescription(parsed.directoryPath, parsed.type, '');
-        autoCreatedType = parsed.type;
-      } catch (error) {
-        console.error(`Failed to auto-create type description for "${parsed.type}":`, error);
-      }
-    }
-
     const savedWithPath = saveNote({
       note: parsed.note,
       directoryPath: parsed.directoryPath,
       anchors: parsed.anchors,
       tags: parsed.tags,
-      type: parsed.type,
       metadata: {
         ...(parsed.metadata || {}),
         toolVersion: '2.0.0',
@@ -250,7 +195,6 @@ export class CreateRepositoryNoteTool extends BaseTool {
       `🆔 **Note ID:** ${saved.id}\n` +
       `📁 **Repository:** ${parsed.directoryPath}\n` +
       `🏷️ **Tags:** ${parsed.tags.join(', ')}\n` +
-      `📋 **Type:** ${parsed.type}\n` +
       `\n`;
 
     // Add warnings about auto-created tags
@@ -263,17 +207,8 @@ export class CreateRepositoryNoteTool extends BaseTool {
       response += `• Description limit: ${config.limits.tagDescriptionMaxLength} characters\n\n`;
     }
 
-    // Add warnings about auto-created type
-    if (autoCreatedType) {
-      response += `⚠️ **New type created with empty description:** ${autoCreatedType}\n\n`;
-      response += `**IMPORTANT:** Please update this type description immediately:\n`;
-      response += `• Use the library API: \`saveTypeDescription(repoPath, typeName, description)\`\n`;
-      response += `• Or create markdown file: \`.a24z/types/${autoCreatedType}.md\`\n`;
-      response += `• Description limit: ${config.limits.tagDescriptionMaxLength} characters\n\n`;
-    }
-
     response += `💡 **Next steps:**\n`;
-    if (autoCreatedTags.length > 0 || autoCreatedType) {
+    if (autoCreatedTags.length > 0) {
       response += `- **Update the empty descriptions created above**\n`;
     }
     response +=
@@ -283,7 +218,7 @@ export class CreateRepositoryNoteTool extends BaseTool {
 
     // If we auto-created new tags or types, generate a fresh guidance token
     // This prevents the user's token from becoming invalid due to guidance changes
-    if (autoCreatedTags.length > 0 || autoCreatedType) {
+    if (autoCreatedTags.length > 0) {
       const updatedGuidanceContent = generateFullGuidanceContent(parsed.directoryPath);
       const freshToken = this.tokenManager.generateToken(
         updatedGuidanceContent,

@@ -33,7 +33,6 @@ describe('Anchor Normalization and Matching', () => {
         directoryPath: repoDir,
         anchors: ['src/components/Button.tsx', './lib/utils.ts', 'docs/README.md'],
         tags: ['test'],
-        type: 'explanation',
         metadata: {},
       });
       const note = noteWithPath.note;
@@ -58,7 +57,6 @@ describe('Anchor Normalization and Matching', () => {
         directoryPath: repoDir,
         anchors: [absoluteAnchor],
         tags: ['test'],
-        type: 'explanation',
         metadata: {},
       });
       const note = noteWithPath.note;
@@ -76,7 +74,6 @@ describe('Anchor Normalization and Matching', () => {
         directoryPath: repoDir,
         anchors: ['relative/path.ts', absoluteAnchor, './another/relative.ts'],
         tags: ['test'],
-        type: 'explanation',
         metadata: {},
       });
       const note = noteWithPath.note;
@@ -96,7 +93,6 @@ describe('Anchor Normalization and Matching', () => {
         directoryPath: repoDir,
         anchors: ['src/components/Button.tsx', 'src/components/Button.test.tsx'],
         tags: ['component'],
-        type: 'explanation',
         metadata: {},
       });
 
@@ -105,7 +101,6 @@ describe('Anchor Normalization and Matching', () => {
         directoryPath: repoDir,
         anchors: ['src/utils/api.ts', 'src/utils'],
         tags: ['utils'],
-        type: 'pattern',
         metadata: {},
       });
 
@@ -114,7 +109,6 @@ describe('Anchor Normalization and Matching', () => {
         directoryPath: repoDir,
         anchors: ['config/database.yml'],
         tags: ['config'],
-        type: 'decision',
         metadata: {},
       });
     });
@@ -182,7 +176,6 @@ describe('Anchor Normalization and Matching', () => {
         directoryPath: path.join(repoDir, 'src/components'),
         anchors: ['src/components/index.ts'],
         tags: ['general'],
-        type: 'explanation',
         metadata: {},
       });
 
@@ -201,7 +194,6 @@ describe('Anchor Normalization and Matching', () => {
         directoryPath: path.join(repoDir, 'src/components'),
         anchors: ['../utils/shared.ts', './Button.tsx'],
         tags: ['test'],
-        type: 'explanation',
         metadata: {},
       });
 
@@ -232,7 +224,6 @@ describe('Anchor Normalization and Matching', () => {
         directoryPath: repoDir,
         anchors: ['src/file.ts'],
         tags: ['repo1'],
-        type: 'explanation',
         metadata: {},
       });
 
@@ -242,7 +233,6 @@ describe('Anchor Normalization and Matching', () => {
         directoryPath: otherRepo,
         anchors: ['src/file.ts'],
         tags: ['repo2'],
-        type: 'explanation',
         metadata: {},
       });
 

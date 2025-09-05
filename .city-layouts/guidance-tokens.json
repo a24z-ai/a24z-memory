@@ -1,0 +1,171 @@
+{
+  "overviewPath": "docs/guidance-tokens-overview.md",
+  "enabled": true,
+  "rows": 4,
+  "cols": 4,
+  "groups": {
+    "Token Generation": {
+      "patterns": [
+        "src/core-mcp/services/guidance-token-manager.ts",
+        "src/core-mcp/utils/guidanceGenerator.ts"
+      ],
+      "cell": [0, 0],
+      "priority": 100,
+      "color": "#4CAF50",
+      "description": "Core token generation and management services"
+    },
+    "Guidance Provider": {
+      "patterns": [
+        "src/core-mcp/tools/GetRepositoryGuidanceTool.ts"
+      ],
+      "cell": [0, 1],
+      "priority": 95,
+      "color": "#2196F3",
+      "description": "Tool that provides guidance and generates tokens"
+    },
+    "Token Validators": {
+      "patterns": [
+        "src/core-mcp/tools/CreateRepositoryNoteTool.ts",
+        "src/core-mcp/tools/AskA24zMemoryTool.ts"
+      ],
+      "cell": [0, 2],
+      "priority": 90,
+      "color": "#FF9800",
+      "description": "Tools that validate tokens before operations"
+    },
+    "Token Config": {
+      "patterns": [
+        "src/core-mcp/config/defaultConfig.ts",
+        ".a24z/config.json"
+      ],
+      "cell": [0, 3],
+      "priority": 85,
+      "color": "#9C27B0",
+      "description": "Configuration including token secret and settings"
+    },
+    "Guidance Content": {
+      "patterns": [
+        ".a24z/note-guidance.md",
+        ".a24z/tag-descriptions.json",
+        ".a24z/type-descriptions/**/*.md"
+      ],
+      "cell": [1, 0],
+      "priority": 80,
+      "color": "#00BCD4",
+      "description": "Source content that gets hashed into tokens"
+    },
+    "Repository Store": {
+      "patterns": [
+        "src/core-mcp/store/notesStore.ts",
+        "src/core-mcp/store/repositoryStorage.ts"
+      ],
+      "cell": [1, 1],
+      "priority": 75,
+      "color": "#795548",
+      "description": "Storage layer for guidance and configuration"
+    },
+    "Optional Validators": {
+      "patterns": [
+        "src/core-mcp/tools/GetRepositoryTagsTool.ts",
+        "src/core-mcp/tools/GetRepositoryTypesTool.ts",
+        "src/core-mcp/tools/GetNotesTool.ts"
+      ],
+      "cell": [1, 2],
+      "priority": 70,
+      "color": "#607D8B",
+      "description": "Tools with optional token validation"
+    },
+    "Token Utilities": {
+      "patterns": [
+        "src/core-mcp/utils/pathNormalization.ts",
+        "src/core-mcp/utils/tokenCounter.ts"
+      ],
+      "cell": [1, 3],
+      "priority": 65,
+      "color": "#E91E63",
+      "description": "Supporting utilities for token operations"
+    },
+    "Tests - Token Generation": {
+      "patterns": [
+        "tests/**/*guidance*test.ts",
+        "tests/**/*token*test.ts"
+      ],
+      "cell": [2, 0],
+      "priority": 60,
+      "color": "#8BC34A",
+      "description": "Tests for token generation and validation"
+    },
+    "Tests - Tool Integration": {
+      "patterns": [
+        "tests/core-mcp/tools/*Tool.test.ts",
+        "tests/integration/*guidance*.test.ts"
+      ],
+      "cell": [2, 1],
+      "priority": 55,
+      "color": "#FF5722",
+      "description": "Tests for tool token integration"
+    },
+    "MCP Integration": {
+      "patterns": [
+        "src/lib.ts",
+        "src/index.ts",
+        "src/core-mcp/tools/base-tool.ts"
+      ],
+      "cell": [2, 2],
+      "priority": 50,
+      "color": "#3F51B5",
+      "description": "MCP server integration layer"
+    },
+    "Error Handling": {
+      "patterns": [
+        "src/core-mcp/types.ts",
+        "src/core-mcp/utils/errorMessages.ts"
+      ],
+      "cell": [2, 3],
+      "priority": 45,
+      "color": "#F44336",
+      "description": "Token error types and messages"
+    },
+    "Documentation": {
+      "patterns": [
+        "docs/**/*.md",
+        "README.md",
+        "ARCHITECTURE.md"
+      ],
+      "cell": [3, 0],
+      "priority": 40,
+      "color": "#009688",
+      "description": "Documentation explaining the token system"
+    },
+    "Example Usage": {
+      "patterns": [
+        "examples/**/*.ts",
+        "examples/**/*.js"
+      ],
+      "cell": [3, 1],
+      "priority": 35,
+      "color": "#FF6F00",
+      "description": "Example implementations using tokens"
+    },
+    "Build & Config": {
+      "patterns": [
+        "tsconfig.json",
+        "package.json",
+        "jest.config.js"
+      ],
+      "cell": [3, 2],
+      "priority": 30,
+      "color": "#424242",
+      "description": "Build configuration and dependencies"
+    },
+    "Other Files": {
+      "patterns": [
+        "**/*"
+      ],
+      "cell": [3, 3],
+      "priority": 0,
+      "color": "#BDBDBD",
+      "description": "All other repository files"
+    }
+  }
+}

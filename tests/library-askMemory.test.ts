@@ -41,7 +41,6 @@ describe('A24zMemory askMemory method', () => {
         note: 'Test authentication pattern using JWT',
         anchors: [path.join(testRepoPath, 'src/auth.ts')],
         tags: ['authentication', 'jwt', 'security'],
-        type: 'pattern',
       });
 
       // Ask a question
@@ -63,14 +62,12 @@ describe('A24zMemory askMemory method', () => {
         note: 'Authentication with JWT',
         anchors: [path.join(testRepoPath, 'src/auth.ts')],
         tags: ['authentication', 'jwt'],
-        type: 'pattern',
       });
 
       memory.saveNote({
         note: 'Database connection pooling',
         anchors: [path.join(testRepoPath, 'src/db.ts')],
         tags: ['database', 'performance'],
-        type: 'pattern',
       });
 
       // Ask with tag filter
@@ -84,31 +81,9 @@ describe('A24zMemory askMemory method', () => {
       expect(result.notes.every((n) => n.tags.includes('database'))).toBe(true);
     });
 
-    it('should apply type filters correctly', async () => {
-      // Save notes with different types
-      memory.saveNote({
-        note: 'Architecture decision: Use microservices',
-        anchors: [path.join(testRepoPath, 'docs/arch.md')],
-        tags: ['architecture'],
-        type: 'decision',
-      });
-
-      memory.saveNote({
-        note: 'Watch out for race condition in auth',
-        anchors: [path.join(testRepoPath, 'src/auth.ts')],
-        tags: ['bug'],
-        type: 'gotcha',
-      });
-
-      // Ask with type filter
-      const result = await memory.askMemory({
-        filePath: testRepoPath,
-        query: 'What should I know?',
-        filterTypes: ['gotcha'],
-      });
-
-      expect(result.metadata.filters.types).toEqual(['gotcha']);
-      expect(result.notes.every((n) => n.context.type === 'gotcha')).toBe(true);
+    // Type filtering has been removed from the system
+    it.skip('should apply type filters correctly', async () => {
+      // This test is skipped as type field has been removed
     });
 
     it('should handle empty results gracefully', async () => {
@@ -131,7 +106,6 @@ describe('A24zMemory askMemory method', () => {
           note: `Note ${i}`,
           anchors: [path.join(testRepoPath, `file${i}.ts`)],
           tags: ['test'],
-          type: 'explanation',
         });
       }
 
@@ -204,7 +178,6 @@ describe('A24zMemory askMemory method', () => {
         note: 'This file contains test exports',
         anchors: [testFilePath],
         tags: ['exports'],
-        type: 'explanation',
       });
 
       // Configure LLM with file contents
