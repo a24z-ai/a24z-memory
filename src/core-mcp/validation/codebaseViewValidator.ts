@@ -7,16 +7,19 @@
 
 import {
   CodebaseView,
-  ViewFileCell,
+  CodebaseViewFileCell,
   ViewValidationResult,
   PatternValidationResult,
   computeGridDimensions,
-} from '../store/viewsStore';
+} from '../store/codebaseViewsStore';
 
 /**
- * Validate a single ViewFileCell configuration
+ * Validate a single CodebaseViewFileCell configuration
  */
-export function validateViewFileCell(cell: ViewFileCell, cellName: string): ViewValidationResult {
+export function validateCodebaseViewFileCell(
+  cell: CodebaseViewFileCell,
+  cellName: string
+): ViewValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
   const suggestions: string[] = [];
@@ -174,7 +177,7 @@ export function validateCodebaseView(view: CodebaseView): ViewValidationResult {
   // Validate individual cells
   if (view.cells && typeof view.cells === 'object') {
     for (const [cellName, cell] of Object.entries(view.cells)) {
-      const cellValidation = validateViewFileCell(cell, cellName);
+      const cellValidation = validateCodebaseViewFileCell(cell, cellName);
       errors.push(...cellValidation.errors);
       warnings.push(...cellValidation.warnings);
       if (cellValidation.suggestions) {
@@ -353,7 +356,7 @@ export function validateGridDimensions(view: CodebaseView): ViewValidationResult
  * Detect conflicts between cell patterns
  */
 export function detectPatternConflicts(
-  cells: Record<string, ViewFileCell>
+  cells: Record<string, CodebaseViewFileCell>
 ): PatternValidationResult {
   const conflicts: Array<{
     path: string;

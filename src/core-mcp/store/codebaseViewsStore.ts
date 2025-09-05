@@ -22,7 +22,7 @@ export type CodebaseViewLinks = Record<string, string>;
  * A cell in the grid that contains files matching specific patterns.
  * Each cell represents a logical grouping of related files in the codebase.
  */
-export interface ViewFileCell {
+export interface CodebaseViewFileCell {
   /**
    * List of file/directory patterns to match using glob syntax.
    * Examples: 'src/**', '*.md', 'package.json'
@@ -123,7 +123,7 @@ export interface CodebaseView {
    * Cell configurations mapped by cell name/identifier.
    * Each entry defines what files belong in that cell.
    */
-  cells: Record<string, ViewFileCell>;
+  cells: Record<string, CodebaseViewFileCell>;
 
   /**
    * Links to other views from this view.
@@ -189,7 +189,7 @@ export interface PatternValidationResult {
  * Compute grid dimensions from cell coordinates.
  * Returns the minimum grid size needed to contain all cells.
  */
-export function computeGridDimensions(cells: Record<string, ViewFileCell>): {
+export function computeGridDimensions(cells: Record<string, CodebaseViewFileCell>): {
   rows: number;
   cols: number;
 } {

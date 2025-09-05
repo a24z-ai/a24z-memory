@@ -73,7 +73,7 @@ export {
 
 // CodebaseView types and storage
 export {
-  type ViewFileCell,
+  type CodebaseViewFileCell,
   type CodebaseViewScope,
   type CodebaseViewLinks,
   type CodebaseView,
@@ -82,7 +82,7 @@ export {
   type PatternValidationResult,
   ViewsStore,
   viewsStore,
-} from './core-mcp/store/viewsStore';
+} from './core-mcp/store/codebaseViewsStore';
 
 // Note similarity and deduplication
 export {

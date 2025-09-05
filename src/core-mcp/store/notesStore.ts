@@ -12,7 +12,7 @@ import {
   getTokenLimitInfo,
   type TokenLimitInfo,
 } from '../utils/tokenCounter';
-import { viewsStore } from './viewsStore';
+import { viewsStore } from './codebaseViewsStore';
 
 export { TokenLimitInfo } from '../utils/tokenCounter';
 

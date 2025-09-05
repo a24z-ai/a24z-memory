@@ -3,25 +3,25 @@ export { BaseTool } from './tools';
 export type { McpTool, McpToolResult, McpResource, McpServerConfig } from './types';
 
 // View system exports
-export { viewsStore, ViewsStore, generateViewIdFromName } from './store/viewsStore';
+export { viewsStore, ViewsStore, generateViewIdFromName } from './store/codebaseViewsStore';
 export type {
   CodebaseView,
-  ViewFileCell,
+  CodebaseViewFileCell,
   CodebaseViewScope,
   CodebaseViewLinks,
   ViewSummary,
   ViewValidationResult,
   PatternValidationResult,
-} from './store/viewsStore';
+} from './store/codebaseViewsStore';
 
 // Validation exports
 export {
-  validateViewFileCell,
+  validateCodebaseViewFileCell,
   validateCodebaseView,
   validatePatterns,
   validateGridDimensions,
   detectPatternConflicts,
-} from './validation/viewValidator';
+} from './validation/codebaseViewValidator';
 
 // View-based note association exports
 export {
@@ -43,10 +43,10 @@ export {
   queryOrphanedNotes,
   analyzeViewCoverage,
   findSimilarNotesInView,
-} from './services/viewQueryService';
+} from './services/codebaseViewQueryService';
 export type {
   ViewQueryOptions,
   ViewQueryResult,
   MultiViewSearchResult,
   ViewCoverageAnalysis,
-} from './services/viewQueryService';
+} from './services/codebaseViewQueryService';

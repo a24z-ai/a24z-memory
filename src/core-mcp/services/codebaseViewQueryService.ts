@@ -13,7 +13,7 @@ import {
   getOrphanedNotes,
   getViewStatistics,
 } from '../store/notesStore';
-import { viewsStore } from '../store/viewsStore';
+import { viewsStore } from '../store/codebaseViewsStore';
 
 /**
  * Query options for view-based note searches
