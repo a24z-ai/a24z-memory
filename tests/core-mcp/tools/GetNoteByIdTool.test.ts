@@ -32,7 +32,6 @@ describe('GetNoteByIdTool', () => {
       note: '# Test Note\n\nThis is a test note with **markdown** content.',
       anchors: ['src/test.ts', 'docs/readme.md'],
       tags: ['testing', 'documentation', 'example'],
-      type: 'explanation',
       metadata: {
         author: 'test-user',
         version: '1.0.0',
@@ -52,7 +51,7 @@ describe('GetNoteByIdTool', () => {
 
     // Check for all expected sections
     expect(text).toContain(`# Note ID: ${savedNote.id}`);
-    expect(text).toContain('**Type:** explanation');
+    // Type field has been removed
     expect(text).toContain('**Tags:** testing, documentation, example');
     expect(text).toContain('**Created:**');
 
@@ -89,7 +88,6 @@ describe('GetNoteByIdTool', () => {
       note: 'Simple note',
       anchors: ['file.ts'],
       tags: ['simple'],
-      type: 'pattern',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -103,7 +101,7 @@ describe('GetNoteByIdTool', () => {
     const text = result.content[0].text as string;
 
     // Should have standard sections
-    expect(text).toContain('**Type:** pattern');
+    // Type field has been removed
     expect(text).toContain('Simple note');
 
     // Metadata section should not appear when metadata is empty
@@ -115,7 +113,6 @@ describe('GetNoteByIdTool', () => {
       note: 'Subdirectory test note',
       anchors: ['src/components/Component.tsx'],
       tags: ['component'],
-      type: 'gotcha',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -134,7 +131,7 @@ describe('GetNoteByIdTool', () => {
     const text = result.content[0].text as string;
     expect(text).toContain(`# Note ID: ${savedNote.id}`);
     expect(text).toContain('Subdirectory test note');
-    expect(text).toContain('**Type:** gotcha');
+    // Type field has been removed
   });
 
   it('should throw error for non-absolute path', async () => {
@@ -172,7 +169,6 @@ describe('GetNoteByIdTool', () => {
       note: 'Timestamp test',
       anchors: ['file.ts'],
       tags: ['time'],
-      type: 'decision',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -194,7 +190,6 @@ describe('GetNoteByIdTool', () => {
       note: 'Complex metadata test',
       anchors: ['file.ts'],
       tags: ['complex'],
-      type: 'explanation',
       metadata: {
         nested: {
           deeply: {
@@ -237,7 +232,6 @@ describe('GetNoteByIdTool', () => {
         note: `Note of type ${type}`,
         anchors: ['file.ts'],
         tags: [type],
-        type,
         metadata: {},
         directoryPath: testRepoPath,
       });
@@ -247,8 +241,8 @@ describe('GetNoteByIdTool', () => {
         directoryPath: testRepoPath,
       });
 
-      const text = result.content[0].text as string;
-      expect(text).toContain(`**Type:** ${type}`);
+      // Type field has been removed from output
+      expect(result.content[0].text).toBeDefined();
     }
   });
 });

@@ -44,9 +44,6 @@ describe('Configuration System', () => {
       tags: {
         enforceAllowedTags: false,
       },
-      types: {
-        enforceAllowedTypes: false,
-      },
       enabled_mcp_tools: {
         askA24zMemory: true,
         create_repository_note: true,

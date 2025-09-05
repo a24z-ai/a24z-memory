@@ -28,7 +28,6 @@ describe('Tag Removal from Notes', () => {
       note: 'Test note content',
       anchors: ['test.ts'],
       tags: ['feature', 'bugfix'],
-      type: 'pattern' as const,
       metadata: {},
     };
   });

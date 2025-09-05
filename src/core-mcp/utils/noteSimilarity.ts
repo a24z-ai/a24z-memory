@@ -41,11 +41,7 @@ export function calculateNoteSimilarity(note1: StoredNote, note2: StoredNote): N
     reasons.push(`Tag overlap: ${(tagSimilarity * 100).toFixed(0)}%`);
   }
 
-  // 4. Type match (5% weight)
-  if (note1.type === note2.type) {
-    score += 0.05;
-    reasons.push('Same type');
-  }
+  // Type matching removed - types no longer exist
 
   return {
     note1,

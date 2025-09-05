@@ -7,8 +7,6 @@ import {
   getRepositoryGuidance,
   getAllowedTags,
   getTagDescriptions,
-  getAllowedTypes,
-  getTypeDescriptions,
 } from '../store/notesStore';
 
 /**
@@ -23,8 +21,6 @@ export function generateFullGuidanceContent(repoPath: string): string {
   const guidance = getRepositoryGuidance(repoPath);
   const allowedTags = getAllowedTags(repoPath);
   const tagDescriptions = getTagDescriptions(repoPath);
-  const allowedTypes = getAllowedTypes(repoPath);
-  const typeDescriptions = getTypeDescriptions(repoPath);
 
   // Build comprehensive output
   const output: string[] = ['# Repository Note Configuration\n'];
@@ -64,36 +60,6 @@ export function generateFullGuidanceContent(repoPath: string): string {
   }
   output.push('');
 
-  // Type Restrictions
-  output.push('## Type Restrictions');
-  if (allowedTypes.enforced && allowedTypes.types.length > 0) {
-    output.push('**Status:** ENFORCED');
-    output.push(`**Allowed types (${allowedTypes.types.length}):**`);
-    for (const type of allowedTypes.types) {
-      const desc = typeDescriptions[type];
-      if (desc) {
-        // Take just the first line/paragraph for the summary
-        const firstLine = desc.split('\n')[0].replace(/^#\s*/, '');
-        output.push(`- **${type}**: ${firstLine}`);
-      } else {
-        output.push(`- **${type}**`);
-      }
-    }
-  } else {
-    output.push('**Status:** NOT ENFORCED');
-    output.push('Any types can be used for notes.');
-
-    // Show available type descriptions even when not enforced
-    if (Object.keys(typeDescriptions).length > 0) {
-      output.push('\n**Available type descriptions:**');
-      for (const [type, desc] of Object.entries(typeDescriptions)) {
-        const firstLine = desc.split('\n')[0].replace(/^#\s*/, '');
-        output.push(`- **${type}**: ${firstLine}`);
-      }
-    }
-  }
-  output.push('');
-
   // Note Guidance
   output.push('## Note Guidance');
   if (guidance) {
@@ -111,7 +77,6 @@ export function generateFullGuidanceContent(repoPath: string): string {
   output.push('### Files Location');
   output.push('- Configuration: `.a24z/configuration.json`');
   output.push('- Tag descriptions: `.a24z/tags/` (individual markdown files)');
-  output.push('- Type descriptions: `.a24z/types/` (individual markdown files)');
   output.push('- Note guidance: `.a24z/note-guidance.md`');
   output.push('- Notes storage: `.a24z/notes/` (organized by year/month)');
 

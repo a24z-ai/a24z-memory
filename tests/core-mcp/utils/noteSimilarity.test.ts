@@ -32,7 +32,6 @@ describe('Note Similarity Utilities', () => {
         note: 'Authentication using JWT tokens for API security',
         anchors: ['auth/jwt.ts', 'middleware/auth.ts'],
         tags: ['auth', 'security', 'jwt'],
-        type: 'explanation',
         metadata: {},
         timestamp: Date.now(),
       };
@@ -42,7 +41,6 @@ describe('Note Similarity Utilities', () => {
         note: 'Authentication using JWT tokens for API security and validation',
         anchors: ['auth/jwt.ts', 'middleware/validate.ts'],
         tags: ['auth', 'security', 'validation'],
-        type: 'explanation',
         metadata: {},
         timestamp: Date.now(),
       };
@@ -51,7 +49,7 @@ describe('Note Similarity Utilities', () => {
 
       expect(similarity.score).toBeGreaterThan(0.5); // Should be similar
       expect(similarity.reasons.some((r) => r.includes('Content similarity'))).toBe(true);
-      expect(similarity.reasons).toContain('Same type');
+      // Type field has been removed - no longer checking for same type
     });
 
     it('should calculate low similarity for different notes', () => {
@@ -60,7 +58,6 @@ describe('Note Similarity Utilities', () => {
         note: 'Database connection pooling configuration',
         anchors: ['db/pool.ts'],
         tags: ['database', 'config'],
-        type: 'pattern',
         metadata: {},
         timestamp: Date.now(),
       };
@@ -70,7 +67,6 @@ describe('Note Similarity Utilities', () => {
         note: 'Frontend routing setup with React Router',
         anchors: ['routes/index.tsx'],
         tags: ['frontend', 'routing'],
-        type: 'explanation',
         metadata: {},
         timestamp: Date.now(),
       };
@@ -90,7 +86,6 @@ describe('Note Similarity Utilities', () => {
           note: 'Error handling pattern using try-catch blocks',
           anchors: ['error/handler.ts'],
           tags: ['error-handling', 'pattern'],
-          type: 'pattern',
           metadata: {},
           timestamp: Date.now(),
         },
@@ -99,7 +94,6 @@ describe('Note Similarity Utilities', () => {
           note: 'Error handling pattern with try-catch and logging',
           anchors: ['error/handler.ts'],
           tags: ['error-handling', 'logging'],
-          type: 'pattern',
           metadata: {},
           timestamp: Date.now(),
         },
@@ -108,18 +102,17 @@ describe('Note Similarity Utilities', () => {
           note: 'Database migration strategy',
           anchors: ['db/migrations.ts'],
           tags: ['database', 'migration'],
-          type: 'decision',
           metadata: {},
           timestamp: Date.now(),
         },
       ];
 
-      const pairs = findSimilarNotePairs(notes, 0.4); // Lower threshold
+      const pairs = findSimilarNotePairs(notes, 0.3); // Lower threshold (adjusted after type removal)
 
       expect(pairs).toHaveLength(1); // Only note1 and note2 are similar
       expect(pairs[0].note1.id).toBe('note1');
       expect(pairs[0].note2.id).toBe('note2');
-      expect(pairs[0].score).toBeGreaterThan(0.4);
+      expect(pairs[0].score).toBeGreaterThan(0.3);
     });
 
     it('should return empty array when no notes are similar', () => {
@@ -129,7 +122,6 @@ describe('Note Similarity Utilities', () => {
           note: 'Frontend state management',
           anchors: ['state.ts'],
           tags: ['frontend'],
-          type: 'pattern',
           metadata: {},
           timestamp: Date.now(),
         },
@@ -138,7 +130,6 @@ describe('Note Similarity Utilities', () => {
           note: 'Backend API routes',
           anchors: ['api.ts'],
           tags: ['backend'],
-          type: 'explanation',
           metadata: {},
           timestamp: Date.now(),
         },
@@ -157,7 +148,6 @@ describe('Note Similarity Utilities', () => {
           note: 'JWT authentication implementation',
           anchors: ['auth.ts'],
           tags: ['auth', 'jwt'],
-          type: 'pattern',
           metadata: {},
           timestamp: Date.now(),
         },
@@ -166,7 +156,6 @@ describe('Note Similarity Utilities', () => {
           note: 'JWT authentication with refresh tokens',
           anchors: ['auth.ts'],
           tags: ['auth', 'jwt', 'refresh'],
-          type: 'pattern',
           metadata: {},
           timestamp: Date.now(),
         },
@@ -175,7 +164,6 @@ describe('Note Similarity Utilities', () => {
           note: 'Database connection setup',
           anchors: ['db.ts'],
           tags: ['database'],
-          type: 'explanation',
           metadata: {},
           timestamp: Date.now(),
         },
@@ -198,7 +186,6 @@ describe('Note Similarity Utilities', () => {
         note: 'Old documentation',
         anchors: ['old.ts'],
         tags: ['docs'],
-        type: 'explanation',
         metadata: {},
         timestamp: Date.now() - 400 * 24 * 60 * 60 * 1000, // 400 days ago
       };
@@ -208,7 +195,6 @@ describe('Note Similarity Utilities', () => {
         note: 'Recent documentation',
         anchors: ['recent.ts'],
         tags: ['docs'],
-        type: 'explanation',
         metadata: {},
         timestamp: Date.now() - 10 * 24 * 60 * 60 * 1000, // 10 days ago
       };
@@ -223,7 +209,6 @@ describe('Note Similarity Utilities', () => {
         note: 'Uncertain implementation',
         anchors: ['uncertain.ts'],
         tags: ['maybe'],
-        type: 'explanation',
         metadata: {},
         timestamp: Date.now() - 100 * 24 * 60 * 60 * 1000, // 100 days ago
       };

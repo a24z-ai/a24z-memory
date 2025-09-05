@@ -40,7 +40,6 @@ describe('Mandatory Guidance Token Enforcement', () => {
         directoryPath: testRepoPath,
         anchors: ['test.ts'],
         tags: ['test'],
-        type: 'explanation',
       };
 
       await expect(tool.execute(input)).rejects.toThrow('Guidance token required');
@@ -52,7 +51,6 @@ describe('Mandatory Guidance Token Enforcement', () => {
         directoryPath: testRepoPath,
         anchors: ['test.ts'],
         tags: ['test'],
-        type: 'explanation',
         guidanceToken: 'invalid-token',
       };
 
@@ -76,7 +74,6 @@ describe('Mandatory Guidance Token Enforcement', () => {
         directoryPath: testRepoPath,
         anchors: ['test.ts'],
         tags: ['test'],
-        type: 'explanation',
         guidanceToken: validToken,
       };
 
@@ -100,7 +97,6 @@ describe('Mandatory Guidance Token Enforcement', () => {
         directoryPath: testRepoPath,
         anchors: ['test.ts'],
         tags: ['test'],
-        type: 'explanation',
         guidanceToken: token,
       };
 

@@ -34,7 +34,6 @@ describe('Note Management Functions', () => {
         note: 'Test note for retrieval',
         anchors: ['src/test.ts'],
         tags: ['testing', 'retrieval'],
-        type: 'explanation' as const,
         metadata: { testKey: 'testValue' },
         directoryPath: testRepoPath,
       };
@@ -70,7 +69,6 @@ describe('Note Management Functions', () => {
         note: 'Test note for deletion',
         anchors: ['src/delete-test.ts'],
         tags: ['testing', 'deletion'],
-        type: 'gotcha' as const,
         metadata: {},
         directoryPath: testRepoPath,
       };
@@ -118,7 +116,6 @@ describe('Note Management Functions', () => {
           note: `Test note ${i}`,
           anchors: [`src/test${i}.ts`],
           tags: ['testing'],
-          type: 'explanation' as const,
           metadata: {},
           directoryPath: testRepoPath,
         };
@@ -150,7 +147,6 @@ describe('Note Management Functions', () => {
         note: 'Note with all valid anchors',
         anchors: ['valid1.ts', 'valid2.ts'],
         tags: ['valid'],
-        type: 'explanation' as const,
         metadata: {},
         directoryPath: testRepoPath,
       });
@@ -160,7 +156,6 @@ describe('Note Management Functions', () => {
         note: 'Note with mixed anchors',
         anchors: ['valid1.ts', 'stale1.ts', 'stale2.ts'],
         tags: ['mixed'],
-        type: 'gotcha' as const,
         metadata: {},
         directoryPath: testRepoPath,
       });
@@ -170,7 +165,6 @@ describe('Note Management Functions', () => {
         note: 'Note with all stale anchors',
         anchors: ['stale3.ts', 'stale4.ts'],
         tags: ['stale'],
-        type: 'pattern' as const,
         metadata: {},
         directoryPath: testRepoPath,
       });
@@ -211,7 +205,6 @@ describe('Note Management Functions', () => {
         note: 'Note 1',
         anchors: ['file1.ts'],
         tags: ['test'],
-        type: 'explanation' as const,
         metadata: {},
         directoryPath: testRepoPath,
       });
@@ -220,7 +213,6 @@ describe('Note Management Functions', () => {
         note: 'Note 2',
         anchors: ['file2.ts'],
         tags: ['test'],
-        type: 'explanation' as const,
         metadata: {},
         directoryPath: testRepoPath,
       });
@@ -239,7 +231,6 @@ describe('Note Management Functions', () => {
         note: 'Note with valid directory anchor',
         anchors: ['src'],
         tags: ['directory'],
-        type: 'explanation' as const,
         metadata: {},
         directoryPath: testRepoPath,
       });
@@ -248,7 +239,6 @@ describe('Note Management Functions', () => {
         note: 'Note with stale directory anchor',
         anchors: ['non-existent-dir'],
         tags: ['directory'],
-        type: 'explanation' as const,
         metadata: {},
         directoryPath: testRepoPath,
       });

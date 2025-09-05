@@ -64,7 +64,6 @@ describe('DeleteTagTool', () => {
       note: 'Note 1 with tag',
       anchors: ['file1.ts'],
       tags: ['delete-me', 'keep-me'],
-      type: 'explanation',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -74,7 +73,6 @@ describe('DeleteTagTool', () => {
       note: 'Note 2 with tag',
       anchors: ['file2.ts'],
       tags: ['delete-me'],
-      type: 'pattern',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -84,7 +82,6 @@ describe('DeleteTagTool', () => {
       note: 'Note 3 without tag',
       anchors: ['file3.ts'],
       tags: ['keep-me'],
-      type: 'gotcha',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -130,7 +127,6 @@ describe('DeleteTagTool', () => {
       note: 'Note with undescribed tag',
       anchors: ['file.ts'],
       tags: ['no-description'],
-      type: 'explanation',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -210,7 +206,6 @@ describe('DeleteTagTool', () => {
       note: 'Note with multiple tags',
       anchors: ['file.ts'],
       tags: ['tag1', 'tag2', 'tag3'],
-      type: 'explanation',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -265,7 +260,6 @@ describe('DeleteTagTool', () => {
           note: `Note ${i}`,
           anchors: [`file${i}.ts`],
           tags: ['common-tag', `unique-${i}`],
-          type: 'explanation',
           metadata: {},
           directoryPath: testRepoPath,
         })

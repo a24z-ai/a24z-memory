@@ -47,7 +47,6 @@ describe('File Operations Integration', () => {
         directoryPath: testPath,
         anchors: [testPath],
         tags: ['integration', 'file-ops'],
-        type: 'explanation',
         metadata: { test: true },
       })
     );
@@ -104,7 +103,6 @@ describe('File Operations Integration', () => {
           directoryPath: testPath,
           anchors: [testPath],
           tags: [`tag-${i}`],
-          type: 'explanation',
           metadata: { index: i },
         })
       )
@@ -145,7 +143,6 @@ describe('File Operations Integration', () => {
         directoryPath: testPath,
         anchors: [testPath],
         tags: ['persistence'],
-        type: 'explanation',
         metadata: {},
       })
     );

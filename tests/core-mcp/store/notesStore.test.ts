@@ -20,7 +20,6 @@ describe('notesStore', () => {
     directoryPath: testNotePath,
     anchors: [testNotePath, 'test-anchor'],
     tags: ['test', 'example'],
-    type: 'explanation',
     metadata: { testData: true },
   };
 

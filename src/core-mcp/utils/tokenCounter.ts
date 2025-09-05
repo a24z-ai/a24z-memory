@@ -25,7 +25,7 @@ function formatNoteForTokenCount(note: StoredNote): string {
   // Match the format used in AskA24zMemoryTool
   const parts = [
     `Note ID: ${note.id}`,
-    `Type: ${note.type}`,
+    `Type: ${false}`,
     `Tags: ${note.tags.join(', ')}`,
     `Anchors: ${note.anchors.join(', ')}`,
     `Content: ${note.note}`,

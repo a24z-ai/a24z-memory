@@ -64,7 +64,6 @@ describe('GetTagUsageTool', () => {
       note: 'Note 1',
       anchors: ['file1.ts'],
       tags: ['used-tag', 'no-description-tag'],
-      type: 'explanation',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -74,7 +73,6 @@ describe('GetTagUsageTool', () => {
       note: 'Note 2',
       anchors: ['file2.ts'],
       tags: ['used-tag'],
-      type: 'pattern',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -132,7 +130,6 @@ describe('GetTagUsageTool', () => {
       note: 'Note with tag1',
       anchors: ['file1.ts'],
       tags: ['tag1', 'tag2'],
-      type: 'explanation',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -141,7 +138,6 @@ describe('GetTagUsageTool', () => {
       note: 'Note with tag3',
       anchors: ['file2.ts'],
       tags: ['tag3'],
-      type: 'pattern',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -174,7 +170,6 @@ describe('GetTagUsageTool', () => {
       note: 'Note',
       anchors: ['file.ts'],
       tags: ['described-tag'],
-      type: 'explanation',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -201,7 +196,6 @@ describe('GetTagUsageTool', () => {
       note: 'Note',
       anchors: ['file.ts'],
       tags: ['test-tag'],
-      type: 'explanation',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -228,7 +222,6 @@ describe('GetTagUsageTool', () => {
       note: 'Note 1',
       anchors: ['file1.ts'],
       tags: ['alpha', 'beta', 'gamma'],
-      type: 'explanation',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -237,7 +230,6 @@ describe('GetTagUsageTool', () => {
       note: 'Note 2',
       anchors: ['file2.ts'],
       tags: ['beta', 'gamma'],
-      type: 'pattern',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -246,7 +238,6 @@ describe('GetTagUsageTool', () => {
       note: 'Note 3',
       anchors: ['file3.ts'],
       tags: ['gamma'],
-      type: 'gotcha',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -279,7 +270,6 @@ describe('GetTagUsageTool', () => {
       note: 'Note',
       anchors: ['file.ts'],
       tags: ['no-desc'],
-      type: 'explanation',
       metadata: {},
       directoryPath: testRepoPath,
     });

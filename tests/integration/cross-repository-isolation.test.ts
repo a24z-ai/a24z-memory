@@ -48,7 +48,6 @@ describe('Repository-Specific Note Retrieval Integration', () => {
         directoryPath: repo1,
         anchors: [repo1],
         tags: ['repo1', 'test'],
-        type: 'explanation',
         metadata: { testId: 'repo1-note' },
       })
     );
@@ -62,7 +61,6 @@ describe('Repository-Specific Note Retrieval Integration', () => {
         directoryPath: repo2,
         anchors: [repo2],
         tags: ['repo2', 'test'],
-        type: 'explanation',
         metadata: { testId: 'repo2-note' },
       })
     );
@@ -134,7 +132,6 @@ describe('Repository-Specific Note Retrieval Integration', () => {
         directoryPath: repo1,
         anchors: [repo1],
         tags: ['root', 'nested-test'],
-        type: 'pattern',
         metadata: {},
       })
     );

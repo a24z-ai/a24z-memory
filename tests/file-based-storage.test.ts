@@ -27,7 +27,6 @@ describe('File-based note storage', () => {
       note: 'Test note content',
       anchors: ['src/test.ts'],
       tags: ['testing'],
-      type: 'explanation' as const,
       metadata: {},
       directoryPath: testRepoPath,
     };
@@ -66,7 +65,6 @@ describe('File-based note storage', () => {
       note: 'First note',
       anchors: ['file1.ts'],
       tags: ['tag1'],
-      type: 'explanation' as const,
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -75,7 +73,6 @@ describe('File-based note storage', () => {
       note: 'Second note',
       anchors: ['file2.ts'],
       tags: ['tag2'],
-      type: 'pattern' as const,
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -95,7 +92,6 @@ describe('File-based note storage', () => {
           note: `Concurrent note ${i}`,
           anchors: [`file${i}.ts`],
           tags: ['concurrent'],
-          type: 'explanation' as const,
           metadata: {},
           directoryPath: testRepoPath,
         })

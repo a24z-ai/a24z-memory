@@ -3,7 +3,6 @@ export { AskA24zMemoryTool } from './AskA24zMemoryTool';
 export { CreateRepositoryNoteTool } from './CreateRepositoryNoteTool';
 export { GetNotesTool } from './GetNotesTool';
 export { GetRepositoryTagsTool } from './GetRepositoryTagsTool';
-export { GetRepositoryTypesTool } from './GetRepositoryTypesTool';
 export { GetRepositoryGuidanceTool } from './GetRepositoryGuidanceTool';
 export { DiscoverToolsTool } from './DiscoverToolsTool';
 export { GetNoteByIdTool } from './GetNoteByIdTool';

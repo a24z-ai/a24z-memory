@@ -77,21 +77,11 @@ describe('CreateRepositoryNoteTool', () => {
       };
 
       const parsed = tool.schema.parse(input);
-      expect(parsed.type).toBe('explanation');
+      // Type field has been removed from the schema
+      expect(parsed).toBeDefined();
     });
 
-    it('should accept valid enum values', () => {
-      const input = {
-        note: 'Test note',
-        directoryPath: testPath,
-        anchors: ['src/test.ts'],
-        tags: ['test'],
-        type: 'decision' as const,
-      };
-
-      const parsed = tool.schema.parse(input);
-      expect(parsed.type).toBe('decision');
-    });
+    // Test removed - type field is no longer part of the schema
   });
 
   describe('Note Storage', () => {
@@ -290,7 +280,6 @@ describe('CreateRepositoryNoteTool', () => {
         directoryPath: testPath,
         anchors: ['src/**/*.ts', 'docs/'],
         tags: ['markdown', 'documentation', 'typescript'],
-        type: 'gotcha' as const,
         metadata: {
           author: 'test-user',
           complexity: 'high',
@@ -305,7 +294,6 @@ describe('CreateRepositoryNoteTool', () => {
 
       expect(saved.note).toBe(input.note);
       expect(saved.tags).toEqual(input.tags);
-      expect(saved.type).toBe(input.type);
       expect(saved.anchors).toContain('src/**/*.ts');
       expect(saved.anchors).toContain('docs');
       expect(saved.metadata.author).toBe('test-user');

@@ -36,7 +36,6 @@ describe('GetStaleNotesTool', () => {
       note: 'This note has a valid anchor',
       anchors: ['valid-file.ts'],
       tags: ['test'],
-      type: 'explanation',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -63,7 +62,6 @@ describe('GetStaleNotesTool', () => {
       note: 'This note has mixed anchors',
       anchors: ['exists.ts', 'deleted.ts'],
       tags: ['test'],
-      type: 'explanation',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -73,7 +71,6 @@ describe('GetStaleNotesTool', () => {
       note: 'This note has only stale anchors',
       anchors: ['missing1.ts', 'missing2.ts'],
       tags: ['stale'],
-      type: 'gotcha',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -84,7 +81,6 @@ describe('GetStaleNotesTool', () => {
       note: 'This note has only valid anchors',
       anchors: ['exists.ts'],
       tags: ['valid'],
-      type: 'pattern',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -113,7 +109,6 @@ describe('GetStaleNotesTool', () => {
       staleAnchors: string[];
       validAnchors?: string[];
       content?: string;
-      type?: string;
     }
     const staleNote1 = response.notes.find((n: StaleNoteResponse) => n.noteId === note1.id);
     expect(staleNote1).toBeDefined();
@@ -126,7 +121,6 @@ describe('GetStaleNotesTool', () => {
     expect(staleNote2).toBeDefined();
     expect(staleNote2.staleAnchors).toEqual(['missing1.ts', 'missing2.ts']);
     expect(staleNote2.validAnchors).toEqual([]);
-    expect(staleNote2.type).toBe('gotcha');
   });
 
   it('should exclude content when includeContent is false', async () => {
@@ -135,7 +129,6 @@ describe('GetStaleNotesTool', () => {
       note: 'This is the note content that should not appear',
       anchors: ['nonexistent.ts'],
       tags: ['test'],
-      type: 'explanation',
       metadata: {},
       directoryPath: testRepoPath,
     });
@@ -166,7 +159,6 @@ describe('GetStaleNotesTool', () => {
       note: 'Mixed anchors note',
       anchors: ['valid.ts', 'stale.ts'],
       tags: ['test'],
-      type: 'explanation',
       metadata: {},
       directoryPath: testRepoPath,
     });
