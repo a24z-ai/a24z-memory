@@ -135,6 +135,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
         directoryPath: testPath,
         tags: ['anchor-test'],
         anchors: ['custom-anchor', 'src/file.ts'],
+        codebaseViewId: 'test-view',
       });
 
       await tool.execute(input);

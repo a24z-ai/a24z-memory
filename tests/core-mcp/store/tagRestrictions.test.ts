@@ -217,6 +217,7 @@ describe('Tag Restrictions', () => {
         anchors: ['file.ts'],
         tags: ['invalid-tag'],
         type: 'explanation' as const,
+        codebaseViewId: 'test-view',
         metadata: {},
       };
 
