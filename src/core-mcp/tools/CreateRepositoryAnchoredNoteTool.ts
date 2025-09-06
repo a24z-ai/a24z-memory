@@ -10,7 +10,7 @@ import {
   saveTagDescription,
   getAllowedTags,
 } from '../store/anchoredNotesStore';
-import { codebaseViewsStore } from '../store/codebaseViewsStore';
+import { codebaseViewsStore, CodebaseView } from '../store/codebaseViewsStore';
 import { findGitRoot } from '../utils/pathNormalization';
 import { SessionViewCreator } from '../services/sessionViewCreator';
 
@@ -176,13 +176,9 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
       }
       actualCodebaseViewId = parsed.codebaseViewId;
     } else {
-      // No view ID provided - auto-create a session view
-      const sessionResult = SessionViewCreator.createFromAnchors(
-        parsed.directoryPath,
-        parsed.anchors
-      );
-      view = sessionResult.view;
-      actualCodebaseViewId = sessionResult.viewId;
+      // No view ID provided - get or create the catchall "default-explor-log" view
+      const defaultViewId = 'default-explor-log';
+      actualCodebaseViewId = defaultViewId;
     }
 
     const savedWithPath = saveNote({
@@ -200,6 +196,29 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
     });
 
     const saved = savedWithPath.note;
+
+    // Handle catchall view creation/update AFTER saving the note (so we have normalized anchors)
+    if (!parsed.codebaseViewId) {
+      view = codebaseViewsStore.getView(parsed.directoryPath, actualCodebaseViewId);
+
+      if (!view) {
+        // Create the catchall view using the saved note's normalized anchors
+        view = this.createCatchallView(parsed.directoryPath, actualCodebaseViewId, saved.anchors);
+        codebaseViewsStore.saveView(parsed.directoryPath, view);
+      } else {
+        // Update the view to include a new time-based cell if needed, using normalized anchors
+        this.updateCatchallViewWithTimeCell(
+          parsed.directoryPath,
+          actualCodebaseViewId,
+          saved.anchors
+        );
+        // Re-fetch the updated view
+        view = codebaseViewsStore.getView(parsed.directoryPath, actualCodebaseViewId)!;
+      }
+    } else {
+      // Get the existing view that was specified
+      view = codebaseViewsStore.getView(parsed.directoryPath, actualCodebaseViewId)!;
+    }
 
     // Log activity for session views
     if (view.metadata?.generationType === 'session') {
@@ -220,16 +239,94 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
       `📊 **View:** ${view.name} (${actualCodebaseViewId})\n` +
       `🏷️ **Tags:** ${parsed.tags.join(', ')}\n`;
 
-    // Add info about session view creation
+    // Add info about catchall view usage
     if (!parsed.codebaseViewId) {
-      response += `🔄 **Session View:** Auto-created based on your file anchors\n`;
-    }
-
-    // Add guidance about using the view ID for future notes in this session
-    if (!parsed.codebaseViewId) {
-      response += `\n💡 **For future notes in this session:** Use \`codebaseViewId: "${actualCodebaseViewId}"\` to group related notes together.\n`;
+      response += `🔄 **Default View:** Using time-based catchall view\n`;
     }
 
     return { content: [{ type: 'text', text: response }] };
+  }
+
+  /**
+   * Create a catchall view with basic time-based configuration
+   */
+  private createCatchallView(
+    repositoryPath: string,
+    viewId: string,
+    initialAnchors: string[]
+  ): CodebaseView {
+    const now = new Date();
+    const today = now.toISOString().split('T')[0]; // YYYY-MM-DD
+    const hour = now.getHours().toString().padStart(2, '0'); // HH
+    const cellName = `${today}-${hour}`;
+
+    return {
+      id: viewId,
+      version: '1.0.0',
+      name: 'Default Exploration Log',
+      description: 'Time-based catchall view that grows with each note creation',
+      timestamp: new Date().toISOString(),
+      cells: {
+        [cellName]: {
+          patterns: initialAnchors,
+          coordinates: [0, 0],
+          priority: 5,
+        },
+      },
+      overviewPath: `.a24z/overviews/${viewId}.md`,
+      metadata: {
+        generationType: 'user',
+      },
+    };
+  }
+
+  /**
+   * Add or update a time-based cell in the catchall view with note anchors
+   */
+  private updateCatchallViewWithTimeCell(
+    repositoryPath: string,
+    viewId: string,
+    anchors: string[]
+  ): void {
+    const view = codebaseViewsStore.getView(repositoryPath, viewId);
+    if (!view) return;
+
+    const now = new Date();
+    const today = now.toISOString().split('T')[0]; // YYYY-MM-DD
+    const hour = now.getHours().toString().padStart(2, '0'); // HH
+    const cellName = `${today}-${hour}`;
+
+    if (!view.cells[cellName]) {
+      // Create new time cell if it doesn't exist
+      // Find the next available coordinates
+      const existingCells = Object.values(view.cells);
+      const maxRow = Math.max(0, ...existingCells.map((cell) => cell.coordinates[0]));
+      const cellsInMaxRow = existingCells.filter((cell) => cell.coordinates[0] === maxRow);
+      const maxColInRow =
+        cellsInMaxRow.length > 0
+          ? Math.max(...cellsInMaxRow.map((cell) => cell.coordinates[1]))
+          : -1;
+
+      // If we have 24 hours in current row (0-23), move to next row
+      const nextCoordinates: [number, number] =
+        maxColInRow >= 23 ? [maxRow + 1, 0] : [maxRow, maxColInRow + 1];
+
+      view.cells[cellName] = {
+        patterns: anchors,
+        coordinates: nextCoordinates,
+        priority: 5,
+      };
+    } else {
+      // Add new anchors to existing cell if they're not already there
+      const existingPatterns = new Set(view.cells[cellName].patterns);
+      const newAnchors = anchors.filter((anchor) => !existingPatterns.has(anchor));
+
+      if (newAnchors.length > 0) {
+        view.cells[cellName].patterns = [...view.cells[cellName].patterns, ...newAnchors];
+      }
+    }
+
+    // Update the view
+    codebaseViewsStore.saveView(repositoryPath, view);
   }
 }

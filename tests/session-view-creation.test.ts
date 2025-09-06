@@ -4,7 +4,7 @@ import { CreateRepositoryAnchoredNoteTool } from '../src/core-mcp/tools/CreateRe
 import { codebaseViewsStore } from '../src/core-mcp/store/codebaseViewsStore';
 import { TEST_DIR } from './setup';
 
-describe('Session View Auto-Creation', () => {
+describe('Catchall View Auto-Creation', () => {
   let tool: CreateRepositoryAnchoredNoteTool;
   const testPath = path.join(TEST_DIR, 'session-test-repo');
 
@@ -35,9 +35,9 @@ describe('Session View Auto-Creation', () => {
     }
   });
 
-  it('should auto-create a session view when codebaseViewId is not provided', async () => {
+  it('should auto-create a catchall view when codebaseViewId is not provided', async () => {
     const input = {
-      note: 'Test note for session view creation',
+      note: 'Test note for catchall view creation',
       directoryPath: testPath,
       anchors: [path.join(testPath, 'src/main.ts'), path.join(testPath, 'src/utils.ts')],
       tags: ['test'],
@@ -48,13 +48,13 @@ describe('Session View Auto-Creation', () => {
 
     // Should succeed without error
     expect(result.content[0].text).toContain('Note saved successfully');
-    expect(result.content[0].text).toContain('Session View:');
-    expect(result.content[0].text).toContain('Session View (main.ts)');
+    expect(result.content[0].text).toContain('Default View:');
+    expect(result.content[0].text).toContain('Default Exploration Log (default-explor-log)');
   });
 
-  it('should create a view with session metadata', async () => {
+  it('should create a view with user metadata', async () => {
     const input = {
-      note: 'Test note for session metadata',
+      note: 'Test note for catchall metadata',
       directoryPath: testPath,
       anchors: [path.join(testPath, 'src/main.ts')],
       tags: ['test'],
@@ -62,21 +62,18 @@ describe('Session View Auto-Creation', () => {
 
     await tool.execute(input);
 
-    // Check that a session view was created
+    // Check that the catchall view was created
     const views = codebaseViewsStore.listViews(testPath);
-    const sessionViews = views.filter((v) => v.id.startsWith('session-'));
+    const catchallView = views.find((v) => v.id === 'default-explor-log');
 
-    expect(sessionViews.length).toBeGreaterThan(0);
-
-    const sessionView = codebaseViewsStore.getView(testPath, sessionViews[0].id);
-    expect(sessionView).toBeDefined();
-    expect(sessionView!.metadata?.generationType).toBe('session');
-    expect(sessionView!.name).toContain('Session View');
+    expect(catchallView).toBeDefined();
+    expect(catchallView!.metadata?.generationType).toBe('user');
+    expect(catchallView!.name).toBe('Default Exploration Log');
   });
 
-  it('should generate appropriate cell patterns based on file anchors', async () => {
+  it('should generate time-based cells that increment with each note', async () => {
     const input = {
-      note: 'Test note for pattern inference',
+      note: 'Test note for time-based cells',
       directoryPath: testPath,
       anchors: [path.join(testPath, 'src/main.ts'), path.join(testPath, 'src/utils.ts')],
       tags: ['test'],
@@ -84,23 +81,24 @@ describe('Session View Auto-Creation', () => {
 
     await tool.execute(input);
 
-    // Get the created session view
-    const views = codebaseViewsStore.listViews(testPath);
-    const sessionView = codebaseViewsStore.getView(testPath, views[0].id);
+    // Get the created catchall view
+    const catchallView = codebaseViewsStore.getView(testPath, 'default-explor-log');
 
-    expect(sessionView).toBeDefined();
-    expect(sessionView!.cells).toBeDefined();
+    expect(catchallView).toBeDefined();
+    expect(catchallView!.cells).toBeDefined();
 
-    // Should have typical cells like source, tests, config, docs
-    const cellNames = Object.keys(sessionView!.cells);
-    expect(cellNames).toContain('source');
-    expect(cellNames).toContain('tests');
-    expect(cellNames).toContain('config');
-    expect(cellNames).toContain('docs');
+    // Should have at least one time-based cell
+    const cellNames = Object.keys(catchallView!.cells);
+    expect(cellNames.length).toBeGreaterThan(0);
 
-    // Source cell should have patterns for TypeScript files
-    const sourceCell = sessionView!.cells.source;
-    expect(sourceCell.patterns.some((p) => p.includes('*.ts') || p.includes('src/'))).toBe(true);
+    // Cell names should follow YYYY-MM-DD-HH format
+    const timeCellPattern = /^\d{4}-\d{2}-\d{2}-\d{2}$/;
+    expect(cellNames.some((name) => timeCellPattern.test(name))).toBe(true);
+
+    // Cells should contain the note anchors as patterns
+    const firstCell = Object.values(catchallView!.cells)[0];
+    expect(firstCell.patterns).toContain('src/main.ts');
+    expect(firstCell.patterns).toContain('src/utils.ts');
   });
 
   it('should still work with explicit codebaseViewId when provided', async () => {
@@ -110,6 +108,7 @@ describe('Session View Auto-Creation', () => {
       version: '1.0.0',
       name: 'Manual Test View',
       description: 'Manually created view',
+      overviewPath: 'docs/manual-test-view.md',
       cells: {
         main: {
           patterns: ['**/*'],
@@ -134,62 +133,51 @@ describe('Session View Auto-Creation', () => {
 
     const result = await tool.execute(input);
 
-    // Should use the provided view, not create a session view
+    // Should use the provided view, not create a catchall view
     expect(result.content[0].text).toContain('Note saved successfully');
     expect(result.content[0].text).toContain('Manual Test View');
-    expect(result.content[0].text).not.toContain('Session View: Auto-created');
+    expect(result.content[0].text).not.toContain('Default View:');
   });
 
-  it('should create and update session activity log', async () => {
+  it('should reuse the same catchall view for multiple notes', async () => {
     const input1 = {
-      note: 'First test note for activity logging',
+      note: 'First test note',
       directoryPath: testPath,
       anchors: [path.join(testPath, 'src/main.ts')],
       tags: ['test'],
     };
 
-    // Create first note (creates new session view)
+    // Create first note (creates catchall view)
     await tool.execute(input1);
 
-    // Get the session view ID from the first note
+    // Get the catchall view
     const views = codebaseViewsStore.listViews(testPath);
-    const sessionView = views.find((v) => v.id.startsWith('session-'));
-    expect(sessionView).toBeDefined();
+    const catchallView = views.find((v) => v.id === 'default-explor-log');
+    expect(catchallView).toBeDefined();
 
-    // Check that log file was created
-    const logPath = path.join(testPath, '.a24z', 'overviews', `${sessionView!.id}.md`);
-    expect(fs.existsSync(logPath)).toBe(true);
-
-    // Read initial log content
-    let logContent = fs.readFileSync(logPath, 'utf-8');
-    expect(logContent).toContain('# Session Log');
-    expect(logContent).toContain(sessionView!.name);
-    expect(logContent).toContain('Note created: "First test note for activity logging" (main.ts)');
-
-    // Create second note WITH the session view ID to add to same view
+    // Create second note (should reuse the same view)
     const input2 = {
-      note: 'Second note with a longer content that should be truncated in the log to show how the summary works',
+      note: 'Second test note',
       directoryPath: testPath,
       anchors: [path.join(testPath, 'src/utils.ts')],
       tags: ['test'],
-      codebaseViewId: sessionView!.id, // Use the session view from first note
     };
 
     await tool.execute(input2);
 
-    // Check that activity was appended to the SAME log
-    logContent = fs.readFileSync(logPath, 'utf-8');
-    expect(logContent).toContain(
-      'Note created: "Second note with a longer content that should be t..." (utils.ts)'
-    );
-
-    // Should have both entries in the same log
-    const lines = logContent.split('\n').filter((line) => line.includes('Note created:'));
-    expect(lines.length).toBe(2);
-
-    // Verify only one session view exists (not two)
+    // Verify still only one catchall view exists
     const finalViews = codebaseViewsStore.listViews(testPath);
-    const sessionViews = finalViews.filter((v) => v.id.startsWith('session-'));
-    expect(sessionViews.length).toBe(1);
+    const catchallViews = finalViews.filter((v) => v.id === 'default-explor-log');
+    expect(catchallViews.length).toBe(1);
+
+    // View should have time-based cells with accumulated anchors
+    const updatedView = codebaseViewsStore.getView(testPath, 'default-explor-log');
+    expect(updatedView).toBeDefined();
+    expect(Object.keys(updatedView!.cells).length).toBeGreaterThan(0);
+
+    // Check that anchors from both notes are in the same time cell (assuming same hour)
+    const firstCell = Object.values(updatedView!.cells)[0];
+    expect(firstCell.patterns).toContain('src/main.ts');
+    expect(firstCell.patterns).toContain('src/utils.ts');
   });
 });
