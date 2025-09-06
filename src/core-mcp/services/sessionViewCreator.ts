@@ -53,6 +53,7 @@ export class SessionViewCreator {
       description: 'Auto-generated view based on note creation patterns',
       timestamp: new Date().toISOString(),
       cells: this.createCellsFromPatterns(patterns),
+      overviewPath: `.a24z/overviews/session-${id}.md`,
       metadata: {
         generationType: 'session',
       },

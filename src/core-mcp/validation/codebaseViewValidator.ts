@@ -150,8 +150,8 @@ export function validateCodebaseView(view: CodebaseView): ViewValidationResult {
     errors.push('description must be a string');
   }
 
-  if (view.overviewPath !== undefined && typeof view.overviewPath !== 'string') {
-    errors.push('overviewPath must be a string');
+  if (typeof view.overviewPath !== 'string') {
+    errors.push('overviewPath is required and must be a string');
   }
 
   if (view.links !== undefined) {

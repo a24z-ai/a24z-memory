@@ -54,6 +54,7 @@ describe('ListCodebaseViewsTool', () => {
       version: '1.0.0',
       name: 'Test View One',
       description: 'First test view for unit testing',
+      overviewPath: 'docs/test-view-1.md',
       cells: {
         source: {
           patterns: ['src/**/*'],
@@ -67,6 +68,7 @@ describe('ListCodebaseViewsTool', () => {
       version: '1.0.0',
       name: 'Test View Two',
       description: 'Second test view for comprehensive coverage',
+      overviewPath: 'docs/test-view-2.md',
       cells: {
         tests: {
           patterns: ['test/**/*'],
@@ -121,6 +123,7 @@ describe('ListCodebaseViewsTool', () => {
       version: '1.0.0',
       name: 'Nested Path Test',
       description: 'Testing nested path resolution',
+      overviewPath: 'docs/nested-test.md',
       cells: {
         source: {
           patterns: ['src/**/*'],
@@ -159,6 +162,7 @@ describe('ListCodebaseViewsTool', () => {
       version: '1.0.0',
       name: 'Z Last View',
       description: 'Should appear last',
+      overviewPath: 'docs/z-view.md',
       cells: {},
     };
 
@@ -167,6 +171,7 @@ describe('ListCodebaseViewsTool', () => {
       version: '1.0.0',
       name: 'A First View',
       description: 'Should appear first',
+      overviewPath: 'docs/a-view.md',
       cells: {},
     };
 
@@ -175,6 +180,7 @@ describe('ListCodebaseViewsTool', () => {
       version: '1.0.0',
       name: 'M Middle View',
       description: 'Should appear in middle',
+      overviewPath: 'docs/m-view.md',
       cells: {},
     };
 

@@ -144,7 +144,7 @@ export interface CodebaseView {
    * Path to markdown documentation file.
    * Relative to repository root.
    */
-  overviewPath?: string;
+  overviewPath: string;
 
   /**
    * Optional scope filtering before grid layout.
