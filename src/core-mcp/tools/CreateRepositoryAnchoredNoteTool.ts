@@ -176,8 +176,8 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
       }
       actualCodebaseViewId = parsed.codebaseViewId;
     } else {
-      // No view ID provided - get or create the catchall "default-explor-log" view
-      const defaultViewId = 'default-explor-log';
+      // No view ID provided - get or create the catchall "default-explorer-log" view
+      const defaultViewId = 'default-explorer-log';
       actualCodebaseViewId = defaultViewId;
     }
 
@@ -205,6 +205,8 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
         // Create the catchall view using the saved note's normalized anchors
         view = this.createCatchallView(parsed.directoryPath, actualCodebaseViewId, saved.anchors);
         codebaseViewsStore.saveView(parsed.directoryPath, view);
+        // Generate the initial markdown overview
+        this.generateOverviewFile(parsed.directoryPath, view);
       } else {
         // Update the view to include a new time-based cell if needed, using normalized anchors
         this.updateCatchallViewWithTimeCell(
@@ -214,6 +216,8 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
         );
         // Re-fetch the updated view
         view = codebaseViewsStore.getView(parsed.directoryPath, actualCodebaseViewId)!;
+        // Update the markdown overview
+        this.generateOverviewFile(parsed.directoryPath, view);
       }
     } else {
       // Get the existing view that was specified
@@ -328,5 +332,65 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
 
     // Update the view
     codebaseViewsStore.saveView(repositoryPath, view);
+  }
+
+  /**
+   * Generate or update the markdown overview file for a codebase view
+   */
+  private generateOverviewFile(repositoryPath: string, view: CodebaseView): void {
+    // Create the overview directory if it doesn't exist
+    const overviewDir = path.join(repositoryPath, '.a24z', 'overviews');
+    if (!fs.existsSync(overviewDir)) {
+      fs.mkdirSync(overviewDir, { recursive: true });
+    }
+
+    // Generate markdown content
+    const content = this.generateOverviewContent(view);
+
+    // Write the overview file
+    const overviewFilePath = path.join(repositoryPath, view.overviewPath);
+    fs.writeFileSync(overviewFilePath, content, 'utf-8');
+  }
+
+  /**
+   * Generate the markdown content for a codebase view overview
+   */
+  private generateOverviewContent(view: CodebaseView): string {
+    let content = `# ${view.name}\n\n`;
+    content += `${view.description}\n\n`;
+    content += `**View ID:** \`${view.id}\`\n`;
+    content += `**Generated:** ${new Date(view.timestamp || new Date()).toLocaleString()}\n`;
+    content += `**Type:** ${view.metadata?.generationType || 'user'}\n\n`;
+
+    // Add cells information
+    const cellEntries = Object.entries(view.cells);
+    if (cellEntries.length > 0) {
+      content += `## Time-based Cells\n\n`;
+
+      // Sort cells by name (which includes timestamp for time-based cells)
+      cellEntries.sort(([a], [b]) => a.localeCompare(b));
+
+      for (const [cellName, cell] of cellEntries) {
+        content += `### ${cellName}\n\n`;
+
+        if (cell.patterns && cell.patterns.length > 0) {
+          content += `**Patterns:**\n`;
+          for (const pattern of cell.patterns) {
+            content += `- \`${pattern}\`\n`;
+          }
+          content += '\n';
+        }
+
+        content += `**Coordinates:** [${cell.coordinates[0]}, ${cell.coordinates[1]}]\n`;
+        content += `**Priority:** ${cell.priority}\n\n`;
+      }
+    } else {
+      content += `## Cells\n\n*No cells defined yet.*\n\n`;
+    }
+
+    content += `---\n\n`;
+    content += `*This overview is automatically generated and updated when notes are added to this view.*\n`;
+
+    return content;
   }
 }
