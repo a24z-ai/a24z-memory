@@ -76,6 +76,9 @@ export class McpServer {
     const config = getRepositoryConfiguration(process.cwd());
     const enabledTools = config.enabled_mcp_tools || {};
 
+    // Create DiscoverToolsTool instance first so we can update it later
+    let discoverTool: DiscoverToolsTool | null = null;
+
     // Add tools based on configuration (default to true if not specified)
     if (enabledTools.create_repository_note !== false) {
       this.addTool(new CreateRepositoryAnchoredNoteTool());
@@ -90,7 +93,8 @@ export class McpServer {
       this.addTool(new GetRepositoryGuidanceTool());
     }
     if (enabledTools.discover_a24z_tools !== false) {
-      this.addTool(new DiscoverToolsTool());
+      discoverTool = new DiscoverToolsTool();
+      this.addTool(discoverTool);
     }
     if (enabledTools.delete_repository_note !== false) {
       this.addTool(new DeleteAnchoredNoteTool());
@@ -124,6 +128,11 @@ export class McpServer {
     }
     if (enabledTools.list_codebase_views !== false) {
       this.addTool(new ListCodebaseViewsTool());
+    }
+
+    // After all tools are registered, update the DiscoverToolsTool with the actual registered tools
+    if (discoverTool) {
+      discoverTool.setRegisteredTools(this.tools);
     }
   }
 

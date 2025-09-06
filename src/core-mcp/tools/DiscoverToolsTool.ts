@@ -1,11 +1,20 @@
 import { z } from 'zod';
-import type { McpToolResult } from '../types';
+import type { McpToolResult, McpTool } from '../types';
 import { BaseTool } from './base-tool';
 
 export class DiscoverToolsTool extends BaseTool {
   public name = 'discover_a24z_tools';
   public description =
     'Discover all available a24z-Memory tools and their capabilities. Use this to understand what tools are available and how to use them effectively.';
+
+  private registeredTools: Map<string, McpTool> = new Map();
+
+  /**
+   * Set the registered tools from the server
+   */
+  public setRegisteredTools(tools: Map<string, McpTool>) {
+    this.registeredTools = tools;
+  }
 
   public schema = z.object({
     category: z
@@ -20,12 +29,17 @@ export class DiscoverToolsTool extends BaseTool {
   async execute(input: z.infer<typeof this.schema>): Promise<McpToolResult> {
     const { category } = input;
 
-    const allTools = [
-      {
-        name: 'askA24zMemory',
+    // Tool metadata with categories, use cases, and examples
+    interface ToolInfo {
+      category: string;
+      useCases: string[];
+      parameters: string[];
+      examples: string[];
+    }
+
+    const toolMetadata: Record<string, ToolInfo> = {
+      askA24zMemory: {
         category: 'knowledge',
-        description:
-          'Search and retrieve tribal knowledge, architectural decisions, patterns, and gotchas from the repository.',
         useCases: [
           'Check for existing knowledge before starting work',
           'Get guidance on implementation approaches',
@@ -41,14 +55,11 @@ export class DiscoverToolsTool extends BaseTool {
         ],
         examples: [
           'askA24zMemory({ filePath: "/Users/user/project/src/AuthService.ts", query: "What authentication patterns are used here?" })',
-          'askA24zMemory({ filePath: "/Users/user/project/src/api/", query: "How should I handle API error responses?", filterTypes: ["pattern"] }),',
+          'askA24zMemory({ filePath: "/Users/user/project/src/api/", query: "How should I handle API error responses?", filterTypes: ["pattern"] })',
         ],
       },
-      {
-        name: 'create_repository_note',
+      create_repository_note: {
         category: 'repository',
-        description:
-          'Document tribal knowledge, architectural decisions, implementation patterns, and important lessons learned.',
         useCases: [
           'Document complex bugs after fixing them',
           'Record architectural decisions and their rationale',
@@ -67,11 +78,8 @@ export class DiscoverToolsTool extends BaseTool {
           'create_repository_note({ note: "Fixed race condition in validation middleware", directoryPath: "/Users/user/project", anchors: ["/Users/user/project/src/middleware/validation.ts"], tags: ["bugfix", "concurrency", "validation"], type: "gotcha" })',
         ],
       },
-      {
-        name: 'get_notes',
+      get_notes: {
         category: 'knowledge',
-        description:
-          'Retrieve raw notes from the repository without AI processing. Returns actual note content, metadata, and anchors.',
         useCases: [
           'Browse through existing knowledge',
           'See exact notes stored in repository',
@@ -93,11 +101,8 @@ export class DiscoverToolsTool extends BaseTool {
           'get_notes({ path: "/Users/user/project/src", filterTags: ["bugfix"], limit: 10 })',
         ],
       },
-      {
-        name: 'get_repository_tags',
+      get_repository_tags: {
         category: 'repository',
-        description:
-          'Get available tags for categorizing notes and understand existing categorization patterns.',
         useCases: [
           'See what tags are available before creating notes',
           'Understand existing categorization patterns',
@@ -111,10 +116,8 @@ export class DiscoverToolsTool extends BaseTool {
         ],
         examples: ['get_repository_tags({ path: "/Users/user/project/src/components/" })'],
       },
-      {
-        name: 'get_repository_types',
+      get_repository_types: {
         category: 'repository',
-        description: 'Get available note types for categorizing notes in a repository.',
         useCases: [
           'See available note types (decision, pattern, gotcha, explanation)',
           'Understand how to categorize different kinds of knowledge',
@@ -126,13 +129,9 @@ export class DiscoverToolsTool extends BaseTool {
         ],
         examples: ['get_repository_types({ path: "/Users/user/project" })'],
       },
-      {
-        name: 'get_repository_guidance',
+      get_repository_guidance: {
         category: 'guidance',
-        description:
-          'Get repository-specific guidance for creating effective notes and obtain guidance token.',
         useCases: [
-          'Get guidance token required for other tools',
           'Understand how to document knowledge in this repository',
           'Get guidance templates and best practices',
           'Learn repository-specific documentation standards',
@@ -143,10 +142,8 @@ export class DiscoverToolsTool extends BaseTool {
         ],
         examples: ['get_repository_guidance({ path: "/Users/user/project" })'],
       },
-      {
-        name: 'get_repository_note',
+      get_repository_note: {
         category: 'repository',
-        description: 'Retrieve a specific note by its unique ID for detailed information.',
         useCases: [
           'Get detailed information about a specific note',
           'Review note content and metadata',
@@ -160,35 +157,8 @@ export class DiscoverToolsTool extends BaseTool {
           'get_repository_note({ noteId: "note-1734567890123-abc123def", directoryPath: "/Users/user/project" })',
         ],
       },
-      {
-        name: 'get_stale_notes',
+      delete_repository_note: {
         category: 'repository',
-        description:
-          'Check for notes with stale anchors (file paths that no longer exist) in a repository.',
-        useCases: [
-          'Find notes that reference deleted or moved files',
-          'Maintain note accuracy and relevance',
-          'Clean up outdated documentation',
-        ],
-        parameters: ['directoryPath: Repository path (absolute)'],
-        examples: ['get_stale_notes({ directoryPath: "/Users/user/project" })'],
-      },
-      {
-        name: 'discover_a24z_tools',
-        category: 'guidance',
-        description: 'Discover all available a24z-Memory tools and their capabilities.',
-        useCases: [
-          'Understand what tools are available',
-          'Learn how to use tools effectively',
-          'Get tool usage examples and parameters',
-        ],
-        parameters: ['category: Filter by category (all, knowledge, repository, guidance)'],
-        examples: ['discover_a24z_tools({ category: "repository" })'],
-      },
-      {
-        name: 'delete_repository_note',
-        category: 'repository',
-        description: 'Delete a specific note from the knowledge base.',
         useCases: [
           'Remove outdated or incorrect information',
           'Clean up duplicate notes',
@@ -202,10 +172,28 @@ export class DiscoverToolsTool extends BaseTool {
           'delete_repository_note({ noteId: "note-1734567890123-abc123def", directoryPath: "/Users/user/project" })',
         ],
       },
-      {
-        name: 'create_handoff_brief',
+      get_stale_notes: {
+        category: 'repository',
+        useCases: [
+          'Find notes that reference deleted or moved files',
+          'Maintain note accuracy and relevance',
+          'Clean up outdated documentation',
+        ],
+        parameters: ['directoryPath: Repository path (absolute)'],
+        examples: ['get_stale_notes({ directoryPath: "/Users/user/project" })'],
+      },
+      discover_a24z_tools: {
         category: 'guidance',
-        description: 'Create a comprehensive handoff brief for a specific part of the codebase.',
+        useCases: [
+          'Understand what tools are available',
+          'Learn how to use tools effectively',
+          'Get tool usage examples and parameters',
+        ],
+        parameters: ['category: Filter by category (all, knowledge, repository, guidance)'],
+        examples: ['discover_a24z_tools({ category: "repository" })'],
+      },
+      create_handoff_brief: {
+        category: 'guidance',
         useCases: [
           'Transfer knowledge when switching team members',
           'Create onboarding documentation for new developers',
@@ -222,10 +210,18 @@ export class DiscoverToolsTool extends BaseTool {
           'create_handoff_brief({ path: "/Users/user/project/src/auth", context: "Handing off authentication module to new developer" })',
         ],
       },
-      {
-        name: 'get_tag_usage',
+      list_handoff_briefs: {
+        category: 'guidance',
+        useCases: [
+          'View existing handoff documentation',
+          'Find onboarding materials',
+          'Access project transition documents',
+        ],
+        parameters: ['directoryPath: Repository path (absolute)'],
+        examples: ['list_handoff_briefs({ directoryPath: "/Users/user/project" })'],
+      },
+      get_tag_usage: {
         category: 'repository',
-        description: 'Get detailed usage statistics for tags in the repository.',
         useCases: [
           'Understand tag usage patterns',
           'Find overused or underused tags',
@@ -241,10 +237,8 @@ export class DiscoverToolsTool extends BaseTool {
           'get_tag_usage({ directoryPath: "/Users/user/project", sortBy: "count", limit: 20 })',
         ],
       },
-      {
-        name: 'delete_tag',
+      delete_tag: {
         category: 'repository',
-        description: 'Delete a tag from all notes in the repository.',
         useCases: [
           'Clean up unused or deprecated tags',
           'Rename tags by deleting old and adding new',
@@ -253,10 +247,8 @@ export class DiscoverToolsTool extends BaseTool {
         parameters: ['tag: Tag name to delete', 'directoryPath: Repository path (absolute)'],
         examples: ['delete_tag({ tag: "deprecated-tag", directoryPath: "/Users/user/project" })'],
       },
-      {
-        name: 'replace_tag',
+      replace_tag: {
         category: 'repository',
-        description: 'Replace a tag with another tag across all notes in the repository.',
         useCases: [
           'Rename tags consistently across all notes',
           'Merge similar tags into a single tag',
@@ -274,11 +266,8 @@ export class DiscoverToolsTool extends BaseTool {
           'replace_tag({ oldTag: "bug-fix", newTag: "bugfix", directoryPath: "/Users/user/project", confirmReplacement: true })',
         ],
       },
-      {
-        name: 'get_note_coverage',
+      get_note_coverage: {
         category: 'repository',
-        description:
-          'Analyze note coverage for a repository to identify well-documented and under-documented areas.',
         useCases: [
           'Identify areas lacking documentation',
           'Find well-documented areas as examples',
@@ -294,11 +283,8 @@ export class DiscoverToolsTool extends BaseTool {
           'get_note_coverage({ directoryPath: "/Users/user/project", includeDetails: true })',
         ],
       },
-      {
-        name: 'start_documentation_quest',
+      start_documentation_quest: {
         category: 'guidance',
-        description:
-          'Start an interactive documentation quest to systematically document a codebase.',
         useCases: [
           'Systematically document undocumented code',
           'Onboard new team members through guided documentation',
@@ -314,7 +300,53 @@ export class DiscoverToolsTool extends BaseTool {
           'start_documentation_quest({ directoryPath: "/Users/user/project", focusArea: "authentication", difficulty: "medium" })',
         ],
       },
-    ];
+      list_codebase_views: {
+        category: 'repository',
+        useCases: [
+          'List available codebase analysis views',
+          'Access structured codebase information',
+          'Get component hierarchy and dependencies',
+        ],
+        parameters: ['includePrivate: Include private/internal views'],
+        examples: ['list_codebase_views({ includePrivate: false })'],
+      },
+    };
+
+    // Get actual registered tools
+    const registeredToolNames = new Set(this.registeredTools.keys());
+
+    // If no tools registered (e.g., during initialization), use all known tools
+    const toolsToShow =
+      registeredToolNames.size > 0 ? Array.from(registeredToolNames) : Object.keys(toolMetadata);
+
+    // Build tool information combining registered tools with metadata
+    const allTools = [];
+    for (const toolName of toolsToShow) {
+      const tool = this.registeredTools.get(toolName);
+      const metadata = toolMetadata[toolName];
+
+      if (metadata) {
+        // Use metadata with actual tool description if available
+        allTools.push({
+          name: toolName,
+          category: metadata.category || 'general',
+          description: tool?.description || `Tool for ${toolName.replace(/_/g, ' ')}`,
+          useCases: metadata.useCases || [],
+          parameters: metadata.parameters || [],
+          examples: metadata.examples || [],
+        });
+      } else if (tool) {
+        // Tool exists but no metadata - show basic info
+        allTools.push({
+          name: toolName,
+          category: 'general',
+          description: tool.description || `Tool: ${toolName}`,
+          useCases: [`Use the ${toolName} tool`],
+          parameters: ['See tool documentation for parameters'],
+          examples: [`${toolName}({ /* parameters */ })`],
+        });
+      }
+    }
 
     // Filter tools based on category
     let filteredTools = allTools;
@@ -332,19 +364,19 @@ export class DiscoverToolsTool extends BaseTool {
       response += `**${tool.description}**\n\n`;
 
       response += `### 🎯 Use Cases:\n`;
-      tool.useCases.forEach((useCase) => {
+      tool.useCases.forEach((useCase: string) => {
         response += `- ${useCase}\n`;
       });
       response += `\n`;
 
       response += `### 📝 Parameters:\n`;
-      tool.parameters.forEach((param) => {
+      tool.parameters.forEach((param: string) => {
         response += `- ${param}\n`;
       });
       response += `\n`;
 
       response += `### 💡 Examples:\n`;
-      tool.examples.forEach((example) => {
+      tool.examples.forEach((example: string) => {
         response += `\`\`\`javascript\n${example}\n\`\`\`\n`;
       });
       response += `\n`;
@@ -353,6 +385,7 @@ export class DiscoverToolsTool extends BaseTool {
     response += `---\n\n`;
     response += `💡 **Pro Tips:**\n`;
     response += `- Always use absolute paths (starting with /) for file and directory parameters\n`;
+    response += `- Use \`get_repository_guidance\` to understand repository-specific note standards\n`;
     response += `- Check existing knowledge with \`askA24zMemory\` before starting work\n`;
     response += `- Document your learnings with \`create_repository_note\` after solving problems\n`;
     response += `- Use appropriate note types: \`decision\` for architecture, \`pattern\` for reusable solutions, \`gotcha\` for bugs/warnings, \`explanation\` for general knowledge\n`;

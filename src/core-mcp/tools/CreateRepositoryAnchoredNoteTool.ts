@@ -103,37 +103,6 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
       );
     }
 
-    // Get or create the CodebaseView
-    let view;
-    let actualCodebaseViewId: string;
-
-    if (parsed.codebaseViewId) {
-      // User provided a view ID - validate it exists
-      view = codebaseViewsStore.getView(parsed.directoryPath, parsed.codebaseViewId);
-      if (!view) {
-        const availableViews = codebaseViewsStore.listViews(parsed.directoryPath);
-        const viewsList =
-          availableViews.length > 0
-            ? availableViews.map((v) => `• ${v.id}: ${v.name}`).join('\n')
-            : 'No views found. Please create a view first.';
-
-        throw new Error(
-          `❌ CodebaseView with ID "${parsed.codebaseViewId}" not found.\n\n` +
-            `**Available views:**\n${viewsList}\n\n` +
-            `💡 Tip: Use an existing view ID from the list above, or create a new view first.`
-        );
-      }
-      actualCodebaseViewId = parsed.codebaseViewId;
-    } else {
-      // No view ID provided - auto-create a session view
-      const sessionResult = SessionViewCreator.createFromAnchors(
-        parsed.directoryPath,
-        parsed.anchors
-      );
-      view = sessionResult.view;
-      actualCodebaseViewId = sessionResult.viewId;
-    }
-
     // Check configuration for tag/type enforcement
     const config = getRepositoryConfiguration(parsed.directoryPath);
     const tagEnforcement = config.tags?.enforceAllowedTags || false;
@@ -185,6 +154,37 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
       }
     }
 
+    // Get or create the CodebaseView (after all validations pass)
+    let view;
+    let actualCodebaseViewId: string;
+
+    if (parsed.codebaseViewId) {
+      // User provided a view ID - validate it exists
+      view = codebaseViewsStore.getView(parsed.directoryPath, parsed.codebaseViewId);
+      if (!view) {
+        const availableViews = codebaseViewsStore.listViews(parsed.directoryPath);
+        const viewsList =
+          availableViews.length > 0
+            ? availableViews.map((v) => `• ${v.id}: ${v.name}`).join('\n')
+            : 'No views found. Please create a view first.';
+
+        throw new Error(
+          `❌ CodebaseView with ID "${parsed.codebaseViewId}" not found.\n\n` +
+            `**Available views:**\n${viewsList}\n\n` +
+            `💡 Tip: Use an existing view ID from the list above, or create a new view first.`
+        );
+      }
+      actualCodebaseViewId = parsed.codebaseViewId;
+    } else {
+      // No view ID provided - auto-create a session view
+      const sessionResult = SessionViewCreator.createFromAnchors(
+        parsed.directoryPath,
+        parsed.anchors
+      );
+      view = sessionResult.view;
+      actualCodebaseViewId = sessionResult.viewId;
+    }
+
     const savedWithPath = saveNote({
       note: parsed.note,
       directoryPath: parsed.directoryPath,
@@ -225,26 +225,10 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
       response += `🔄 **Session View:** Auto-created based on your file anchors\n`;
     }
 
-    response += `\n`;
-
-    // Add warnings about auto-created tags
-    if (autoCreatedTags.length > 0) {
-      response += `⚠️ **New tags created with empty descriptions:**\n`;
-      response += autoCreatedTags.map((tag) => `• ${tag}`).join('\n') + '\n\n';
-      response += `**IMPORTANT:** Please update these tag descriptions immediately:\n`;
-      response += `• Use the library API: \`saveTagDescription(repoPath, tagName, description)\`\n`;
-      response += `• Or create markdown files: \`.a24z/tags/${autoCreatedTags[0]}.md\`\n`;
-      response += `• Description limit: ${config.limits.tagDescriptionMaxLength} characters\n\n`;
+    // Add guidance about using the view ID for future notes in this session
+    if (!parsed.codebaseViewId) {
+      response += `\n💡 **For future notes in this session:** Use \`codebaseViewId: "${actualCodebaseViewId}"\` to group related notes together.\n`;
     }
-
-    response += `💡 **Next steps:**\n`;
-    if (autoCreatedTags.length > 0) {
-      response += `- **Update the empty descriptions created above**\n`;
-    }
-    response +=
-      `- Use \`askA24zMemory\` to retrieve this note later\n` +
-      `- Share this knowledge with your team by committing the \`.a24z/\` directory\n` +
-      `- Consider adding more context or examples to make this note even more valuable!`;
 
     return { content: [{ type: 'text', text: response }] };
   }
