@@ -61,16 +61,6 @@ export {
   getValidationMessagesPath,
 } from './core-mcp/validation/messages';
 
-// Token counting utilities
-export {
-  countNoteTokens,
-  countNotesTokens,
-  filterNotesByTokenLimit,
-  isWithinTokenLimit,
-  getTokenLimitInfo as getTokenLimitInfoFunc,
-  type LimitType,
-} from './core-mcp/utils/tokenCounter';
-
 // CodebaseView types and storage
 export {
   type CodebaseViewFileCell,
@@ -116,30 +106,12 @@ export { GetTagUsageTool } from './core-mcp/tools/GetTagUsageTool';
 export { DeleteTagTool } from './core-mcp/tools/DeleteTagTool';
 export { BaseTool } from './core-mcp/tools/base-tool';
 
-// LLM Service exports
-export {
-  LLMService,
-  type LLMConfig,
-  type LLMContext,
-  type LLMResponse,
-} from './core-mcp/services/llm-service';
-
 // Session View Creator exports
 export {
   SessionViewCreator,
   type PatternInference,
   type SessionViewResult,
 } from './core-mcp/services/sessionViewCreator';
-
-// API Key Manager
-export { ApiKeyManager, type StoredApiKey } from './core-mcp/services/api-key-manager';
-
-// LLM Configurator
-export {
-  McpLLMConfigurator,
-  SUPPORTED_PROVIDERS,
-  type LLMProviderConfig,
-} from './core-mcp/services/mcp-llm-configurator';
 
 // Types
 export type { McpTool, McpToolResult, McpResource } from './core-mcp/types';
@@ -187,7 +159,6 @@ import {
 
 import { normalizeRepositoryPath as normalizeRepositoryPathFunc } from './core-mcp/utils/pathNormalization';
 
-import { LLMService, type LLMConfig } from './core-mcp/services/llm-service';
 import { GetRepositoryGuidanceTool } from './core-mcp/tools/GetRepositoryGuidanceTool';
 import {
   ValidationMessageFormatter as ValidationMessageFormatterImport,
@@ -207,8 +178,6 @@ type NoteMetadata = Record<string, unknown>;
  */
 export class A24zMemory {
   private repositoryPath: string;
-  private llmConfig?: LLMConfig;
-  private llmService?: LLMService;
   private guidanceTool: GetRepositoryGuidanceTool;
 
   constructor(repositoryPath?: string) {
@@ -416,35 +385,6 @@ export class A24zMemory {
    */
   markAllNotesReviewed(directoryPath?: string): number {
     return markAllNotesReviewedFunc(this.repositoryPath, directoryPath);
-  }
-
-  /**
-   * Check if LLM service is available
-   */
-  async isLLMAvailable(): Promise<boolean> {
-    if (!this.llmService) {
-      // Try to load default config and check
-      const config = await LLMService.loadConfig();
-      if (!config || config.provider === 'none') {
-        return false;
-      }
-      this.llmService = new LLMService(config);
-    }
-
-    // Check if the service is reachable
-    if (this.llmConfig?.provider === 'ollama') {
-      try {
-        const endpoint = this.llmConfig.endpoint || 'http://localhost:11434';
-        const response = await fetch(`${endpoint}/api/tags`, {
-          signal: AbortSignal.timeout(2000),
-        });
-        return response.ok;
-      } catch {
-        return false;
-      }
-    }
-
-    return false;
   }
 
   /**

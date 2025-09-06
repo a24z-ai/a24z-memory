@@ -46,7 +46,7 @@ interface GetNotesResponse {
 export class GetAnchoredNotesTool extends BaseTool {
   name = 'get_notes';
   description =
-    'Retrieve raw notes from the repository without AI processing. Returns the actual note content, metadata, and anchors. Use this when you want to see the exact notes stored, browse through knowledge, or need the raw data for further processing. For AI-synthesized answers, use askA24zMemory instead.';
+    'Retrieve raw notes from the repository. Returns the actual note content, metadata, and anchors. Use this when you want to see the exact notes stored, browse through knowledge, or need the raw data for further processing.';
 
   constructor() {
     super();

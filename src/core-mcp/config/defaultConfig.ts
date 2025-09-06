@@ -52,22 +52,17 @@ export const DEFAULT_REPOSITORY_CONFIG: RepositoryConfiguration = {
     get_repository_tags: true,
     get_repository_types: true,
     get_repository_guidance: true,
-    discover_a24z_tools: true,
 
     // Management tools
     delete_repository_note: true,
     get_repository_note: true,
-    create_handoff_brief: true,
-    list_handoff_briefs: true,
 
     // Analysis tools
     get_stale_notes: true,
     get_tag_usage: true,
     delete_tag: true,
+    replace_tag: true,
     get_note_coverage: true,
-
-    // Interactive tools
-    start_documentation_quest: true,
 
     // Codebase view tools
     list_codebase_views: true,

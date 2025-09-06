@@ -151,17 +151,13 @@ describe('MCP Server Integration', () => {
             'get_notes',
             'get_repository_tags',
             'get_repository_guidance',
-            'discover_a24z_tools',
             'delete_repository_note',
             'get_repository_note',
-            'create_handoff_brief',
-            'list_handoff_briefs',
             'get_stale_notes',
             'get_tag_usage',
             'delete_tag',
             'replace_tag',
             'get_note_coverage',
-            'start_documentation_quest',
             'list_codebase_views',
           ];
 
@@ -205,21 +201,6 @@ describe('MCP Server Integration', () => {
           expect(guidanceResult.content[0]).toHaveProperty('text');
           // Guidance tokens no longer exist
 
-          // Test discover_a24z_tools
-          const discoverResponse = await sendMcpRequest(server, {
-            jsonrpc: '2.0',
-            method: 'tools/call',
-            params: {
-              name: 'discover_a24z_tools',
-              arguments: {},
-            },
-            id: 2,
-          });
-
-          expect(discoverResponse.error).toBeUndefined();
-          const discoverResult = discoverResponse.result as any;
-          expect(discoverResult.content[0].text).toContain('discover_a24z_tools');
-
           // Test get_repository_tags
           const tagsResponse = await sendMcpRequest(server, {
             jsonrpc: '2.0',
@@ -230,7 +211,7 @@ describe('MCP Server Integration', () => {
                 path: testRepo,
               },
             },
-            id: 3,
+            id: 2,
           });
 
           expect(tagsResponse.error).toBeUndefined();

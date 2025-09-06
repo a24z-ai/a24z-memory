@@ -19,22 +19,16 @@ import {
   GetAnchoredNotesTool,
   GetRepositoryTagsTool,
   GetRepositoryGuidanceTool,
-  DiscoverToolsTool,
   DeleteAnchoredNoteTool,
   GetAnchoredNoteByIdTool,
-  CreateHandoffBriefTool,
-  ListHandoffBriefsTool,
   GetStaleAnchoredNotesTool,
   GetTagUsageTool,
   DeleteTagTool,
   ReplaceTagTool,
   GetAnchoredNoteCoverageTool,
-  StartDocumentationQuestTool,
   ListCodebaseViewsTool,
 } from '../tools';
 import { McpServerConfig, McpTool, McpResource } from '../types';
-import { McpLLMConfigurator } from '../services/mcp-llm-configurator';
-import { LLMService } from '../services/llm-service';
 import { getRepositoryConfiguration } from '../store/anchoredNotesStore';
 
 export class McpServer {
@@ -45,12 +39,9 @@ export class McpServer {
   private resources: Map<string, McpResource> = new Map();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private messageQueue: any[] = []; // Message types vary by transport
-  private llmConfigurator: McpLLMConfigurator;
-  private llmService?: LLMService;
 
   constructor(config: McpServerConfig) {
     this.config = config;
-    this.llmConfigurator = new McpLLMConfigurator();
 
     this.server = new Server(
       {
@@ -76,9 +67,6 @@ export class McpServer {
     const config = getRepositoryConfiguration(process.cwd());
     const enabledTools = config.enabled_mcp_tools || {};
 
-    // Create DiscoverToolsTool instance first so we can update it later
-    let discoverTool: DiscoverToolsTool | null = null;
-
     // Add tools based on configuration (default to true if not specified)
     if (enabledTools.create_repository_note !== false) {
       this.addTool(new CreateRepositoryAnchoredNoteTool());
@@ -92,21 +80,11 @@ export class McpServer {
     if (enabledTools.get_repository_guidance !== false) {
       this.addTool(new GetRepositoryGuidanceTool());
     }
-    if (enabledTools.discover_a24z_tools !== false) {
-      discoverTool = new DiscoverToolsTool();
-      this.addTool(discoverTool);
-    }
     if (enabledTools.delete_repository_note !== false) {
       this.addTool(new DeleteAnchoredNoteTool());
     }
     if (enabledTools.get_repository_note !== false) {
       this.addTool(new GetAnchoredNoteByIdTool());
-    }
-    if (enabledTools.create_handoff_brief !== false) {
-      this.addTool(new CreateHandoffBriefTool());
-    }
-    if (enabledTools.list_handoff_briefs !== false) {
-      this.addTool(new ListHandoffBriefsTool());
     }
     if (enabledTools.get_stale_notes !== false) {
       this.addTool(new GetStaleAnchoredNotesTool());
@@ -123,16 +101,8 @@ export class McpServer {
     if (enabledTools.get_note_coverage !== false) {
       this.addTool(new GetAnchoredNoteCoverageTool());
     }
-    if (enabledTools.start_documentation_quest !== false) {
-      this.addTool(new StartDocumentationQuestTool());
-    }
     if (enabledTools.list_codebase_views !== false) {
       this.addTool(new ListCodebaseViewsTool());
-    }
-
-    // After all tools are registered, update the DiscoverToolsTool with the actual registered tools
-    if (discoverTool) {
-      discoverTool.setRegisteredTools(this.tools);
     }
   }
 
@@ -251,89 +221,6 @@ export class McpServer {
     console.error(`✅ ${this.config.name} MCP server started successfully`);
     console.error(`📁 MCP Server working directory: ${process.cwd()}`);
     // console.error(`📁 MCP Server __dirname: ${dirname(fileURLToPath(import.meta.url))}`);
-
-    // Initialize LLM configuration after server starts
-    this.initializeLLMService();
-  }
-
-  /**
-   * Initialize LLM service with configuration
-   */
-  private async initializeLLMService() {
-    try {
-      console.error('');
-      console.error('🧠 Initializing AI-enhanced synthesis...');
-
-      const llmConfig = await this.llmConfigurator.ensureLLMConfiguration();
-
-      if (llmConfig) {
-        this.llmService = new LLMService(llmConfig);
-        const isValid = await this.llmConfigurator.validateConfiguration(llmConfig);
-
-        if (isValid) {
-          console.error(
-            `✅ LLM configured: ${llmConfig.provider}${llmConfig.model ? ` (${llmConfig.model})` : ''}`
-          );
-          console.error('   AI-enhanced note synthesis enabled');
-
-          // Show configuration source for transparency
-          const source = this.getConfigurationSource(llmConfig);
-          console.error(`   Source: ${source}`);
-        } else {
-          console.error(`⚠️  LLM configuration incomplete for ${llmConfig.provider}`);
-          console.error('   Falling back to local synthesis');
-          this.llmService = undefined;
-        }
-      } else {
-        console.error('ℹ️  No LLM configured - using local synthesis only');
-        console.error('   This works great! AI enhancement is optional.');
-      }
-
-      console.error('');
-    } catch (error) {
-      console.error(
-        `❌ Error initializing LLM service: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-      console.error('   Falling back to local synthesis');
-      this.llmService = undefined;
-    }
-  }
-
-  /**
-   * Get the configured LLM service (if any)
-   */
-  getLLMService(): LLMService | undefined {
-    return this.llmService;
-  }
-
-  /**
-   * Determine the source of LLM configuration for transparency
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private getConfigurationSource(config: any): string {
-    // Config shape varies by provider
-    // Check if from config file
-    try {
-      const fs = require('fs');
-      const path = require('path');
-      const { findGitRoot } = require('../utils/pathNormalization');
-
-      const repoRoot = findGitRoot(process.cwd());
-      if (repoRoot) {
-        const configPath = path.join(repoRoot, '.a24z', 'llm-config.json');
-        if (fs.existsSync(configPath)) {
-          const fileConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-          if (fileConfig.provider === config.provider) {
-            return 'Configuration file (.a24z/llm-config.json)';
-          }
-        }
-      }
-    } catch {
-      // Ignore error
-    }
-
-    // Must be from stored API keys (automatic selection)
-    return 'Stored API keys (automatic selection)';
   }
 
   async stop() {

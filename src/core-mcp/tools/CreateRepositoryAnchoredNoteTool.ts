@@ -17,7 +17,7 @@ import { SessionViewCreator } from '../services/sessionViewCreator';
 export class CreateRepositoryAnchoredNoteTool extends BaseTool {
   name = 'create_repository_note';
   description =
-    'Document tribal knowledge, architectural decisions, implementation patterns, and important lessons learned. This tool creates searchable notes that help future developers understand context and avoid repeating mistakes. Notes are stored locally in your repository and can be retrieved using the askA24zMemory tool.';
+    'Document tribal knowledge, architectural decisions, implementation patterns, and important lessons learned. This tool creates searchable notes that help future developers understand context and avoid repeating mistakes. Notes are stored locally in your repository and can be retrieved using the get_notes tool.';
 
   constructor() {
     super();

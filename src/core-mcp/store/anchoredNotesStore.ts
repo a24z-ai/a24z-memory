@@ -53,17 +53,13 @@ export interface RepositoryConfiguration {
     get_repository_tags?: boolean;
     get_repository_types?: boolean;
     get_repository_guidance?: boolean;
-    discover_a24z_tools?: boolean;
     delete_repository_note?: boolean;
     get_repository_note?: boolean;
-    create_handoff_brief?: boolean;
-    list_handoff_briefs?: boolean;
     get_stale_notes?: boolean;
     get_tag_usage?: boolean;
     delete_tag?: boolean;
     replace_tag?: boolean;
     get_note_coverage?: boolean;
-    start_documentation_quest?: boolean;
     list_codebase_views?: boolean;
   };
 }

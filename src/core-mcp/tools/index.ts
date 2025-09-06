@@ -3,15 +3,11 @@ export { CreateRepositoryAnchoredNoteTool } from './CreateRepositoryAnchoredNote
 export { GetAnchoredNotesTool } from './GetAnchoredNotesTool';
 export { GetRepositoryTagsTool } from './GetRepositoryTagsTool';
 export { GetRepositoryGuidanceTool } from './GetRepositoryGuidanceTool';
-export { DiscoverToolsTool } from './DiscoverToolsTool';
 export { GetAnchoredNoteByIdTool } from './GetAnchoredNoteByIdTool';
 export { DeleteAnchoredNoteTool } from './DeleteAnchoredNoteTool';
-export { CreateHandoffBriefTool } from './CreateHandoffBriefTool';
-export { ListHandoffBriefsTool } from './ListHandoffBriefsTool';
 export { GetStaleAnchoredNotesTool } from './GetStaleAnchoredNotesTool';
 export { GetTagUsageTool } from './GetTagUsageTool';
 export { DeleteTagTool } from './DeleteTagTool';
 export { ReplaceTagTool } from './ReplaceTagTool';
 export { GetAnchoredNoteCoverageTool } from './GetAnchoredNoteCoverageTool';
-export { StartDocumentationQuestTool } from './StartDocumentationQuestTool';
 export { ListCodebaseViewsTool } from './ListCodebaseViewsTool';

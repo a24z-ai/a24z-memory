@@ -54,16 +54,13 @@ describe('Configuration System', () => {
         get_repository_tags: true,
         get_repository_types: true,
         get_repository_guidance: true,
-        discover_a24z_tools: true,
         delete_repository_note: true,
         get_repository_note: true,
-        create_handoff_brief: true,
-        list_handoff_briefs: true,
         get_stale_notes: true,
         get_tag_usage: true,
         delete_tag: true,
+        replace_tag: true,
         get_note_coverage: true,
-        start_documentation_quest: true,
         list_codebase_views: true,
       },
     });
@@ -223,13 +220,13 @@ describe('Configuration System', () => {
     const updatedConfig = updateRepositoryConfiguration(testRepoPath, {
       enabled_mcp_tools: {
         delete_repository_note: false,
-        create_handoff_brief: false,
+        get_tag_usage: false,
       },
     });
 
     // Check that tools were disabled
     expect(updatedConfig.enabled_mcp_tools?.delete_repository_note).toBe(false);
-    expect(updatedConfig.enabled_mcp_tools?.create_handoff_brief).toBe(false);
+    expect(updatedConfig.enabled_mcp_tools?.get_tag_usage).toBe(false);
 
     // Check that other tools remain enabled (default)
     expect(updatedConfig.enabled_mcp_tools?.create_repository_note).toBe(true);
