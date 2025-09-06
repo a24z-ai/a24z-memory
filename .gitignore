@@ -5,7 +5,7 @@ dist
 .history
 
 .env.local
-.a24z/lancedb
+.a24z/
 coverage/
 .claude/
 .vscode/
