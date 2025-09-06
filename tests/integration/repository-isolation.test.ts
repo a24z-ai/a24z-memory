@@ -8,9 +8,9 @@ import {
   saveNote,
   getNotesForPath,
   getUsedTagsForPath,
-} from '../../src/core-mcp/store/anchoredNotesStore';
-import { CreateRepositoryAnchoredNoteTool } from '../../src/core-mcp/tools/CreateRepositoryAnchoredNoteTool';
-import { GetAnchoredNotesTool } from '../../src/core-mcp/tools/GetAnchoredNotesTool';
+} from '../../src/core/store/anchoredNotesStore';
+import { CreateRepositoryAnchoredNoteTool } from '../../src/mcp/tools/CreateRepositoryAnchoredNoteTool';
+import { GetAnchoredNotesTool } from '../../src/mcp/tools/GetAnchoredNotesTool';
 import { createTestView } from '../test-helpers';
 
 describe('Repository Isolation and Cross-Repository Testing', () => {

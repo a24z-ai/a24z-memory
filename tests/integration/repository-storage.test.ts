@@ -4,12 +4,12 @@ import {
   saveNote,
   getNotesForPath,
   getUsedTagsForPath,
-} from '../../src/core-mcp/store/anchoredNotesStore';
+} from '../../src/core/store/anchoredNotesStore';
 import {
   normalizeRepositoryPath,
   findProjectRoot,
   getRepositoryName,
-} from '../../src/core-mcp/utils/pathNormalization';
+} from '../../src/core/utils/pathNormalization';
 import { createTestView } from '../test-helpers';
 
 describe('Repository-Specific Storage', () => {
@@ -246,10 +246,10 @@ describe('Repository-Specific Storage', () => {
     it('should save and retrieve notes through the actual MCP tools', async () => {
       // Import the actual MCP tools
       const { CreateRepositoryAnchoredNoteTool } = await import(
-        '../../src/core-mcp/tools/CreateRepositoryAnchoredNoteTool'
+        '../../src/mcp/tools/CreateRepositoryAnchoredNoteTool'
       );
       const { GetAnchoredNotesTool } = await import(
-        '../../src/core-mcp/tools/GetAnchoredNotesTool'
+        '../../src/mcp/tools/GetAnchoredNotesTool'
       );
 
       const saveTool = new CreateRepositoryAnchoredNoteTool();
@@ -307,7 +307,7 @@ describe('Repository-Specific Storage', () => {
 
       // Import and use the MCP tool
       const { GetAnchoredNotesTool } = await import(
-        '../../src/core-mcp/tools/GetAnchoredNotesTool'
+        '../../src/mcp/tools/GetAnchoredNotesTool'
       );
       const getTool = new GetAnchoredNotesTool();
 

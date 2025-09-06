@@ -1,9 +1,9 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { getEligibleFilesSync } from '../src/core-mcp/utils/eligibleFiles';
-import { calculateAnchoredNoteCoverage } from '../src/core-mcp/utils/anchoredNoteCoverage';
-import { parseIgnoreFile } from '../src/core-mcp/utils/ignoreFileParser';
+import { getEligibleFilesSync } from '../src/core/utils/eligibleFiles';
+import { calculateAnchoredNoteCoverage } from '../src/core/utils/anchoredNoteCoverage';
+import { parseIgnoreFile } from '../src/core/utils/ignoreFileParser';
 
 describe('.a24zignore functionality', () => {
   let testDir: string;

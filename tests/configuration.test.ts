@@ -6,7 +6,7 @@ import {
   getRepositoryConfiguration,
   updateRepositoryConfiguration,
   validateNoteAgainstConfig,
-} from '../src/core-mcp/store/anchoredNotesStore';
+} from '../src/core/store/anchoredNotesStore';
 import { createTestView } from './test-helpers';
 
 describe('Configuration System', () => {

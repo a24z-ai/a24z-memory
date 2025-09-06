@@ -3,9 +3,9 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { CreateRepositoryAnchoredNoteTool } from '../../src/core-mcp/tools/CreateRepositoryAnchoredNoteTool';
-import { GetAnchoredNotesTool } from '../../src/core-mcp/tools/GetAnchoredNotesTool';
-import { GetRepositoryTagsTool } from '../../src/core-mcp/tools/GetRepositoryTagsTool';
+import { CreateRepositoryAnchoredNoteTool } from '../../src/mcp/tools/CreateRepositoryAnchoredNoteTool';
+import { GetAnchoredNotesTool } from '../../src/mcp/tools/GetAnchoredNotesTool';
+import { GetRepositoryTagsTool } from '../../src/mcp/tools/GetRepositoryTagsTool';
 import { TEST_DIR } from '../setup';
 import { createTestView } from '../test-helpers';
 

@@ -1,14 +1,20 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { saveNote, getNotesForPath } from '../src/core-mcp/store/anchoredNotesStore';
+import { AnchoredNotesStore } from '../src/pure-core/stores/AnchoredNotesStore';
+import { createNodeFileSystemAdapter } from '../src/node-adapters/NodeFileSystemAdapter';
 import { createTestView } from './test-helpers';
 
 describe('File-based note storage', () => {
   let tempDir: string;
   let testRepoPath: string;
+  let store: AnchoredNotesStore;
 
   beforeEach(() => {
+    // Create the store with Node.js filesystem adapter
+    const nodeFs = createNodeFileSystemAdapter();
+    store = new AnchoredNotesStore(nodeFs);
+    
     // Create a temporary directory for testing
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a24z-test-'));
     testRepoPath = path.join(tempDir, 'test-repo');
@@ -25,7 +31,7 @@ describe('File-based note storage', () => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
-  it('should save notes as individual files in date-based directories', () => {
+  it('should save notes as individual files', () => {
     const note = {
       note: 'Test note content',
       anchors: ['src/test.ts'],
@@ -35,14 +41,14 @@ describe('File-based note storage', () => {
       directoryPath: testRepoPath,
     };
 
-    const savedNoteWithPath = saveNote(note);
+    const savedNoteWithPath = store.saveNote(note);
     const savedNote = savedNoteWithPath.note;
 
     // Check that the note was saved
     expect(savedNote.id).toBeDefined();
     expect(savedNote.timestamp).toBeDefined();
 
-    // Check that the file exists in the correct location
+    // Check that the file exists in the correct location with date-based directories
     const date = new Date(savedNote.timestamp);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -63,9 +69,9 @@ describe('File-based note storage', () => {
     expect(fileContent.id).toBe(savedNote.id);
   });
 
-  it('should read notes from individual files', () => {
+  it('should save multiple notes as individual files', () => {
     // Save multiple notes
-    saveNote({
+    const note1 = store.saveNote({
       note: 'First note',
       anchors: ['file1.ts'],
       tags: ['tag1'],
@@ -74,7 +80,7 @@ describe('File-based note storage', () => {
       directoryPath: testRepoPath,
     });
 
-    saveNote({
+    const note2 = store.saveNote({
       note: 'Second note',
       anchors: ['file2.ts'],
       tags: ['tag2'],
@@ -83,18 +89,19 @@ describe('File-based note storage', () => {
       directoryPath: testRepoPath,
     });
 
-    // Read notes back
-    const notes = getNotesForPath(testRepoPath, true);
-
-    expect(notes.length).toBe(2);
-    expect(notes.map((n) => n.note).sort()).toEqual(['First note', 'Second note'].sort());
+    // Verify both notes can be retrieved individually
+    const retrieved1 = store.getNoteById(testRepoPath, note1.note.id);
+    const retrieved2 = store.getNoteById(testRepoPath, note2.note.id);
+    
+    expect(retrieved1?.note).toBe('First note');
+    expect(retrieved2?.note).toBe('Second note');
   });
 
   it('should handle concurrent note creation without conflicts', async () => {
     // Simulate concurrent note creation
     const promises = Array.from({ length: 5 }, (_, i) =>
       Promise.resolve(
-        saveNote({
+        store.saveNote({
           note: `Concurrent note ${i}`,
           anchors: [`file${i}.ts`],
           tags: ['concurrent'],
@@ -111,8 +118,10 @@ describe('File-based note storage', () => {
     const ids = savedNotes.map((n) => n.note.id);
     expect(new Set(ids).size).toBe(5);
 
-    // All notes should be readable
-    const notes = getNotesForPath(testRepoPath, true);
-    expect(notes.length).toBe(5);
+    // All notes should be readable individually
+    for (const savedNote of savedNotes) {
+      const retrieved = store.getNoteById(testRepoPath, savedNote.note.id);
+      expect(retrieved).toBeTruthy();
+    }
   });
 });

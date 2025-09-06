@@ -12,7 +12,7 @@ import {
   markAllNotesReviewed,
   getNotesForPath,
   getNoteById,
-} from '../src/core-mcp/store/anchoredNotesStore';
+} from '../src/core/store/anchoredNotesStore';
 import { createTestView } from './test-helpers';
 
 describe('Note Review Functionality', () => {

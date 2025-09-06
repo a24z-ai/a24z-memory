@@ -1,0 +1,834 @@
+/**
+ * Pure AnchoredNotesStore - Platform-agnostic note storage
+ * 
+ * This version uses dependency injection with FileSystemAdapter to work in any environment
+ * No Node.js dependencies - can run in browsers, Deno, Bun, or anywhere JavaScript runs
+ */
+
+import { FileSystemAdapter } from '../abstractions/filesystem';
+import { StoredAnchoredNote, AnchoredNoteWithPath, RepositoryConfiguration } from '../types';
+import { A24zConfigurationStore } from './A24zConfigurationStore';
+
+// ============================================================================
+// Types and Interfaces
+// ============================================================================
+
+export interface ValidationError {
+  type: 'noteTooLong' | 'tooManyTags' | 'tooManyAnchors' | 'invalidTags' | 'anchorOutsideRepo' | 'missingAnchors';
+  message: string;
+  context?: Record<string, unknown>;
+}
+
+export interface StaleAnchoredNote {
+  note: StoredAnchoredNote;
+  staleAnchors: string[];
+  validAnchors: string[];
+}
+
+export interface TagInfo {
+  name: string;
+  description?: string;
+}
+
+export interface SaveNoteInput {
+  note: string;
+  anchors: string[];
+  tags: string[];
+  codebaseViewId: string;
+  metadata: Record<string, unknown>;
+  directoryPath: string;
+}
+
+// ============================================================================
+// Pure AnchoredNotesStore Class
+// ============================================================================
+
+export class AnchoredNotesStore {
+  private fs: FileSystemAdapter;
+  private configStore: A24zConfigurationStore;
+
+  constructor(fileSystemAdapter: FileSystemAdapter) {
+    this.fs = fileSystemAdapter;
+    this.configStore = new A24zConfigurationStore(fileSystemAdapter);
+  }
+
+  // ============================================================================
+  // Repository Validation
+  // ============================================================================
+
+  /**
+   * Validate that we have a proper repository root path
+   * The .a24z directory should exist or be creatable at this path
+   */
+  private validateRepositoryRoot(repositoryRootPath: string): void {
+    const a24zPath = this.fs.join(repositoryRootPath, '.a24z');
+    
+    // If .a24z already exists, we're good
+    if (this.fs.exists(a24zPath)) {
+      return;
+    }
+
+    // Try to create .a24z directory - this validates we can write here
+    try {
+      this.fs.createDir(a24zPath);
+    } catch {
+      throw new Error(
+        `Invalid repository root path: ${repositoryRootPath}. ` +
+        `Expected a repository root where .a24z directory can be created. ` +
+        `Make sure the path exists and is writable.`
+      );
+    }
+  }
+
+  // ============================================================================
+  // Path Utilities (pure functions that work with any path format)
+  // ============================================================================
+
+  /**
+   * Get the .a24z directory path for a repository
+   */
+  private getA24zDir(repositoryRootPath: string): string {
+    return this.fs.join(repositoryRootPath, '.a24z');
+  }
+
+  /**
+   * Get the notes directory path
+   */
+  private getNotesDir(repositoryRootPath: string): string {
+    return this.fs.join(this.getA24zDir(repositoryRootPath), 'notes');
+  }
+
+  /**
+   * Get the tags directory path
+   */
+  private getTagsDir(repositoryRootPath: string): string {
+    return this.fs.join(this.getA24zDir(repositoryRootPath), 'tags');
+  }
+
+  /**
+   * Get path for a specific note file using date-based directory structure
+   */
+  private getNotePath(repositoryRootPath: string, noteId: string, timestamp: number): string {
+    const date = new Date(timestamp);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const noteDir = this.fs.join(this.getNotesDir(repositoryRootPath), year.toString(), month);
+    return this.fs.join(noteDir, `${noteId}.json`);
+  }
+
+  /**
+   * Ensure the date-based notes directory exists
+   */
+  private ensureNotesDir(repositoryRootPath: string, timestamp: number): void {
+    const date = new Date(timestamp);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const noteDir = this.fs.join(this.getNotesDir(repositoryRootPath), year.toString(), month);
+    this.fs.createDir(noteDir);
+  }
+
+  /**
+   * Generate a unique note ID
+   */
+  private generateNoteId(): string {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substr(2, 9);
+    return `note-${timestamp}-${random}`;
+  }
+
+  // ============================================================================
+  // Configuration Management (delegated to A24zConfigurationStore)
+  // ============================================================================
+
+  /**
+   * Get repository configuration
+   */
+  getConfiguration(repositoryRootPath: string): RepositoryConfiguration {
+    return this.configStore.getConfiguration(repositoryRootPath);
+  }
+
+  /**
+   * Update repository configuration
+   */
+  updateConfiguration(
+    repositoryRootPath: string,
+    updates: Partial<RepositoryConfiguration>
+  ): RepositoryConfiguration {
+    return this.configStore.updateConfiguration(repositoryRootPath, updates);
+  }
+
+  /**
+   * Enable or disable allowed tags enforcement
+   */
+  setEnforceAllowedTags(repositoryRootPath: string, enforce: boolean): void {
+    return this.configStore.setEnforceAllowedTags(repositoryRootPath, enforce);
+  }
+
+  // ============================================================================
+  // Note CRUD Operations
+  // ============================================================================
+
+  /**
+   * Save a note to storage
+   */
+  saveNote(input: SaveNoteInput): AnchoredNoteWithPath {
+    const { note: noteContent, anchors, tags, codebaseViewId, metadata, directoryPath } = input;
+
+    // Validate input
+    const validation = this.validateNote(
+      { note: noteContent, anchors, tags, codebaseViewId, metadata },
+      directoryPath
+    );
+    if (validation.length > 0) {
+      throw new Error(`Validation failed: ${validation.map(v => v.message).join(', ')}`);
+    }
+
+    // Create the note
+    const noteId = this.generateNoteId();
+    const timestamp = Date.now();
+    const storedNote: StoredAnchoredNote = {
+      id: noteId,
+      note: noteContent,
+      anchors: [...anchors], // Clone to prevent mutations
+      tags: [...tags], // Clone to prevent mutations
+      metadata: { ...metadata }, // Clone to prevent mutations
+      timestamp,
+      codebaseViewId,
+    };
+
+    // Ensure date-based directory exists
+    this.ensureNotesDir(directoryPath, timestamp);
+
+    // Save to file using date-based path
+    const notePath = this.getNotePath(directoryPath, noteId, timestamp);
+    this.fs.writeFile(notePath, JSON.stringify(storedNote, null, 2));
+
+    return {
+      note: storedNote,
+      path: this.fs.relative(directoryPath, notePath),
+    };
+  }
+
+  /**
+   * Get a note by its ID (searches through date-based directory structure)
+   */
+  getNoteById(repositoryRootPath: string, noteId: string): StoredAnchoredNote | null {
+    const notesDir = this.getNotesDir(repositoryRootPath);
+    
+    if (!this.fs.exists(notesDir)) {
+      return null;
+    }
+
+    // Search through year/month directories
+    const yearDirs = this.fs.readDir(notesDir).filter(item => /^\d{4}$/.test(item));
+    
+    for (const year of yearDirs) {
+      const yearDir = this.fs.join(notesDir, year);
+      const monthDirs = this.fs.readDir(yearDir).filter(item => /^\d{2}$/.test(item));
+      
+      for (const month of monthDirs) {
+        const monthDir = this.fs.join(yearDir, month);
+        const noteFilePath = this.fs.join(monthDir, `${noteId}.json`);
+        
+        if (this.fs.exists(noteFilePath)) {
+          try {
+            const content = this.fs.readFile(noteFilePath);
+            return JSON.parse(content);
+          } catch (error) {
+            console.warn(`Failed to load note ${noteId}:`, error);
+            return null;
+          }
+        }
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * Delete a note by its ID (searches through date-based directory structure)
+   */
+  deleteNoteById(repositoryRootPath: string, noteId: string): boolean {
+    const notesDir = this.getNotesDir(repositoryRootPath);
+    
+    if (!this.fs.exists(notesDir)) {
+      return false;
+    }
+
+    // Search through year/month directories
+    const yearDirs = this.fs.readDir(notesDir).filter(item => /^\d{4}$/.test(item));
+    
+    for (const year of yearDirs) {
+      const yearDir = this.fs.join(notesDir, year);
+      const monthDirs = this.fs.readDir(yearDir).filter(item => /^\d{2}$/.test(item));
+      
+      for (const month of monthDirs) {
+        const monthDir = this.fs.join(yearDir, month);
+        const noteFilePath = this.fs.join(monthDir, `${noteId}.json`);
+        
+        if (this.fs.exists(noteFilePath)) {
+          try {
+            this.fs.deleteFile(noteFilePath);
+            return true;
+          } catch (error) {
+            console.warn(`Failed to delete note ${noteId}:`, error);
+            return false;
+          }
+        }
+      }
+    }
+    
+    return false;
+  }
+
+  /**
+   * Get all notes for a specific path
+   */
+  getNotesForPath(targetPath: string, includeParentNotes: boolean = true): AnchoredNoteWithPath[] {
+    // Find the repository root from the target path
+    let repositoryRoot: string | null = null;
+    let currentPath = targetPath;
+    
+    // Walk up the directory tree to find .a24z directory
+    while (currentPath && currentPath !== '/' && currentPath !== this.fs.dirname(currentPath)) {
+      if (this.fs.exists(this.fs.join(currentPath, '.a24z'))) {
+        repositoryRoot = currentPath;
+        break;
+      }
+      currentPath = this.fs.dirname(currentPath);
+    }
+    
+    if (!repositoryRoot) {
+      return [];
+    }
+    
+    // Get all notes from the repository
+    const allNotes = this.readAllNotes(repositoryRoot);
+    
+    // Convert the query path to be relative to the repo root for comparison
+    const queryRelative = this.fs.relative(repositoryRoot, targetPath);
+    
+    // Filter and sort notes based on path matching
+    const processedNotes = allNotes
+      .map((noteWithPath: AnchoredNoteWithPath) => {
+        const note = noteWithPath.note;
+        let isParent = false;
+        
+        // Check if any anchor matches the query path
+        const matchesAnchor = note.anchors.some((anchor: string) => {
+          // Normalize the anchor path
+          const normalizedAnchor = anchor.replace(/\\/g, '/');
+          const normalizedQuery = queryRelative.replace(/\\/g, '/');
+          
+          return (
+            normalizedQuery === normalizedAnchor ||
+            normalizedQuery.startsWith(`${normalizedAnchor}/`) ||
+            normalizedAnchor.startsWith(`${normalizedQuery}/`)
+          );
+        });
+        
+        // Check if query is in the repository directory
+        const queryInRepository = targetPath === repositoryRoot || 
+                                 targetPath.startsWith(`${repositoryRoot}/`);
+        
+        if (matchesAnchor) {
+          isParent = false;
+        } else if (queryInRepository) {
+          isParent = true;
+        } else {
+          return null;
+        }
+        
+        // Calculate distance for sorting
+        const distance = matchesAnchor
+          ? 0
+          : isParent
+            ? targetPath.replace(repositoryRoot, '').split('/').filter(Boolean).length
+            : 9999;
+            
+        return { 
+          note: { ...note, isParentDirectory: isParent, pathDistance: distance },
+          path: noteWithPath.path
+        };
+      });
+    
+    // Filter nulls and apply parent filter
+    const filtered = processedNotes
+      .filter((x): x is { note: StoredAnchoredNote & { isParentDirectory: boolean; pathDistance: number }, path: string } => x !== null)
+      .filter((x) => includeParentNotes ? true : !x.note.isParentDirectory);
+    
+    // Sort by distance and timestamp
+    filtered.sort((a, b) => {
+      return a.note.pathDistance - b.note.pathDistance || b.note.timestamp - a.note.timestamp;
+    });
+    
+    // Return as AnchoredNoteWithPath array (remove the extra properties)
+    return filtered.map(item => ({
+      note: item.note as StoredAnchoredNote,
+      path: item.path
+    }));
+  }
+  
+  /**
+   * Read all notes from a repository
+   */
+  private readAllNotes(repositoryRootPath: string): AnchoredNoteWithPath[] {
+    const notesDir = this.getNotesDir(repositoryRootPath);
+    const notes: AnchoredNoteWithPath[] = [];
+    
+    if (!this.fs.exists(notesDir)) {
+      return [];
+    }
+    
+    // Recursively read all .json files in the notes directory
+    const readNotesRecursive = (dir: string): void => {
+      const entries = this.fs.readDir(dir);
+      for (const entry of entries) {
+        const fullPath = this.fs.join(dir, entry);
+        
+        // Check if it's a directory using the proper method
+        const isDirectory = this.fs.isDirectory(fullPath);
+        
+        if (isDirectory) {
+          // Recurse into the directory
+          readNotesRecursive(fullPath);
+        } else if (entry.endsWith('.json')) {
+          try {
+            const noteContent = this.fs.readFile(fullPath);
+            const note = JSON.parse(noteContent) as StoredAnchoredNote;
+            if (note && typeof note === 'object' && note.id) {
+              notes.push({
+                note,
+                path: this.fs.relative(repositoryRootPath, fullPath),
+              });
+            }
+          } catch (error) {
+            // Skip invalid note files
+            console.warn(`Failed to read note file ${fullPath}:`, error);
+          }
+        }
+      }
+    };
+    
+    readNotesRecursive(notesDir);
+    return notes;
+  }
+
+  /**
+   * Check for notes with stale anchors (files that no longer exist)
+   */
+  checkStaleAnchoredNotes(repositoryRootPath: string): StaleAnchoredNote[] {
+    const notesWithPaths = this.readAllNotes(repositoryRootPath);
+    const staleNotes: StaleAnchoredNote[] = [];
+    
+    for (const noteWithPath of notesWithPaths) {
+      const note = noteWithPath.note;
+      const staleAnchors: string[] = [];
+      const validAnchors: string[] = [];
+      
+      for (const anchor of note.anchors) {
+        // Anchors are stored as relative paths to the repo root
+        const anchorPath = this.fs.join(repositoryRootPath, anchor);
+        
+        if (this.fs.exists(anchorPath)) {
+          validAnchors.push(anchor);
+        } else {
+          staleAnchors.push(anchor);
+        }
+      }
+      
+      // Only include notes that have at least one stale anchor
+      if (staleAnchors.length > 0) {
+        staleNotes.push({
+          note,
+          staleAnchors,
+          validAnchors,
+        });
+      }
+    }
+    
+    return staleNotes;
+  }
+
+  // ============================================================================
+  // Validation
+  // ============================================================================
+
+  /**
+   * Validate a note against repository configuration
+   */
+  validateNote(
+    note: Omit<StoredAnchoredNote, 'id' | 'timestamp'>,
+    repositoryRootPath: string
+  ): ValidationError[] {
+    const errors: ValidationError[] = [];
+    const config = this.getConfiguration(repositoryRootPath);
+
+    // Check note length
+    if (note.note.length > config.limits.noteMaxLength) {
+      errors.push({
+        type: 'noteTooLong',
+        message: `Note is too long (${note.note.length} > ${config.limits.noteMaxLength})`,
+        context: { actual: note.note.length, limit: config.limits.noteMaxLength }
+      });
+    }
+
+    // Check tags count
+    if (note.tags.length > config.limits.maxTagsPerNote) {
+      errors.push({
+        type: 'tooManyTags',
+        message: `Too many tags (${note.tags.length} > ${config.limits.maxTagsPerNote})`,
+        context: { actual: note.tags.length, limit: config.limits.maxTagsPerNote }
+      });
+    }
+
+    // Check anchors count
+    if (note.anchors.length > config.limits.maxAnchorsPerNote) {
+      errors.push({
+        type: 'tooManyAnchors',
+        message: `Too many anchors (${note.anchors.length} > ${config.limits.maxAnchorsPerNote})`,
+        context: { actual: note.anchors.length, limit: config.limits.maxAnchorsPerNote }
+      });
+    }
+
+    // Check for missing anchors
+    if (note.anchors.length === 0) {
+      errors.push({
+        type: 'missingAnchors',
+        message: 'Notes must have at least one anchor',
+        context: { actual: note.anchors.length }
+      });
+    }
+
+    return errors;
+  }
+
+  // ============================================================================
+  // Tag Description Management
+  // ============================================================================
+
+  /**
+   * Get all tag descriptions for a repository
+   */
+  getTagDescriptions(repositoryRootPath: string): Record<string, string> {
+    this.validateRepositoryRoot(repositoryRootPath);
+    const tagsDir = this.getTagsDir(repositoryRootPath);
+    const descriptions: Record<string, string> = {};
+
+    if (!this.fs.exists(tagsDir)) {
+      return descriptions;
+    }
+
+    try {
+      const files = this.fs.readDir(tagsDir);
+      for (const file of files) {
+        if (file.endsWith('.md')) {
+          const tagName = file.slice(0, -3); // Remove .md extension
+          const filePath = this.fs.join(tagsDir, file);
+          try {
+            const content = this.fs.readFile(filePath);
+            descriptions[tagName] = content.trim();
+          } catch (error) {
+            console.error(`Error reading tag description for ${tagName}:`, error);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error reading tags directory:', error);
+    }
+
+    return descriptions;
+  }
+
+  /**
+   * Save a tag description
+   */
+  saveTagDescription(repositoryRootPath: string, tag: string, description: string): void {
+    this.validateRepositoryRoot(repositoryRootPath);
+    const config = this.getConfiguration(repositoryRootPath);
+
+    // Check description length against tagDescriptionMaxLength
+    if (description.length > config.limits.tagDescriptionMaxLength) {
+      throw new Error(
+        `Tag description exceeds maximum length of ${config.limits.tagDescriptionMaxLength} characters. ` +
+          `Current length: ${description.length}`
+      );
+    }
+
+    // Ensure tags directory exists
+    const tagsDir = this.getTagsDir(repositoryRootPath);
+    this.fs.createDir(tagsDir);
+
+    // Write the description to a markdown file
+    const tagFile = this.fs.join(tagsDir, `${tag}.md`);
+    this.fs.writeFile(tagFile, description);
+  }
+
+  /**
+   * Delete a tag description
+   */
+  deleteTagDescription(repositoryRootPath: string, tag: string): boolean {
+    this.validateRepositoryRoot(repositoryRootPath);
+    const tagsDir = this.getTagsDir(repositoryRootPath);
+    const tagFile = this.fs.join(tagsDir, `${tag}.md`);
+
+    if (this.fs.exists(tagFile)) {
+      try {
+        this.fs.deleteFile(tagFile);
+        return true;
+      } catch (error) {
+        console.warn(`Failed to delete tag description for ${tag}:`, error);
+        return false;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Remove a tag from all notes in the repository
+   */
+  removeTagFromNotes(repositoryRootPath: string, tag: string): number {
+    this.validateRepositoryRoot(repositoryRootPath);
+    const notesWithPaths = this.readAllNotes(repositoryRootPath);
+    let modifiedCount = 0;
+
+    for (const noteWithPath of notesWithPaths) {
+      const note = noteWithPath.note;
+      if (note.tags.includes(tag)) {
+        // Remove the tag from the note
+        note.tags = note.tags.filter((t: string) => t !== tag);
+        // Save the updated note - reconstruct the note path from the ID and timestamp
+        const notePath = this.getNotePath(repositoryRootPath, note.id, note.timestamp);
+        this.fs.writeFile(notePath, JSON.stringify(note, null, 2));
+        modifiedCount++;
+      }
+    }
+
+    return modifiedCount;
+  }
+
+  /**
+   * Replace a tag with another tag in all notes in the repository
+   */
+  replaceTagInNotes(repositoryRootPath: string, oldTag: string, newTag: string): number {
+    this.validateRepositoryRoot(repositoryRootPath);
+    const notesWithPaths = this.readAllNotes(repositoryRootPath);
+    let modifiedCount = 0;
+
+    for (const noteWithPath of notesWithPaths) {
+      const note = noteWithPath.note;
+      if (note.tags.includes(oldTag)) {
+        // Replace the old tag with the new tag
+        note.tags = note.tags.map((t: string) => (t === oldTag ? newTag : t));
+        // Remove duplicates if the new tag was already present
+        note.tags = [...new Set(note.tags)];
+        // Save the updated note - reconstruct the note path from the ID and timestamp
+        const notePath = this.getNotePath(repositoryRootPath, note.id, note.timestamp);
+        this.fs.writeFile(notePath, JSON.stringify(note, null, 2));
+        modifiedCount++;
+      }
+    }
+
+    return modifiedCount;
+  }
+
+  /**
+   * Get all used tags for a path
+   */
+  getUsedTagsForPath(targetPath: string): string[] {
+    const notes = this.getNotesForPath(targetPath, true);
+    const counts = new Map<string, number>();
+    for (const n of notes) {
+      for (const tag of n.note.tags) {
+        counts.set(tag, (counts.get(tag) || 0) + 1);
+      }
+    }
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([t]) => t);
+  }
+
+  /**
+   * Get all tags with their descriptions (tags that have description files)
+   */
+  getTagsWithDescriptions(repositoryRootPath: string): TagInfo[] {
+    const descriptions = this.getTagDescriptions(repositoryRootPath);
+    const tags: TagInfo[] = [];
+
+    // Return all tags that have descriptions (these are the available/allowed tags)
+    for (const [name, description] of Object.entries(descriptions)) {
+      tags.push({ name, description });
+    }
+
+    return tags;
+  }
+
+  /**
+   * Get repository guidance
+   */
+  getRepositoryGuidance(repositoryPath: string): string | null {
+    try {
+      this.validateRepositoryRoot(repositoryPath);
+      const guidanceFile = this.fs.join(repositoryPath, '.a24z', 'note-guidance.md');
+
+      // Try to read repository-specific guidance first
+      if (this.fs.exists(guidanceFile)) {
+        return this.fs.readFile(guidanceFile);
+      }
+
+      // Note: Default template would need to be handled differently in pure-core
+      // For now, return null if no custom guidance exists
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Get allowed tags configuration
+   */
+  getAllowedTags(repositoryPath: string): { enforced: boolean; tags: string[] } {
+    this.validateRepositoryRoot(repositoryPath);
+    const config = this.getConfiguration(repositoryPath);
+    const enforced = config.tags?.enforceAllowedTags || false;
+
+    if (enforced) {
+      // Auto-populate from tags directory
+      const tagDescriptions = this.getTagDescriptions(repositoryPath);
+      const tags = Object.keys(tagDescriptions);
+      return { enforced, tags };
+    }
+
+    return { enforced, tags: [] };
+  }
+
+  // ============================================================================
+  // Note Review System
+  // ============================================================================
+
+  /**
+   * Get all unreviewed notes for a repository path
+   */
+  getUnreviewedNotes(repositoryPath: string, directoryPath?: string): StoredAnchoredNote[] {
+    const targetPath = directoryPath || repositoryPath;
+    const notes = this.getNotesForPath(targetPath, true);
+    return notes.map(n => n.note).filter((note) => !note.reviewed);
+  }
+
+  /**
+   * Mark a note as reviewed by its ID
+   */
+  markNoteReviewed(repositoryPath: string, noteId: string): boolean {
+    this.validateRepositoryRoot(repositoryPath);
+    const note = this.getNoteById(repositoryPath, noteId);
+    
+    if (!note) {
+      return false;
+    }
+
+    // Update the reviewed flag
+    note.reviewed = true;
+
+    // Write the updated note back to its file
+    const notePath = this.getNotePath(repositoryPath, note.id, note.timestamp);
+    this.fs.writeFile(notePath, JSON.stringify(note, null, 2));
+    
+    return true;
+  }
+
+  /**
+   * Mark all notes as reviewed for a given path
+   */
+  markAllNotesReviewed(repositoryPath: string, directoryPath?: string): number {
+    this.validateRepositoryRoot(repositoryPath);
+    const targetPath = directoryPath || repositoryPath;
+    const notes = this.getNotesForPath(targetPath, true);
+
+    let count = 0;
+    for (const noteWithPath of notes) {
+      const note = noteWithPath.note;
+      if (!note.reviewed) {
+        note.reviewed = true;
+        const notePath = this.getNotePath(repositoryPath, note.id, note.timestamp);
+        this.fs.writeFile(notePath, JSON.stringify(note, null, 2));
+        count++;
+      }
+    }
+
+    return count;
+  }
+
+  // ============================================================================
+  // Note Operations
+  // ============================================================================
+
+  /**
+   * Merge multiple notes into a single consolidated note
+   */
+  mergeNotes(
+    repositoryPath: string,
+    input: {
+      note: string;
+      anchors: string[];
+      tags: string[];
+      metadata?: Record<string, unknown>;
+      noteIds: string[];
+      codebaseViewId: string;
+      deleteOriginals?: boolean;
+    }
+  ): {
+    mergedNote: StoredAnchoredNote;
+    deletedCount: number;
+  } {
+    this.validateRepositoryRoot(repositoryPath);
+
+    // Create the merged note with metadata about the merge
+    const mergedNoteData: SaveNoteInput = {
+      note: input.note,
+      directoryPath: repositoryPath,
+      anchors: [...new Set(input.anchors)], // Deduplicate anchors
+      tags: [...new Set(input.tags)], // Deduplicate tags
+      codebaseViewId: input.codebaseViewId,
+      metadata: {
+        ...input.metadata,
+        mergedFrom: input.noteIds,
+        mergedAt: new Date().toISOString(),
+      },
+    };
+
+    const savedNote = this.saveNote(mergedNoteData);
+
+    let deletedCount = 0;
+    if (input.deleteOriginals !== false) {
+      // Default to true
+      for (const noteId of input.noteIds) {
+        if (this.deleteNoteById(repositoryPath, noteId)) {
+          deletedCount++;
+        }
+      }
+    }
+
+    return {
+      mergedNote: savedNote.note,
+      deletedCount,
+    };
+  }
+
+  /**
+   * Get notes for a path with count limit
+   * Note: Token limiting requires external dependencies and is not supported in pure-core
+   */
+  getNotesForPathWithLimit(
+    targetPath: string,
+    includeParentNotes: boolean,
+    limitType: 'count',
+    limit: number
+  ): {
+    notes: AnchoredNoteWithPath[];
+  } {
+    // Get all notes first
+    const allNotes = this.getNotesForPath(targetPath, includeParentNotes);
+
+    // Apply count-based limiting
+    const results = allNotes.slice(0, Math.max(1, limit));
+    return { notes: results };
+  }
+}

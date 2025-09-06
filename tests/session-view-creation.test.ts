@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { CreateRepositoryAnchoredNoteTool } from '../src/core-mcp/tools/CreateRepositoryAnchoredNoteTool';
-import { codebaseViewsStore } from '../src/core-mcp/store/codebaseViewsStore';
+import { CreateRepositoryAnchoredNoteTool } from '../src/mcp/tools/CreateRepositoryAnchoredNoteTool';
+import { codebaseViewsStore } from '../src/core/store/codebaseViewsStore';
 import { TEST_DIR } from './setup';
 
 describe('Catchall View Auto-Creation', () => {

@@ -4,8 +4,8 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { CreateRepositoryAnchoredNoteTool } from '../../src/core-mcp/tools/CreateRepositoryAnchoredNoteTool';
-import { GetAnchoredNotesTool } from '../../src/core-mcp/tools/GetAnchoredNotesTool';
+import { CreateRepositoryAnchoredNoteTool } from '../../src/mcp/tools/CreateRepositoryAnchoredNoteTool';
+import { GetAnchoredNotesTool } from '../../src/mcp/tools/GetAnchoredNotesTool';
 import { createTestView } from '../test-helpers';
 
 describe('Repository-Specific Note Retrieval Integration', () => {

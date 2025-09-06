@@ -3,19 +3,13 @@
  * Re-exports the local server and provides a run() helper.
  */
 
-import { McpServer } from './core-mcp/server/McpServer';
-import type { McpServerConfig } from './core-mcp/types/mcp-types';
+import { McpServer } from './mcp/server/McpServer';
+import type { McpServerConfig } from './mcp/types/mcp-types';
 import { BRANDING } from './branding';
 
-export { McpServer } from './core-mcp/server/McpServer';
+export { McpServer } from './mcp/server/McpServer';
 
-// CodebaseView exports for VS Code extension integration
-export {
-  codebaseViewsStore,
-  CodebaseViewsStore,
-  generateViewIdFromName,
-} from './core-mcp/store/codebaseViewsStore';
-
+// CodebaseView types (pure)
 export type {
   CodebaseView,
   CodebaseViewFileCell,
@@ -23,7 +17,18 @@ export type {
   CodebaseViewLinks,
   ViewValidationResult,
   PatternValidationResult,
-} from './core-mcp/store/codebaseViewsStore';
+} from './pure-core/types';
+
+// CodebaseView exports for VS Code extension integration
+export {
+  CodebaseViewsStore,
+  generateViewIdFromName,
+} from './pure-core/stores/CodebaseViewsStore';
+
+// Export singleton instance for backward compatibility
+import { NodeFileSystemAdapter } from './node-adapters/NodeFileSystemAdapter';
+import { CodebaseViewsStore as PureCodebaseViewsStore } from './pure-core/stores/CodebaseViewsStore';
+export const codebaseViewsStore = new PureCodebaseViewsStore(new NodeFileSystemAdapter());
 
 export function run(config?: Partial<McpServerConfig>): Promise<void> {
   const resolved: McpServerConfig = {
