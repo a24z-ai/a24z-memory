@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach } from 'bun:test';
 import { CreateRepositoryAnchoredNoteTool } from '../../../src/mcp/tools/CreateRepositoryAnchoredNoteTool';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
 import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
@@ -21,7 +22,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
     tool = new CreateRepositoryAnchoredNoteTool(fs);
     notesStore = new AnchoredNotesStore(fs);
     fs.setupTestRepo(testRepoPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsRepoPath);
 
     // Create a test view using CodebaseViewsStore
     const codebaseViewsStore = new CodebaseViewsStore(fs);
@@ -34,7 +35,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
       cells: {},
       timestamp: new Date().toISOString(),
     };
-    codebaseViewsStore.saveView(validatedRepoPath, testView);
+    codebaseViewsStore.saveView(validatedRepoPathView);
   });
 
   describe('Schema Validation', () => {
@@ -340,7 +341,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
         cells: {},
         timestamp: new Date().toISOString(),
       };
-      codebaseViewsStore.saveView(validatedRepo2Path, testView2);
+      codebaseViewsStore.saveView(validatedRepo2PathView2);
 
       // Save note in first repository
       const input1 = {

@@ -8,18 +8,6 @@
 import { FileSystemAdapter } from '../abstractions/filesystem';
 import { CodebaseView, ValidatedRepositoryPath, CodebaseViewCell } from '../types';
 
-// Re-export types for convenience
-export {
-  CodebaseView,
-  CodebaseViewCell,
-  CodebaseViewFileCell,
-  CodebaseViewScope,
-  CodebaseViewLinks,
-  ViewValidationResult,
-  PatternValidationResult,
-  FileListValidationResult,
-} from '../types';
-
 /**
  * Compute grid dimensions from cell coordinates.
  * Returns the minimum grid size needed to contain all cells.

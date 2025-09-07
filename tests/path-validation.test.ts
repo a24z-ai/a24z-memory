@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach } from 'bun:test';
 import { MemoryPalace } from '../src/MemoryPalace';
 import { InMemoryFileSystemAdapter } from './test-adapters/InMemoryFileSystemAdapter';
 

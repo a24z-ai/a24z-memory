@@ -3,6 +3,7 @@
  * Uses InMemoryFileSystemAdapter to test platform-agnostic functionality
  */
 
+import { describe, it, expect, beforeEach } from 'bun:test';
 import {
   CodebaseViewsStore,
   generateViewIdFromName,
@@ -25,7 +26,7 @@ describe('Pure CodebaseViewsStore', () => {
     fs.setupTestRepo(testRepoPath);
 
     // Validate the repository path
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsRepoPath);
   });
 
   const sampleView: CodebaseView = {

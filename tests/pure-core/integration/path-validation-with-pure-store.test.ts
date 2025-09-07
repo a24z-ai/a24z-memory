@@ -3,6 +3,7 @@
  * This shows the same functionality as the old tests but with the new class-based approach
  */
 
+import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';

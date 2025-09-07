@@ -11,6 +11,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* global clearTimeout */
 
+import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import { spawn, ChildProcess } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';

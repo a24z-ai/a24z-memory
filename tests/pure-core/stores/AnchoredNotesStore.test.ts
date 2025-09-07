@@ -3,6 +3,7 @@
  * This demonstrates that the store now works without any Node.js dependencies
  */
 
+import { describe, it, expect, beforeEach } from 'bun:test';
 import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
 import { MemoryPalace } from '../../../src/MemoryPalace';
@@ -22,7 +23,7 @@ describe('Pure AnchoredNotesStore', () => {
     fs.setupTestRepo(testRepoPath);
 
     // Validate the repository path
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsRepoPath);
   });
 
   describe('Configuration Management', () => {

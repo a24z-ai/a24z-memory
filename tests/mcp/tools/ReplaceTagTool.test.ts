@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { describe, it, expect, beforeEach } from 'bun:test';
 import { ReplaceTagTool } from '../../../src/mcp/tools/ReplaceTagTool';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
 import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
@@ -22,7 +23,7 @@ describe('ReplaceTagTool', () => {
     notesStore = new AnchoredNotesStore(fs);
     tool = new ReplaceTagTool(fs);
     fs.setupTestRepo(testRepoPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsRepoPath);
 
     // Create a test view using CodebaseViewsStore
     const codebaseViewsStore = new CodebaseViewsStore(fs);
@@ -35,7 +36,7 @@ describe('ReplaceTagTool', () => {
       cells: {},
       timestamp: new Date().toISOString(),
     };
-    codebaseViewsStore.saveView(validatedRepoPath, testView);
+    codebaseViewsStore.saveView(validatedRepoPathView);
   });
 
   it('should require confirmation to replace a tag', async () => {

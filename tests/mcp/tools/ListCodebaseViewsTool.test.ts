@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { ListCodebaseViewsTool } from '../../../src/mcp/tools/ListCodebaseViewsTool';
 import { MemoryPalace } from '../../../src/MemoryPalace';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
@@ -18,7 +19,7 @@ describe('ListCodebaseViewsTool', () => {
 
     // Set up repository structure
     inMemoryFs.setupTestRepo(testRepoPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(inMemoryFs, testRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(inMemoryFsRepoPath);
 
     // Create MemoryPalace instance with in-memory adapter
     new MemoryPalace(testRepoPath, inMemoryFs);

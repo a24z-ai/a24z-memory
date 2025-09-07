@@ -24,11 +24,6 @@ export type {
 // CodebaseView exports for VS Code extension integration
 export { CodebaseViewsStore, generateViewIdFromName } from './pure-core/stores/CodebaseViewsStore';
 
-// Export singleton instance for backward compatibility
-import { NodeFileSystemAdapter } from './node-adapters/NodeFileSystemAdapter';
-import { CodebaseViewsStore as PureCodebaseViewsStore } from './pure-core/stores/CodebaseViewsStore';
-export const codebaseViewsStore = new PureCodebaseViewsStore(new NodeFileSystemAdapter());
-
 export function run(config?: Partial<McpServerConfig>): Promise<void> {
   const resolved: McpServerConfig = {
     name: BRANDING.MCP_SERVER_NAME,

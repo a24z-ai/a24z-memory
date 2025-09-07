@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeEach } from 'bun:test';
 import { GetRepositoryGuidanceTool } from '../../../src/mcp/tools/GetRepositoryGuidanceTool';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
 import { MemoryPalace } from '../../../src/MemoryPalace';
@@ -12,7 +12,7 @@ describe('GetRepositoryGuidanceTool', () => {
     fs = new InMemoryFileSystemAdapter();
     tool = new GetRepositoryGuidanceTool(fs);
     fs.setupTestRepo(testRepoPath);
-    MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    MemoryPalace.validateRepositoryPath(fsRepoPath);
   });
 
   describe('schema validation', () => {

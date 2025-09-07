@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach } from 'bun:test';
 import { GetTagUsageTool } from '../../../src/mcp/tools/GetTagUsageTool';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
 import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
@@ -25,7 +26,7 @@ describe('GetTagUsageTool', () => {
     tool = new GetTagUsageTool(fs);
     notesStore = new AnchoredNotesStore(fs);
     fs.setupTestRepo(testRepoPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsRepoPath);
 
     // Create a test view using CodebaseViewsStore
     const codebaseViewsStore = new CodebaseViewsStore(fs);
@@ -38,7 +39,7 @@ describe('GetTagUsageTool', () => {
       cells: {},
       timestamp: new Date().toISOString(),
     };
-    codebaseViewsStore.saveView(validatedRepoPath, testView);
+    codebaseViewsStore.saveView(validatedRepoPathView);
   });
 
   it('should return empty statistics for repository with no tags', async () => {

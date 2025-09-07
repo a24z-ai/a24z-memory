@@ -3,6 +3,7 @@
  * Uses InMemoryFileSystemAdapter to test platform-agnostic functionality
  */
 
+import { describe, it, expect, beforeEach } from 'bun:test';
 import { A24zConfigurationStore } from '../../../src/pure-core/stores/A24zConfigurationStore';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
 import { MemoryPalace } from '../../../src/MemoryPalace';
@@ -22,7 +23,7 @@ describe('Pure A24zConfigurationStore', () => {
     fs.setupTestRepo(testRepoPath);
 
     // Validate the repository path
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsRepoPath);
   });
 
   describe('Repository Validation', () => {
@@ -61,9 +62,9 @@ describe('Pure A24zConfigurationStore', () => {
     it('should throw error for invalid repository path', () => {
       // Mock createDir to fail
       const originalCreateDir = fs.createDir.bind(fs);
-      fs.createDir = jest.fn().mockImplementation(() => {
+      fs.createDir = () => {
         throw new Error('Permission denied');
-      });
+      };
 
       // Since we're testing the store directly with an invalid path,
       // we need to bypass validation by casting

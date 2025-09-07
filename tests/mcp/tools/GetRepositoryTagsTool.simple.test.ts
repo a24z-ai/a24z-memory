@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { GetRepositoryTagsTool } from '../../../src/mcp/tools/GetRepositoryTagsTool';
 import { MemoryPalace } from '../../../src/MemoryPalace';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
@@ -18,7 +19,7 @@ describe('GetRepositoryTagsTool (Simple)', () => {
 
     // Set up repository structure
     inMemoryFs.setupTestRepo(testPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(inMemoryFs, testPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(inMemoryFsPath);
 
     // Create the tool with in-memory adapter
     tool = new GetRepositoryTagsTool(inMemoryFs);

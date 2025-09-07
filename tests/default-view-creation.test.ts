@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { CreateRepositoryAnchoredNoteTool } from '../src/mcp/tools/CreateRepositoryAnchoredNoteTool';
 import { InMemoryFileSystemAdapter } from './test-adapters/InMemoryFileSystemAdapter';
 import { CodebaseViewsStore } from '../src/pure-core/stores/CodebaseViewsStore';
@@ -18,7 +19,7 @@ describe('Default View Auto-Creation', () => {
 
     // Set up test repository
     fs.setupTestRepo(testPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsPath);
 
     // Create some test files to anchor to
     const srcDir = fs.join(testPath, 'src');

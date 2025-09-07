@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach } from 'bun:test';
 import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
 import { MemoryPalace } from '../../../src/MemoryPalace';
@@ -21,7 +22,7 @@ describe('Tag Removal from Notes', () => {
 
     // Set up test repository
     fsAdapter.setupTestRepo(testRepoPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsAdapter, testRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsAdapterRepoPath);
 
     // Create a basic test note template
     testNote = {

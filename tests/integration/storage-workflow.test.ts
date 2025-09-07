@@ -1,6 +1,7 @@
 // Test file - any types used for mock data
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { CreateRepositoryAnchoredNoteTool } from '../../src/mcp/tools/CreateRepositoryAnchoredNoteTool';
 import { GetAnchoredNotesTool } from '../../src/mcp/tools/GetAnchoredNotesTool';
 import { GetRepositoryTagsTool } from '../../src/mcp/tools/GetRepositoryTagsTool';
@@ -23,7 +24,7 @@ describe('File Operations Integration', () => {
 
     // Set up test repository
     fsAdapter.setupTestRepo(testPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsAdapter, testPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsAdapterPath);
 
     // Create a test view
     const testView: CodebaseView = {
@@ -40,7 +41,7 @@ describe('File Operations Integration', () => {
       },
       timestamp: Date.now().toString(),
     };
-    codebaseViewsStore.saveView(validatedRepoPath, testView);
+    codebaseViewsStore.saveView(validatedRepoPathView);
   });
 
   afterEach(() => {
@@ -139,7 +140,7 @@ describe('File Operations Integration', () => {
     // Create note with first tool instance
     const fs = new InMemoryFileSystemAdapter();
     fs.setupTestRepo(testPath);
-    const validatedPath = MemoryPalace.validateRepositoryPath(fs, testPath);
+    const validatedPath = MemoryPalace.validateRepositoryPath(fsPath);
 
     // Create a test view for the new instance
     const codebaseViewsStore = new CodebaseViewsStore(fs);
@@ -157,7 +158,7 @@ describe('File Operations Integration', () => {
       },
       timestamp: Date.now().toString(),
     };
-    codebaseViewsStore.saveView(validatedPath, testView);
+    codebaseViewsStore.saveView(validatedPathView);
 
     const tool1 = new CreateRepositoryAnchoredNoteTool(fs);
     await tool1.execute({

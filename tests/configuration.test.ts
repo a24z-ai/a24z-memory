@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { AnchoredNotesStore } from '../src/pure-core/stores/AnchoredNotesStore';
 import { InMemoryFileSystemAdapter } from './test-adapters/InMemoryFileSystemAdapter';
 import { CodebaseViewsStore } from '../src/pure-core/stores/CodebaseViewsStore';
@@ -19,7 +20,7 @@ describe('Configuration System', () => {
 
     // Set up test repository
     fs.setupTestRepo(testRepoPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsRepoPath);
 
     // Create a test view
     const testView: CodebaseView = {
@@ -31,7 +32,7 @@ describe('Configuration System', () => {
       cells: {},
       timestamp: new Date().toISOString(),
     };
-    codebaseViewsStore.saveView(validatedRepoPath, testView);
+    codebaseViewsStore.saveView(validatedRepoPathView);
   });
 
   afterEach(() => {

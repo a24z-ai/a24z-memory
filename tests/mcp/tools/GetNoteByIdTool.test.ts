@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach } from 'bun:test';
 import { GetAnchoredNoteByIdTool } from '../../../src/mcp/tools/GetAnchoredNoteByIdTool';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
 import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
@@ -17,7 +18,7 @@ describe('GetAnchoredNoteByIdTool', () => {
     notesStore = new AnchoredNotesStore(fs);
     tool = new GetAnchoredNoteByIdTool(fs);
     fs.setupTestRepo(testRepoPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsRepoPath);
 
     // Create a test view using CodebaseViewsStore
     const codebaseViewsStore = new CodebaseViewsStore(fs);
@@ -30,7 +31,7 @@ describe('GetAnchoredNoteByIdTool', () => {
       cells: {},
       timestamp: new Date().toISOString(),
     };
-    codebaseViewsStore.saveView(validatedRepoPath, testView);
+    codebaseViewsStore.saveView(validatedRepoPathView);
   });
 
   it('should retrieve and format a note by ID', async () => {

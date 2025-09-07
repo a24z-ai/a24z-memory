@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach } from 'bun:test';
 import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
 import { MemoryPalace } from '../../../src/MemoryPalace';
@@ -16,7 +17,7 @@ describe('Anchor Normalization and Matching', () => {
 
     // Set up test repository
     fs.setupTestRepo(testRepoPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsRepoPath);
   });
 
   describe('anchor normalization on save', () => {

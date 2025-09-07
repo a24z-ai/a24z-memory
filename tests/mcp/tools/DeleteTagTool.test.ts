@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach } from 'bun:test';
 import { DeleteTagTool } from '../../../src/mcp/tools/DeleteTagTool';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
 import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
@@ -21,7 +22,7 @@ describe('DeleteTagTool', () => {
     tool = new DeleteTagTool(fs);
     notesStore = new AnchoredNotesStore(fs);
     fs.setupTestRepo(testRepoPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsRepoPath);
 
     // Create a test view using CodebaseViewsStore
     const codebaseViewsStore = new CodebaseViewsStore(fs);
@@ -34,7 +35,7 @@ describe('DeleteTagTool', () => {
       cells: {},
       timestamp: new Date().toISOString(),
     };
-    codebaseViewsStore.saveView(validatedRepoPath, testView);
+    codebaseViewsStore.saveView(validatedRepoPathView);
   });
 
   it('should require confirmation to delete a tag', async () => {

@@ -1,0 +1,8 @@
+# Bun configuration
+
+[test]
+preload = ["./tests/setup.ts"]
+root = "./"
+
+# Use TypeScript for tests
+smol = true

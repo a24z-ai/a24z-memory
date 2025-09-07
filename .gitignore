@@ -10,3 +10,8 @@ coverage/
 .claude/
 .vscode/
 *.tgz
+
+# Package manager lock files (npm only, we use Bun)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

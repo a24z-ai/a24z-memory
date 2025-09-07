@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach } from 'bun:test';
 import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
 import { MemoryPalace } from '../../../src/MemoryPalace';
@@ -23,7 +24,7 @@ describe('notesStore', () => {
 
     // Set up test repository
     fs.setupTestRepo(testRepoPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsRepoPath);
   });
 
   describe('Path Normalization', () => {
@@ -93,7 +94,7 @@ describe('notesStore', () => {
 
       expect(data).toHaveProperty('id', saved.id);
       expect(data).toHaveProperty('timestamp', saved.timestamp);
-      expect(data).toHaveProperty('note', testNote.note);
+      expect(data).toHaveProperty('note'Note.note);
       expect(data).toHaveProperty('tags');
       expect(Array.isArray(data.tags)).toBe(true);
       expect(data.tags).toEqual(testNote.tags);
