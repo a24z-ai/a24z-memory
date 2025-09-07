@@ -6,7 +6,7 @@
  */
 
 import { FileSystemAdapter } from '../abstractions/filesystem';
-import { RepositoryConfiguration, ValidatedRepositoryPath } from '../types';
+import { MemoryPalaceConfiguration, ValidatedRepositoryPath } from '../types';
 import { DEFAULT_REPOSITORY_CONFIG } from '../config/defaultConfig';
 
 // ============================================================================
@@ -70,12 +70,12 @@ export class A24zConfigurationStore {
   // Configuration Management
   // ============================================================================
 
-  private readonly DEFAULT_CONFIG: RepositoryConfiguration = DEFAULT_REPOSITORY_CONFIG;
+  private readonly DEFAULT_CONFIG: MemoryPalaceConfiguration = DEFAULT_REPOSITORY_CONFIG;
 
   /**
    * Get repository configuration
    */
-  getConfiguration(repositoryRootPath: ValidatedRepositoryPath): RepositoryConfiguration {
+  getConfiguration(repositoryRootPath: ValidatedRepositoryPath): MemoryPalaceConfiguration {
     this.validateRepositoryRoot(repositoryRootPath);
 
     const configPath = this.getConfigPath(repositoryRootPath);
@@ -107,8 +107,8 @@ export class A24zConfigurationStore {
    */
   updateConfiguration(
     repositoryRootPath: ValidatedRepositoryPath,
-    updates: Partial<RepositoryConfiguration>
-  ): RepositoryConfiguration {
+    updates: Partial<MemoryPalaceConfiguration>
+  ): MemoryPalaceConfiguration {
     this.validateRepositoryRoot(repositoryRootPath);
 
     const current = this.getConfiguration(repositoryRootPath);
@@ -129,7 +129,7 @@ export class A24zConfigurationStore {
   /**
    * Reset configuration to defaults
    */
-  resetConfiguration(repositoryRootPath: ValidatedRepositoryPath): RepositoryConfiguration {
+  resetConfiguration(repositoryRootPath: ValidatedRepositoryPath): MemoryPalaceConfiguration {
     this.validateRepositoryRoot(repositoryRootPath);
 
     const configPath = this.getConfigPath(repositoryRootPath);
@@ -166,7 +166,7 @@ export class A24zConfigurationStore {
   /**
    * Get default configuration (useful for comparison or reset)
    */
-  getDefaultConfiguration(): RepositoryConfiguration {
+  getDefaultConfiguration(): MemoryPalaceConfiguration {
     return {
       version: this.DEFAULT_CONFIG.version,
       limits: { ...this.DEFAULT_CONFIG.limits },

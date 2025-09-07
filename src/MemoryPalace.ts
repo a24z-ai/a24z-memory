@@ -13,7 +13,7 @@ import { generateFullGuidanceContent, GuidanceContent } from './pure-core/utils/
 import type {
   StoredAnchoredNote,
   AnchoredNoteWithPath,
-  RepositoryConfiguration,
+  MemoryPalaceConfiguration,
   CodebaseView,
   ValidatedRepositoryPath,
   ValidatedRelativePath,
@@ -236,7 +236,7 @@ export class MemoryPalace {
   /**
    * Get repository configuration
    */
-  getConfiguration(): RepositoryConfiguration {
+  getConfiguration(): MemoryPalaceConfiguration {
     return this.notesStore.getConfiguration(this.repositoryRoot);
   }
 

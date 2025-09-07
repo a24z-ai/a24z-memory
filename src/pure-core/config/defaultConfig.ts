@@ -3,7 +3,7 @@
  * All default values should be defined here for easier maintenance
  */
 
-import type { RepositoryConfiguration } from '../types';
+import type { MemoryPalaceConfiguration } from '../types';
 
 /**
  * Configuration interface for A24z Memory AI functionality
@@ -25,7 +25,7 @@ export interface A24zMemoryConfig {
 /**
  * Repository storage and limits configuration
  */
-export const DEFAULT_REPOSITORY_CONFIG: RepositoryConfiguration = {
+export const DEFAULT_REPOSITORY_CONFIG: MemoryPalaceConfiguration = {
   version: 1,
   limits: {
     noteMaxLength: 500, // 500 characters - forces concise, focused notes

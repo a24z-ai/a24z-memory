@@ -256,7 +256,7 @@ export interface AnchoredNoteWithPath {
 // Configuration Types
 // ============================================================================
 
-export interface RepositoryConfiguration {
+export interface MemoryPalaceConfiguration {
   version: number;
   limits: {
     noteMaxLength: number;

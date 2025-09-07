@@ -9,7 +9,7 @@ import { FileSystemAdapter } from '../abstractions/filesystem';
 import {
   StoredAnchoredNote,
   AnchoredNoteWithPath,
-  RepositoryConfiguration,
+  MemoryPalaceConfiguration,
   ValidatedRepositoryPath,
   ValidatedRelativePath,
 } from '../types';
@@ -159,7 +159,7 @@ export class AnchoredNotesStore {
   /**
    * Get repository configuration
    */
-  getConfiguration(repositoryRootPath: ValidatedRepositoryPath): RepositoryConfiguration {
+  getConfiguration(repositoryRootPath: ValidatedRepositoryPath): MemoryPalaceConfiguration {
     return this.configStore.getConfiguration(repositoryRootPath);
   }
 
@@ -168,8 +168,8 @@ export class AnchoredNotesStore {
    */
   updateConfiguration(
     repositoryRootPath: ValidatedRepositoryPath,
-    updates: Partial<RepositoryConfiguration>
-  ): RepositoryConfiguration {
+    updates: Partial<MemoryPalaceConfiguration>
+  ): MemoryPalaceConfiguration {
     return this.configStore.updateConfiguration(repositoryRootPath, updates);
   }
 

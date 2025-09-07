@@ -10,7 +10,7 @@ export type {
   // Core note types
   StoredAnchoredNote,
   AnchoredNoteWithPath,
-  RepositoryConfiguration,
+  MemoryPalaceConfiguration,
 
   // Path validation types
   ValidatedRepositoryPath,
