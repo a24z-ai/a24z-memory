@@ -10,6 +10,7 @@ import { BRANDING } from './branding.js';
 import { createListCommand } from './cli-memory-palace/commands/list.js';
 import { createSaveCommand } from './cli-memory-palace/commands/save.js';
 import { createValidateCommand } from './cli-memory-palace/commands/validate.js';
+import { createFromDocCommand } from './cli-memory-palace/commands/from-doc.js';
 
 const program = new Command();
 
@@ -22,6 +23,7 @@ program
 program.addCommand(createListCommand());
 program.addCommand(createSaveCommand());
 program.addCommand(createValidateCommand());
+program.addCommand(createFromDocCommand());
 
 // Parse command line arguments
 program.parse(process.argv);
