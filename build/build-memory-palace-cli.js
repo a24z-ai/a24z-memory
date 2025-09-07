@@ -3,14 +3,14 @@
 import * as esbuild from 'esbuild';
 import { chmod } from 'fs/promises';
 
-// Build the CLI as a single bundled file
+// Build the Memory Palace CLI as a single bundled file
 await esbuild.build({
-  entryPoints: ['src/mcp-cli.ts'],
+  entryPoints: ['src/memory-palace-cli.ts'],
   bundle: true,
   platform: 'node',
   target: 'node18',
   format: 'esm',
-  outfile: 'dist/mcp-cli.js',
+  outfile: 'dist/memory-palace-cli.js',
   banner: {
     js: `#!/usr/bin/env node`,
   },
@@ -21,6 +21,7 @@ await esbuild.build({
     'fast-glob',
     'glob',
     '@modelcontextprotocol/sdk',
+    'commander',
   ],
   packages: 'external', // Keep all node_modules external
   minify: false, // Keep readable for debugging
@@ -28,6 +29,6 @@ await esbuild.build({
 });
 
 // Make the CLI executable
-await chmod('dist/mcp-cli.js', 0o755);
+await chmod('dist/memory-palace-cli.js', 0o755);
 
-console.log('✅ CLI bundle built successfully');
+console.log('✅ Memory Palace CLI bundle built successfully');

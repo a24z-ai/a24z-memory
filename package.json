@@ -6,15 +6,17 @@
   "main": "dist/lib.js",
   "types": "dist/lib.d.ts",
   "bin": {
-    "a24z-memory": "dist/cli.js"
+    "a24z-memory": "dist/mcp-cli.js",
+    "memory-palace": "dist/memory-palace-cli.js"
   },
   "type": "module",
   "scripts": {
-    "build": "bun run clean && bun run build:lib && bun run fix:imports && bun run build:cli",
+    "build": "bun run clean && bun run build:lib && bun run fix:imports && bun run build:mcp-cli && bun run build:memory-palace-cli",
+    "build:mcp-cli": "bun build/build-cli.js",
+    "build:memory-palace-cli": "bun build/build-memory-palace-cli.js",
     "clean": "rm -rf dist",
     "build:lib": "tsc",
     "fix:imports": "bun build/fix-esm-imports.js",
-    "build:cli": "bun build/build-cli.js",
     "prepare": "husky",
     "release": "semantic-release",
     "test": "bun test",

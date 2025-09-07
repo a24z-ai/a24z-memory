@@ -294,6 +294,13 @@ export class MemoryPalace {
   }
 
   /**
+   * Save a codebase view
+   */
+  saveView(view: CodebaseView): void {
+    return this.viewsStore.saveView(this.repositoryRoot, view);
+  }
+
+  /**
    * Replace a tag across all notes
    */
   replaceTagInNotes(oldTag: string, newTag: string): number {

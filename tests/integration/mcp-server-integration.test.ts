@@ -392,7 +392,7 @@ describe('MCP Server Integration', () => {
   // Helper functions
   async function testServerStartup(): Promise<{ success: boolean; initialized: boolean }> {
     return new Promise((resolve, reject) => {
-      const server = spawn('node', [path.join(process.cwd(), 'dist/cli.js'), 'start'], {
+      const server = spawn('node', [path.join(process.cwd(), 'dist/mcp-cli.js'), 'start'], {
         stdio: ['pipe', 'pipe', 'pipe'],
         env: { ...process.env },
         cwd: testRepo, // Run from test repository to avoid creating .a24z in project directory
@@ -471,7 +471,7 @@ describe('MCP Server Integration', () => {
 
   async function startMcpServer(_testRepoPath?: string): Promise<ChildProcess> {
     return new Promise((resolve, reject) => {
-      const server = spawn('node', [path.join(process.cwd(), 'dist/cli.js'), 'start'], {
+      const server = spawn('node', [path.join(process.cwd(), 'dist/mcp-cli.js'), 'start'], {
         stdio: ['pipe', 'pipe', 'pipe'],
         env: { ...process.env },
         cwd: testRepo, // Run from test repository to avoid creating .a24z in project directory

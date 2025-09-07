@@ -11,7 +11,7 @@ async function testMCPServer() {
 
   return new Promise((resolve, reject) => {
     // Start the MCP server
-    const server = spawn('node', ['dist/cli.js'], {
+    const server = spawn('node', ['dist/mcp-cli.js'], {
       stdio: ['pipe', 'pipe', 'pipe'],
       env: { ...process.env },
     });
