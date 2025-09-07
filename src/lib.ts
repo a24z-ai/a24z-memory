@@ -11,6 +11,11 @@ export type {
   StoredAnchoredNote,
   AnchoredNoteWithPath,
   RepositoryConfiguration,
+
+  // Path validation types
+  ValidatedRepositoryPath,
+  ValidatedRelativePath,
+
   // CodebaseView types
   CodebaseView,
   CodebaseViewFileCell,
@@ -21,7 +26,7 @@ export type {
 } from './pure-core/types';
 
 // Filesystem adapter for dependency injection
-export { FileSystemAdapter } from './pure-core/abstractions/filesystem';
+export type { FileSystemAdapter } from './pure-core/abstractions/filesystem';
 export { NodeFileSystemAdapter } from './node-adapters/NodeFileSystemAdapter';
 
 // Primary API class
