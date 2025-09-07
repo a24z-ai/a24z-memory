@@ -243,7 +243,7 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
       timestamp: new Date().toISOString(),
       cells: {
         [cellName]: {
-          patterns: initialAnchors,
+          files: initialAnchors,
           coordinates: [0, 0],
           priority: 5,
         },
@@ -287,17 +287,17 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
         maxColInRow >= 23 ? [maxRow + 1, 0] : [maxRow, maxColInRow + 1];
 
       view.cells[cellName] = {
-        patterns: anchors,
+        files: anchors,
         coordinates: nextCoordinates,
         priority: 5,
       };
     } else {
       // Add new anchors to existing cell if they're not already there
-      const existingPatterns = new Set(view.cells[cellName].patterns);
-      const newAnchors = anchors.filter((anchor) => !existingPatterns.has(anchor));
+      const existingFiles = new Set(view.cells[cellName].files);
+      const newAnchors = anchors.filter((anchor) => !existingFiles.has(anchor));
 
       if (newAnchors.length > 0) {
-        view.cells[cellName].patterns = [...view.cells[cellName].patterns, ...newAnchors];
+        view.cells[cellName].files = [...view.cells[cellName].files, ...newAnchors];
       }
     }
 
@@ -342,10 +342,10 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
       for (const [cellName, cell] of cellEntries) {
         content += `### ${cellName}\n\n`;
 
-        if (cell.patterns && cell.patterns.length > 0) {
-          content += `**Patterns:**\n`;
-          for (const pattern of cell.patterns) {
-            content += `- \`${pattern}\`\n`;
+        if (cell.files && cell.files.length > 0) {
+          content += `**Files:**\n`;
+          for (const file of cell.files) {
+            content += `- \`${file}\`\n`;
           }
           content += '\n';
         }

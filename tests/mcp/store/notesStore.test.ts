@@ -170,8 +170,8 @@ describe('notesStore', () => {
       const note1WithPath = store.saveNote({ ...testNote, directoryPath: validatedRepoPath });
       const note1 = note1WithPath.note;
 
-      // Wait a bit to ensure different timestamp
-      await new Promise((resolve) => setTimeout(resolve, 1));
+      // Wait enough time to ensure different timestamp (at least 10ms for reliability)
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const note2WithPath = store.saveNote({ ...testNote, directoryPath: validatedRepoPath });
       const note2 = note2WithPath.note;

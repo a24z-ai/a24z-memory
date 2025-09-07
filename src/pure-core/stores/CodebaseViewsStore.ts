@@ -6,23 +6,25 @@
  */
 
 import { FileSystemAdapter } from '../abstractions/filesystem';
-import { CodebaseView, ValidatedRepositoryPath, CodebaseViewFileCell } from '../types';
+import { CodebaseView, ValidatedRepositoryPath, CodebaseViewCell } from '../types';
 
 // Re-export types for convenience
 export {
   CodebaseView,
+  CodebaseViewCell,
   CodebaseViewFileCell,
   CodebaseViewScope,
   CodebaseViewLinks,
   ViewValidationResult,
   PatternValidationResult,
+  FileListValidationResult,
 } from '../types';
 
 /**
  * Compute grid dimensions from cell coordinates.
  * Returns the minimum grid size needed to contain all cells.
  */
-export function computeGridDimensions(cells: Record<string, CodebaseViewFileCell>): {
+export function computeGridDimensions(cells: Record<string, CodebaseViewCell>): {
   rows: number;
   cols: number;
 } {
@@ -88,9 +90,10 @@ export class CodebaseViewsStore {
 
     const filePath = this.getViewFilePath(repositoryRootPath, view.id);
 
-    // Add timestamp if not present
+    // Add defaults for required fields if not present
     const viewToSave = {
       ...view,
+      version: view.version || '1.0.0', // Default to 1.0.0 if not specified
       timestamp: view.timestamp || new Date().toISOString(),
     };
 

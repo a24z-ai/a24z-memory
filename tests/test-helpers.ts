@@ -44,7 +44,7 @@ export function createTestView(repositoryPath: string, viewId: string = 'test-vi
     cols: 2,
     cells: {
       main: {
-        patterns: ['**/*'],
+        files: ['src/index.ts', 'README.md'],
         coordinates: [0, 0] as [number, number],
         priority: 0,
       },

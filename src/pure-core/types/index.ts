@@ -30,16 +30,10 @@ export type ValidatedRelativePath = string & { readonly __brand: 'ValidatedRelat
 export type CodebaseViewLinks = Record<string, string>;
 
 /**
- * A cell in the grid that contains files matching specific patterns.
- * Each cell represents a logical grouping of related files in the codebase.
+ * Base type for all codebase view cells.
+ * Contains common properties shared by all cell types.
  */
-export interface CodebaseViewFileCell {
-  /**
-   * List of file/directory patterns to match using glob syntax.
-   * Examples: 'src/**', '*.md', 'package.json'
-   */
-  patterns: string[];
-
+export interface CodebaseViewCell {
   /**
    * Position in the grid as [row, column].
    * Zero-indexed coordinates.
@@ -71,6 +65,19 @@ export interface CodebaseViewFileCell {
 
   /** Experimental metadata for this cell */
   experimentalMetadata?: Record<string, unknown>;
+}
+
+/**
+ * A cell that contains an explicit list of files.
+ * Each cell represents a logical grouping of related files in the codebase.
+ */
+export interface CodebaseViewFileCell extends CodebaseViewCell {
+  /**
+   * List of file paths (relative to repository root).
+   * Examples: 'src/index.ts', 'README.md', 'package.json'
+   * No glob patterns or directories - just explicit file paths.
+   */
+  files: string[];
 }
 
 /**
@@ -221,6 +228,19 @@ export interface PatternValidationResult {
   conflicts?: Array<{
     path: string;
     patterns: string[];
+    cells: string[];
+  }>;
+}
+
+/**
+ * Result of file list validation operations.
+ */
+export interface FileListValidationResult {
+  valid: boolean;
+  existingFiles: string[];
+  missingFiles: string[];
+  conflicts?: Array<{
+    path: string;
     cells: string[];
   }>;
 }

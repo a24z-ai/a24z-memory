@@ -63,7 +63,7 @@ describe('MCP Server Integration', () => {
       cols: 2,
       cells: {
         main: {
-          patterns: ['**/*'],
+          files: ['src/index.ts', 'README.md'],
           coordinates: [0, 0],
           priority: 0,
         },

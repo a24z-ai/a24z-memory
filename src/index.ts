@@ -12,18 +12,17 @@ export { McpServer } from './mcp/server/McpServer';
 // CodebaseView types (pure)
 export type {
   CodebaseView,
+  CodebaseViewCell,
   CodebaseViewFileCell,
   CodebaseViewScope,
   CodebaseViewLinks,
   ViewValidationResult,
   PatternValidationResult,
+  FileListValidationResult,
 } from './pure-core/types';
 
 // CodebaseView exports for VS Code extension integration
-export {
-  CodebaseViewsStore,
-  generateViewIdFromName,
-} from './pure-core/stores/CodebaseViewsStore';
+export { CodebaseViewsStore, generateViewIdFromName } from './pure-core/stores/CodebaseViewsStore';
 
 // Export singleton instance for backward compatibility
 import { NodeFileSystemAdapter } from './node-adapters/NodeFileSystemAdapter';

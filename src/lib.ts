@@ -18,11 +18,13 @@ export type {
 
   // CodebaseView types
   CodebaseView,
+  CodebaseViewCell,
   CodebaseViewFileCell,
   CodebaseViewScope,
   CodebaseViewLinks,
   ViewValidationResult,
   PatternValidationResult,
+  FileListValidationResult,
 } from './pure-core/types';
 
 // Filesystem adapter for dependency injection

@@ -56,7 +56,7 @@ describe('ListCodebaseViewsTool', () => {
       overviewPath: 'docs/test-view-1.md',
       cells: {
         source: {
-          patterns: ['src/**/*'],
+          files: ['src/index.ts', 'src/lib.ts'],
           coordinates: [0, 0],
         },
       },
@@ -70,7 +70,7 @@ describe('ListCodebaseViewsTool', () => {
       overviewPath: 'docs/test-view-2.md',
       cells: {
         tests: {
-          patterns: ['test/**/*'],
+          files: ['test/index.test.ts', 'test/lib.test.ts'],
           coordinates: [0, 1],
         },
       },
@@ -125,7 +125,7 @@ describe('ListCodebaseViewsTool', () => {
       overviewPath: 'docs/nested-test.md',
       cells: {
         source: {
-          patterns: ['src/**/*'],
+          files: ['src/index.ts', 'src/lib.ts'],
           coordinates: [0, 0],
         },
       },

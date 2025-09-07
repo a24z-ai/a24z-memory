@@ -87,8 +87,8 @@ describe('Default View Auto-Creation', () => {
 
     // Check that the first cell contains the anchored files
     const firstCell = Object.values(defaultView!.cells)[0];
-    expect(firstCell.patterns).toContain('src/main.ts');
-    expect(firstCell.patterns).toContain('src/utils.ts');
+    expect(firstCell.files).toContain('src/main.ts');
+    expect(firstCell.files).toContain('src/utils.ts');
   });
 
   it('should not create default view when codebaseViewId is provided', async () => {
@@ -101,7 +101,7 @@ describe('Default View Auto-Creation', () => {
       overviewPath: 'README.md',
       cells: {
         'cell-1': {
-          patterns: ['src/main.ts'],
+          files: ['src/main.ts'],
           coordinates: [0, 0],
         },
       },
@@ -159,8 +159,8 @@ describe('Default View Auto-Creation', () => {
 
     // Check that both files are in the patterns
     const firstCell = Object.values(updatedView!.cells)[0];
-    expect(firstCell.patterns).toContain('src/main.ts');
-    expect(firstCell.patterns).toContain('src/utils.ts');
+    expect(firstCell.files).toContain('src/main.ts');
+    expect(firstCell.files).toContain('src/utils.ts');
   });
 
   it('should create overview files for default views', async () => {
@@ -234,7 +234,7 @@ describe('Default View Auto-Creation', () => {
     // Add a new cell to the view
     if (view) {
       view.cells['cell-2'] = {
-        patterns: ['src/utils.ts'],
+        files: ['src/utils.ts'],
         coordinates: [0, 1],
       };
 
@@ -302,7 +302,7 @@ describe('Default View Auto-Creation', () => {
 
     // Check that both files are in the patterns
     const firstCell = Object.values(view!.cells)[0];
-    expect(firstCell.patterns).toContain('src/main.ts');
-    expect(firstCell.patterns).toContain('src/utils.ts');
+    expect(firstCell.files).toContain('src/main.ts');
+    expect(firstCell.files).toContain('src/utils.ts');
   });
 });

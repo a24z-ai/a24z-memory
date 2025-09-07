@@ -36,11 +36,11 @@ describe('Pure CodebaseViewsStore', () => {
     overviewPath: 'README.md',
     cells: {
       file1: {
-        patterns: ['src/index.ts'],
+        files: ['src/index.ts'],
         coordinates: [0, 0],
       },
       file2: {
-        patterns: ['src/utils.ts'],
+        files: ['src/utils.ts'],
         coordinates: [0, 1],
       },
     },

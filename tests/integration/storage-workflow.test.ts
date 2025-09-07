@@ -34,7 +34,7 @@ describe('File Operations Integration', () => {
       overviewPath: 'README.md',
       cells: {
         'cell-1': {
-          patterns: ['src/**/*.ts'],
+          files: ['src/main.ts', 'src/utils.ts'],
           coordinates: [0, 0],
         },
       },
@@ -151,7 +151,7 @@ describe('File Operations Integration', () => {
       overviewPath: 'README.md',
       cells: {
         'cell-1': {
-          patterns: ['src/**/*.ts'],
+          files: ['src/main.ts', 'src/utils.ts'],
           coordinates: [0, 0],
         },
       },
