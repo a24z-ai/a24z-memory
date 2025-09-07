@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /**
  * Memory Palace CLI - Main entry point
  *
@@ -10,6 +8,8 @@
 import { Command } from 'commander';
 import { BRANDING } from './branding.js';
 import { createListCommand } from './cli-memory-palace/commands/list.js';
+import { createSaveCommand } from './cli-memory-palace/commands/save.js';
+import { createValidateCommand } from './cli-memory-palace/commands/validate.js';
 
 const program = new Command();
 
@@ -20,6 +20,8 @@ program
 
 // Add commands
 program.addCommand(createListCommand());
+program.addCommand(createSaveCommand());
+program.addCommand(createValidateCommand());
 
 // Parse command line arguments
 program.parse(process.argv);

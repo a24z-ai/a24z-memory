@@ -10,6 +10,10 @@ import { AnchoredNotesStore, StaleAnchoredNote } from './pure-core/stores/Anchor
 import { CodebaseViewsStore } from './pure-core/stores/CodebaseViewsStore';
 import { A24zConfigurationStore } from './pure-core/stores/A24zConfigurationStore';
 import { generateFullGuidanceContent, GuidanceContent } from './pure-core/utils/guidanceGenerator';
+import {
+  CodebaseViewValidator,
+  ValidationResult,
+} from './pure-core/validation/CodebaseViewValidator';
 import type {
   StoredAnchoredNote,
   AnchoredNoteWithPath,
@@ -40,6 +44,7 @@ export class MemoryPalace {
   private notesStore: AnchoredNotesStore;
   private viewsStore: CodebaseViewsStore;
   private configStore: A24zConfigurationStore;
+  private validator: CodebaseViewValidator;
   private repositoryRoot: ValidatedRepositoryPath;
   private fs: FileSystemAdapter;
 
@@ -47,10 +52,11 @@ export class MemoryPalace {
     this.fs = fileSystem;
     this.repositoryRoot = MemoryPalace.validateRepositoryPath(fileSystem, repositoryRoot);
 
-    // Initialize stores with the file system adapter
+    // Initialize stores and validator with the file system adapter
     this.notesStore = new AnchoredNotesStore(fileSystem);
     this.viewsStore = new CodebaseViewsStore(fileSystem);
     this.configStore = new A24zConfigurationStore(fileSystem);
+    this.validator = new CodebaseViewValidator(fileSystem);
   }
 
   /**
@@ -298,6 +304,47 @@ export class MemoryPalace {
    */
   saveView(view: CodebaseView): void {
     return this.viewsStore.saveView(this.repositoryRoot, view);
+  }
+
+  /**
+   * Validate a codebase view
+   */
+  validateView(view: CodebaseView): ValidationResult {
+    return this.validator.validate(this.repositoryRoot, view);
+  }
+
+  /**
+   * Save a codebase view with validation
+   * Always saves the view (even if invalid) but provides validation feedback
+   */
+  saveViewWithValidation(view: CodebaseView): ValidationResult {
+    // Validate and get potentially modified view (e.g., scope removal)
+    const validationResult = this.validator.validate(this.repositoryRoot, view);
+
+    // Add default version if missing
+    let viewToSave = validationResult.validatedView;
+    if (!viewToSave.version) {
+      viewToSave = {
+        ...viewToSave,
+        version: '1.0.0',
+      };
+    }
+
+    // Add timestamp if missing
+    if (!viewToSave.timestamp) {
+      viewToSave = {
+        ...viewToSave,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    // Always save the view, regardless of validation results
+    this.viewsStore.saveView(this.repositoryRoot, viewToSave);
+
+    return {
+      ...validationResult,
+      validatedView: viewToSave,
+    };
   }
 
   /**
