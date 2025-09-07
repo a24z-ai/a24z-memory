@@ -260,7 +260,7 @@ describe('notesStore', () => {
         ...testNote,
         directoryPath: validatedRepoPath,
         codebaseViewId: 'test-view',
-        anchors: [testRepoPath], // Anchor to parent directory
+        anchors: ['src'], // Anchor to parent directory
         note: 'Parent note',
       });
       const parentNote = parentNoteWithPath.note;
@@ -272,7 +272,7 @@ describe('notesStore', () => {
       const childNoteWithPath = store.saveNote({
         ...testNote,
         directoryPath: validatedRepoPath, // Same repository
-        anchors: [childPath], // But anchored to child path
+        anchors: ['child'], // But anchored to child path
         note: 'Child note',
         codebaseViewId: 'test-view',
       });
@@ -292,20 +292,31 @@ describe('notesStore', () => {
       const childPath = fs.join(testRepoPath, 'child');
       fs.createDir(childPath);
 
-      store.saveNote({ ...testNote, directoryPath: validatedRepoPath });
+      // Create a parent note anchored to the root
+      store.saveNote({
+        ...testNote,
+        directoryPath: validatedRepoPath,
+        codebaseViewId: 'test-view',
+        anchors: ['src'], // Parent directory
+        note: 'Parent note',
+      });
+
+      // Create a child note anchored to child directory
       const childNoteWithPath = store.saveNote({
         ...testNote,
         directoryPath: validatedRepoPath,
         codebaseViewId: 'test-view',
-        anchors: [childPath, 'test-anchor'],
+        anchors: ['child', 'test-anchor'],
         note: 'Child note',
       });
       const childNote = childNoteWithPath.note;
 
-      const rootPath = '' as ValidatedRelativePath;
-      const notes = store.getNotesForPath(validatedRepoPath, rootPath, false);
+      // Query for notes at child path without parent notes
+      const childRelativePath = 'child' as ValidatedRelativePath;
+      const notes = store.getNotesForPath(validatedRepoPath, childRelativePath, false);
 
-      expect(notes).toHaveLength(1); // Only the child note
+      // Should only include notes anchored to child, not parent
+      expect(notes).toHaveLength(1);
       expect(notes.find((n) => n.note.id === childNote.id)).toBeDefined();
     });
   });
@@ -332,14 +343,14 @@ describe('notesStore', () => {
         ...testNote,
         directoryPath: validatedRepoPath,
         codebaseViewId: 'test-view',
-        anchors: [testRepoPath],
+        anchors: ['src'],
         tags: ['parent-tag'],
       });
       store.saveNote({
         ...testNote,
         directoryPath: validatedRepoPath,
         codebaseViewId: 'test-view',
-        anchors: [childPath],
+        anchors: ['child'],
         tags: ['child-tag'],
       });
 

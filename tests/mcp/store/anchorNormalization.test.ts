@@ -38,40 +38,34 @@ describe('Anchor Normalization and Matching', () => {
       expect(note.anchors[2]).toBe('docs/README.md');
     });
 
-    it('should convert absolute anchor paths to relative', () => {
+    it('should reject absolute anchor paths', () => {
       const absoluteAnchor = fs.join(testRepoPath, 'src/api/endpoint.ts');
 
-      const noteWithPath = store.saveNote({
-        note: 'Test note with absolute anchor',
-        directoryPath: validatedRepoPath,
-        codebaseViewId: 'test-view',
-        anchors: [absoluteAnchor],
-        tags: ['test'],
-        metadata: {},
-      });
-      const note = noteWithPath.note;
-
-      expect(note.anchors).toHaveLength(1);
-      expect(note.anchors[0]).toBe('/test-repo/src/api/endpoint.ts'); // This is the actual behavior
+      expect(() =>
+        store.saveNote({
+          note: 'Test note with absolute anchor',
+          directoryPath: validatedRepoPath,
+          codebaseViewId: 'test-view',
+          anchors: [absoluteAnchor],
+          tags: ['test'],
+          metadata: {},
+        })
+      ).toThrow('Invalid anchor paths detected');
     });
 
-    it('should handle mixed relative and absolute anchors', () => {
+    it('should reject mixed relative and absolute anchors', () => {
       const absoluteAnchor = fs.join(testRepoPath, 'absolute/path.ts');
 
-      const noteWithPath = store.saveNote({
-        note: 'Test note with mixed anchors',
-        directoryPath: validatedRepoPath,
-        codebaseViewId: 'test-view',
-        anchors: ['relative/path.ts', absoluteAnchor, './another/relative.ts'],
-        tags: ['test'],
-        metadata: {},
-      });
-      const note = noteWithPath.note;
-
-      expect(note.anchors).toHaveLength(3);
-      expect(note.anchors[0]).toBe('relative/path.ts');
-      expect(note.anchors[1]).toBe('/test-repo/absolute/path.ts'); // This is the actual behavior
-      expect(note.anchors[2]).toBe('./another/relative.ts'); // This is the actual behavior
+      expect(() =>
+        store.saveNote({
+          note: 'Test note with mixed anchors',
+          directoryPath: validatedRepoPath,
+          codebaseViewId: 'test-view',
+          anchors: ['relative/path.ts', absoluteAnchor, './another/relative.ts'],
+          tags: ['test'],
+          metadata: {},
+        })
+      ).toThrow('Invalid anchor paths detected');
     });
   });
 

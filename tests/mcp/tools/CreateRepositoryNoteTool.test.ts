@@ -299,7 +299,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
       const input = {
         note: '# Test Note\\n\\nThis is **markdown** content.',
         directoryPath: testRepoPath,
-        anchors: ['src/**/*.ts', 'docs/'],
+        anchors: ['src/index.ts', 'docs'],
         tags: ['markdown', 'documentation', 'typescript'],
         codebaseViewId: 'test-view',
         metadata: {
@@ -317,8 +317,8 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
 
       expect(saved.note).toBe(input.note);
       expect(saved.tags).toEqual(input.tags);
-      expect(saved.anchors).toContain('src/**/*.ts');
-      expect(saved.anchors).toContain('docs/');
+      expect(saved.anchors).toContain('src/index.ts');
+      expect(saved.anchors).toContain('docs');
       expect(saved.metadata.author).toBe('test-user');
       expect(saved.metadata.complexity).toBe('high');
     });

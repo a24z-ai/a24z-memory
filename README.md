@@ -46,7 +46,7 @@ When you discover something important, anchor it to specific view coordinates:
 → View: "Frontend Architecture"  
 → Cell: [0,1] (Services grid location)
 → Tagged as: authentication, middleware, validation
-→ Anchored to: src/services/auth/middleware.ts
+→ Anchored to: src/services/auth/middleware.ts (relative paths only, no globs)
 → Stored in: .a24z/notes/ (synced via git)
 ```
 

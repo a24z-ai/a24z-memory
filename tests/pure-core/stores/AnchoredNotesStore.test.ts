@@ -162,6 +162,59 @@ describe('Pure AnchoredNotesStore', () => {
 
       expect(() => store.saveNote(noteInput)).toThrow('Too many tags');
     });
+
+    it('should reject anchors with glob patterns', () => {
+      const noteInput = {
+        note: 'Test note',
+        anchors: ['src/**/*.ts'], // Glob pattern
+        tags: ['test'],
+        codebaseViewId: 'test-view',
+        metadata: {},
+        directoryPath: validatedRepoPath,
+      };
+
+      expect(() => store.saveNote(noteInput)).toThrow('Invalid anchor paths detected');
+      expect(() => store.saveNote(noteInput)).toThrow('glob patterns');
+    });
+
+    it('should reject anchors with wildcard characters', () => {
+      const noteInput = {
+        note: 'Test note',
+        anchors: ['src/*.ts', 'test/file?.js', 'config/[abc].json'],
+        tags: ['test'],
+        codebaseViewId: 'test-view',
+        metadata: {},
+        directoryPath: validatedRepoPath,
+      };
+
+      expect(() => store.saveNote(noteInput)).toThrow('Invalid anchor paths detected');
+    });
+
+    it('should reject absolute paths in anchors', () => {
+      const noteInput = {
+        note: 'Test note',
+        anchors: ['/absolute/path/file.ts'],
+        tags: ['test'],
+        codebaseViewId: 'test-view',
+        metadata: {},
+        directoryPath: validatedRepoPath,
+      };
+
+      expect(() => store.saveNote(noteInput)).toThrow('Invalid anchor paths detected');
+    });
+
+    it('should accept valid relative paths without glob patterns', () => {
+      const noteInput = {
+        note: 'Test note',
+        anchors: ['src/test.ts', 'lib/utils.js', 'config/app.json'],
+        tags: ['test'],
+        codebaseViewId: 'test-view',
+        metadata: {},
+        directoryPath: validatedRepoPath,
+      };
+
+      expect(() => store.saveNote(noteInput)).not.toThrow();
+    });
   });
 
   describe('File System Usage', () => {

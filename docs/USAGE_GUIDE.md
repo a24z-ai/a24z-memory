@@ -60,7 +60,7 @@ Store important development insights and decisions for future reference.
 
 - **note**: **REQUIRED** - The insight or decision to document (Markdown format)
 - **directoryPath**: **REQUIRED** - Repository root path (absolute path starting with /)
-- **anchors**: **REQUIRED** - File/directory paths this note relates to
+- **anchors**: **REQUIRED** - File/directory paths this note relates to (must be relative paths, no glob patterns like `*`, `**`, `?` allowed)
 - **tags**: **REQUIRED** - An array of semantic tags for categorization
 - **confidence**: (Optional) 'high', 'medium', or 'low'. Default is 'medium'
 - **type**: (Optional) 'decision', 'pattern', 'gotcha', or 'explanation'. Default is 'explanation'

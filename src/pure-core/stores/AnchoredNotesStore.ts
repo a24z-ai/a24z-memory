@@ -26,7 +26,8 @@ export interface ValidationError {
     | 'tooManyAnchors'
     | 'invalidTags'
     | 'anchorOutsideRepo'
-    | 'missingAnchors';
+    | 'missingAnchors'
+    | 'invalidAnchor';
   message: string;
   context?: Record<string, unknown>;
 }
@@ -504,6 +505,30 @@ export class AnchoredNotesStore {
         type: 'missingAnchors',
         message: 'Notes must have at least one anchor',
         context: { actual: note.anchors.length },
+      });
+    }
+
+    // Check for invalid anchor patterns (reject globs and wildcards)
+    const invalidAnchors: string[] = [];
+    const globPatterns = ['*', '?', '[', ']', '{', '}', '**'];
+
+    for (const anchor of note.anchors) {
+      // Check if anchor contains any glob pattern characters
+      if (globPatterns.some((pattern) => anchor.includes(pattern))) {
+        invalidAnchors.push(anchor);
+      }
+
+      // Also check for absolute paths (optional - you may want to keep this)
+      if (anchor.startsWith('/')) {
+        invalidAnchors.push(anchor);
+      }
+    }
+
+    if (invalidAnchors.length > 0) {
+      errors.push({
+        type: 'invalidAnchor',
+        message: `Invalid anchor paths detected. Anchors must be relative paths without glob patterns (*, ?, **, etc.). Invalid anchors: ${invalidAnchors.join(', ')}`,
+        context: { invalidAnchors },
       });
     }
 

@@ -53,7 +53,7 @@ describe('File Operations Integration', () => {
     const createResult = await createTool.execute({
       note: '# Integration Test\\n\\nThis tests file operations.',
       directoryPath: testPath,
-      anchors: [testPath],
+      anchors: ['src/test.ts'],
       tags: ['integration', 'file-ops'],
       codebaseViewId: 'test-view',
       metadata: { test: true },
@@ -104,7 +104,7 @@ describe('File Operations Integration', () => {
       createTool.execute({
         note: `Concurrent note ${i}`,
         directoryPath: testPath,
-        anchors: [testPath],
+        anchors: ['src/test.ts'],
         tags: [`tag-${i}`],
         codebaseViewId: 'test-view',
         metadata: { index: i },
@@ -163,7 +163,7 @@ describe('File Operations Integration', () => {
     await tool1.execute({
       note: 'Persistence test',
       directoryPath: testPath,
-      anchors: [testPath],
+      anchors: ['src/test.ts'],
       tags: ['persistence'],
       codebaseViewId: 'test-view',
       metadata: {},

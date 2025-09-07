@@ -248,7 +248,7 @@ describe('MCP Server Integration', () => {
               arguments: {
                 note: 'Integration test note from MCP server - this will be cleaned up',
                 directoryPath: projectDir,
-                anchors: [path.join(projectDir, 'tests')],
+                anchors: ['tests'],
                 tags: ['integration', 'mcp-test', 'temp'],
               },
             },
