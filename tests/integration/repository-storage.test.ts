@@ -1,20 +1,15 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import {
-  saveNote,
-  getNotesForPath,
-  getUsedTagsForPath,
-} from '../../src/core/store/anchoredNotesStore';
-import {
-  normalizeRepositoryPath,
-  findProjectRoot,
-  getRepositoryName,
-} from '../../src/core/utils/pathNormalization';
+import { AnchoredNotesStore } from '../../src/pure-core/stores/AnchoredNotesStore';
+import { InMemoryFileSystemAdapter } from '../test-adapters/InMemoryFileSystemAdapter';
 import { createTestView } from '../test-helpers';
+// Removed unused imports - these were for old test structure
 
 describe('Repository-Specific Storage', () => {
   const testRepoPath = '/tmp/test-repo-storage';
   const testSubPath = path.join(testRepoPath, 'src', 'components');
+  let notesStore: AnchoredNotesStore;
+  let fsAdapter: InMemoryFileSystemAdapter;
 
   beforeEach(() => {
     // Clean up any existing test data
@@ -43,6 +38,10 @@ describe('Repository-Specific Storage', () => {
         version: '1.0.0',
       })
     );
+
+    // Initialize store
+    fsAdapter = new InMemoryFileSystemAdapter();
+    notesStore = new AnchoredNotesStore(fsAdapter);
   });
 
   afterEach(() => {
@@ -55,17 +54,17 @@ describe('Repository-Specific Storage', () => {
   describe('Path Normalization', () => {
     it('should normalize nested paths to repository root', () => {
       const deepPath = path.join(testRepoPath, 'src', 'components', 'Button.tsx');
-      const normalized = normalizeRepositoryPath(deepPath);
+      const normalized = fsAdapter.normalizeRepositoryPath(deepPath);
       expect(normalized).toBe(testRepoPath);
     });
 
     it('should detect project root from package.json', () => {
-      const projectRoot = findProjectRoot(testSubPath);
+      const projectRoot = fsAdapter.findProjectRoot(testSubPath);
       expect(projectRoot).toBe(testRepoPath);
     });
 
     it('should get correct repository name', () => {
-      const name = getRepositoryName(testRepoPath);
+      const name = fsAdapter.getRepositoryName(testRepoPath);
       expect(name).toBe('test-repo-storage');
     });
   });
@@ -81,7 +80,7 @@ describe('Repository-Specific Storage', () => {
     };
 
     it('should store notes in repository .a24z directory', () => {
-      const savedWithPath = saveNote(testNote);
+      const savedWithPath = notesStore.saveNote(testNote);
       const saved = savedWithPath.note;
 
       // Check that note was saved
@@ -101,11 +100,11 @@ describe('Repository-Specific Storage', () => {
 
     it('should retrieve notes from repository storage', () => {
       // Save a note
-      const savedWithPath = saveNote(testNote);
+      const savedWithPath = notesStore.saveNote(testNote);
       const saved = savedWithPath.note;
 
       // Retrieve notes using exact repository path
-      const notes = getNotesForPath(testRepoPath, true);
+      const notes = notesStore.getNotesForPath(testRepoPath, true);
       expect(notes).toHaveLength(1);
       expect(notes[0].id).toBe(saved.id);
       expect(notes[0].isParentDirectory).toBe(true);
@@ -114,12 +113,12 @@ describe('Repository-Specific Storage', () => {
 
     it('should retrieve notes from nested paths within repository', () => {
       // Save a note
-      const savedWithPath = saveNote(testNote);
+      const savedWithPath = notesStore.saveNote(testNote);
       const saved = savedWithPath.note;
 
       // Retrieve notes using nested path (should find the note at repo root)
       const nestedPath = path.join(testRepoPath, 'src', 'components', 'Button.tsx');
-      const notes = getNotesForPath(nestedPath, true);
+      const notes = notesStore.getNotesForPath(nestedPath, true);
       expect(notes).toHaveLength(1);
       expect(notes[0].id).toBe(saved.id);
       // The note should match the anchor, not be a parent directory
@@ -129,9 +128,9 @@ describe('Repository-Specific Storage', () => {
 
     it('should handle multiple notes in same repository', () => {
       // Save multiple notes
-      const note1WithPath = saveNote(testNote);
+      const note1WithPath = notesStore.saveNote(testNote);
       const note1 = note1WithPath.note;
-      const note2WithPath = saveNote({
+      const note2WithPath = notesStore.saveNote({
         ...testNote,
         note: 'Second test note',
         tags: ['test', 'second-note'],
@@ -140,7 +139,7 @@ describe('Repository-Specific Storage', () => {
       const note2 = note2WithPath.note;
 
       // Retrieve all notes
-      const notes = getNotesForPath(testRepoPath, true);
+      const notes = notesStore.getNotesForPath(testRepoPath, true);
       expect(notes).toHaveLength(2);
 
       const noteIds = notes.map((n) => n.id);
@@ -150,11 +149,11 @@ describe('Repository-Specific Storage', () => {
 
     it('should get used tags from repository', () => {
       // Save notes with different tags
-      saveNote({ ...testNote, tags: ['common', 'first'] });
-      saveNote({ ...testNote, tags: ['common', 'second'] });
-      saveNote({ ...testNote, tags: ['common', 'third'] });
+      notesStore.saveNote({ ...testNote, tags: ['common', 'first'] });
+      notesStore.saveNote({ ...testNote, tags: ['common', 'second'] });
+      notesStore.saveNote({ ...testNote, tags: ['common', 'third'] });
 
-      const tags = getUsedTagsForPath(testRepoPath);
+      const tags = notesStore.getUsedTagsForPath(testRepoPath);
       expect(tags[0]).toBe('common'); // Should be most frequent
       expect(tags).toContain('first');
       expect(tags).toContain('second');
@@ -199,7 +198,7 @@ describe('Repository-Specific Storage', () => {
 
     it('should isolate notes between different repositories', () => {
       // Save note in first repository
-      const note1WithPath = saveNote({
+      const note1WithPath = notesStore.saveNote({
         note: 'Note in first repo',
         directoryPath: testRepoPath,
         tags: ['repo1'],
@@ -210,7 +209,7 @@ describe('Repository-Specific Storage', () => {
       const note1 = note1WithPath.note;
 
       // Save note in second repository
-      const note2WithPath = saveNote({
+      const note2WithPath = notesStore.saveNote({
         note: 'Note in second repo',
         directoryPath: secondRepoPath,
         tags: ['repo2'],
@@ -221,8 +220,8 @@ describe('Repository-Specific Storage', () => {
       const note2 = note2WithPath.note;
 
       // Check that each repository only sees its own notes
-      const repo1Notes = getNotesForPath(testRepoPath, true);
-      const repo2Notes = getNotesForPath(secondRepoPath, true);
+      const repo1Notes = notesStore.getNotesForPath(testRepoPath, true);
+      const repo2Notes = notesStore.getNotesForPath(secondRepoPath, true);
 
       expect(repo1Notes).toHaveLength(1);
       expect(repo2Notes).toHaveLength(1);
@@ -248,12 +247,10 @@ describe('Repository-Specific Storage', () => {
       const { CreateRepositoryAnchoredNoteTool } = await import(
         '../../src/mcp/tools/CreateRepositoryAnchoredNoteTool'
       );
-      const { GetAnchoredNotesTool } = await import(
-        '../../src/mcp/tools/GetAnchoredNotesTool'
-      );
+      const { GetAnchoredNotesTool } = await import('../../src/mcp/tools/GetAnchoredNotesTool');
 
-      const saveTool = new CreateRepositoryAnchoredNoteTool();
-      const getTool = new GetAnchoredNotesTool();
+      const saveTool = new CreateRepositoryAnchoredNoteTool(fsAdapter);
+      const getTool = new GetAnchoredNotesTool(fsAdapter);
 
       // Save a note using the MCP tool
       const saveResult = await saveTool.execute({
@@ -295,7 +292,7 @@ describe('Repository-Specific Storage', () => {
 
     it('should retrieve notes from nested paths using MCP tools', async () => {
       // Save a note first
-      const savedWithPath = saveNote({
+      const savedWithPath = notesStore.saveNote({
         note: 'Nested path retrieval test',
         directoryPath: testRepoPath,
         tags: ['nested-test'],
@@ -306,10 +303,8 @@ describe('Repository-Specific Storage', () => {
       const saved = savedWithPath.note;
 
       // Import and use the MCP tool
-      const { GetAnchoredNotesTool } = await import(
-        '../../src/mcp/tools/GetAnchoredNotesTool'
-      );
-      const getTool = new GetAnchoredNotesTool();
+      const { GetAnchoredNotesTool } = await import('../../src/mcp/tools/GetAnchoredNotesTool');
+      const getTool = new GetAnchoredNotesTool(fsAdapter);
 
       // Try to retrieve from a deeply nested path
       const deepPath = path.join(testRepoPath, 'src', 'components', 'Button.tsx');

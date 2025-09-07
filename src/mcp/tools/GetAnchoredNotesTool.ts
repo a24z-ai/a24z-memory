@@ -1,10 +1,9 @@
 import { z } from 'zod';
-import * as path from 'node:path';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
-import { AnchoredNotesStore } from '../../pure-core/stores/AnchoredNotesStore';
-import { NodeFileSystemAdapter } from '../../node-adapters/NodeFileSystemAdapter';
-import { normalizeRepositoryPath } from '../../node-adapters/NodeFileSystemAdapter';
+import { MemoryPalace } from '../../MemoryPalace';
+import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
+import type { AnchoredNoteWithPath, StoredAnchoredNote } from '../../pure-core/types';
 
 type NoteResponse = {
   id: string;
@@ -49,8 +48,11 @@ export class GetAnchoredNotesTool extends BaseTool {
   description =
     'Retrieve raw notes from the repository. Returns the actual note content, metadata, and anchors. Use this when you want to see the exact notes stored, browse through knowledge, or need the raw data for further processing.';
 
-  constructor() {
+  private fs: FileSystemAdapter;
+
+  constructor(fs: FileSystemAdapter) {
     super();
+    this.fs = fs;
   }
 
   schema = z.object({
@@ -128,7 +130,7 @@ export class GetAnchoredNotesTool extends BaseTool {
     const parsed = this.schema.parse(input);
 
     // Validate that path is absolute
-    if (!path.isAbsolute(parsed.path)) {
+    if (!this.fs.isAbsolute(parsed.path)) {
       return {
         content: [
           {
@@ -142,7 +144,7 @@ export class GetAnchoredNotesTool extends BaseTool {
     // Get the repository root
     let repoRoot: string;
     try {
-      repoRoot = normalizeRepositoryPath(parsed.path);
+      repoRoot = this.fs.normalizeRepositoryPath(parsed.path);
     } catch {
       return {
         content: [
@@ -155,17 +157,20 @@ export class GetAnchoredNotesTool extends BaseTool {
     }
 
     // Create MemoryPalace instance for this repository
-    const nodeFs = new NodeFileSystemAdapter();
-    const notesStore = new AnchoredNotesStore(repoRoot, nodeFs);
+    const memoryPalace = new MemoryPalace(repoRoot, this.fs);
 
-    // Fetch all notes for the path (extract just the notes from AnchoredNoteWithPath)
-    let allNotes = notesStore.getNotesForPath(parsed.path, parsed.includeParentNotes)
-      .map(noteWithPath => noteWithPath.note);
+    // Fetch all notes for the path (using static method for repository discovery)
+    let allNotesWithPath: AnchoredNoteWithPath[] = MemoryPalace.getNotesForPath(
+      parsed.path,
+      this.fs,
+      parsed.includeParentNotes
+    );
+    let allNotes: StoredAnchoredNote[] = allNotesWithPath.map((noteWithPath) => noteWithPath.note);
 
     // Get stale note information if needed
     let staleNoteMap: Map<string, string[]> = new Map();
     if (!parsed.includeStale) {
-      const staleNotes = notesStore.checkStaleAnchoredNotes();
+      const staleNotes = memoryPalace.getStaleNotes();
       for (const staleNote of staleNotes) {
         staleNoteMap.set(staleNote.note.id, staleNote.staleAnchors);
       }
@@ -177,7 +182,7 @@ export class GetAnchoredNotesTool extends BaseTool {
       });
     } else {
       // Still get stale info for display purposes
-      const staleNotes = notesStore.checkStaleAnchoredNotes();
+      const staleNotes = memoryPalace.getStaleNotes();
       for (const staleNote of staleNotes) {
         if (staleNote.staleAnchors.length > 0) {
           staleNoteMap.set(staleNote.note.id, staleNote.staleAnchors);
@@ -238,8 +243,12 @@ export class GetAnchoredNotesTool extends BaseTool {
         case 'relevance': {
           // Sort by path proximity (exact matches first, then parents)
           // This is simplified - could be enhanced with better relevance scoring
-          const aIsExact = a.anchors.some((anchor) => path.join(repoRoot, anchor) === parsed.path);
-          const bIsExact = b.anchors.some((anchor) => path.join(repoRoot, anchor) === parsed.path);
+          const aIsExact = a.anchors.some(
+            (anchor) => this.fs.join(repoRoot, anchor) === parsed.path
+          );
+          const bIsExact = b.anchors.some(
+            (anchor) => this.fs.join(repoRoot, anchor) === parsed.path
+          );
 
           if (aIsExact !== bIsExact) {
             return aIsExact ? -1 : 1;

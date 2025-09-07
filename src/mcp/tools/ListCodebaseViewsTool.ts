@@ -1,12 +1,8 @@
 import { z } from 'zod';
-import * as path from 'node:path';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
-import { AnchoredNotesStore } from '../../pure-core/stores/AnchoredNotesStore';
-import { NodeFileSystemAdapter } from '../../node-adapters/NodeFileSystemAdapter';
-import { findGitRoot } from '../../node-adapters/NodeFileSystemAdapter';
+import { MemoryPalace } from '../../MemoryPalace';
 import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
-import { existsSync } from 'fs';
 
 /**
  * Summary of a codebase view for user browsing and selection.
@@ -32,12 +28,11 @@ export class ListCodebaseViewsTool extends BaseTool {
   public description =
     'List all available codebase views in a repository. Returns a summary of each view with id, name, and description for browsing and selection.';
 
-  // Allow injection of a custom filesystem adapter for testing
-  private nodeFs: FileSystemAdapter;
+  private fs: FileSystemAdapter;
 
-  constructor(nodeFs?: FileSystemAdapter) {
+  constructor(fs: FileSystemAdapter) {
     super();
-    this.nodeFs = nodeFs || new NodeFileSystemAdapter();
+    this.fs = fs;
   }
 
   public schema = z.object({
@@ -59,7 +54,7 @@ export class ListCodebaseViewsTool extends BaseTool {
     const { repositoryPath } = input;
 
     // Validate that repositoryPath is absolute
-    if (!path.isAbsolute(repositoryPath)) {
+    if (!this.fs.isAbsolute(repositoryPath)) {
       throw new Error(
         `❌ repositoryPath must be an absolute path starting with '/'. ` +
           `Received relative path: "${repositoryPath}". ` +
@@ -69,39 +64,19 @@ export class ListCodebaseViewsTool extends BaseTool {
 
     // Find the repository root
     let repositoryRoot: string;
-    
-    if (this.nodeFs) {
-      // When using dependency injection (testing), find git root using the adapter
-      repositoryRoot = repositoryPath;
-      let currentPath = repositoryPath;
-      while (currentPath && currentPath !== '/' && currentPath !== this.nodeFs.dirname(currentPath)) {
-        if (this.nodeFs.exists(this.nodeFs.join(currentPath, '.git'))) {
-          repositoryRoot = currentPath;
-          break;
-        }
-        currentPath = this.nodeFs.dirname(currentPath);
-      }
-      if (!this.nodeFs.exists(this.nodeFs.join(repositoryRoot, '.git'))) {
-        throw new Error(
-          `❌ Could not find git repository at path: "${repositoryPath}". ` +
-            `💡 Tip: Ensure the path is within a git repository.`
-        );
-      }
-    } else {
-      // Production mode - use Node.js filesystem functions  
-      const foundRoot = findGitRoot(repositoryPath);
-      if (!foundRoot || !existsSync(foundRoot)) {
-        throw new Error(
-          `❌ Could not find git repository at path: "${repositoryPath}". ` +
-            `💡 Tip: Ensure the path is within a git repository.`
-        );
-      }
-      repositoryRoot = foundRoot;
+
+    try {
+      repositoryRoot = this.fs.normalizeRepositoryPath(repositoryPath);
+    } catch {
+      throw new Error(
+        `❌ Could not find git repository at path: "${repositoryPath}". ` +
+          `💡 Tip: Ensure the path is within a git repository.`
+      );
     }
 
     // Create MemoryPalace and get all views
-    const notesStore = new AnchoredNotesStore(repositoryRoot, this.nodeFs || new NodeFileSystemAdapter());
-    const allCodebaseViews = notesStore.listViews();
+    const memoryPalace = new MemoryPalace(repositoryRoot, this.fs);
+    const allCodebaseViews = memoryPalace.listViews();
 
     // Transform to our summary format
     const codebaseViewSummaries: CodebaseViewSummary[] = allCodebaseViews.map((view) => ({

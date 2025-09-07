@@ -1,19 +1,19 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { CreateRepositoryAnchoredNoteTool } from '../src/mcp/tools/CreateRepositoryAnchoredNoteTool';
-import { InMemoryFileSystemAdapter } from './test-adapters/InMemoryFileSystemAdapter';
+import { NodeFileSystemAdapter } from '../src/node-adapters/NodeFileSystemAdapter';
 import { CodebaseViewsStore } from '../src/pure-core/stores/CodebaseViewsStore';
 import { TEST_DIR } from './setup';
 
-describe('Catchall View Auto-Creation', () => {
+describe('Default View Auto-Creation', () => {
   let tool: CreateRepositoryAnchoredNoteTool;
-  let codebaseViewsStore: CodebaseViewsStore;
-  const testPath = path.join(TEST_DIR, 'session-test-repo');
+  let viewsStore: CodebaseViewsStore;
+  const testPath = path.join(TEST_DIR, 'default-view-test-repo');
 
   beforeEach(() => {
-    const fs = new InMemoryFileSystemAdapter();
-    tool = new CreateRepositoryAnchoredNoteTool(fs);
-    codebaseViewsStore = new CodebaseViewsStore(fs);
+    const fsAdapter = new NodeFileSystemAdapter();
+    tool = new CreateRepositoryAnchoredNoteTool(fsAdapter);
+    viewsStore = new CodebaseViewsStore(fsAdapter);
 
     // Ensure test directory exists
     if (!fs.existsSync(TEST_DIR)) {
@@ -39,9 +39,9 @@ describe('Catchall View Auto-Creation', () => {
     }
   });
 
-  it('should auto-create a catchall view when codebaseViewId is not provided', async () => {
+  it('should auto-create a default view when codebaseViewId is not provided', async () => {
     const input = {
-      note: 'Test note for catchall view creation',
+      note: 'Test note for default view creation',
       directoryPath: testPath,
       anchors: [path.join(testPath, 'src/main.ts'), path.join(testPath, 'src/utils.ts')],
       tags: ['test'],
@@ -58,7 +58,7 @@ describe('Catchall View Auto-Creation', () => {
 
   it('should create a view with user metadata', async () => {
     const input = {
-      note: 'Test note for catchall metadata',
+      note: 'Test note for default metadata',
       directoryPath: testPath,
       anchors: [path.join(testPath, 'src/main.ts')],
       tags: ['test'],
@@ -66,16 +66,16 @@ describe('Catchall View Auto-Creation', () => {
 
     await tool.execute(input);
 
-    // Check that the catchall view was created
-    const views = codebaseViewsStore.listViews(testPath);
-    const catchallView = views.find((v) => v.id === 'default-explorer-log');
+    // Check that the default view was created
+    const views = viewsStore.listViews(testPath);
+    const defaultView = views.find((v) => v.id === 'default-explorer-log');
 
-    expect(catchallView).toBeDefined();
-    expect(catchallView!.metadata?.generationType).toBe('user');
-    expect(catchallView!.name).toBe('Default Exploration Log');
+    expect(defaultView).toBeDefined();
+    expect(defaultView!.metadata?.generationType).toBe('user');
+    expect(defaultView!.name).toBe('Default Exploration Log');
   });
 
-  it('should generate time-based cells that increment with each note', async () => {
+  it('should generate time-based cells in the default view', async () => {
     const input = {
       note: 'Test note for time-based cells',
       directoryPath: testPath,
@@ -85,14 +85,14 @@ describe('Catchall View Auto-Creation', () => {
 
     await tool.execute(input);
 
-    // Get the created catchall view
-    const catchallView = codebaseViewsStore.getView(testPath, 'default-explorer-log');
+    // Get the created default view
+    const defaultView = viewsStore.getView(testPath, 'default-explorer-log');
 
-    expect(catchallView).toBeDefined();
-    expect(catchallView!.cells).toBeDefined();
+    expect(defaultView).toBeDefined();
+    expect(defaultView!.cells).toBeDefined();
 
     // Should have at least one time-based cell
-    const cellNames = Object.keys(catchallView!.cells);
+    const cellNames = Object.keys(defaultView!.cells);
     expect(cellNames.length).toBeGreaterThan(0);
 
     // Cell names should follow YYYY-MM-DD-HH format
@@ -100,7 +100,7 @@ describe('Catchall View Auto-Creation', () => {
     expect(cellNames.some((name) => timeCellPattern.test(name))).toBe(true);
 
     // Cells should contain the note anchors as patterns
-    const firstCell = Object.values(catchallView!.cells)[0];
+    const firstCell = Object.values(defaultView!.cells)[0];
     expect(firstCell.patterns).toContain('src/main.ts');
     expect(firstCell.patterns).toContain('src/utils.ts');
   });
@@ -125,7 +125,7 @@ describe('Catchall View Auto-Creation', () => {
       },
     };
 
-    codebaseViewsStore.saveView(testPath, manualView);
+    viewsStore.saveView(testPath, manualView);
 
     const input = {
       note: 'Test note with explicit view ID',
@@ -137,13 +137,13 @@ describe('Catchall View Auto-Creation', () => {
 
     const result = await tool.execute(input);
 
-    // Should use the provided view, not create a catchall view
+    // Should use the provided view, not create a default view
     expect(result.content[0].text).toContain('Note saved successfully');
     expect(result.content[0].text).toContain('Manual Test View');
     expect(result.content[0].text).not.toContain('Default View:');
   });
 
-  it('should reuse the same catchall view for multiple notes', async () => {
+  it('should reuse the same default view for multiple notes', async () => {
     const input1 = {
       note: 'First test note',
       directoryPath: testPath,
@@ -151,13 +151,13 @@ describe('Catchall View Auto-Creation', () => {
       tags: ['test'],
     };
 
-    // Create first note (creates catchall view)
+    // Create first note (creates default view)
     await tool.execute(input1);
 
-    // Get the catchall view
-    const views = codebaseViewsStore.listViews(testPath);
-    const catchallView = views.find((v) => v.id === 'default-explorer-log');
-    expect(catchallView).toBeDefined();
+    // Get the default view
+    const views = viewsStore.listViews(testPath);
+    const defaultView = views.find((v) => v.id === 'default-explorer-log');
+    expect(defaultView).toBeDefined();
 
     // Create second note (should reuse the same view)
     const input2 = {
@@ -169,13 +169,13 @@ describe('Catchall View Auto-Creation', () => {
 
     await tool.execute(input2);
 
-    // Verify still only one catchall view exists
-    const finalViews = codebaseViewsStore.listViews(testPath);
-    const catchallViews = finalViews.filter((v) => v.id === 'default-explorer-log');
-    expect(catchallViews.length).toBe(1);
+    // Verify still only one default view exists
+    const finalViews = viewsStore.listViews(testPath);
+    const defaultViews = finalViews.filter((v) => v.id === 'default-explorer-log');
+    expect(defaultViews.length).toBe(1);
 
     // View should have time-based cells with accumulated anchors
-    const updatedView = codebaseViewsStore.getView(testPath, 'default-explorer-log');
+    const updatedView = viewsStore.getView(testPath, 'default-explorer-log');
     expect(updatedView).toBeDefined();
     expect(Object.keys(updatedView!.cells).length).toBeGreaterThan(0);
 
@@ -186,7 +186,7 @@ describe('Catchall View Auto-Creation', () => {
   });
 
   describe('Markdown Overview File Generation', () => {
-    it('should create markdown overview file when catchall view is created', async () => {
+    it('should create markdown overview file when default view is created', async () => {
       const input = {
         note: 'Test note for overview file creation',
         directoryPath: testPath,
@@ -203,7 +203,7 @@ describe('Catchall View Auto-Creation', () => {
       // Check that the overview file has content
       const content = fs.readFileSync(overviewPath, 'utf-8');
       expect(content).toContain('Default Exploration Log');
-      expect(content).toContain('Time-based catchall view');
+      expect(content).toContain('Time-based default view');
     });
 
     it('should update markdown overview file when notes are added to existing time cells', async () => {
@@ -251,7 +251,7 @@ describe('Catchall View Auto-Creation', () => {
       await tool.execute(input1);
 
       // Get the view to see current time cell
-      const view = codebaseViewsStore.getView(testPath, 'default-explorer-log');
+      const view = viewsStore.getView(testPath, 'default-explorer-log');
       const currentCells = Object.keys(view!.cells);
       expect(currentCells.length).toBe(1);
 
@@ -267,7 +267,7 @@ describe('Catchall View Auto-Creation', () => {
         coordinates: [0, 1],
         priority: 5,
       };
-      codebaseViewsStore.saveView(testPath, view!);
+      viewsStore.saveView(testPath, view!);
 
       // Check overview reflects multiple time sections
       const overviewPath = path.join(testPath, '.a24z', 'overviews', 'default-explorer-log.md');

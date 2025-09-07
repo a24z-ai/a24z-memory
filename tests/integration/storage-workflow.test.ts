@@ -8,6 +8,7 @@ import { GetAnchoredNotesTool } from '../../src/mcp/tools/GetAnchoredNotesTool';
 import { GetRepositoryTagsTool } from '../../src/mcp/tools/GetRepositoryTagsTool';
 import { TEST_DIR } from '../setup';
 import { createTestView } from '../test-helpers';
+import { InMemoryFileSystemAdapter } from '../test-adapters/InMemoryFileSystemAdapter';
 
 describe('File Operations Integration', () => {
   const testPath = path.join(TEST_DIR, 'file-ops-test');
@@ -41,7 +42,8 @@ describe('File Operations Integration', () => {
 
   it('should complete full create-retrieve-query workflow', async () => {
     // Step 1: Create a note
-    const createTool = new CreateRepositoryAnchoredNoteTool();
+    const fs = new InMemoryFileSystemAdapter();
+    const createTool = new CreateRepositoryAnchoredNoteTool(fs);
     const createResult = await createTool.execute({
       note: '# Integration Test\\n\\nThis tests file operations.',
       directoryPath: testPath,
@@ -58,7 +60,7 @@ describe('File Operations Integration', () => {
     expect(fs.existsSync(notesDir)).toBe(true);
 
     // Step 3: Retrieve notes
-    const getTool = new GetAnchoredNotesTool();
+    const getTool = new GetAnchoredNotesTool(fs);
     const getResult = await getTool.execute({
       path: testPath,
       includeParentNotes: true,
@@ -90,7 +92,8 @@ describe('File Operations Integration', () => {
   });
 
   it('should handle concurrent file writes safely', async () => {
-    const createTool = new CreateRepositoryAnchoredNoteTool();
+    const fs = new InMemoryFileSystemAdapter();
+    const createTool = new CreateRepositoryAnchoredNoteTool(fs);
 
     // Create 10 notes concurrently
     const promises = Array.from({ length: 10 }, (_: unknown, i: number) =>
@@ -112,7 +115,7 @@ describe('File Operations Integration', () => {
     });
 
     // Verify all were saved
-    const getTool = new GetAnchoredNotesTool();
+    const getTool = new GetAnchoredNotesTool(fs);
     const getResult = await getTool.execute({
       path: testPath,
       includeParentNotes: true,
@@ -130,7 +133,8 @@ describe('File Operations Integration', () => {
 
   it('should persist notes across tool instances', async () => {
     // Create note with first tool instance
-    const tool1 = new CreateRepositoryAnchoredNoteTool();
+    const fs = new InMemoryFileSystemAdapter();
+    const tool1 = new CreateRepositoryAnchoredNoteTool(fs);
     await tool1.execute({
       note: 'Persistence test',
       directoryPath: testPath,
@@ -141,7 +145,7 @@ describe('File Operations Integration', () => {
     });
 
     // Retrieve with new tool instance
-    const tool2 = new GetAnchoredNotesTool();
+    const tool2 = new GetAnchoredNotesTool(fs);
     const result = await tool2.execute({
       path: testPath,
       includeParentNotes: true,

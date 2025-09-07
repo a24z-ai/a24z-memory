@@ -1,20 +1,19 @@
 import { z } from 'zod';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
-import { AnchoredNotesStore } from '../../pure-core/stores/AnchoredNotesStore';
-import { NodeFileSystemAdapter, normalizeRepositoryPath } from '../../node-adapters/NodeFileSystemAdapter';
+import { MemoryPalace } from '../../MemoryPalace';
 import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
 
 export class GetRepositoryTagsTool extends BaseTool {
   name = 'get_repository_tags';
   description =
     'Get available tags for categorizing notes in a repository path, including repository-specific guidance';
-  
-  private fsAdapter?: FileSystemAdapter;
 
-  constructor(fsAdapter?: FileSystemAdapter) {
+  private fs: FileSystemAdapter;
+
+  constructor(fs: FileSystemAdapter) {
     super();
-    this.fsAdapter = fsAdapter;
+    this.fs = fs;
   }
 
   schema = z.object({
@@ -40,49 +39,28 @@ export class GetRepositoryTagsTool extends BaseTool {
   });
 
   async execute(input: z.infer<typeof this.schema>): Promise<McpToolResult> {
-    // Create filesystem adapter
-    const fsAdapter = this.fsAdapter || new NodeFileSystemAdapter();
-    
-    // Find repository root from the input path
+    // Find repository root from the input path using the filesystem adapter
     let repositoryRoot: string;
-    
-    if (this.fsAdapter) {
-      // Testing mode - trust the provided path
-      repositoryRoot = input.path;
-      // Find the repository root by looking for .git
-      let currentPath = input.path;
-      while (currentPath && currentPath !== '/' && currentPath !== fsAdapter.dirname(currentPath)) {
-        if (fsAdapter.exists(fsAdapter.join(currentPath, '.git'))) {
-          repositoryRoot = currentPath;
-          break;
-        }
-        currentPath = fsAdapter.dirname(currentPath);
-      }
-      if (!repositoryRoot) {
-        throw new Error('Not a git repository (or any parent up to mount point)');
-      }
-    } else {
-      // Production mode - use normalizeRepositoryPath
-      try {
-        repositoryRoot = normalizeRepositoryPath(input.path);
-      } catch {
-        throw new Error('Not a git repository (or any parent up to mount point)');
-      }
+
+    try {
+      repositoryRoot = this.fs.normalizeRepositoryPath(input.path);
+    } catch {
+      throw new Error('Not a git repository (or any parent up to mount point)');
     }
 
     // Create MemoryPalace instance
-    const notesStore = new AnchoredNotesStore(repositoryRoot, fsAdapter);
+    const memoryPalace = new MemoryPalace(repositoryRoot, this.fs);
 
     const result: Record<string, unknown> = { success: true, path: input.path };
 
     // Get tag descriptions
-    const tagDescriptions = notesStore.getTagDescriptions();
+    const tagDescriptions = memoryPalace.getTagDescriptions();
 
     // Check for tag restrictions and include descriptions
-    const config = notesStore.getConfiguration();
+    const config = memoryPalace.getConfiguration();
     const enforced = config.tags?.enforceAllowedTags || false;
     const allowedTags = Object.keys(tagDescriptions);
-    
+
     if (enforced && allowedTags.length > 0) {
       // Include descriptions with allowed tags
       const allowedTagsWithDescriptions = allowedTags.map((tagName: string) => ({
@@ -104,7 +82,7 @@ export class GetRepositoryTagsTool extends BaseTool {
     }
 
     if (input.includeUsedTags !== false) {
-      const usedTags = notesStore.getUsedTags();
+      const usedTags = memoryPalace.getUsedTags();
       // Include descriptions for used tags
       result.usedTags = usedTags.map((tagName) => ({
         name: tagName,
@@ -115,7 +93,7 @@ export class GetRepositoryTagsTool extends BaseTool {
     // No common tags - users manage their own tags
 
     if (input.includeGuidance !== false) {
-      const guidance = notesStore.getGuidance();
+      const guidance = memoryPalace.getGuidance();
       if (guidance) {
         result.repositoryGuidance = guidance;
       } else {

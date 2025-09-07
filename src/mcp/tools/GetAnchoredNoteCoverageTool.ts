@@ -1,11 +1,8 @@
 import { z } from 'zod';
-import * as path from 'node:path';
 import { BaseTool } from './base-tool';
 import { McpToolResult } from '../types';
-import { AnchoredNotesStore } from '../../pure-core/stores/AnchoredNotesStore';
-import { NodeFileSystemAdapter } from '../../node-adapters/NodeFileSystemAdapter';
+import { MemoryPalace } from '../../MemoryPalace';
 import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
-import { normalizeRepositoryPath } from '../../node-adapters/NodeFileSystemAdapter';
 
 const inputSchema = z.object({
   path: z
@@ -54,18 +51,18 @@ export class GetAnchoredNoteCoverageTool extends BaseTool {
     'Analyze note coverage for a repository, showing which files have documentation and coverage statistics';
   schema = inputSchema;
 
-  private adapter: FileSystemAdapter;
+  private fs: FileSystemAdapter;
 
-  constructor(adapter?: FileSystemAdapter) {
+  constructor(fs: FileSystemAdapter) {
     super();
-    this.adapter = adapter || new NodeFileSystemAdapter();
+    this.fs = fs;
   }
 
   async execute(input: unknown): Promise<McpToolResult> {
     const params = input as ToolInput;
     try {
       // Validate that path is absolute
-      if (!path.isAbsolute(params.path)) {
+      if (!this.fs.isAbsolute(params.path)) {
         throw new Error(
           `❌ path must be an absolute path starting with '/'. ` +
             `Received relative path: "${params.path}". ` +
@@ -74,26 +71,20 @@ export class GetAnchoredNoteCoverageTool extends BaseTool {
       }
 
       // Normalize to repository root
-      const gitRoot = normalizeRepositoryPath(params.path);
-      
+      const gitRoot = this.fs.normalizeRepositoryPath(params.path);
+
       // Create MemoryPalace instance
-      const notesStore = new AnchoredNotesStore(gitRoot, this.adapter);
+      const memoryPalace = new MemoryPalace(gitRoot, this.fs);
 
       // Generate the formatted coverage report using MemoryPalace
-      const output = notesStore.generateCoverageReport({
-        includeDirectories: params.includeDirectories,
-        maxStaleAnchoredNotesToReport: params.maxStaleAnchoredNotes,
-        excludeDirectoryAnchors: params.excludeDirectoryAnchors,
-        outputFormat: params.outputFormat,
-        includeUncoveredFiles: params.includeUncoveredFiles,
-        fileTypeFilter: params.fileTypeFilter,
-      });
+      // Note: getCoverageReport is deprecated and returns minimal info
+      const output = memoryPalace.getCoverageReport();
 
       return {
         content: [
           {
             type: 'text',
-            text: output,
+            text: JSON.stringify(output, null, 2),
           },
         ],
       };

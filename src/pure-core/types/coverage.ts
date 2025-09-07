@@ -3,8 +3,6 @@
  * These types are used for analyzing note coverage across a codebase
  */
 
-import { StaleAnchoredNote } from '../stores/AnchoredNotesStore';
-
 // ============================================================================
 // Coverage Metrics
 // ============================================================================

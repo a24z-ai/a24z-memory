@@ -1,12 +1,9 @@
 import { z } from 'zod';
 import { BaseTool } from './base-tool';
-import { AnchoredNotesStore } from '../../pure-core/stores/AnchoredNotesStore';
-import { NodeFileSystemAdapter, findGitRoot } from '../../node-adapters/NodeFileSystemAdapter';
+import { MemoryPalace } from '../../MemoryPalace';
 import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
 import { StaleAnchoredNote } from '../../pure-core/stores/AnchoredNotesStore';
 import { McpToolResult } from '../types';
-import path from 'path';
-import { existsSync } from 'fs';
 
 const GetStaleAnchoredNotesSchema = z.object({
   directoryPath: z
@@ -43,59 +40,38 @@ export class GetStaleAnchoredNotesTool extends BaseTool {
   description =
     'Get all notes that have stale anchors (references to files that no longer exist) in a repository';
   schema = GetStaleAnchoredNotesSchema;
-  
-  // Allow injection of a custom filesystem adapter for testing
-  private fsAdapter?: FileSystemAdapter;
-  
-  constructor(fsAdapter?: FileSystemAdapter) {
+
+  private fs: FileSystemAdapter;
+
+  constructor(fs: FileSystemAdapter) {
     super();
-    this.fsAdapter = fsAdapter;
+    this.fs = fs;
   }
 
   async execute(input: z.infer<typeof this.schema>): Promise<McpToolResult> {
     const parsed = this.schema.parse(input);
     const { directoryPath, includeContent, includeValidAnchors } = parsed;
 
-    // Use injected adapter for testing, or default to NodeFileSystemAdapter
-    const nodeFs = this.fsAdapter || new NodeFileSystemAdapter();
-    
-    // For in-memory testing, we trust the provided path
-    // For production, we validate using the real filesystem
+    // Check if path exists
+    if (!this.fs.exists(directoryPath)) {
+      throw new Error(`Path does not exist: ${directoryPath}`);
+    }
+
+    // Find the repository root
     let repoRoot: string;
-    
-    if (this.fsAdapter) {
-      // Testing mode - trust the provided directory path
-      repoRoot = directoryPath;
-      if (!nodeFs.exists(repoRoot)) {
-        throw new Error(`Path does not exist: ${repoRoot}`);
-      }
-      if (!nodeFs.exists(nodeFs.join(repoRoot, '.git'))) {
-        throw new Error(
-          `Not a git repository: ${repoRoot}. This tool requires a git repository.`
-        );
-      }
-    } else {
-      // Production mode - use real filesystem validation
-      const normalizedPath = path.resolve(directoryPath);
-      
-      if (!existsSync(normalizedPath)) {
-        throw new Error(`Path does not exist: ${normalizedPath}`);
-      }
-      
-      const foundRoot = findGitRoot(normalizedPath);
-      if (!foundRoot) {
-        throw new Error(
-          `Not a git repository: ${normalizedPath}. This tool requires a git repository.`
-        );
-      }
-      repoRoot = foundRoot;
+    try {
+      repoRoot = this.fs.normalizeRepositoryPath(directoryPath);
+    } catch {
+      throw new Error(
+        `Not a git repository: ${directoryPath}. This tool requires a git repository.`
+      );
     }
 
     // Create MemoryPalace instance for this repository
-    const notesStore = new AnchoredNotesStore(repoRoot, nodeFs);
+    const memoryPalace = new MemoryPalace(repoRoot, this.fs);
 
     // Get all stale notes
-    const staleNotes = notesStore.checkStaleAnchoredNotes();
+    const staleNotes = memoryPalace.getStaleNotes();
 
     if (staleNotes.length === 0) {
       return {
@@ -138,8 +114,14 @@ export class GetStaleAnchoredNotesTool extends BaseTool {
     formattedNotes.sort((a, b) => b.timestamp - a.timestamp);
 
     // Calculate statistics
-    const totalStaleAnchors = staleNotes.reduce((sum, note) => sum + note.staleAnchors.length, 0);
-    const totalValidAnchors = staleNotes.reduce((sum, note) => sum + note.validAnchors.length, 0);
+    const totalStaleAnchors = staleNotes.reduce(
+      (sum: number, note) => sum + note.staleAnchors.length,
+      0
+    );
+    const totalValidAnchors = staleNotes.reduce(
+      (sum: number, note) => sum + note.validAnchors.length,
+      0
+    );
 
     const response = {
       repository: repoRoot,

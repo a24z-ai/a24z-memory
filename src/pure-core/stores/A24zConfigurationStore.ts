@@ -1,12 +1,12 @@
 /**
  * Pure A24zConfigurationStore - Platform-agnostic configuration management
- * 
+ *
  * Manages repository-level configuration for a24z-Memory including limits,
  * storage settings, and tag restrictions.
  */
 
 import { FileSystemAdapter } from '../abstractions/filesystem';
-import { RepositoryConfiguration } from '../types';
+import { RepositoryConfiguration, ValidatedRepositoryPath } from '../types';
 import { DEFAULT_REPOSITORY_CONFIG } from '../config/defaultConfig';
 
 // ============================================================================
@@ -28,9 +28,9 @@ export class A24zConfigurationStore {
    * Validate that we have a proper repository root path
    * The .a24z directory should exist or be creatable at this path
    */
-  private validateRepositoryRoot(repositoryRootPath: string): void {
+  private validateRepositoryRoot(repositoryRootPath: ValidatedRepositoryPath): void {
     const a24zPath = this.fs.join(repositoryRootPath, '.a24z');
-    
+
     // If .a24z already exists, we're good
     if (this.fs.exists(a24zPath)) {
       return;
@@ -42,8 +42,8 @@ export class A24zConfigurationStore {
     } catch {
       throw new Error(
         `Invalid repository root path: ${repositoryRootPath}. ` +
-        `Expected a repository root where .a24z directory can be created. ` +
-        `Make sure the path exists and is writable.`
+          `Expected a repository root where .a24z directory can be created. ` +
+          `Make sure the path exists and is writable.`
       );
     }
   }
@@ -55,14 +55,14 @@ export class A24zConfigurationStore {
   /**
    * Get the .a24z directory path for a repository
    */
-  private getA24zDir(repositoryRootPath: string): string {
+  private getA24zDir(repositoryRootPath: ValidatedRepositoryPath): string {
     return this.fs.join(repositoryRootPath, '.a24z');
   }
 
   /**
    * Get the config file path
    */
-  private getConfigPath(repositoryRootPath: string): string {
+  private getConfigPath(repositoryRootPath: ValidatedRepositoryPath): string {
     return this.fs.join(this.getA24zDir(repositoryRootPath), 'config.json');
   }
 
@@ -75,11 +75,11 @@ export class A24zConfigurationStore {
   /**
    * Get repository configuration
    */
-  getConfiguration(repositoryRootPath: string): RepositoryConfiguration {
+  getConfiguration(repositoryRootPath: ValidatedRepositoryPath): RepositoryConfiguration {
     this.validateRepositoryRoot(repositoryRootPath);
-    
+
     const configPath = this.getConfigPath(repositoryRootPath);
-    
+
     if (!this.fs.exists(configPath)) {
       return { ...this.DEFAULT_CONFIG };
     }
@@ -87,7 +87,7 @@ export class A24zConfigurationStore {
     try {
       const content = this.fs.readFile(configPath);
       const config = JSON.parse(content);
-      
+
       // Merge with defaults to ensure all fields exist
       return {
         ...this.DEFAULT_CONFIG,
@@ -106,11 +106,11 @@ export class A24zConfigurationStore {
    * Update repository configuration
    */
   updateConfiguration(
-    repositoryRootPath: string,
+    repositoryRootPath: ValidatedRepositoryPath,
     updates: Partial<RepositoryConfiguration>
   ): RepositoryConfiguration {
     this.validateRepositoryRoot(repositoryRootPath);
-    
+
     const current = this.getConfiguration(repositoryRootPath);
     const updated = {
       ...current,
@@ -122,19 +122,19 @@ export class A24zConfigurationStore {
 
     const configPath = this.getConfigPath(repositoryRootPath);
     this.fs.writeFile(configPath, JSON.stringify(updated, null, 2));
-    
+
     return updated;
   }
 
   /**
    * Reset configuration to defaults
    */
-  resetConfiguration(repositoryRootPath: string): RepositoryConfiguration {
+  resetConfiguration(repositoryRootPath: ValidatedRepositoryPath): RepositoryConfiguration {
     this.validateRepositoryRoot(repositoryRootPath);
-    
+
     const configPath = this.getConfigPath(repositoryRootPath);
     const defaultConfig = { ...this.DEFAULT_CONFIG };
-    
+
     this.fs.writeFile(configPath, JSON.stringify(defaultConfig, null, 2));
     return defaultConfig;
   }
@@ -142,9 +142,9 @@ export class A24zConfigurationStore {
   /**
    * Check if custom configuration exists
    */
-  hasCustomConfiguration(repositoryRootPath: string): boolean {
+  hasCustomConfiguration(repositoryRootPath: ValidatedRepositoryPath): boolean {
     this.validateRepositoryRoot(repositoryRootPath);
-    
+
     const configPath = this.getConfigPath(repositoryRootPath);
     return this.fs.exists(configPath);
   }
@@ -152,9 +152,9 @@ export class A24zConfigurationStore {
   /**
    * Delete configuration file (revert to defaults)
    */
-  deleteConfiguration(repositoryRootPath: string): boolean {
+  deleteConfiguration(repositoryRootPath: ValidatedRepositoryPath): boolean {
     this.validateRepositoryRoot(repositoryRootPath);
-    
+
     const configPath = this.getConfigPath(repositoryRootPath);
     if (this.fs.exists(configPath)) {
       this.fs.deleteFile(configPath);
@@ -182,7 +182,10 @@ export class A24zConfigurationStore {
   /**
    * Get allowed tags info (enforcement status and tag list)
    */
-  getAllowedTags(repositoryRootPath: string): { enforced: boolean; tags: string[] } {
+  getAllowedTags(repositoryRootPath: ValidatedRepositoryPath): {
+    enforced: boolean;
+    tags: string[];
+  } {
     this.validateRepositoryRoot(repositoryRootPath);
     const config = this.getConfiguration(repositoryRootPath);
     const enforced = config.tags?.enforceAllowedTags || false;
@@ -191,7 +194,9 @@ export class A24zConfigurationStore {
       // When enforcement is on, we need to get tags from tag descriptions
       // This requires access to the tags directory, but since this is configuration-related,
       // we'll return empty array and let the caller handle tag discovery
-      console.warn('getAllowedTags: Tag enforcement is enabled but tag discovery requires AnchoredNotesStore');
+      console.warn(
+        'getAllowedTags: Tag enforcement is enabled but tag discovery requires AnchoredNotesStore'
+      );
       return { enforced, tags: [] };
     }
 
@@ -201,10 +206,10 @@ export class A24zConfigurationStore {
   /**
    * Set tag enforcement on/off
    */
-  setEnforceAllowedTags(repositoryRootPath: string, enforce: boolean): void {
+  setEnforceAllowedTags(repositoryRootPath: ValidatedRepositoryPath, enforce: boolean): void {
     this.validateRepositoryRoot(repositoryRootPath);
     const currentConfig = this.getConfiguration(repositoryRootPath);
-    
+
     this.updateConfiguration(repositoryRootPath, {
       tags: {
         ...currentConfig.tags,
@@ -216,7 +221,7 @@ export class A24zConfigurationStore {
   /**
    * Check if tag enforcement is enabled
    */
-  isTagEnforcementEnabled(repositoryRootPath: string): boolean {
+  isTagEnforcementEnabled(repositoryRootPath: ValidatedRepositoryPath): boolean {
     const config = this.getConfiguration(repositoryRootPath);
     return config.tags?.enforceAllowedTags || false;
   }

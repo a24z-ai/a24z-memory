@@ -1,6 +1,6 @@
 /**
  * Node.js implementation of FileSystemAdapter
- * 
+ *
  * This adapter uses Node.js built-in fs and path modules.
  * It should only be imported in Node.js environments.
  */
@@ -13,8 +13,7 @@ import { FileSystemAdapter } from '../pure-core/abstractions/filesystem';
  * Node.js implementation using built-in fs and path modules
  */
 export class NodeFileSystemAdapter implements FileSystemAdapter {
-  constructor(
-  ) {}
+  constructor() {}
 
   exists(path: string): boolean {
     return fs.existsSync(path);
@@ -62,7 +61,7 @@ export class NodeFileSystemAdapter implements FileSystemAdapter {
 
   isDirectory(path: string): boolean {
     if (!this.exists(path)) return false;
-    
+
     try {
       return fs.statSync(path).isDirectory();
     } catch {
@@ -95,6 +94,20 @@ export class NodeFileSystemAdapter implements FileSystemAdapter {
   isAbsolute(pathString: string): boolean {
     return path.isAbsolute(pathString);
   }
+
+  // Repository operations
+  normalizeRepositoryPath(inputPath: string): string {
+    return normalizeRepositoryPath(inputPath);
+  }
+
+  findProjectRoot(inputPath: string): string {
+    return this.normalizeRepositoryPath(inputPath);
+  }
+
+  getRepositoryName(repositoryPath: string): string {
+    const segments = repositoryPath.split(path.sep).filter((s) => s);
+    return segments[segments.length - 1] || 'root';
+  }
 }
 
 export function findGitRoot(startPath: string): string | null {
@@ -121,7 +134,7 @@ export function normalizeRepositoryPath(inputPath: string): string {
   // 1. Try to find git root from the input path
   const gitRoot = findGitRoot(inputPath);
   if (!gitRoot) {
-    throw Error("Unable to find Git Root For Path" + inputPath)
+    throw Error('Unable to find Git Root For Path' + inputPath);
   }
   return gitRoot;
 }

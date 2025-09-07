@@ -4,6 +4,22 @@
  */
 
 // ============================================================================
+// Path Validation Types
+// ============================================================================
+
+/**
+ * A branded type for repository paths that have been validated.
+ * This ensures only properly validated paths are used in data operations.
+ */
+export type ValidatedRepositoryPath = string & { readonly __brand: 'ValidatedRepositoryPath' };
+
+/**
+ * A branded type for relative paths that have been validated to be within a repository.
+ * These paths are always relative to the repository root, without './' prefix.
+ */
+export type ValidatedRelativePath = string & { readonly __brand: 'ValidatedRelativePath' };
+
+// ============================================================================
 // CodebaseView Types
 // ============================================================================
 

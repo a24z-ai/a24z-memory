@@ -1,15 +1,12 @@
 /**
  * Pure CodebaseViewsStore - Platform-agnostic view storage
- * 
+ *
  * This version uses dependency injection with FileSystemAdapter to work in any environment
  * No Node.js dependencies - can run in browsers, Deno, Bun, or anywhere JavaScript runs
  */
 
 import { FileSystemAdapter } from '../abstractions/filesystem';
-import {
-  CodebaseView,
-  CodebaseViewFileCell,
-} from '../types';
+import { CodebaseView, ValidatedRepositoryPath, CodebaseViewFileCell } from '../types';
 
 // Re-export types for convenience
 export {
@@ -18,7 +15,7 @@ export {
   CodebaseViewScope,
   CodebaseViewLinks,
   ViewValidationResult,
-  PatternValidationResult
+  PatternValidationResult,
 } from '../types';
 
 /**
@@ -60,14 +57,14 @@ export class CodebaseViewsStore {
    * Get the directory where view configurations are stored.
    * Views are stored in .a24z/views/ for consistency with other a24z data.
    */
-  private getViewsDirectory(repositoryRootPath: string): string {
+  private getViewsDirectory(repositoryRootPath: ValidatedRepositoryPath): string {
     return this.fs.join(repositoryRootPath, '.a24z', 'views');
   }
 
   /**
    * Ensure the views directory exists.
    */
-  private ensureViewsDirectory(repositoryRootPath: string): void {
+  private ensureViewsDirectory(repositoryRootPath: ValidatedRepositoryPath): void {
     const viewsDir = this.getViewsDirectory(repositoryRootPath);
     this.fs.createDir(viewsDir);
   }
@@ -75,7 +72,7 @@ export class CodebaseViewsStore {
   /**
    * Get the file path for a specific view.
    */
-  private getViewFilePath(repositoryRootPath: string, viewId: string): string {
+  private getViewFilePath(repositoryRootPath: ValidatedRepositoryPath, viewId: string): string {
     return this.fs.join(this.getViewsDirectory(repositoryRootPath), `${viewId}.json`);
   }
 
@@ -86,7 +83,7 @@ export class CodebaseViewsStore {
   /**
    * Save a view configuration to storage.
    */
-  saveView(repositoryRootPath: string, view: CodebaseView): void {
+  saveView(repositoryRootPath: ValidatedRepositoryPath, view: CodebaseView): void {
     this.ensureViewsDirectory(repositoryRootPath);
 
     const filePath = this.getViewFilePath(repositoryRootPath, view.id);
@@ -103,7 +100,7 @@ export class CodebaseViewsStore {
   /**
    * Retrieve a view configuration by ID.
    */
-  getView(repositoryRootPath: string, viewId: string): CodebaseView | null {
+  getView(repositoryRootPath: ValidatedRepositoryPath, viewId: string): CodebaseView | null {
     const filePath = this.getViewFilePath(repositoryRootPath, viewId);
 
     if (!this.fs.exists(filePath)) {
@@ -122,7 +119,7 @@ export class CodebaseViewsStore {
   /**
    * List all available views in a repository.
    */
-  listViews(repositoryRootPath: string): CodebaseView[] {
+  listViews(repositoryRootPath: ValidatedRepositoryPath): CodebaseView[] {
     const viewsDir = this.getViewsDirectory(repositoryRootPath);
 
     if (!this.fs.exists(viewsDir)) {
@@ -147,7 +144,7 @@ export class CodebaseViewsStore {
   /**
    * Delete a view configuration.
    */
-  deleteView(repositoryRootPath: string, viewId: string): boolean {
+  deleteView(repositoryRootPath: ValidatedRepositoryPath, viewId: string): boolean {
     const filePath = this.getViewFilePath(repositoryRootPath, viewId);
 
     if (this.fs.exists(filePath)) {
@@ -161,7 +158,11 @@ export class CodebaseViewsStore {
   /**
    * Update an existing view configuration.
    */
-  updateView(repositoryRootPath: string, viewId: string, updates: Partial<CodebaseView>): boolean {
+  updateView(
+    repositoryRootPath: ValidatedRepositoryPath,
+    viewId: string,
+    updates: Partial<CodebaseView>
+  ): boolean {
     const existingView = this.getView(repositoryRootPath, viewId);
 
     if (!existingView) {
@@ -182,7 +183,7 @@ export class CodebaseViewsStore {
   /**
    * Check if a view exists.
    */
-  viewExists(repositoryRootPath: string, viewId: string): boolean {
+  viewExists(repositoryRootPath: ValidatedRepositoryPath, viewId: string): boolean {
     const filePath = this.getViewFilePath(repositoryRootPath, viewId);
     return this.fs.exists(filePath);
   }
@@ -190,14 +191,14 @@ export class CodebaseViewsStore {
   /**
    * Get the default view for a repository, if it exists.
    */
-  getDefaultView(repositoryRootPath: string): CodebaseView | null {
+  getDefaultView(repositoryRootPath: ValidatedRepositoryPath): CodebaseView | null {
     return this.getView(repositoryRootPath, 'default');
   }
 
   /**
    * Set a view as the default view.
    */
-  setDefaultView(repositoryRootPath: string, viewId: string): boolean {
+  setDefaultView(repositoryRootPath: ValidatedRepositoryPath, viewId: string): boolean {
     const view = this.getView(repositoryRootPath, viewId);
     if (!view) {
       return false;

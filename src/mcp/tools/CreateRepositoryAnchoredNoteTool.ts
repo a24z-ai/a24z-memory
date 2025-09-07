@@ -1,28 +1,29 @@
 import { z } from 'zod';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
-import { NodeFileSystemAdapter, normalizeRepositoryPath } from '../../node-adapters/NodeFileSystemAdapter';
+import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
 import { AnchoredNotesStore } from '../../pure-core/stores/AnchoredNotesStore';
 import { CodebaseViewsStore } from '../../pure-core/stores/CodebaseViewsStore';
 import { A24zConfigurationStore } from '../../pure-core/stores/A24zConfigurationStore';
-import { CodebaseView } from '../../pure-core/types';
+import { CodebaseView, ValidatedRepositoryPath } from '../../pure-core/types';
+import { MemoryPalace } from '../../MemoryPalace';
 
 export class CreateRepositoryAnchoredNoteTool extends BaseTool {
   name = 'create_repository_note';
   description =
     'Document tribal knowledge, architectural decisions, implementation patterns, and important lessons learned. This tool creates searchable notes that help future developers understand context and avoid repeating mistakes. Notes are stored locally in your repository and can be retrieved using the get_notes tool.';
 
-  private nodeFs: NodeFileSystemAdapter;
+  private fs: FileSystemAdapter;
   private notesStore: AnchoredNotesStore;
   private codebaseViewsStore: CodebaseViewsStore;
   private configStore: A24zConfigurationStore;
 
-  constructor() {
+  constructor(fs: FileSystemAdapter) {
     super();
-    this.nodeFs = new NodeFileSystemAdapter();
-    this.notesStore = new AnchoredNotesStore(this.nodeFs);
-    this.codebaseViewsStore = new CodebaseViewsStore(this.nodeFs);
-    this.configStore = new A24zConfigurationStore(this.nodeFs);
+    this.fs = fs;
+    this.notesStore = new AnchoredNotesStore(this.fs);
+    this.codebaseViewsStore = new CodebaseViewsStore(this.fs);
+    this.configStore = new A24zConfigurationStore(this.fs);
   }
 
   schema = z.object({
@@ -66,7 +67,7 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
     const parsed = this.schema.parse(input);
 
     // Validate that directoryPath is absolute
-    if (!this.nodeFs.isAbsolute(parsed.directoryPath)) {
+    if (!this.fs.isAbsolute(parsed.directoryPath)) {
       throw new Error(
         `❌ directoryPath must be an absolute path starting with '/'. ` +
           `Received relative path: "${parsed.directoryPath}". ` +
@@ -76,7 +77,7 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
     }
 
     // Validate that directoryPath exists
-    if (!this.nodeFs.exists(parsed.directoryPath)) {
+    if (!this.fs.exists(parsed.directoryPath)) {
       throw new Error(
         `❌ directoryPath does not exist: "${parsed.directoryPath}". ` +
           `💡 Tip: Make sure the path exists and you have read access to it. ` +
@@ -84,28 +85,8 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
       );
     }
 
-    // Normalize and validate repository path
-    let repositoryRoot: string;
-    try {
-      repositoryRoot = normalizeRepositoryPath(parsed.directoryPath);
-    } catch {
-      throw new Error(
-        `❌ directoryPath is not within a git repository: "${parsed.directoryPath}". ` +
-          `💡 Tip: Initialize a git repository with 'git init' in your project root, or navigate to an existing git repository. ` +
-          `The directoryPath should be the root of your git project (where .git folder is located).`
-      );
-    }
-
-    // Validate that the provided path IS the git root, not a subdirectory
-    if (repositoryRoot !== parsed.directoryPath) {
-      throw new Error(
-        `❌ directoryPath must be the git repository root, not a subdirectory. ` +
-          `You provided: "${parsed.directoryPath}" ` +
-          `But the git root is: "${repositoryRoot}". ` +
-          `💡 Tip: Use the git root path (${repositoryRoot}) instead of the subdirectory. ` +
-          `This ensures all notes are stored in the same location and can be found consistently.`
-      );
-    }
+    // Validate repository path using MemoryPalace
+    const repositoryRoot = MemoryPalace.validateRepositoryPath(this.fs, parsed.directoryPath);
 
     // Use the notes store for this repository
 
@@ -214,11 +195,7 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
         this.generateOverviewFile(repositoryRoot, view);
       } else {
         // Update the view to include a new time-based cell if needed, using normalized anchors
-        this.updateCatchallViewWithTimeCell(
-          repositoryRoot,
-          actualCodebaseViewId,
-          saved.anchors
-        );
+        this.updateCatchallViewWithTimeCell(repositoryRoot, actualCodebaseViewId, saved.anchors);
         // Re-fetch the updated view
         view = this.codebaseViewsStore.getView(repositoryRoot, actualCodebaseViewId)!;
         // Update the markdown overview
@@ -249,7 +226,7 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
    * Create a catchall view with basic time-based configuration
    */
   private createCatchallView(
-    repositoryPath: string,
+    repositoryPath: ValidatedRepositoryPath,
     viewId: string,
     initialAnchors: string[]
   ): CodebaseView {
@@ -282,7 +259,7 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
    * Add or update a time-based cell in the catchall view with note anchors
    */
   private updateCatchallViewWithTimeCell(
-    repositoryPath: string,
+    repositoryPath: ValidatedRepositoryPath,
     viewId: string,
     anchors: string[]
   ): void {
@@ -331,17 +308,17 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
   /**
    * Generate or update the markdown overview file for a codebase view
    */
-  private generateOverviewFile(repositoryPath: string, view: CodebaseView): void {
+  private generateOverviewFile(repositoryPath: ValidatedRepositoryPath, view: CodebaseView): void {
     // Create the overview directory if it doesn't exist
-    const overviewDir = this.nodeFs.join(repositoryPath, '.a24z', 'overviews');
-    this.nodeFs.createDir(overviewDir);
+    const overviewDir = this.fs.join(repositoryPath, '.a24z', 'overviews');
+    this.fs.createDir(overviewDir);
 
     // Generate markdown content
     const content = this.generateOverviewContent(view);
 
     // Write the overview file
-    const overviewFilePath = this.nodeFs.join(repositoryPath, view.overviewPath);
-    this.nodeFs.writeFile(overviewFilePath, content);
+    const overviewFilePath = this.fs.join(repositoryPath, view.overviewPath);
+    this.fs.writeFile(overviewFilePath, content);
   }
 
   /**

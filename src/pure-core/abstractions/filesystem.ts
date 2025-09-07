@@ -1,6 +1,6 @@
 /**
  * Pure filesystem abstraction interfaces
- * 
+ *
  * These interfaces define the contract for file system operations without any
  * platform-specific implementations. This allows the pure-core to work with
  * any file system adapter (Node.js, in-memory, browser, Deno, etc.)
@@ -24,8 +24,13 @@ export interface FileSystemAdapter {
   relative(from: string, to: string): string;
   dirname(path: string): string;
   isAbsolute(path: string): boolean;
+
+  // Repository operations
+  normalizeRepositoryPath(inputPath: string): string;
+  findProjectRoot(inputPath: string): string;
+  getRepositoryName(repositoryPath: string): string;
 }
 
-// Note: The InMemoryFileSystemAdapter implementation has been moved to 
+// Note: The InMemoryFileSystemAdapter implementation has been moved to
 // tests/test-adapters/InMemoryFileSystemAdapter.ts for better separation
 // of test utilities from production code

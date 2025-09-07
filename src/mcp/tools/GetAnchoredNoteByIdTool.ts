@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import * as fs from 'node:fs';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
-import { AnchoredNotesStore } from '../../pure-core/stores/AnchoredNotesStore';
+import { MemoryPalace } from '../../MemoryPalace';
 import { NodeFileSystemAdapter } from '../../node-adapters/NodeFileSystemAdapter';
 import { findGitRoot } from '../../node-adapters/NodeFileSystemAdapter';
 
@@ -53,9 +53,9 @@ export class GetAnchoredNoteByIdTool extends BaseTool {
 
     // Create MemoryPalace instance for this repository
     const nodeFs = new NodeFileSystemAdapter();
-    const notesStore = new AnchoredNotesStore(gitRoot, nodeFs);
+    const memoryPalace = new MemoryPalace(gitRoot, nodeFs);
 
-    const note = notesStore.getNoteById(parsed.noteId);
+    const note = memoryPalace.getNoteById(parsed.noteId);
 
     if (!note) {
       throw new Error(

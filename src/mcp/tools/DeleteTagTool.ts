@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseTool } from './base-tool';
-import { AnchoredNotesStore } from '../../pure-core/stores/AnchoredNotesStore';
+import { MemoryPalace } from '../../MemoryPalace';
 import { NodeFileSystemAdapter, findGitRoot } from '../../node-adapters/NodeFileSystemAdapter';
 import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
 import { McpToolResult } from '../types';
@@ -28,10 +28,10 @@ export class DeleteTagTool extends BaseTool {
   description =
     'Delete a tag from the repository, removing it from all notes and deleting its description';
   schema = DeleteTagSchema;
-  
+
   // Allow injection of a custom filesystem adapter for testing
   private fsAdapter?: FileSystemAdapter;
-  
+
   constructor(fsAdapter?: FileSystemAdapter) {
     super();
     this.fsAdapter = fsAdapter;
@@ -64,11 +64,11 @@ export class DeleteTagTool extends BaseTool {
 
     // Use injected adapter for testing, or default to NodeFileSystemAdapter
     const nodeFs = this.fsAdapter || new NodeFileSystemAdapter();
-    
+
     // For in-memory testing, we trust the provided path
     // For production, we validate using the real filesystem
     let repoRoot: string;
-    
+
     if (this.fsAdapter) {
       // Testing mode - trust the provided directory path as the git root
       repoRoot = directoryPath;
@@ -76,9 +76,7 @@ export class DeleteTagTool extends BaseTool {
         throw new Error(`Path does not exist: ${repoRoot}`);
       }
       if (!nodeFs.exists(nodeFs.join(repoRoot, '.git'))) {
-        throw new Error(
-          `Not a git repository: ${repoRoot}. This tool requires a git repository.`
-        );
+        throw new Error(`Not a git repository: ${repoRoot}. This tool requires a git repository.`);
       }
     } else {
       // Production mode - use real filesystem validation
@@ -101,20 +99,20 @@ export class DeleteTagTool extends BaseTool {
     }
 
     // Create MemoryPalace instance
-    const notesStore = new AnchoredNotesStore(repoRoot, nodeFs);
+    const memoryPalace = new MemoryPalace(repoRoot, nodeFs);
 
     // Check if tag has a description
-    const tagDescriptions = notesStore.getTagDescriptions();
+    const tagDescriptions = memoryPalace.getTagDescriptions();
     const hadDescription = tag in tagDescriptions;
     const descriptionContent = hadDescription ? tagDescriptions[tag] : null;
 
     // Step 1: Remove tag from all notes (always do this first)
-    const notesModified = notesStore.removeTagFromNotes(tag);
+    const notesModified = memoryPalace.removeTagFromNotes(tag);
 
     // Step 2: Delete the tag description file (if it exists)
     let descriptionDeleted = false;
     if (hadDescription) {
-      descriptionDeleted = notesStore.deleteTagDescription(tag, false); // false because we already removed from notes
+      descriptionDeleted = memoryPalace.deleteTagDescription(tag);
     }
 
     // Build response

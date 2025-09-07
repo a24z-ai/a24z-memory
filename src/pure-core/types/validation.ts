@@ -129,15 +129,12 @@ export class ValidationMessageFormatter {
   /**
    * Format a validation error with the appropriate message
    */
-  format<T extends keyof ValidationMessageData>(
-    type: T,
-    data: ValidationMessageData[T]
-  ): string {
+  format<T extends keyof ValidationMessageData>(type: T, data: ValidationMessageData[T]): string {
     const formatter = this.messages[type];
     if (!formatter) {
       return `Validation error: ${type}`;
     }
-    return (formatter as any)(data);
+    return (formatter as (data: ValidationMessageData[T]) => string)(data);
   }
 
   /**

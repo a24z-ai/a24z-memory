@@ -12,6 +12,7 @@ import {
 import { CreateRepositoryAnchoredNoteTool } from '../../src/mcp/tools/CreateRepositoryAnchoredNoteTool';
 import { GetAnchoredNotesTool } from '../../src/mcp/tools/GetAnchoredNotesTool';
 import { createTestView } from '../test-helpers';
+import { InMemoryFileSystemAdapter } from '../test-adapters/InMemoryFileSystemAdapter';
 
 describe('Repository Isolation and Cross-Repository Testing', () => {
   const tempBase = path.join(os.tmpdir(), 'a24z-repo-isolation-test-' + Date.now());
@@ -325,8 +326,9 @@ describe('Repository Isolation and Cross-Repository Testing', () => {
 
   describe('MCP Tool Repository Isolation', () => {
     it('should maintain isolation through MCP tools', async () => {
-      const createTool = new CreateRepositoryAnchoredNoteTool();
-      const getTool = new GetAnchoredNotesTool();
+      const fs = new InMemoryFileSystemAdapter();
+      const createTool = new CreateRepositoryAnchoredNoteTool(fs);
+      const getTool = new GetAnchoredNotesTool(fs);
 
       // Create notes in different repositories using MCP tool
       await createTool.execute({

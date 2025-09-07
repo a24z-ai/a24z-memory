@@ -1,16 +1,20 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { CreateRepositoryAnchoredNoteTool } from '../../../src/mcp/tools/CreateRepositoryAnchoredNoteTool';
-import { getNotesForPath } from '../../../src/core/store/anchoredNotesStore';
+import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
+import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
 import { TEST_DIR } from '../../setup';
 import { createTestView } from '../../test-helpers';
 
 describe('CreateRepositoryAnchoredNoteTool', () => {
   let tool: CreateRepositoryAnchoredNoteTool;
+  let notesStore: AnchoredNotesStore;
   const testPath = path.join(TEST_DIR, 'test-repo');
 
   beforeEach(() => {
-    tool = new CreateRepositoryAnchoredNoteTool();
+    const fs = new InMemoryFileSystemAdapter();
+    tool = new CreateRepositoryAnchoredNoteTool(fs);
+    notesStore = new AnchoredNotesStore(fs);
 
     // Clean up any existing test directory
     if (fs.existsSync(testPath)) {
@@ -123,7 +127,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
       expect(fs.existsSync(notesDir)).toBe(true);
 
       // Verify note can be retrieved
-      const notes = getNotesForPath(testPath, true);
+      const notes = notesStore.getNotesForPath(testPath, true);
       expect(notes).toHaveLength(1);
       expect(notes[0].note).toBe('File creation test');
     });
@@ -139,7 +143,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
 
       await tool.execute(input);
 
-      const notes = getNotesForPath(testPath, true);
+      const notes = notesStore.getNotesForPath(testPath, true);
       expect(notes).toHaveLength(1);
       // Anchors should be normalized to relative paths to repo root
       expect(notes[0].anchors).toHaveLength(2);
@@ -161,7 +165,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
 
       await tool.execute(input);
 
-      const notes = getNotesForPath(testPath, true);
+      const notes = notesStore.getNotesForPath(testPath, true);
       expect(notes).toHaveLength(1);
 
       const savedNote = notes[0];
@@ -194,7 +198,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
       expect(fs.existsSync(subDirA24z)).toBe(false);
 
       // Verify the note can be retrieved
-      const notes = getNotesForPath(testPath, true);
+      const notes = notesStore.getNotesForPath(testPath, true);
       expect(notes).toHaveLength(1);
       expect(notes[0].note).toBe('Test note for git root storage');
     });
@@ -221,7 +225,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
         await tool.execute(input);
       }
 
-      const notes = getNotesForPath(testPath, true);
+      const notes = notesStore.getNotesForPath(testPath, true);
       expect(notes).toHaveLength(2);
 
       const noteTexts = notes.map((n) => n.note);
@@ -305,7 +309,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
 
       await tool.execute(input);
 
-      const notes = getNotesForPath(testPath, true);
+      const notes = notesStore.getNotesForPath(testPath, true);
       const saved = notes[0];
 
       expect(saved.note).toBe(input.note);
@@ -351,12 +355,12 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
       expect(fs.existsSync(repo2NotesDir)).toBe(true);
 
       // Verify repo 1 has only its note
-      const repo1Notes = getNotesForPath(testPath, true);
+      const repo1Notes = notesStore.getNotesForPath(testPath, true);
       expect(repo1Notes).toHaveLength(1);
       expect(repo1Notes[0].note).toBe('Note in repo 1');
 
       // Verify repo 2 has only its note
-      const repo2Notes = getNotesForPath(repo2Path, true);
+      const repo2Notes = notesStore.getNotesForPath(repo2Path, true);
       expect(repo2Notes).toHaveLength(1);
       expect(repo2Notes[0].note).toBe('Note in repo 2');
 

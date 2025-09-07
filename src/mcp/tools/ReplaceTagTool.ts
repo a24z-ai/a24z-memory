@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseTool } from './base-tool';
-import { AnchoredNotesStore } from '../../pure-core/stores/AnchoredNotesStore';
+import { MemoryPalace } from '../../MemoryPalace';
 import { NodeFileSystemAdapter, findGitRoot } from '../../node-adapters/NodeFileSystemAdapter';
 import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
 import { McpToolResult } from '../types';
@@ -36,10 +36,10 @@ export class ReplaceTagTool extends BaseTool {
   description =
     'Replace a tag with another tag across all notes in the repository. This tool updates all notes that have the old tag to use the new tag instead.';
   schema = ReplaceTagSchema;
-  
+
   // Allow injection of a custom filesystem adapter for testing
   private fsAdapter?: FileSystemAdapter;
-  
+
   constructor(fsAdapter?: FileSystemAdapter) {
     super();
     this.fsAdapter = fsAdapter;
@@ -94,11 +94,11 @@ export class ReplaceTagTool extends BaseTool {
 
     // Use injected adapter for testing, or default to NodeFileSystemAdapter
     const nodeFs = this.fsAdapter || new NodeFileSystemAdapter();
-    
+
     // For in-memory testing, we trust the provided path
     // For production, we validate using the real filesystem
     let repoRoot: string;
-    
+
     if (this.fsAdapter) {
       // Testing mode - trust the provided directory path as the git root
       repoRoot = directoryPath;
@@ -106,9 +106,7 @@ export class ReplaceTagTool extends BaseTool {
         throw new Error(`Path does not exist: ${repoRoot}`);
       }
       if (!nodeFs.exists(nodeFs.join(repoRoot, '.git'))) {
-        throw new Error(
-          `Not a git repository: ${repoRoot}. This tool requires a git repository.`
-        );
+        throw new Error(`Not a git repository: ${repoRoot}. This tool requires a git repository.`);
       }
     } else {
       // Production mode - use real filesystem validation
@@ -131,17 +129,17 @@ export class ReplaceTagTool extends BaseTool {
     }
 
     // Create MemoryPalace instance
-    const notesStore = new AnchoredNotesStore(repoRoot, nodeFs);
+    const memoryPalace = new MemoryPalace(repoRoot, nodeFs);
 
     // Get existing tag descriptions
-    const tagDescriptions = notesStore.getTagDescriptions();
+    const tagDescriptions = memoryPalace.getTagDescriptions();
     const oldTagHasDescription = oldTag in tagDescriptions;
     const oldTagDescription = oldTagHasDescription ? tagDescriptions[oldTag] : null;
     const newTagHasDescription = newTag in tagDescriptions;
     const newTagDescription = newTagHasDescription ? tagDescriptions[newTag] : null;
 
     // Replace the tag in all notes
-    const notesModified = notesStore.replaceTagInNotes(oldTag, newTag);
+    const notesModified = memoryPalace.replaceTagInNotes(oldTag, newTag);
 
     // Handle tag descriptions
     let descriptionTransferred = false;
@@ -151,20 +149,20 @@ export class ReplaceTagTool extends BaseTool {
     if (transferDescription && oldTagHasDescription) {
       if (!newTagHasDescription) {
         // Transfer the description to the new tag
-        notesStore.saveTagDescription(newTag, oldTagDescription!);
-        notesStore.deleteTagDescription(oldTag, false); // false because we already updated notes
+        memoryPalace.saveTagDescription(newTag, oldTagDescription!);
+        memoryPalace.deleteTagDescription(oldTag); // false because we already updated notes
         descriptionTransferred = true;
         oldDescriptionDeleted = true;
         descriptionAction = 'transferred';
       } else {
         // New tag already has a description, keep it and delete the old one
-        notesStore.deleteTagDescription(oldTag, false);
+        memoryPalace.deleteTagDescription(oldTag);
         oldDescriptionDeleted = true;
         descriptionAction = 'kept_existing';
       }
     } else if (oldTagHasDescription) {
       // Not transferring, just delete the old description
-      notesStore.deleteTagDescription(oldTag, false);
+      memoryPalace.deleteTagDescription(oldTag);
       oldDescriptionDeleted = true;
       descriptionAction = 'deleted';
     }

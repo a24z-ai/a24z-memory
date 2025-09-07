@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseTool } from './base-tool';
-import { AnchoredNotesStore } from '../../pure-core/stores/AnchoredNotesStore';
+import { MemoryPalace } from '../../MemoryPalace';
 import { NodeFileSystemAdapter, findGitRoot } from '../../node-adapters/NodeFileSystemAdapter';
 import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
 import { McpToolResult } from '../types';
@@ -42,10 +42,10 @@ export class GetTagUsageTool extends BaseTool {
   description =
     'Get comprehensive usage statistics for tags in a repository, showing which tags are used, how often, and whether they have descriptions';
   schema = GetTagUsageSchema;
-  
+
   // Allow injection of a custom filesystem adapter for testing
   private fsAdapter?: FileSystemAdapter;
-  
+
   constructor(fsAdapter?: FileSystemAdapter) {
     super();
     this.fsAdapter = fsAdapter;
@@ -73,13 +73,13 @@ export class GetTagUsageTool extends BaseTool {
 
     // Create MemoryPalace instance
     const adapter = this.fsAdapter || new NodeFileSystemAdapter();
-    const notesStore = new AnchoredNotesStore(repoRoot, adapter);
+    const memoryPalace = new MemoryPalace(repoRoot, adapter);
 
     // Get all tag descriptions using MemoryPalace
-    const tagDescriptions = notesStore.getTagDescriptions();
+    const tagDescriptions = memoryPalace.getTagDescriptions();
 
     // Get all notes to analyze tag usage using MemoryPalace
-    const allNotes = notesStore.getNotesForPath(repoRoot, true);
+    const allNotes = memoryPalace.getNotes(true);
     const tagUsageMap = new Map<string, Set<string>>(); // tag -> Set of note IDs
 
     // Analyze tag usage from all notes

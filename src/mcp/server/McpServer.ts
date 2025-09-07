@@ -31,7 +31,7 @@ import {
 import { McpServerConfig, McpTool, McpResource } from '../types';
 import { NodeFileSystemAdapter } from '../../node-adapters/NodeFileSystemAdapter';
 import { AnchoredNotesStore } from '../../pure-core/stores/AnchoredNotesStore';
-import { CodebaseViewsStore } from '../../pure-core/stores/CodebaseViewsStore';
+import { MemoryPalace } from '../../MemoryPalace';
 
 export class McpServer {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -72,45 +72,47 @@ export class McpServer {
     // 3. Using an environment variable
     const fs = new NodeFileSystemAdapter();
     const notesStore = new AnchoredNotesStore(fs);
-    const config = notesStore.getConfiguration(process.cwd());
+    // Use MemoryPalace to validate the repository path first
+    const validatedRepo = MemoryPalace.validateRepositoryPath(fs, process.cwd());
+    const config = notesStore.getConfiguration(validatedRepo);
     const enabledTools = config.enabled_mcp_tools || {};
 
     // Add tools based on configuration (default to true if not specified)
     if (enabledTools.create_repository_note !== false) {
-      this.addTool(new CreateRepositoryAnchoredNoteTool());
+      this.addTool(new CreateRepositoryAnchoredNoteTool(fs));
     }
     if (enabledTools.get_notes !== false) {
-      this.addTool(new GetAnchoredNotesTool());
+      this.addTool(new GetAnchoredNotesTool(fs));
     }
     if (enabledTools.get_repository_tags !== false) {
-      this.addTool(new GetRepositoryTagsTool());
+      this.addTool(new GetRepositoryTagsTool(fs));
     }
     if (enabledTools.get_repository_guidance !== false) {
-      this.addTool(new GetRepositoryGuidanceTool());
+      this.addTool(new GetRepositoryGuidanceTool(fs));
     }
     if (enabledTools.delete_repository_note !== false) {
-      this.addTool(new DeleteAnchoredNoteTool());
+      this.addTool(new DeleteAnchoredNoteTool(fs));
     }
     if (enabledTools.get_repository_note !== false) {
       this.addTool(new GetAnchoredNoteByIdTool());
     }
     if (enabledTools.get_stale_notes !== false) {
-      this.addTool(new GetStaleAnchoredNotesTool());
+      this.addTool(new GetStaleAnchoredNotesTool(fs));
     }
     if (enabledTools.get_tag_usage !== false) {
-      this.addTool(new GetTagUsageTool());
+      this.addTool(new GetTagUsageTool(fs));
     }
     if (enabledTools.delete_tag !== false) {
-      this.addTool(new DeleteTagTool());
+      this.addTool(new DeleteTagTool(fs));
     }
     if (enabledTools.replace_tag !== false) {
-      this.addTool(new ReplaceTagTool());
+      this.addTool(new ReplaceTagTool(fs));
     }
     if (enabledTools.get_note_coverage !== false) {
-      this.addTool(new GetAnchoredNoteCoverageTool());
+      this.addTool(new GetAnchoredNoteCoverageTool(fs));
     }
     if (enabledTools.list_codebase_views !== false) {
-      this.addTool(new ListCodebaseViewsTool());
+      this.addTool(new ListCodebaseViewsTool(fs));
     }
   }
 

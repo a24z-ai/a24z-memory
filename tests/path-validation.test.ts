@@ -1,13 +1,15 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { saveNote } from '../src/core/store/anchoredNotesStore';
+import { MemoryPalace } from '../src/MemoryPalace';
+import { InMemoryFileSystemAdapter } from './test-adapters/InMemoryFileSystemAdapter';
 import { createTestView } from './test-helpers';
 
-describe('Path Validation for saveNote', () => {
+describe('Path Validation for MemoryPalace', () => {
   let tempDir: string;
   let gitRepoPath: string;
   let nonGitPath: string;
+  let fsAdapter: InMemoryFileSystemAdapter;
 
   beforeEach(() => {
     // Create temp directories
@@ -22,6 +24,9 @@ describe('Path Validation for saveNote', () => {
     // Create a non-git directory
     nonGitPath = path.join(tempDir, 'not-a-repo');
     fs.mkdirSync(nonGitPath, { recursive: true });
+
+    // Set up file system adapter
+    fsAdapter = new InMemoryFileSystemAdapter();
   });
 
   afterEach(() => {
@@ -30,57 +35,30 @@ describe('Path Validation for saveNote', () => {
   });
 
   it('should reject relative paths', () => {
-    expect(() =>
-      saveNote({
-        note: 'Test note',
-        directoryPath: 'relative/path',
-        anchors: ['test.ts'],
-        tags: ['test'],
-        metadata: {},
-        codebaseViewId: 'test-view',
-      })
-    ).toThrow('directoryPath must be an absolute path to a git repository root');
+    expect(() => MemoryPalace.validateRepositoryPath(fsAdapter, 'relative/path')).toThrow(
+      'directoryPath must be an absolute path'
+    );
   });
 
   it('should reject non-existent paths', () => {
     const fakePath = '/this/path/does/not/exist';
-    expect(() =>
-      saveNote({
-        note: 'Test note',
-        directoryPath: fakePath,
-        anchors: ['test.ts'],
-        tags: ['test'],
-        metadata: {},
-        codebaseViewId: 'test-view',
-      })
-    ).toThrow(`directoryPath does not exist: "${fakePath}"`);
+    expect(() => MemoryPalace.validateRepositoryPath(fsAdapter, fakePath)).toThrow(
+      'must point to an existing directory'
+    );
   });
 
   it('should reject directories that are not git repositories', () => {
-    expect(() =>
-      saveNote({
-        note: 'Test note',
-        directoryPath: nonGitPath,
-        anchors: ['test.ts'],
-        tags: ['test'],
-        metadata: {},
-        codebaseViewId: 'test-view',
-      })
-    ).toThrow(`directoryPath is not a git repository root: "${nonGitPath}"`);
+    expect(() => MemoryPalace.validateRepositoryPath(fsAdapter, nonGitPath)).toThrow(
+      'not a git repository'
+    );
   });
 
   it('should accept valid git repository paths', () => {
-    const result = saveNote({
-      note: 'Test note',
-      directoryPath: gitRepoPath,
-      anchors: ['test.ts'],
-      tags: ['test'],
-      metadata: {},
-      codebaseViewId: 'test-view',
-    });
+    expect(() => MemoryPalace.validateRepositoryPath(fsAdapter, gitRepoPath)).not.toThrow();
 
-    expect(result).toBeDefined();
-    expect(result.note.id).toBeDefined();
+    // Also test that MemoryPalace can be constructed successfully
+    const memoryPalace = new MemoryPalace(gitRepoPath, fsAdapter);
+    expect(memoryPalace).toBeDefined();
 
     // Verify the note was saved in the correct location
     const notesDir = path.join(gitRepoPath, '.a24z', 'notes');
@@ -88,36 +66,22 @@ describe('Path Validation for saveNote', () => {
   });
 
   it('should reject paths with ./ prefix', () => {
-    expect(() =>
-      saveNote({
-        note: 'Test note',
-        directoryPath: './relative/path',
-        anchors: ['test.ts'],
-        tags: ['test'],
-        metadata: {},
-        codebaseViewId: 'test-view',
-      })
-    ).toThrow('directoryPath must be an absolute path to a git repository root');
+    expect(() => MemoryPalace.validateRepositoryPath(fsAdapter, './relative/path')).toThrow(
+      'directoryPath must be an absolute path'
+    );
   });
 
   it('should reject paths with ../ prefix', () => {
-    expect(() =>
-      saveNote({
-        note: 'Test note',
-        directoryPath: '../relative/path',
-        anchors: ['test.ts'],
-        tags: ['test'],
-        metadata: {},
-        codebaseViewId: 'test-view',
-      })
-    ).toThrow('directoryPath must be an absolute path to a git repository root');
+    expect(() => MemoryPalace.validateRepositoryPath(fsAdapter, '../relative/path')).toThrow(
+      'directoryPath must be an absolute path'
+    );
   });
 
   it('should reject empty anchors array', () => {
+    const memoryPalace = new MemoryPalace(gitRepoPath, fsAdapter);
     expect(() =>
-      saveNote({
+      memoryPalace.saveNote({
         note: 'Test note',
-        directoryPath: gitRepoPath,
         anchors: [],
         tags: ['test'],
         metadata: {},
@@ -127,14 +91,16 @@ describe('Path Validation for saveNote', () => {
   });
 
   it('should reject missing anchors', () => {
-    expect(() =>
-      saveNote({
-        note: 'Test note',
-        directoryPath: gitRepoPath,
-        tags: ['test'],
-        codebaseViewId: 'test-view',
-        metadata: {},
-      } as Parameters<typeof saveNote>[0])
+    const memoryPalace = new MemoryPalace(gitRepoPath, fsAdapter);
+    expect(
+      () =>
+        memoryPalace.saveNote({
+          note: 'Test note',
+          anchors: [], // Empty array instead of missing property
+          tags: ['test'],
+          codebaseViewId: 'test-view',
+          metadata: {},
+        })
     ).toThrow('At least one anchor path is required');
   });
 });

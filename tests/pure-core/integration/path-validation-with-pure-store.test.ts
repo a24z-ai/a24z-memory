@@ -7,17 +7,21 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
-import { createNodeFileSystemAdapter } from '../../../src/node-adapters/NodeFileSystemAdapter';
+import { NodeFileSystemAdapter } from '../../../src/node-adapters/NodeFileSystemAdapter';
 import { createTestView } from '../../test-helpers';
+import { MemoryPalace } from '../../../src/MemoryPalace';
+import type { ValidatedRepositoryPath } from '../../../src/pure-core/types';
 
 describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
   let store: AnchoredNotesStore;
   let tempDir: string;
   let gitRepoPath: string;
+  let validatedRepoPath: ValidatedRepositoryPath;
+  let nodeFs: NodeFileSystemAdapter;
 
   beforeEach(() => {
     // Create the store with Node.js filesystem adapter
-    const nodeFs = createNodeFileSystemAdapter();
+    nodeFs = new NodeFileSystemAdapter();
     store = new AnchoredNotesStore(nodeFs);
 
     // Create temp directories
@@ -28,6 +32,9 @@ describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
     fs.mkdirSync(gitRepoPath, { recursive: true });
     fs.mkdirSync(path.join(gitRepoPath, '.git'), { recursive: true });
     createTestView(gitRepoPath, 'test-view');
+
+    // Validate the repository path
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(nodeFs, gitRepoPath);
   });
 
   afterEach(() => {
@@ -42,12 +49,12 @@ describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
       tags: ['integration', 'test'],
       codebaseViewId: 'test-view',
       metadata: { testType: 'integration' },
-      directoryPath: gitRepoPath,
+      directoryPath: validatedRepoPath,
     };
 
     // Save the note
     const saved = store.saveNote(noteInput);
-    
+
     expect(saved.note.note).toBe('Test note with real filesystem');
     expect(saved.note.anchors).toEqual(['src/test.ts']);
     expect(saved.note.tags).toEqual(['integration', 'test']);
@@ -56,18 +63,18 @@ describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
     // Verify the note was actually saved to disk with date-based directory structure
     const notesDir = path.join(gitRepoPath, '.a24z', 'notes');
     expect(fs.existsSync(notesDir)).toBe(true);
-    
+
     // Check that year directory was created
     const yearDirs = fs.readdirSync(notesDir);
     expect(yearDirs.length).toBe(1);
     expect(yearDirs[0]).toMatch(/^\d{4}$/);
-    
+
     // Check that month directory was created
     const yearDir = path.join(notesDir, yearDirs[0]);
     const monthDirs = fs.readdirSync(yearDir);
     expect(monthDirs.length).toBe(1);
     expect(monthDirs[0]).toMatch(/^\d{2}$/);
-    
+
     // Check that note file was created
     const monthDir = path.join(yearDir, monthDirs[0]);
     const noteFiles = fs.readdirSync(monthDir);
@@ -75,7 +82,7 @@ describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
     expect(noteFiles[0]).toMatch(/^note-\d+-\w+\.json$/);
 
     // Retrieve the note using the class method
-    const retrieved = store.getNoteById(gitRepoPath, saved.note.id);
+    const retrieved = store.getNoteById(validatedRepoPath, saved.note.id);
     expect(retrieved).toEqual(saved.note);
 
     // Verify the file contents match
@@ -88,16 +95,16 @@ describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
   it('should handle configuration persistence', () => {
     // Update configuration
     const updates = {
-      limits: { 
+      limits: {
         noteMaxLength: 8000,
         maxTagsPerNote: 8,
         maxAnchorsPerNote: 15,
-        tagDescriptionMaxLength: 1200
+        tagDescriptionMaxLength: 1200,
       },
       storage: { compressionEnabled: true },
     };
 
-    const updated = store.updateConfiguration(gitRepoPath, updates);
+    const updated = store.updateConfiguration(validatedRepoPath, updates);
     expect(updated.limits.noteMaxLength).toBe(8000);
 
     // Verify config file was created
@@ -105,9 +112,9 @@ describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
     expect(fs.existsSync(configPath)).toBe(true);
 
     // Create a new store instance to verify persistence
-    const newStore = new AnchoredNotesStore(createNodeFileSystemAdapter());
-    const loaded = newStore.getConfiguration(gitRepoPath);
-    
+    const newStore = new AnchoredNotesStore(new NodeFileSystemAdapter());
+    const loaded = newStore.getConfiguration(validatedRepoPath);
+
     expect(loaded.limits.noteMaxLength).toBe(8000);
     expect(loaded.storage.compressionEnabled).toBe(true);
   });
@@ -120,7 +127,7 @@ describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
       tags: ['test'],
       codebaseViewId: 'test-view',
       metadata: {},
-      directoryPath: gitRepoPath,
+      directoryPath: validatedRepoPath,
     };
 
     expect(() => store.saveNote(longNoteInput)).toThrow('Note is too long');
@@ -132,7 +139,7 @@ describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
       tags: ['test'],
       codebaseViewId: 'test-view',
       metadata: {},
-      directoryPath: gitRepoPath,
+      directoryPath: validatedRepoPath,
     };
 
     expect(() => store.saveNote(noAnchorsInput)).toThrow('Notes must have at least one anchor');
@@ -145,27 +152,27 @@ describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
       tags: ['temporary'],
       codebaseViewId: 'test-view',
       metadata: {},
-      directoryPath: gitRepoPath,
+      directoryPath: validatedRepoPath,
     };
 
     // Save the note
     const saved = store.saveNote(noteInput);
-    
+
     // Verify it exists on disk in the date-based structure
     const notesDir = path.join(gitRepoPath, '.a24z', 'notes');
     const yearDirs = fs.readdirSync(notesDir);
     expect(yearDirs.length).toBe(1);
-    
+
     const yearDir = path.join(notesDir, yearDirs[0]);
     const monthDirs = fs.readdirSync(yearDir);
     expect(monthDirs.length).toBe(1);
-    
+
     const monthDir = path.join(yearDir, monthDirs[0]);
     const noteFiles = fs.readdirSync(monthDir);
     expect(noteFiles.length).toBe(1);
 
     // Delete the note
-    const deleted = store.deleteNoteById(gitRepoPath, saved.note.id);
+    const deleted = store.deleteNoteById(validatedRepoPath, saved.note.id);
     expect(deleted).toBe(true);
 
     // Verify it's gone from disk
@@ -173,7 +180,7 @@ describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
     expect(remainingFiles.length).toBe(0);
 
     // Verify it can't be retrieved
-    const retrieved = store.getNoteById(gitRepoPath, saved.note.id);
+    const retrieved = store.getNoteById(validatedRepoPath, saved.note.id);
     expect(retrieved).toBe(null);
   });
 
@@ -187,7 +194,7 @@ describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
       tags: ['adapter', 'pattern'],
       codebaseViewId: 'test-view',
       metadata: { pattern: 'dependency-injection' },
-      directoryPath: gitRepoPath,
+      directoryPath: validatedRepoPath,
     };
 
     // Save with current adapter
@@ -195,10 +202,10 @@ describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
 
     // Create another store instance with the same adapter type
     // In a real scenario, this could be a different adapter (InMemory, S3, etc.)
-    const anotherStore = new AnchoredNotesStore(createNodeFileSystemAdapter());
-    
+    const anotherStore = new AnchoredNotesStore(new NodeFileSystemAdapter());
+
     // Verify the other store can read the same data
-    const retrieved = anotherStore.getNoteById(gitRepoPath, saved.note.id);
+    const retrieved = anotherStore.getNoteById(validatedRepoPath, saved.note.id);
     expect(retrieved).toEqual(saved.note);
 
     console.log('✅ Pure AnchoredNotesStore successfully uses dependency injection pattern');

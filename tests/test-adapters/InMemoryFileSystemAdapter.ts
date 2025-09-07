@@ -37,7 +37,7 @@ export class InMemoryFileSystemAdapter implements FileSystemAdapter {
     // In memory, directories are implicit
     // We track them by ensuring they appear in readDir results
     if (!path || path === '/') return;
-    
+
     // Add a marker for the directory
     this.files.set(path + '/.dir', '');
   }
@@ -47,12 +47,12 @@ export class InMemoryFileSystemAdapter implements FileSystemAdapter {
     if (this.files.has(path) && !path.endsWith('/.dir')) {
       throw new Error(`ENOTDIR: not a directory, scandir '${path}'`);
     }
-    
+
     // Check if the directory exists
     if (!this.isDirectory(path)) {
       throw new Error(`ENOENT: no such file or directory, scandir '${path}'`);
     }
-    
+
     const normalizedPath = path.endsWith('/') ? path.slice(0, -1) : path;
     const prefix = normalizedPath === '/' ? '' : `${normalizedPath}/`;
     const items = new Set<string>();
@@ -65,7 +65,7 @@ export class InMemoryFileSystemAdapter implements FileSystemAdapter {
           if (relativePath === '.dir') {
             continue;
           }
-          
+
           // Check if this is a subdirectory .dir marker
           if (relativePath.endsWith('/.dir')) {
             // This indicates a subdirectory exists, add it without the .dir
@@ -123,7 +123,7 @@ export class InMemoryFileSystemAdapter implements FileSystemAdapter {
     if (this.files.has(path + '/.dir')) {
       return true;
     }
-    
+
     // Check if any files exist under this path
     const prefix = `${path}/`;
     for (const filePath of this.files.keys()) {
@@ -132,6 +132,30 @@ export class InMemoryFileSystemAdapter implements FileSystemAdapter {
       }
     }
     return false;
+  }
+
+  // Repository operations
+  normalizeRepositoryPath(inputPath: string): string {
+    // For testing, just find the closest parent directory with .git
+    let current = inputPath;
+    while (current && current !== '/') {
+      if (this.exists(this.join(current, '.git'))) {
+        return current;
+      }
+      current = this.dirname(current);
+    }
+
+    // If no .git found, assume the input path is the repository root
+    return inputPath;
+  }
+
+  findProjectRoot(inputPath: string): string {
+    return this.normalizeRepositoryPath(inputPath);
+  }
+
+  getRepositoryName(repositoryPath: string): string {
+    const segments = repositoryPath.split('/').filter((s) => s);
+    return segments[segments.length - 1] || 'root';
   }
 
   // Test utilities

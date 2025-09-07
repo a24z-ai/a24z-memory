@@ -7,6 +7,7 @@ import * as os from 'node:os';
 import { CreateRepositoryAnchoredNoteTool } from '../../src/mcp/tools/CreateRepositoryAnchoredNoteTool';
 import { GetAnchoredNotesTool } from '../../src/mcp/tools/GetAnchoredNotesTool';
 import { createTestView } from '../test-helpers';
+import { InMemoryFileSystemAdapter } from '../test-adapters/InMemoryFileSystemAdapter';
 
 describe('Repository-Specific Note Retrieval Integration', () => {
   const testBase = path.join(os.tmpdir(), 'retrieval-test-' + Date.now());
@@ -39,8 +40,9 @@ describe('Repository-Specific Note Retrieval Integration', () => {
   });
 
   it('should correctly store and retrieve notes from specific repositories', async () => {
-    const saveTool = new CreateRepositoryAnchoredNoteTool();
-    const getTool = new GetAnchoredNotesTool();
+    const fs = new InMemoryFileSystemAdapter();
+    const saveTool = new CreateRepositoryAnchoredNoteTool(fs);
+    const getTool = new GetAnchoredNotesTool(fs);
 
     // Save notes in repo1
     console.log('Saving note in repo1...');
@@ -114,8 +116,9 @@ describe('Repository-Specific Note Retrieval Integration', () => {
   });
 
   it('should retrieve notes from nested paths within repository', async () => {
-    const saveTool = new CreateRepositoryAnchoredNoteTool();
-    const getTool = new GetAnchoredNotesTool();
+    const fs = new InMemoryFileSystemAdapter();
+    const saveTool = new CreateRepositoryAnchoredNoteTool(fs);
+    const getTool = new GetAnchoredNotesTool(fs);
 
     const nestedPath = path.join(repo1, 'src', 'components', 'Button.tsx');
     fs.mkdirSync(path.dirname(nestedPath), { recursive: true });
@@ -155,7 +158,8 @@ describe('Repository-Specific Note Retrieval Integration', () => {
   });
 
   it('should not retrieve notes from different repository', async () => {
-    const getTool = new GetAnchoredNotesTool();
+    const fs = new InMemoryFileSystemAdapter();
+    const getTool = new GetAnchoredNotesTool(fs);
 
     // Both repositories should have notes from previous tests
     // Query repo1 - should not see repo2 notes
