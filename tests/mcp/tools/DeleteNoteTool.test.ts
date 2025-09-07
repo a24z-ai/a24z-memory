@@ -1,46 +1,52 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import * as os from 'node:os';
-import { createTestView } from '../../test-helpers';
 import { DeleteAnchoredNoteTool } from '../../../src/mcp/tools/DeleteAnchoredNoteTool';
-import { saveNote, getNoteById } from '../../../src/core/store/anchoredNotesStore';
+import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
+import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
+import { CodebaseViewsStore } from '../../../src/pure-core/stores/CodebaseViewsStore';
+import { MemoryPalace } from '../../../src/MemoryPalace';
+import type { ValidatedRepositoryPath, CodebaseView } from '../../../src/pure-core/types';
 
 describe('DeleteAnchoredNoteTool', () => {
-  let tempDir: string;
-  let testRepoPath: string;
+  let fs: InMemoryFileSystemAdapter;
+  let notesStore: AnchoredNotesStore;
   let tool: DeleteAnchoredNoteTool;
+  const testRepoPath = '/test-repo';
+  let validatedRepoPath: ValidatedRepositoryPath;
 
   beforeEach(() => {
-    // Create a temporary directory for testing
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a24z-test-'));
-    testRepoPath = path.join(tempDir, 'test-repo');
-    fs.mkdirSync(testRepoPath, { recursive: true });
+    fs = new InMemoryFileSystemAdapter();
+    notesStore = new AnchoredNotesStore(fs);
+    tool = new DeleteAnchoredNoteTool(fs);
+    fs.setupTestRepo(testRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
 
-    // Create a .git directory to make it a valid repository
-    fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
-    createTestView(testRepoPath, 'test-view');
-    tool = new DeleteAnchoredNoteTool();
-  });
-
-  afterEach(() => {
-    // Clean up temporary directory
-    fs.rmSync(tempDir, { recursive: true, force: true });
+    // Create a test view using CodebaseViewsStore
+    const codebaseViewsStore = new CodebaseViewsStore(fs);
+    const testView: CodebaseView = {
+      id: 'test-view',
+      version: '1.0.0',
+      name: 'Test View',
+      description: 'Test view for testing',
+      overviewPath: 'README.md',
+      cells: {},
+      timestamp: new Date().toISOString(),
+    };
+    codebaseViewsStore.saveView(validatedRepoPath, testView);
   });
 
   it('should successfully delete an existing note', async () => {
     // Save a test note
-    const savedNoteWithPath = saveNote({
+    const savedNoteWithPath = notesStore.saveNote({
       note: 'This is a test note for deletion',
       anchors: ['src/test.ts'],
       tags: ['testing', 'deletion'],
       metadata: { key: 'value' },
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
     const savedNote = savedNoteWithPath.note;
 
     // Verify note exists
-    expect(getNoteById(testRepoPath, savedNote.id)).toBeDefined();
+    expect(notesStore.getNoteById(validatedRepoPath, savedNote.id)).toBeDefined();
 
     // Delete the note
     const result = await tool.execute({
@@ -56,7 +62,7 @@ describe('DeleteAnchoredNoteTool', () => {
     expect(text).toContain('Tags: testing, deletion');
 
     // Verify note no longer exists
-    expect(getNoteById(testRepoPath, savedNote.id)).toBeNull();
+    expect(notesStore.getNoteById(validatedRepoPath, savedNote.id)).toBeNull();
   });
 
   it('should throw error when trying to delete non-existent note', async () => {
@@ -72,19 +78,19 @@ describe('DeleteAnchoredNoteTool', () => {
 
   it('should handle deletion from subdirectory path', async () => {
     // Save a test note
-    const savedNoteWithPath = saveNote({
+    const savedNoteWithPath = notesStore.saveNote({
       note: 'Test note in subdirectory',
       anchors: ['src/components/Component.tsx'],
       tags: ['component'],
       metadata: {},
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
     const savedNote = savedNoteWithPath.note;
 
     // Create a subdirectory
-    const subDir = path.join(testRepoPath, 'src', 'components');
-    fs.mkdirSync(subDir, { recursive: true });
+    const subDir = fs.join(testRepoPath, 'src', 'components');
+    fs.createDir(subDir);
 
     // Delete using subdirectory path (tool should find the repo root)
     const result = await tool.execute({
@@ -97,7 +103,7 @@ describe('DeleteAnchoredNoteTool', () => {
     expect(text).toContain(`Successfully deleted note ${savedNote.id}`);
 
     // Verify deletion
-    expect(getNoteById(testRepoPath, savedNote.id)).toBeNull();
+    expect(notesStore.getNoteById(validatedRepoPath, savedNote.id)).toBeNull();
   });
 
   it('should throw error for non-absolute path', async () => {
@@ -119,8 +125,8 @@ describe('DeleteAnchoredNoteTool', () => {
   });
 
   it('should throw error for path outside git repository', async () => {
-    const nonGitDir = path.join(tempDir, 'non-git');
-    fs.mkdirSync(nonGitDir, { recursive: true });
+    const nonGitDir = '/non-git';
+    fs.createDir(nonGitDir);
 
     await expect(
       tool.execute({
@@ -133,12 +139,12 @@ describe('DeleteAnchoredNoteTool', () => {
   it('should handle notes with long content in preview', async () => {
     const longContent = 'A'.repeat(300);
 
-    const savedNoteWithPath = saveNote({
+    const savedNoteWithPath = notesStore.saveNote({
       note: longContent,
       anchors: ['file.ts'],
       tags: ['long'],
       metadata: {},
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
     const savedNote = savedNoteWithPath.note;
@@ -154,7 +160,7 @@ describe('DeleteAnchoredNoteTool', () => {
   });
 
   it('should preserve metadata in deletion preview', async () => {
-    const savedNote = saveNote({
+    const savedNoteWithPath = notesStore.saveNote({
       note: 'Note with metadata',
       anchors: ['file.ts'],
       tags: ['metadata-test'],
@@ -163,12 +169,13 @@ describe('DeleteAnchoredNoteTool', () => {
         prNumber: 123,
         customField: 'customValue',
       },
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
+    const savedNote = savedNoteWithPath.note;
 
     const result = await tool.execute({
-      noteId: savedNote.note.id,
+      noteId: savedNote.id,
       directoryPath: testRepoPath,
     });
 

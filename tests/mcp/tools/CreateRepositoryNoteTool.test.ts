@@ -1,50 +1,47 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
 import { CreateRepositoryAnchoredNoteTool } from '../../../src/mcp/tools/CreateRepositoryAnchoredNoteTool';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
 import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
-import { TEST_DIR } from '../../setup';
-import { createTestView } from '../../test-helpers';
+import { CodebaseViewsStore } from '../../../src/pure-core/stores/CodebaseViewsStore';
+import { MemoryPalace } from '../../../src/MemoryPalace';
+import type {
+  ValidatedRepositoryPath,
+  ValidatedRelativePath,
+  CodebaseView,
+} from '../../../src/pure-core/types';
 
 describe('CreateRepositoryAnchoredNoteTool', () => {
   let tool: CreateRepositoryAnchoredNoteTool;
   let notesStore: AnchoredNotesStore;
-  const testPath = path.join(TEST_DIR, 'test-repo');
+  let fs: InMemoryFileSystemAdapter;
+  const testRepoPath = '/test-repo';
+  let validatedRepoPath: ValidatedRepositoryPath;
 
   beforeEach(() => {
-    const fs = new InMemoryFileSystemAdapter();
+    fs = new InMemoryFileSystemAdapter();
     tool = new CreateRepositoryAnchoredNoteTool(fs);
     notesStore = new AnchoredNotesStore(fs);
+    fs.setupTestRepo(testRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
 
-    // Clean up any existing test directory
-    if (fs.existsSync(testPath)) {
-      fs.rmSync(testPath, { recursive: true, force: true });
-    }
-
-    // Ensure TEST_DIR exists first
-    if (!fs.existsSync(TEST_DIR)) {
-      fs.mkdirSync(TEST_DIR, { recursive: true });
-    }
-    // Create the test repository directory
-    fs.mkdirSync(testPath, { recursive: true });
-    // Create a .git directory to make it a valid git repo
-    fs.mkdirSync(path.join(testPath, '.git'), { recursive: true });
-    // Create a test view
-    createTestView(testPath, 'test-view');
-  });
-
-  afterEach(() => {
-    // Clean up after each test
-    if (fs.existsSync(testPath)) {
-      fs.rmSync(testPath, { recursive: true, force: true });
-    }
+    // Create a test view using CodebaseViewsStore
+    const codebaseViewsStore = new CodebaseViewsStore(fs);
+    const testView: CodebaseView = {
+      id: 'test-view',
+      version: '1.0.0',
+      name: 'Test View',
+      description: 'Test view for testing',
+      overviewPath: 'README.md',
+      cells: {},
+      timestamp: new Date().toISOString(),
+    };
+    codebaseViewsStore.saveView(validatedRepoPath, testView);
   });
 
   describe('Schema Validation', () => {
     it('should validate required fields', () => {
       const validInput = {
         note: 'Test note content',
-        directoryPath: testPath,
+        directoryPath: testRepoPath,
         anchors: ['src/test.ts'],
         codebaseViewId: 'test-view',
         tags: ['test'],
@@ -56,7 +53,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
     it('should require at least one tag', () => {
       const invalidInput = {
         note: 'Test note',
-        directoryPath: testPath,
+        directoryPath: testRepoPath,
         anchors: ['src/test.ts'],
         codebaseViewId: 'test-view',
         tags: [],
@@ -68,7 +65,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
     it('should require at least one anchor', () => {
       const invalidInput = {
         note: 'Test note',
-        directoryPath: testPath,
+        directoryPath: testRepoPath,
         anchors: [],
         tags: ['test'],
       };
@@ -79,7 +76,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
     it('should set default values for optional fields', () => {
       const input = {
         note: 'Test note',
-        directoryPath: testPath,
+        directoryPath: testRepoPath,
         anchors: ['src/test.ts'],
         codebaseViewId: 'test-view',
         tags: ['test'],
@@ -97,7 +94,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
     it('should save note with correct structure', async () => {
       const input = {
         note: 'Test repository note',
-        directoryPath: testPath,
+        directoryPath: testRepoPath,
         tags: ['test', 'example'],
         anchors: ['additional-path'],
         codebaseViewId: 'test-view',
@@ -114,7 +111,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
     it('should create note file on disk', async () => {
       const input = {
         note: 'File creation test',
-        directoryPath: testPath,
+        directoryPath: testRepoPath,
         anchors: ['src/test.ts'],
         codebaseViewId: 'test-view',
         tags: ['file-test'],
@@ -122,20 +119,21 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
 
       await tool.execute(input);
 
-      const notesDir = path.join(testPath, '.a24z', 'notes');
+      const notesDir = fs.join(testRepoPath, '.a24z', 'notes');
 
-      expect(fs.existsSync(notesDir)).toBe(true);
+      expect(fs.exists(notesDir)).toBe(true);
 
       // Verify note can be retrieved
-      const notes = notesStore.getNotesForPath(testPath, true);
+      const rootPath = '' as ValidatedRelativePath;
+      const notes = notesStore.getNotesForPath(validatedRepoPath, rootPath, true);
       expect(notes).toHaveLength(1);
-      expect(notes[0].note).toBe('File creation test');
+      expect(notes[0].note.note).toBe('File creation test');
     });
 
     it('should normalize anchors to relative paths', async () => {
       const input = {
         note: 'Anchor test',
-        directoryPath: testPath,
+        directoryPath: testRepoPath,
         tags: ['anchor-test'],
         anchors: ['custom-anchor', 'src/file.ts'],
         codebaseViewId: 'test-view',
@@ -143,20 +141,21 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
 
       await tool.execute(input);
 
-      const notes = notesStore.getNotesForPath(testPath, true);
+      const rootPath = '' as ValidatedRelativePath;
+      const notes = notesStore.getNotesForPath(validatedRepoPath, rootPath, true);
       expect(notes).toHaveLength(1);
       // Anchors should be normalized to relative paths to repo root
-      expect(notes[0].anchors).toHaveLength(2);
-      expect(path.isAbsolute(notes[0].anchors[0])).toBe(false);
-      expect(path.isAbsolute(notes[0].anchors[1])).toBe(false);
-      expect(notes[0].anchors[0]).toBe('custom-anchor');
-      expect(notes[0].anchors[1]).toBe('src/file.ts');
+      expect(notes[0].note.anchors).toHaveLength(2);
+      expect(fs.isAbsolute(notes[0].note.anchors[0])).toBe(false);
+      expect(fs.isAbsolute(notes[0].note.anchors[1])).toBe(false);
+      expect(notes[0].note.anchors[0]).toBe('custom-anchor');
+      expect(notes[0].note.anchors[1]).toBe('src/file.ts');
     });
 
     it('should add metadata with tool information', async () => {
       const input = {
         note: 'Metadata test',
-        directoryPath: testPath,
+        directoryPath: testRepoPath,
         anchors: ['src/test.ts'],
         codebaseViewId: 'test-view',
         tags: ['metadata-test'],
@@ -165,10 +164,11 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
 
       await tool.execute(input);
 
-      const notes = notesStore.getNotesForPath(testPath, true);
+      const rootPath = '' as ValidatedRelativePath;
+      const notes = notesStore.getNotesForPath(validatedRepoPath, rootPath, true);
       expect(notes).toHaveLength(1);
 
-      const savedNote = notes[0];
+      const savedNote = notes[0].note;
       expect(savedNote.metadata).toHaveProperty('userField', 'userValue');
       expect(savedNote.metadata).toHaveProperty('toolVersion', '2.0.0');
       expect(savedNote.metadata).toHaveProperty('createdBy', 'create_repository_note_tool');
@@ -176,12 +176,12 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
 
     it('should write notes to the git root .a24z directory', async () => {
       // Create a subdirectory structure
-      const subDir = path.join(testPath, 'src', 'components');
-      fs.mkdirSync(subDir, { recursive: true });
+      const subDir = fs.join(testRepoPath, 'src', 'components');
+      fs.createDir(subDir);
 
       const input = {
         note: 'Test note for git root storage',
-        directoryPath: testPath, // Git root
+        directoryPath: testRepoPath, // Git root
         anchors: ['src/components/Button.tsx'],
         codebaseViewId: 'test-view',
         tags: ['test'],
@@ -190,31 +190,32 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
       await tool.execute(input);
 
       // Verify the note is stored in the git root's .a24z directory
-      const gitRootNotesDir = path.join(testPath, '.a24z', 'notes');
-      expect(fs.existsSync(gitRootNotesDir)).toBe(true);
+      const gitRootNotesDir = fs.join(testRepoPath, '.a24z', 'notes');
+      expect(fs.exists(gitRootNotesDir)).toBe(true);
 
       // Verify no .a24z directory was created in subdirectories
-      const subDirA24z = path.join(subDir, '.a24z');
-      expect(fs.existsSync(subDirA24z)).toBe(false);
+      const subDirA24z = fs.join(subDir, '.a24z');
+      expect(fs.exists(subDirA24z)).toBe(false);
 
       // Verify the note can be retrieved
-      const notes = notesStore.getNotesForPath(testPath, true);
+      const rootPath = '' as ValidatedRelativePath;
+      const notes = notesStore.getNotesForPath(validatedRepoPath, rootPath, true);
       expect(notes).toHaveLength(1);
-      expect(notes[0].note).toBe('Test note for git root storage');
+      expect(notes[0].note.note).toBe('Test note for git root storage');
     });
 
     it('should handle multiple notes in same directory', async () => {
       const inputs = [
         {
           note: 'First note',
-          directoryPath: testPath,
+          directoryPath: testRepoPath,
           anchors: ['src/first.ts'],
           codebaseViewId: 'test-view',
           tags: ['first'],
         },
         {
           note: 'Second note',
-          directoryPath: testPath,
+          directoryPath: testRepoPath,
           anchors: ['src/second.ts'],
           codebaseViewId: 'test-view',
           tags: ['second'],
@@ -225,10 +226,11 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
         await tool.execute(input);
       }
 
-      const notes = notesStore.getNotesForPath(testPath, true);
+      const rootPath = '' as ValidatedRelativePath;
+      const notes = notesStore.getNotesForPath(validatedRepoPath, rootPath, true);
       expect(notes).toHaveLength(2);
 
-      const noteTexts = notes.map((n) => n.note);
+      const noteTexts = notes.map((n) => n.note.note);
       expect(noteTexts).toContain('First note');
       expect(noteTexts).toContain('Second note');
     });
@@ -260,8 +262,8 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
     });
 
     it('should reject non-git-root paths', async () => {
-      const subDir = path.join(testPath, 'src');
-      fs.mkdirSync(subDir, { recursive: true });
+      const subDir = fs.join(testRepoPath, 'src');
+      fs.createDir(subDir);
 
       const input = {
         note: 'Test note',
@@ -272,13 +274,13 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
       };
 
       await expect(tool.execute(input)).rejects.toThrow(
-        'directoryPath must be the git repository root'
+        'directoryPath must be a git repository root containing a .git directory'
       );
     });
 
     it('should reject paths outside git repositories', async () => {
-      const nonGitPath = path.join(TEST_DIR, 'non-git-repo');
-      fs.mkdirSync(nonGitPath, { recursive: true });
+      const nonGitPath = '/non-git-repo';
+      fs.createDir(nonGitPath);
 
       const input = {
         note: 'Test note',
@@ -289,14 +291,14 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
       };
 
       await expect(tool.execute(input)).rejects.toThrow(
-        'directoryPath is not within a git repository'
+        'directoryPath must be a git repository root containing a .git directory'
       );
     });
 
     it('should preserve all input data in saved note', async () => {
       const input = {
         note: '# Test Note\\n\\nThis is **markdown** content.',
-        directoryPath: testPath,
+        directoryPath: testRepoPath,
         anchors: ['src/**/*.ts', 'docs/'],
         tags: ['markdown', 'documentation', 'typescript'],
         codebaseViewId: 'test-view',
@@ -309,8 +311,9 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
 
       await tool.execute(input);
 
-      const notes = notesStore.getNotesForPath(testPath, true);
-      const saved = notes[0];
+      const rootPath = '' as ValidatedRelativePath;
+      const notes = notesStore.getNotesForPath(validatedRepoPath, rootPath, true);
+      const saved = notes[0].note;
 
       expect(saved.note).toBe(input.note);
       expect(saved.tags).toEqual(input.tags);
@@ -322,15 +325,27 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
 
     it('should store notes in separate .a24z directories for different repositories', async () => {
       // Create a second repository
-      const repo2Path = path.join(TEST_DIR, 'test-repo-2');
-      fs.mkdirSync(repo2Path, { recursive: true });
-      fs.mkdirSync(path.join(repo2Path, '.git'), { recursive: true });
-      createTestView(repo2Path, 'test-view');
+      const repo2Path = '/test-repo-2';
+      fs.setupTestRepo(repo2Path);
+      const validatedRepo2Path = MemoryPalace.validateRepositoryPath(fs, repo2Path);
+
+      // Create a test view for the second repository
+      const codebaseViewsStore = new CodebaseViewsStore(fs);
+      const testView2: CodebaseView = {
+        id: 'test-view',
+        version: '1.0.0',
+        name: 'Test View 2',
+        description: 'Test view for testing repo 2',
+        overviewPath: 'README.md',
+        cells: {},
+        timestamp: new Date().toISOString(),
+      };
+      codebaseViewsStore.saveView(validatedRepo2Path, testView2);
 
       // Save note in first repository
       const input1 = {
         note: 'Note in repo 1',
-        directoryPath: testPath,
+        directoryPath: testRepoPath,
         anchors: ['file1.ts'],
         codebaseViewId: 'test-view',
         tags: ['repo1'],
@@ -348,24 +363,22 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
       await tool.execute(input2);
 
       // Verify each repository has its own .a24z directory with the correct note
-      const repo1NotesDir = path.join(testPath, '.a24z', 'notes');
-      const repo2NotesDir = path.join(repo2Path, '.a24z', 'notes');
+      const repo1NotesDir = fs.join(testRepoPath, '.a24z', 'notes');
+      const repo2NotesDir = fs.join(repo2Path, '.a24z', 'notes');
 
-      expect(fs.existsSync(repo1NotesDir)).toBe(true);
-      expect(fs.existsSync(repo2NotesDir)).toBe(true);
+      expect(fs.exists(repo1NotesDir)).toBe(true);
+      expect(fs.exists(repo2NotesDir)).toBe(true);
 
       // Verify repo 1 has only its note
-      const repo1Notes = notesStore.getNotesForPath(testPath, true);
+      const rootPath = '' as ValidatedRelativePath;
+      const repo1Notes = notesStore.getNotesForPath(validatedRepoPath, rootPath, true);
       expect(repo1Notes).toHaveLength(1);
-      expect(repo1Notes[0].note).toBe('Note in repo 1');
+      expect(repo1Notes[0].note.note).toBe('Note in repo 1');
 
       // Verify repo 2 has only its note
-      const repo2Notes = notesStore.getNotesForPath(repo2Path, true);
+      const repo2Notes = notesStore.getNotesForPath(validatedRepo2Path, rootPath, true);
       expect(repo2Notes).toHaveLength(1);
-      expect(repo2Notes[0].note).toBe('Note in repo 2');
-
-      // Clean up
-      fs.rmSync(repo2Path, { recursive: true, force: true });
+      expect(repo2Notes[0].note.note).toBe('Note in repo 2');
     });
   });
 });

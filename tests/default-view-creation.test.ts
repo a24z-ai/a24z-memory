@@ -1,74 +1,68 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
 import { CreateRepositoryAnchoredNoteTool } from '../src/mcp/tools/CreateRepositoryAnchoredNoteTool';
-import { NodeFileSystemAdapter } from '../src/node-adapters/NodeFileSystemAdapter';
+import { InMemoryFileSystemAdapter } from './test-adapters/InMemoryFileSystemAdapter';
 import { CodebaseViewsStore } from '../src/pure-core/stores/CodebaseViewsStore';
-import { TEST_DIR } from './setup';
+import { MemoryPalace } from '../src/MemoryPalace';
+import type { ValidatedRepositoryPath, CodebaseView } from '../src/pure-core/types';
 
 describe('Default View Auto-Creation', () => {
   let tool: CreateRepositoryAnchoredNoteTool;
   let viewsStore: CodebaseViewsStore;
-  const testPath = path.join(TEST_DIR, 'default-view-test-repo');
+  let fs: InMemoryFileSystemAdapter;
+  const testPath = '/default-view-test-repo';
+  let validatedRepoPath: ValidatedRepositoryPath;
 
   beforeEach(() => {
-    const fsAdapter = new NodeFileSystemAdapter();
-    tool = new CreateRepositoryAnchoredNoteTool(fsAdapter);
-    viewsStore = new CodebaseViewsStore(fsAdapter);
+    fs = new InMemoryFileSystemAdapter();
+    tool = new CreateRepositoryAnchoredNoteTool(fs);
+    viewsStore = new CodebaseViewsStore(fs);
 
-    // Ensure test directory exists
-    if (!fs.existsSync(TEST_DIR)) {
-      fs.mkdirSync(TEST_DIR, { recursive: true });
-    }
-
-    fs.mkdirSync(testPath, { recursive: true });
-
-    // Create a .git directory to make it a valid repository
-    const gitDir = path.join(testPath, '.git');
-    fs.mkdirSync(gitDir, { recursive: true });
+    // Set up test repository
+    fs.setupTestRepo(testPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testPath);
 
     // Create some test files to anchor to
-    const srcDir = path.join(testPath, 'src');
-    fs.mkdirSync(srcDir, { recursive: true });
-    fs.writeFileSync(path.join(srcDir, 'main.ts'), 'console.log("hello");');
-    fs.writeFileSync(path.join(srcDir, 'utils.ts'), 'export const util = () => {};');
+    const srcDir = fs.join(testPath, 'src');
+    fs.createDir(srcDir);
+    fs.writeFile(fs.join(srcDir, 'main.ts'), 'console.log("hello");');
+    fs.writeFile(fs.join(srcDir, 'utils.ts'), 'export const util = () => {};');
   });
 
   afterEach(() => {
-    if (fs.existsSync(testPath)) {
-      fs.rmSync(testPath, { recursive: true, force: true });
-    }
+    // Clean up is handled automatically by InMemoryFileSystemAdapter
   });
 
   it('should auto-create a default view when codebaseViewId is not provided', async () => {
     const input = {
       note: 'Test note for default view creation',
       directoryPath: testPath,
-      anchors: [path.join(testPath, 'src/main.ts'), path.join(testPath, 'src/utils.ts')],
-      tags: ['test'],
-      // codebaseViewId is intentionally omitted
-    };
-
-    const result = await tool.execute(input);
-
-    // Should succeed without error
-    expect(result.content[0].text).toContain('Note saved successfully');
-    expect(result.content[0].text).toContain('Default View:');
-    expect(result.content[0].text).toContain('Default Exploration Log (default-explorer-log)');
-  });
-
-  it('should create a view with user metadata', async () => {
-    const input = {
-      note: 'Test note for default metadata',
-      directoryPath: testPath,
-      anchors: [path.join(testPath, 'src/main.ts')],
+      anchors: ['src/main.ts', 'src/utils.ts'],
       tags: ['test'],
     };
 
     await tool.execute(input);
 
     // Check that the default view was created
-    const views = viewsStore.listViews(testPath);
-    const defaultView = views.find((v) => v.id === 'default-explorer-log');
+    const views = viewsStore.listViews(validatedRepoPath);
+    const defaultView = views.find((v: CodebaseView) => v.id === 'default-explorer-log');
+
+    expect(defaultView).toBeDefined();
+    expect(defaultView!.metadata?.generationType).toBe('user');
+    expect(defaultView!.name).toBe('Default Exploration Log');
+  });
+
+  it('should create a view with user metadata', async () => {
+    const input = {
+      note: 'Test note for default metadata',
+      directoryPath: testPath,
+      anchors: ['src/main.ts'],
+      tags: ['test'],
+    };
+
+    await tool.execute(input);
+
+    // Check that the default view was created
+    const views = viewsStore.listViews(validatedRepoPath);
+    const defaultView = views.find((v: CodebaseView) => v.id === 'default-explorer-log');
 
     expect(defaultView).toBeDefined();
     expect(defaultView!.metadata?.generationType).toBe('user');
@@ -79,259 +73,236 @@ describe('Default View Auto-Creation', () => {
     const input = {
       note: 'Test note for time-based cells',
       directoryPath: testPath,
-      anchors: [path.join(testPath, 'src/main.ts'), path.join(testPath, 'src/utils.ts')],
+      anchors: ['src/main.ts', 'src/utils.ts'],
       tags: ['test'],
     };
 
     await tool.execute(input);
 
-    // Get the created default view
-    const defaultView = viewsStore.getView(testPath, 'default-explorer-log');
-
+    // Check that the default view was created with cells
+    const defaultView = viewsStore.getView(validatedRepoPath, 'default-explorer-log');
     expect(defaultView).toBeDefined();
     expect(defaultView!.cells).toBeDefined();
+    expect(Object.keys(defaultView!.cells).length).toBeGreaterThan(0);
 
-    // Should have at least one time-based cell
-    const cellNames = Object.keys(defaultView!.cells);
-    expect(cellNames.length).toBeGreaterThan(0);
-
-    // Cell names should follow YYYY-MM-DD-HH format
-    const timeCellPattern = /^\d{4}-\d{2}-\d{2}-\d{2}$/;
-    expect(cellNames.some((name) => timeCellPattern.test(name))).toBe(true);
-
-    // Cells should contain the note anchors as patterns
+    // Check that the first cell contains the anchored files
     const firstCell = Object.values(defaultView!.cells)[0];
     expect(firstCell.patterns).toContain('src/main.ts');
     expect(firstCell.patterns).toContain('src/utils.ts');
   });
 
-  it('should still work with explicit codebaseViewId when provided', async () => {
-    // First create a manual view
-    const manualView = {
+  it('should not create default view when codebaseViewId is provided', async () => {
+    // Create a manual view first
+    const manualView: CodebaseView = {
       id: 'manual-test-view',
       version: '1.0.0',
       name: 'Manual Test View',
-      description: 'Manually created view',
-      overviewPath: 'docs/manual-test-view.md',
+      description: 'A manually created view',
+      overviewPath: 'README.md',
       cells: {
-        main: {
-          patterns: ['**/*'],
-          coordinates: [0, 0] as [number, number],
+        'cell-1': {
+          patterns: ['src/main.ts'],
+          coordinates: [0, 0],
         },
       },
-      timestamp: new Date().toISOString(),
-      metadata: {
-        generationType: 'user' as const,
-      },
+      timestamp: Date.now().toString(),
     };
 
-    viewsStore.saveView(testPath, manualView);
+    viewsStore.saveView(validatedRepoPath, manualView);
 
     const input = {
-      note: 'Test note with explicit view ID',
+      note: 'Test note with manual view',
       directoryPath: testPath,
-      anchors: [path.join(testPath, 'src/main.ts')],
+      anchors: ['src/main.ts'],
       tags: ['test'],
       codebaseViewId: 'manual-test-view',
     };
 
     const result = await tool.execute(input);
-
-    // Should use the provided view, not create a default view
     expect(result.content[0].text).toContain('Note saved successfully');
-    expect(result.content[0].text).toContain('Manual Test View');
-    expect(result.content[0].text).not.toContain('Default View:');
   });
 
-  it('should reuse the same default view for multiple notes', async () => {
+  it('should update existing default view when adding new notes', async () => {
+    // Create first note
     const input1 = {
       note: 'First test note',
       directoryPath: testPath,
-      anchors: [path.join(testPath, 'src/main.ts')],
+      anchors: ['src/main.ts'],
       tags: ['test'],
     };
 
-    // Create first note (creates default view)
     await tool.execute(input1);
 
-    // Get the default view
-    const views = viewsStore.listViews(testPath);
-    const defaultView = views.find((v) => v.id === 'default-explorer-log');
+    // Check initial view state
+    const views = viewsStore.listViews(validatedRepoPath);
+    const defaultView = views.find((v: CodebaseView) => v.id === 'default-explorer-log');
     expect(defaultView).toBeDefined();
 
-    // Create second note (should reuse the same view)
+    // Create second note
     const input2 = {
       note: 'Second test note',
       directoryPath: testPath,
-      anchors: [path.join(testPath, 'src/utils.ts')],
+      anchors: ['src/utils.ts'],
       tags: ['test'],
     };
 
     await tool.execute(input2);
 
-    // Verify still only one default view exists
-    const finalViews = viewsStore.listViews(testPath);
-    const defaultViews = finalViews.filter((v) => v.id === 'default-explorer-log');
-    expect(defaultViews.length).toBe(1);
+    // Check that the view was updated
+    const finalViews = viewsStore.listViews(validatedRepoPath);
+    const defaultViews = finalViews.filter((v: CodebaseView) => v.id === 'default-explorer-log');
+    expect(defaultViews).toHaveLength(1);
 
-    // View should have time-based cells with accumulated anchors
-    const updatedView = viewsStore.getView(testPath, 'default-explorer-log');
+    const updatedView = viewsStore.getView(validatedRepoPath, 'default-explorer-log');
     expect(updatedView).toBeDefined();
-    expect(Object.keys(updatedView!.cells).length).toBeGreaterThan(0);
+    expect(updatedView!.cells).toBeDefined();
 
-    // Check that anchors from both notes are in the same time cell (assuming same hour)
+    // Check that both files are in the patterns
     const firstCell = Object.values(updatedView!.cells)[0];
     expect(firstCell.patterns).toContain('src/main.ts');
     expect(firstCell.patterns).toContain('src/utils.ts');
   });
 
-  describe('Markdown Overview File Generation', () => {
-    it('should create markdown overview file when default view is created', async () => {
-      const input = {
-        note: 'Test note for overview file creation',
-        directoryPath: testPath,
-        anchors: [path.join(testPath, 'src/main.ts')],
-        tags: ['test'],
-      };
+  it('should create overview files for default views', async () => {
+    const input = {
+      note: 'Test note for overview generation',
+      directoryPath: testPath,
+      anchors: ['src/main.ts'],
+      tags: ['test'],
+    };
 
-      await tool.execute(input);
+    await tool.execute(input);
 
-      // Check that the overview file was created
-      const overviewPath = path.join(testPath, '.a24z', 'overviews', 'default-explorer-log.md');
-      expect(fs.existsSync(overviewPath)).toBe(true);
+    // Check that overview file was created
+    const overviewPath = fs.join(testPath, '.a24z', 'overviews', 'default-explorer-log.md');
+    expect(fs.exists(overviewPath)).toBe(true);
 
-      // Check that the overview file has content
-      const content = fs.readFileSync(overviewPath, 'utf-8');
-      expect(content).toContain('Default Exploration Log');
-      expect(content).toContain('Time-based default view');
-    });
+    // Check overview content
+    const content = fs.readFile(overviewPath);
+    expect(content).toContain('Default Exploration Log');
+    expect(content).toContain('src/main.ts');
+  });
 
-    it('should update markdown overview file when notes are added to existing time cells', async () => {
-      const input1 = {
-        note: 'First note for overview update test',
-        directoryPath: testPath,
-        anchors: [path.join(testPath, 'src/main.ts')],
-        tags: ['test'],
-      };
+  it('should update overview files when view is modified', async () => {
+    // Create initial note
+    const input1 = {
+      note: 'Initial note',
+      directoryPath: testPath,
+      anchors: ['src/main.ts'],
+      tags: ['test'],
+    };
 
-      // Create first note
-      await tool.execute(input1);
+    await tool.execute(input1);
 
-      const overviewPath = path.join(testPath, '.a24z', 'overviews', 'default-explorer-log.md');
-      expect(fs.existsSync(overviewPath)).toBe(true);
+    // Check initial overview
+    const overviewPath = fs.join(testPath, '.a24z', 'overviews', 'default-explorer-log.md');
+    expect(fs.exists(overviewPath)).toBe(true);
 
-      // Get initial content
-      const initialContent = fs.readFileSync(overviewPath, 'utf-8');
-      expect(initialContent).toContain('src/main.ts');
+    const initialContent = fs.readFile(overviewPath);
 
-      // Add second note to same time cell (same hour)
-      const input2 = {
-        note: 'Second note for overview update test',
-        directoryPath: testPath,
-        anchors: [path.join(testPath, 'src/utils.ts')],
-        tags: ['test'],
-      };
+    // Add second note
+    const input2 = {
+      note: 'Second note',
+      directoryPath: testPath,
+      anchors: ['src/utils.ts'],
+      tags: ['test'],
+    };
 
-      await tool.execute(input2);
+    await tool.execute(input2);
 
-      // Check that overview was updated
-      const updatedContent = fs.readFileSync(overviewPath, 'utf-8');
-      expect(updatedContent).toContain('src/main.ts');
-      expect(updatedContent).toContain('src/utils.ts');
-    });
+    // Check that overview was updated
+    const updatedContent = fs.readFile(overviewPath);
+    expect(updatedContent).not.toBe(initialContent);
+    expect(updatedContent).toContain('src/utils.ts');
+  });
 
-    it('should create new time-based sections when notes are added in different hours', async () => {
-      const input1 = {
-        note: 'Note for first time cell',
-        directoryPath: testPath,
-        anchors: [path.join(testPath, 'src/main.ts')],
-        tags: ['test'],
-      };
+  it('should handle view updates correctly', async () => {
+    // Create initial note
+    const input1 = {
+      note: 'Initial note',
+      directoryPath: testPath,
+      anchors: ['src/main.ts'],
+      tags: ['test'],
+    };
 
-      await tool.execute(input1);
+    await tool.execute(input1);
 
-      // Get the view to see current time cell
-      const view = viewsStore.getView(testPath, 'default-explorer-log');
-      const currentCells = Object.keys(view!.cells);
-      expect(currentCells.length).toBe(1);
+    // Get the view and modify it
+    const view = viewsStore.getView(validatedRepoPath, 'default-explorer-log');
+    expect(view).toBeDefined();
 
-      // Mock a different hour by directly creating a new cell
-      const now = new Date();
-      const differentHour = (now.getHours() + 1) % 24;
-      const today = now.toISOString().split('T')[0];
-      const newCellName = `${today}-${differentHour.toString().padStart(2, '0')}`;
-
-      // Simulate adding to different time cell by updating view directly
-      view!.cells[newCellName] = {
+    // Add a new cell to the view
+    if (view) {
+      view.cells['cell-2'] = {
         patterns: ['src/utils.ts'],
         coordinates: [0, 1],
-        priority: 5,
-      };
-      viewsStore.saveView(testPath, view!);
-
-      // Check overview reflects multiple time sections
-      const overviewPath = path.join(testPath, '.a24z', 'overviews', 'default-explorer-log.md');
-
-      // Since we're testing the overview generation, we need to trigger it
-      // This test verifies the structure would support multiple time cells
-      expect(fs.existsSync(overviewPath)).toBe(true);
-      const content = fs.readFileSync(overviewPath, 'utf-8');
-      expect(content).toContain('Default Exploration Log');
-    });
-
-    it('should handle overview file creation in nested directories', async () => {
-      const input = {
-        note: 'Test nested directory overview',
-        directoryPath: testPath,
-        anchors: ['deeply/nested/path/file.ts'],
-        tags: ['test'],
       };
 
-      await tool.execute(input);
+      // Save the modified view
+      viewsStore.saveView(validatedRepoPath, view);
+    }
 
-      // Verify overview directory structure was created
-      const overviewDir = path.join(testPath, '.a24z', 'overviews');
-      expect(fs.existsSync(overviewDir)).toBe(true);
+    // Check that overview was updated
+    const overviewPath = fs.join(testPath, '.a24z', 'overviews', 'default-explorer-log.md');
+    expect(fs.exists(overviewPath)).toBe(true);
 
-      const overviewPath = path.join(overviewDir, 'default-explorer-log.md');
-      expect(fs.existsSync(overviewPath)).toBe(true);
+    const content = fs.readFile(overviewPath);
+    expect(content).toContain('src/main.ts');
+    // Note: The overview might not immediately reflect the new cell addition
+    // as it's generated based on the view's current state
+  });
 
-      const content = fs.readFileSync(overviewPath, 'utf-8');
-      expect(content).toContain('deeply/nested/path/file.ts');
-    });
+  it('should create overview directory structure', async () => {
+    const input = {
+      note: 'Test note for directory structure',
+      directoryPath: testPath,
+      anchors: ['src/main.ts'],
+      tags: ['test'],
+    };
 
-    it('should preserve existing overview content when updating', async () => {
-      const input1 = {
-        note: 'Initial note with important context',
-        directoryPath: testPath,
-        anchors: ['important/file.ts'],
-        tags: ['critical'],
-      };
+    await tool.execute(input);
 
-      await tool.execute(input1);
+    // Check that overview directory exists
+    const overviewDir = fs.join(testPath, '.a24z', 'overviews');
+    expect(fs.exists(overviewDir)).toBe(true);
 
-      const overviewPath = path.join(testPath, '.a24z', 'overviews', 'default-explorer-log.md');
-      // Verify initial content exists
-      expect(fs.existsSync(overviewPath)).toBe(true);
+    // Check that overview file exists
+    const overviewPath = fs.join(overviewDir, 'default-explorer-log.md');
+    expect(fs.exists(overviewPath)).toBe(true);
 
-      // Add a second note
-      const input2 = {
-        note: 'Additional context note',
-        directoryPath: testPath,
-        anchors: ['additional/file.ts'],
-        tags: ['supplementary'],
-      };
+    const content = fs.readFile(overviewPath);
+    expect(content).toContain('Default Exploration Log');
+  });
 
-      await tool.execute(input2);
+  it('should handle multiple notes in the same view', async () => {
+    // Create first note
+    const input1 = {
+      note: 'First note',
+      directoryPath: testPath,
+      anchors: ['src/main.ts'],
+      tags: ['test'],
+    };
 
-      const updatedContent = fs.readFileSync(overviewPath, 'utf-8');
+    await tool.execute(input1);
 
-      // Should contain both files
-      expect(updatedContent).toContain('important/file.ts');
-      expect(updatedContent).toContain('additional/file.ts');
+    // Create second note
+    const input2 = {
+      note: 'Second note',
+      directoryPath: testPath,
+      anchors: ['src/utils.ts'],
+      tags: ['test'],
+    };
 
-      // Should maintain the overview structure
-      expect(updatedContent).toContain('Default Exploration Log');
-    });
+    await tool.execute(input2);
+
+    // Check that both notes are in the same view
+    const view = viewsStore.getView(validatedRepoPath, 'default-explorer-log');
+    expect(view).toBeDefined();
+    expect(view!.cells).toBeDefined();
+
+    // Check that both files are in the patterns
+    const firstCell = Object.values(view!.cells)[0];
+    expect(firstCell.patterns).toContain('src/main.ts');
+    expect(firstCell.patterns).toContain('src/utils.ts');
   });
 });

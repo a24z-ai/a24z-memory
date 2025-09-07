@@ -1,37 +1,48 @@
 import { GetRepositoryTagsTool } from '../../../src/mcp/tools/GetRepositoryTagsTool';
 import { MemoryPalace } from '../../../src/MemoryPalace';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
+import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
+import type { ValidatedRepositoryPath, ValidatedRelativePath } from '../../../src/pure-core/types';
 
 describe('GetRepositoryTagsTool (Simple)', () => {
   let tool: GetRepositoryTagsTool;
   let inMemoryFs: InMemoryFileSystemAdapter;
   let memoryPalace: MemoryPalace;
+  let notesStore: AnchoredNotesStore;
   const testPath = '/test-repo';
+  let validatedRepoPath: ValidatedRepositoryPath;
 
   beforeEach(() => {
     // Set up in-memory filesystem
     inMemoryFs = new InMemoryFileSystemAdapter();
-    
+
     // Set up repository structure
     inMemoryFs.setupTestRepo(testPath);
-    
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(inMemoryFs, testPath);
+
     // Create the tool with in-memory adapter
     tool = new GetRepositoryTagsTool(inMemoryFs);
-    
+
     // Create MemoryPalace for saving test data
     memoryPalace = new MemoryPalace(testPath, inMemoryFs);
-    
+
+    // Create AnchoredNotesStore for querying notes
+    notesStore = new AnchoredNotesStore(inMemoryFs);
+
     // Create a test view directory structure
     const viewsDir = inMemoryFs.join(testPath, '.a24z', 'views');
     inMemoryFs.createDir(viewsDir);
     const testViewDir = inMemoryFs.join(viewsDir, 'test-view');
     inMemoryFs.createDir(testViewDir);
-    inMemoryFs.writeFile(inMemoryFs.join(testViewDir, 'config.json'), JSON.stringify({
-      name: 'test-view',
-      description: 'Test view',
-      created: new Date().toISOString()
-    }));
-    
+    inMemoryFs.writeFile(
+      inMemoryFs.join(testViewDir, 'config.json'),
+      JSON.stringify({
+        name: 'test-view',
+        description: 'Test view',
+        created: new Date().toISOString(),
+      })
+    );
+
     // Create a package.json to make it look like a proper project root
     inMemoryFs.writeFile(inMemoryFs.join(testPath, 'package.json'), '{}');
   });
@@ -45,15 +56,14 @@ describe('GetRepositoryTagsTool (Simple)', () => {
     const result = await tool.execute({
       path: testPath,
       includeUsedTags: true,
-      includeSuggestedTags: true,
       includeGuidance: true,
     });
 
     expect(result.content[0].type).toBe('text');
     const data = JSON.parse(result.content[0].text!);
     expect(data.success).toBe(true);
-    expect(data.suggestedTags).toBeDefined();
-    expect(Array.isArray(data.suggestedTags)).toBe(true);
+    expect(data.usedTags).toBeDefined();
+    expect(Array.isArray(data.usedTags)).toBe(true);
   });
 
   it('should include used tags when notes exist', async () => {
@@ -67,21 +77,27 @@ describe('GetRepositoryTagsTool (Simple)', () => {
     });
 
     console.log('Saved note:', savedNote);
-    
+
     // Debug: Check if the note can be retrieved
-    const allNotes = memoryPalace.getNotesForPath(testPath, true);
-    console.log('All notes from memoryPalace:', allNotes);
-    
+    const rootPath = '' as ValidatedRelativePath;
+    const allNotes = notesStore.getNotesForPath(validatedRepoPath, rootPath, true);
+    console.log('All notes from notesStore:', allNotes);
+
     // Debug: Check filesystem
-    console.log('Files in memory:', Array.from(inMemoryFs.getFiles().keys()).filter(f => f.includes('notes')));
-    
+    console.log(
+      'Files in memory:',
+      Array.from(inMemoryFs.getFiles().keys()).filter((f) => f.includes('notes'))
+    );
+
     // Try reading the note file directly
-    const noteFiles = Array.from(inMemoryFs.getFiles().keys()).filter(f => f.endsWith('.json') && f.includes('notes'));
+    const noteFiles = Array.from(inMemoryFs.getFiles().keys()).filter(
+      (f) => f.endsWith('.json') && f.includes('notes')
+    );
     if (noteFiles.length > 0) {
       const noteContent = inMemoryFs.readFile(noteFiles[0]);
       console.log('Note file content:', noteContent);
     }
-    
+
     // Debug readDir
     const notesDir = inMemoryFs.join(testPath, '.a24z', 'notes');
     console.log('readDir of notes:', inMemoryFs.readDir(notesDir));
@@ -97,42 +113,39 @@ describe('GetRepositoryTagsTool (Simple)', () => {
     const result = await tool.execute({
       path: testPath,
       includeUsedTags: true,
-      includeSuggestedTags: true,
       includeGuidance: true,
     });
     const data = JSON.parse(result.content[0].text!);
 
     // Debug output
     console.log('Used tags:', data.usedTags);
-    
+
     expect(data.usedTags).toBeDefined();
     expect(Array.isArray(data.usedTags)).toBe(true);
     expect(data.usedTags.length).toBeGreaterThan(0);
     expect(data.usedTags.some((tag: { name: string }) => tag.name === 'custom-tag')).toBe(true);
   });
 
-  it('should return empty suggested tags (user-managed)', async () => {
+  it('should return empty used tags when no notes exist', async () => {
     const authPath = inMemoryFs.join(testPath, 'auth');
     inMemoryFs.createDir(authPath);
 
     const result = await tool.execute({
       path: authPath,
       includeUsedTags: true,
-      includeSuggestedTags: true,
       includeGuidance: true,
     });
     const data = JSON.parse(result.content[0].text!);
 
-    expect(data.suggestedTags).toBeDefined();
-    expect(Array.isArray(data.suggestedTags)).toBe(true);
-    expect(data.suggestedTags).toHaveLength(0);
+    expect(data.usedTags).toBeDefined();
+    expect(Array.isArray(data.usedTags)).toBe(true);
+    expect(data.usedTags).toHaveLength(0);
   });
 
   it('should include repository guidance by default', async () => {
     const result = await tool.execute({
       path: testPath,
       includeUsedTags: true,
-      includeSuggestedTags: true,
       includeGuidance: true,
     });
     const data = JSON.parse(result.content[0].text!);
@@ -149,7 +162,6 @@ describe('GetRepositoryTagsTool (Simple)', () => {
     const result = await tool.execute({
       path: testPath,
       includeUsedTags: true,
-      includeSuggestedTags: true,
       includeGuidance: true,
     });
     const data = JSON.parse(result.content[0].text!);
@@ -161,7 +173,6 @@ describe('GetRepositoryTagsTool (Simple)', () => {
     const result = await tool.execute({
       path: testPath,
       includeUsedTags: true,
-      includeSuggestedTags: true,
       includeGuidance: false,
     });
     const data = JSON.parse(result.content[0].text!);
@@ -174,7 +185,6 @@ describe('GetRepositoryTagsTool (Simple)', () => {
     const result = await tool.execute({
       path: testPath,
       includeUsedTags: false,
-      includeSuggestedTags: false,
       includeGuidance: false,
     });
     const data = JSON.parse(result.content[0].text!);

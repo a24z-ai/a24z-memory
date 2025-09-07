@@ -145,8 +145,8 @@ export class InMemoryFileSystemAdapter implements FileSystemAdapter {
       current = this.dirname(current);
     }
 
-    // If no .git found, assume the input path is the repository root
-    return inputPath;
+    // If no .git found, throw an error
+    throw new Error(`Not a git repository: ${inputPath}`);
   }
 
   findProjectRoot(inputPath: string): string {

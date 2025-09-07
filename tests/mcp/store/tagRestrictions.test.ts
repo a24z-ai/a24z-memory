@@ -1,46 +1,36 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import * as os from 'node:os';
-import { createTestView } from '../../test-helpers';
-import {
-  saveNote,
-  updateRepositoryConfiguration,
-  getRepositoryConfiguration,
-  getAllowedTags,
-  validateNoteAgainstConfig,
-  saveTagDescription,
-} from '../../../src/core/store/anchoredNotesStore';
+import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
+import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
+import { MemoryPalace } from '../../../src/MemoryPalace';
+import type { ValidatedRepositoryPath } from '../../../src/pure-core/types';
 
 describe('Tag Restrictions', () => {
-  let tempDir: string;
-  let testRepoPath: string;
+  let store: AnchoredNotesStore;
+  let fs: InMemoryFileSystemAdapter;
+  const testRepoPath = '/test-repo';
+  let validatedRepoPath: ValidatedRepositoryPath;
 
   beforeEach(() => {
-    // Create a temporary directory for testing
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a24z-test-'));
-    testRepoPath = path.join(tempDir, 'test-repo');
-    fs.mkdirSync(testRepoPath, { recursive: true });
+    // Initialize in-memory filesystem
+    fs = new InMemoryFileSystemAdapter();
+    store = new AnchoredNotesStore(fs);
 
-    // Create a .git directory to make it a valid repository
-    fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
-    createTestView(testRepoPath, 'test-view');
-  });
+    // Set up the test repository structure
+    fs.setupTestRepo(testRepoPath);
 
-  afterEach(() => {
-    // Clean up temporary directory
-    fs.rmSync(tempDir, { recursive: true, force: true });
+    // Validate the repository path
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
   });
 
   describe('Configuration', () => {
     it('should have tag restrictions disabled by default', () => {
-      const config = getRepositoryConfiguration(testRepoPath);
+      const config = store.getConfiguration(validatedRepoPath);
 
       expect(config.tags).toBeDefined();
       expect(config.tags?.enforceAllowedTags).toBe(false);
     });
 
     it('should allow updating tag configuration', () => {
-      const updatedConfig = updateRepositoryConfiguration(testRepoPath, {
+      const updatedConfig = store.updateConfiguration(validatedRepoPath, {
         tags: {
           enforceAllowedTags: true,
         },
@@ -49,29 +39,29 @@ describe('Tag Restrictions', () => {
       expect(updatedConfig.tags?.enforceAllowedTags).toBe(true);
 
       // Verify it persists
-      const readConfig = getRepositoryConfiguration(testRepoPath);
+      const readConfig = store.getConfiguration(validatedRepoPath);
       expect(readConfig.tags?.enforceAllowedTags).toBe(true);
     });
 
     it('should return allowed tags for a repository', () => {
       // Initially no restrictions
-      let allowedTags = getAllowedTags(testRepoPath);
+      let allowedTags = store.getAllowedTags(validatedRepoPath);
       expect(allowedTags.enforced).toBe(false);
       expect(allowedTags.tags).toEqual([]);
 
       // Update configuration and add some tag descriptions to create allowed tags
-      updateRepositoryConfiguration(testRepoPath, {
+      store.updateConfiguration(validatedRepoPath, {
         tags: {
           enforceAllowedTags: true,
         },
       });
 
       // Add tag descriptions which will become the allowed tags
-      saveTagDescription(testRepoPath, 'feature', 'New features');
-      saveTagDescription(testRepoPath, 'bugfix', 'Bug fixes');
+      store.saveTagDescription(validatedRepoPath, 'feature', 'New features');
+      store.saveTagDescription(validatedRepoPath, 'bugfix', 'Bug fixes');
 
       // Check again
-      allowedTags = getAllowedTags(testRepoPath);
+      allowedTags = store.getAllowedTags(validatedRepoPath);
       expect(allowedTags.enforced).toBe(true);
       expect(allowedTags.tags.sort()).toEqual(['bugfix', 'feature']);
     });
@@ -86,25 +76,25 @@ describe('Tag Restrictions', () => {
         type: 'explanation' as const,
         codebaseViewId: 'test-view',
         metadata: {},
-        directoryPath: testRepoPath,
+        directoryPath: validatedRepoPath,
       };
 
       // Should not throw
-      expect(() => saveNote(note)).not.toThrow();
+      expect(() => store.saveNote(note)).not.toThrow();
     });
 
     it('should reject invalid tags when enforcement is enabled', () => {
       // Configure allowed tags
-      updateRepositoryConfiguration(testRepoPath, {
+      store.updateConfiguration(validatedRepoPath, {
         tags: {
           enforceAllowedTags: true,
         },
       });
 
       // Add tag descriptions which will become the allowed tags
-      saveTagDescription(testRepoPath, 'feature', 'New features');
-      saveTagDescription(testRepoPath, 'bugfix', 'Bug fixes');
-      saveTagDescription(testRepoPath, 'documentation', 'Documentation changes');
+      store.saveTagDescription(validatedRepoPath, 'feature', 'New features');
+      store.saveTagDescription(validatedRepoPath, 'bugfix', 'Bug fixes');
+      store.saveTagDescription(validatedRepoPath, 'documentation', 'Documentation changes');
 
       const note = {
         note: 'Test note with invalid tags',
@@ -113,28 +103,28 @@ describe('Tag Restrictions', () => {
         type: 'explanation' as const,
         codebaseViewId: 'test-view',
         metadata: {},
-        directoryPath: testRepoPath,
+        directoryPath: validatedRepoPath,
       };
 
       // Should throw validation error
-      expect(() => saveNote(note)).toThrow('Note validation failed');
-      expect(() => saveNote(note)).toThrow('The following tags are not allowed');
-      expect(() => saveNote(note)).toThrow('invalid-tag');
-      expect(() => saveNote(note)).toThrow('another-invalid');
+      expect(() => store.saveNote(note)).toThrow('Validation failed');
+      expect(() => store.saveNote(note)).toThrow('The following tags are not allowed');
+      expect(() => store.saveNote(note)).toThrow('invalid-tag');
+      expect(() => store.saveNote(note)).toThrow('another-invalid');
     });
 
     it('should accept valid tags when enforcement is enabled', () => {
       // Configure allowed tags
-      updateRepositoryConfiguration(testRepoPath, {
+      store.updateConfiguration(validatedRepoPath, {
         tags: {
           enforceAllowedTags: true,
         },
       });
 
       // Add tag descriptions which will become the allowed tags
-      saveTagDescription(testRepoPath, 'feature', 'New features');
-      saveTagDescription(testRepoPath, 'bugfix', 'Bug fixes');
-      saveTagDescription(testRepoPath, 'documentation', 'Documentation changes');
+      store.saveTagDescription(validatedRepoPath, 'feature', 'New features');
+      store.saveTagDescription(validatedRepoPath, 'bugfix', 'Bug fixes');
+      store.saveTagDescription(validatedRepoPath, 'documentation', 'Documentation changes');
 
       const note = {
         note: 'Test note with valid tags',
@@ -143,26 +133,26 @@ describe('Tag Restrictions', () => {
         type: 'explanation' as const,
         codebaseViewId: 'test-view',
         metadata: {},
-        directoryPath: testRepoPath,
+        directoryPath: validatedRepoPath,
       };
 
       // Should not throw
-      const savedNoteWithPath = saveNote(note);
+      const savedNoteWithPath = store.saveNote(note);
       const savedNote = savedNoteWithPath.note;
       expect(savedNote.tags).toEqual(['feature', 'documentation']);
     });
 
     it('should allow empty tags list when enforcement is enabled', () => {
       // Configure allowed tags
-      updateRepositoryConfiguration(testRepoPath, {
+      store.updateConfiguration(validatedRepoPath, {
         tags: {
           enforceAllowedTags: true,
         },
       });
 
       // Add tag descriptions which will become the allowed tags
-      saveTagDescription(testRepoPath, 'feature', 'New features');
-      saveTagDescription(testRepoPath, 'bugfix', 'Bug fixes');
+      store.saveTagDescription(validatedRepoPath, 'feature', 'New features');
+      store.saveTagDescription(validatedRepoPath, 'bugfix', 'Bug fixes');
 
       const note = {
         note: 'Test note with required tag',
@@ -171,16 +161,16 @@ describe('Tag Restrictions', () => {
         type: 'explanation' as const,
         codebaseViewId: 'test-view',
         metadata: {},
-        directoryPath: testRepoPath,
+        directoryPath: validatedRepoPath,
       };
 
       // Should not throw
-      expect(() => saveNote(note)).not.toThrow();
+      expect(() => store.saveNote(note)).not.toThrow();
     });
 
     it('should not enforce when no tag descriptions exist even if enforcement is enabled', () => {
       // Configure with enforcement but no tag descriptions (no allowed tags)
-      updateRepositoryConfiguration(testRepoPath, {
+      store.updateConfiguration(validatedRepoPath, {
         tags: {
           enforceAllowedTags: true,
         },
@@ -193,24 +183,24 @@ describe('Tag Restrictions', () => {
         type: 'explanation' as const,
         codebaseViewId: 'test-view',
         metadata: {},
-        directoryPath: testRepoPath,
+        directoryPath: validatedRepoPath,
       };
 
       // Should not throw because no tag descriptions exist
-      expect(() => saveNote(note)).not.toThrow();
+      expect(() => store.saveNote(note)).not.toThrow();
     });
 
-    it('should validate tags using validateNoteAgainstConfig', () => {
+    it('should validate tags using validateNote', () => {
       // Configure allowed tags
-      updateRepositoryConfiguration(testRepoPath, {
+      store.updateConfiguration(validatedRepoPath, {
         tags: {
           enforceAllowedTags: true,
         },
       });
 
       // Add tag descriptions which will become the allowed tags
-      saveTagDescription(testRepoPath, 'feature', 'New features');
-      saveTagDescription(testRepoPath, 'bugfix', 'Bug fixes');
+      store.saveTagDescription(validatedRepoPath, 'feature', 'New features');
+      store.saveTagDescription(validatedRepoPath, 'bugfix', 'Bug fixes');
 
       const invalidNote = {
         note: 'Test note',
@@ -221,28 +211,29 @@ describe('Tag Restrictions', () => {
         metadata: {},
       };
 
-      const errors = validateNoteAgainstConfig(invalidNote, testRepoPath);
+      const errors = store.validateNote(invalidNote, validatedRepoPath);
 
       const tagError = errors.find(
-        (e) => e.field === 'tags' && e.message.includes('The following tags are not allowed')
+        (e) => e.type === 'invalidTags' && e.message.includes('The following tags are not allowed')
       );
       expect(tagError).toBeDefined();
       expect(tagError?.message).toContain('invalid-tag');
-      expect(tagError?.message).toContain('bugfix, feature');
+      expect(tagError?.message).toContain('feature');
+      expect(tagError?.message).toContain('bugfix');
     });
 
     it('should enforce tags across multiple saves', () => {
       // Configure allowed tags
-      updateRepositoryConfiguration(testRepoPath, {
+      store.updateConfiguration(validatedRepoPath, {
         tags: {
           enforceAllowedTags: true,
         },
       });
 
       // Add tag descriptions which will become the allowed tags
-      saveTagDescription(testRepoPath, 'feature', 'New features');
-      saveTagDescription(testRepoPath, 'bugfix', 'Bug fixes');
-      saveTagDescription(testRepoPath, 'testing', 'Testing code');
+      store.saveTagDescription(validatedRepoPath, 'feature', 'New features');
+      store.saveTagDescription(validatedRepoPath, 'bugfix', 'Bug fixes');
+      store.saveTagDescription(validatedRepoPath, 'testing', 'Testing code');
 
       // First note with valid tags
       const note1 = {
@@ -252,10 +243,10 @@ describe('Tag Restrictions', () => {
         type: 'explanation' as const,
         codebaseViewId: 'test-view',
         metadata: {},
-        directoryPath: testRepoPath,
+        directoryPath: validatedRepoPath,
       };
 
-      const saved1WithPath = saveNote(note1);
+      const saved1WithPath = store.saveNote(note1);
       const saved1 = saved1WithPath.note;
       expect(saved1.tags).toEqual(['feature', 'testing']);
 
@@ -267,10 +258,10 @@ describe('Tag Restrictions', () => {
         type: 'explanation' as const,
         codebaseViewId: 'test-view',
         metadata: {},
-        directoryPath: testRepoPath,
+        directoryPath: validatedRepoPath,
       };
 
-      expect(() => saveNote(note2)).toThrow('The following tags are not allowed');
+      expect(() => store.saveNote(note2)).toThrow('Validation failed');
 
       // Third note with valid tags
       const note3 = {
@@ -280,10 +271,10 @@ describe('Tag Restrictions', () => {
         type: 'explanation' as const,
         codebaseViewId: 'test-view',
         metadata: {},
-        directoryPath: testRepoPath,
+        directoryPath: validatedRepoPath,
       };
 
-      const saved3WithPath = saveNote(note3);
+      const saved3WithPath = store.saveNote(note3);
       const saved3 = saved3WithPath.note;
       expect(saved3.tags).toEqual(['bugfix']);
     });
@@ -298,35 +289,35 @@ describe('Tag Restrictions', () => {
         type: 'explanation' as const,
         codebaseViewId: 'test-view',
         metadata: {},
-        directoryPath: testRepoPath,
+        directoryPath: validatedRepoPath,
       };
 
       // Initially allow custom tags
-      expect(() => saveNote(note)).not.toThrow();
+      expect(() => store.saveNote(note)).not.toThrow();
 
       // Enable enforcement
-      updateRepositoryConfiguration(testRepoPath, {
+      store.updateConfiguration(validatedRepoPath, {
         tags: {
           enforceAllowedTags: true,
         },
       });
 
       // Add tag descriptions which will become the allowed tags
-      saveTagDescription(testRepoPath, 'feature', 'New features');
-      saveTagDescription(testRepoPath, 'bugfix', 'Bug fixes');
+      store.saveTagDescription(validatedRepoPath, 'feature', 'New features');
+      store.saveTagDescription(validatedRepoPath, 'bugfix', 'Bug fixes');
 
       // Now should reject custom tags
-      expect(() => saveNote(note)).toThrow('The following tags are not allowed');
+      expect(() => store.saveNote(note)).toThrow('Validation failed');
 
       // Disable enforcement
-      updateRepositoryConfiguration(testRepoPath, {
+      store.updateConfiguration(validatedRepoPath, {
         tags: {
           enforceAllowedTags: false,
         },
       });
 
       // Should allow custom tags again
-      expect(() => saveNote(note)).not.toThrow();
+      expect(() => store.saveNote(note)).not.toThrow();
     });
   });
 });

@@ -1,9 +1,9 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import * as os from 'node:os';
-import { createTestView } from '../../test-helpers';
 import { GetTagUsageTool } from '../../../src/mcp/tools/GetTagUsageTool';
-import { saveNote, saveTagDescription } from '../../../src/core/store/anchoredNotesStore';
+import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
+import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
+import { CodebaseViewsStore } from '../../../src/pure-core/stores/CodebaseViewsStore';
+import { MemoryPalace } from '../../../src/MemoryPalace';
+import type { ValidatedRepositoryPath, CodebaseView } from '../../../src/pure-core/types';
 
 interface TagUsageResponse {
   tag: string;
@@ -14,31 +14,37 @@ interface TagUsageResponse {
 }
 
 describe('GetTagUsageTool', () => {
-  let tempDir: string;
-  let testRepoPath: string;
   let tool: GetTagUsageTool;
+  let notesStore: AnchoredNotesStore;
+  let fs: InMemoryFileSystemAdapter;
+  const testRepoPath = '/test-repo';
+  let validatedRepoPath: ValidatedRepositoryPath;
 
   beforeEach(() => {
-    // Create a temporary directory for testing
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a24z-test-'));
-    testRepoPath = path.join(tempDir, 'test-repo');
-    fs.mkdirSync(testRepoPath, { recursive: true });
+    fs = new InMemoryFileSystemAdapter();
+    tool = new GetTagUsageTool(fs);
+    notesStore = new AnchoredNotesStore(fs);
+    fs.setupTestRepo(testRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
 
-    // Create a .git directory to make it a valid repository
-    fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
-    createTestView(testRepoPath, 'test-view');
-    tool = new GetTagUsageTool();
-  });
-
-  afterEach(() => {
-    // Clean up temporary directory
-    fs.rmSync(tempDir, { recursive: true, force: true });
+    // Create a test view using CodebaseViewsStore
+    const codebaseViewsStore = new CodebaseViewsStore(fs);
+    const testView: CodebaseView = {
+      id: 'test-view',
+      version: '1.0.0',
+      name: 'Test View',
+      description: 'Test view for testing',
+      overviewPath: 'README.md',
+      cells: {},
+      timestamp: new Date().toISOString(),
+    };
+    codebaseViewsStore.saveView(validatedRepoPath, testView);
   });
 
   it('should return empty statistics for repository with no tags', async () => {
     // Execute the tool
     const result = await tool.execute({
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       includeNoteIds: false,
       includeDescriptions: true,
     });
@@ -57,33 +63,33 @@ describe('GetTagUsageTool', () => {
 
   it('should identify used and unused tags', async () => {
     // Create tag descriptions
-    saveTagDescription(testRepoPath, 'used-tag', 'This tag is used');
-    saveTagDescription(testRepoPath, 'unused-tag', 'This tag is not used');
+    notesStore.saveTagDescription(validatedRepoPath, 'used-tag', 'This tag is used');
+    notesStore.saveTagDescription(validatedRepoPath, 'unused-tag', 'This tag is not used');
 
     // Save notes with tags
-    const note1WithPath = saveNote({
+    const note1WithPath = notesStore.saveNote({
       note: 'Note 1',
       anchors: ['file1.ts'],
       tags: ['used-tag', 'no-description-tag'],
       metadata: {},
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
     const note1 = note1WithPath.note;
 
-    const note2WithPath = saveNote({
+    const note2WithPath = notesStore.saveNote({
       note: 'Note 2',
       anchors: ['file2.ts'],
       tags: ['used-tag'],
       metadata: {},
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
     const note2 = note2WithPath.note;
 
     // Execute the tool
     const result = await tool.execute({
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       includeNoteIds: true,
       includeDescriptions: true,
     });
@@ -124,32 +130,32 @@ describe('GetTagUsageTool', () => {
 
   it('should filter tags when filterTags is provided', async () => {
     // Create multiple tags
-    saveTagDescription(testRepoPath, 'tag1', 'Description 1');
-    saveTagDescription(testRepoPath, 'tag2', 'Description 2');
-    saveTagDescription(testRepoPath, 'tag3', 'Description 3');
+    notesStore.saveTagDescription(validatedRepoPath, 'tag1', 'Description 1');
+    notesStore.saveTagDescription(validatedRepoPath, 'tag2', 'Description 2');
+    notesStore.saveTagDescription(validatedRepoPath, 'tag3', 'Description 3');
 
     // Save notes with various tags
-    saveNote({
+    notesStore.saveNote({
       note: 'Note with tag1',
       anchors: ['file1.ts'],
       tags: ['tag1', 'tag2'],
       metadata: {},
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
 
-    saveNote({
+    notesStore.saveNote({
       note: 'Note with tag3',
       anchors: ['file2.ts'],
       tags: ['tag3'],
       metadata: {},
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
 
     // Execute the tool with filter
     const result = await tool.execute({
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       filterTags: ['tag1', 'tag3', 'nonexistent'],
       includeNoteIds: false,
       includeDescriptions: true,
@@ -168,21 +174,21 @@ describe('GetTagUsageTool', () => {
 
   it('should exclude descriptions when includeDescriptions is false', async () => {
     // Create tag with description
-    saveTagDescription(testRepoPath, 'described-tag', 'This is a description');
+    notesStore.saveTagDescription(validatedRepoPath, 'described-tag', 'This is a description');
 
     // Save note with tag
-    saveNote({
+    notesStore.saveNote({
       note: 'Note',
       anchors: ['file.ts'],
       tags: ['described-tag'],
       metadata: {},
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
 
     // Execute the tool without descriptions
     const result = await tool.execute({
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       includeNoteIds: false,
       includeDescriptions: false,
     });
@@ -198,18 +204,18 @@ describe('GetTagUsageTool', () => {
 
   it('should exclude note IDs when includeNoteIds is false', async () => {
     // Save notes with tags
-    saveNote({
+    notesStore.saveNote({
       note: 'Note',
       anchors: ['file.ts'],
       tags: ['test-tag'],
       metadata: {},
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
 
     // Execute the tool without note IDs
     const result = await tool.execute({
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       includeNoteIds: false,
       includeDescriptions: false,
     });
@@ -225,36 +231,36 @@ describe('GetTagUsageTool', () => {
 
   it('should sort tags by usage count then alphabetically', async () => {
     // Save notes with different tag usage counts
-    saveNote({
+    notesStore.saveNote({
       note: 'Note 1',
       anchors: ['file1.ts'],
       tags: ['alpha', 'beta', 'gamma'],
       metadata: {},
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
 
-    saveNote({
+    notesStore.saveNote({
       note: 'Note 2',
       anchors: ['file2.ts'],
       tags: ['beta', 'gamma'],
       metadata: {},
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
 
-    saveNote({
+    notesStore.saveNote({
       note: 'Note 3',
       anchors: ['file3.ts'],
       tags: ['gamma'],
       metadata: {},
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
 
     // Execute the tool
     const result = await tool.execute({
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       includeNoteIds: false,
       includeDescriptions: false,
     });
@@ -273,21 +279,21 @@ describe('GetTagUsageTool', () => {
 
   it('should provide recommendations for unused tags and tags without descriptions', async () => {
     // Create unused tag with description
-    saveTagDescription(testRepoPath, 'unused', 'Unused tag');
+    notesStore.saveTagDescription(validatedRepoPath, 'unused', 'Unused tag');
 
     // Save note with tag without description
-    saveNote({
+    notesStore.saveNote({
       note: 'Note',
       anchors: ['file.ts'],
       tags: ['no-desc'],
       metadata: {},
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
 
     // Execute the tool
     const result = await tool.execute({
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       includeNoteIds: false,
       includeDescriptions: true,
     });
@@ -312,13 +318,13 @@ describe('GetTagUsageTool', () => {
         includeNoteIds: false,
         includeDescriptions: true,
       })
-    ).rejects.toThrow('Path does not exist');
+    ).rejects.toThrow('Not a git repository');
   });
 
   it('should throw error for non-git repository', async () => {
     // Create a directory without .git
-    const nonGitPath = path.join(tempDir, 'non-git');
-    fs.mkdirSync(nonGitPath, { recursive: true });
+    const nonGitPath = '/non-git';
+    fs.createDir(nonGitPath);
 
     await expect(
       tool.execute({

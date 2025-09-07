@@ -1,49 +1,55 @@
 // Test file - any types used for mock data
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import * as fs from 'node:fs';
-import * as path from 'node:path';
 import { CreateRepositoryAnchoredNoteTool } from '../../src/mcp/tools/CreateRepositoryAnchoredNoteTool';
 import { GetAnchoredNotesTool } from '../../src/mcp/tools/GetAnchoredNotesTool';
 import { GetRepositoryTagsTool } from '../../src/mcp/tools/GetRepositoryTagsTool';
-import { TEST_DIR } from '../setup';
-import { createTestView } from '../test-helpers';
 import { InMemoryFileSystemAdapter } from '../test-adapters/InMemoryFileSystemAdapter';
+import { CodebaseViewsStore } from '../../src/pure-core/stores/CodebaseViewsStore';
+import { MemoryPalace } from '../../src/MemoryPalace';
+import type { ValidatedRepositoryPath, CodebaseView } from '../../src/pure-core/types';
 
 describe('File Operations Integration', () => {
-  const testPath = path.join(TEST_DIR, 'file-ops-test');
+  const testPath = '/file-ops-test';
+
+  let fsAdapter: InMemoryFileSystemAdapter;
+  let codebaseViewsStore: CodebaseViewsStore;
+  let validatedRepoPath: ValidatedRepositoryPath;
 
   beforeEach(() => {
-    // Clean up any existing test directory
-    if (fs.existsSync(testPath)) {
-      fs.rmSync(testPath, { recursive: true, force: true });
-    }
+    // Initialize in-memory filesystem and stores
+    fsAdapter = new InMemoryFileSystemAdapter();
+    codebaseViewsStore = new CodebaseViewsStore(fsAdapter);
 
-    // Ensure TEST_DIR exists first
-    if (!fs.existsSync(TEST_DIR)) {
-      fs.mkdirSync(TEST_DIR, { recursive: true });
-    }
-    fs.mkdirSync(testPath, { recursive: true });
-    // Create git directory for validation
-    fs.mkdirSync(path.join(testPath, '.git'), { recursive: true });
-    fs.writeFileSync(
-      path.join(testPath, '.git', 'config'),
-      '[core]\nrepositoryformatversion = 0\n'
-    );
-    createTestView(testPath, 'test-view');
+    // Set up test repository
+    fsAdapter.setupTestRepo(testPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsAdapter, testPath);
+
+    // Create a test view
+    const testView: CodebaseView = {
+      id: 'test-view',
+      version: '1.0.0',
+      name: 'Test View',
+      description: 'Test view for testing',
+      overviewPath: 'README.md',
+      cells: {
+        'cell-1': {
+          patterns: ['src/**/*.ts'],
+          coordinates: [0, 0],
+        },
+      },
+      timestamp: Date.now().toString(),
+    };
+    codebaseViewsStore.saveView(validatedRepoPath, testView);
   });
 
   afterEach(() => {
-    // Clean up after each test
-    if (fs.existsSync(testPath)) {
-      fs.rmSync(testPath, { recursive: true, force: true });
-    }
+    // Clean up is handled automatically by InMemoryFileSystemAdapter
   });
 
   it('should complete full create-retrieve-query workflow', async () => {
     // Step 1: Create a note
-    const fs = new InMemoryFileSystemAdapter();
-    const createTool = new CreateRepositoryAnchoredNoteTool(fs);
+    const createTool = new CreateRepositoryAnchoredNoteTool(fsAdapter);
     const createResult = await createTool.execute({
       note: '# Integration Test\\n\\nThis tests file operations.',
       directoryPath: testPath,
@@ -56,11 +62,11 @@ describe('File Operations Integration', () => {
     expect(createResult.content[0].text).toContain('Note saved successfully');
 
     // Step 2: Verify note was written to filesystem
-    const notesDir = path.join(testPath, '.a24z', 'notes');
-    expect(fs.existsSync(notesDir)).toBe(true);
+    const notesDir = fsAdapter.join(testPath, '.a24z', 'notes');
+    expect(fsAdapter.exists(notesDir)).toBe(true);
 
     // Step 3: Retrieve notes
-    const getTool = new GetAnchoredNotesTool(fs);
+    const getTool = new GetAnchoredNotesTool(fsAdapter);
     const getResult = await getTool.execute({
       path: testPath,
       includeParentNotes: true,
@@ -77,11 +83,10 @@ describe('File Operations Integration', () => {
     expect(getData.notes[0].note).toContain('Integration Test');
 
     // Step 4: Get tags
-    const tagsTool = new GetRepositoryTagsTool();
+    const tagsTool = new GetRepositoryTagsTool(fsAdapter);
     const tagsResult = await tagsTool.execute({
       path: testPath,
       includeUsedTags: true,
-      includeSuggestedTags: true,
       includeGuidance: false,
     });
     const tagsData = JSON.parse(tagsResult.content[0].text!);
@@ -92,8 +97,7 @@ describe('File Operations Integration', () => {
   });
 
   it('should handle concurrent file writes safely', async () => {
-    const fs = new InMemoryFileSystemAdapter();
-    const createTool = new CreateRepositoryAnchoredNoteTool(fs);
+    const createTool = new CreateRepositoryAnchoredNoteTool(fsAdapter);
 
     // Create 10 notes concurrently
     const promises = Array.from({ length: 10 }, (_: unknown, i: number) =>
@@ -115,7 +119,7 @@ describe('File Operations Integration', () => {
     });
 
     // Verify all were saved
-    const getTool = new GetAnchoredNotesTool(fs);
+    const getTool = new GetAnchoredNotesTool(fsAdapter);
     const getResult = await getTool.execute({
       path: testPath,
       includeParentNotes: true,
@@ -134,6 +138,27 @@ describe('File Operations Integration', () => {
   it('should persist notes across tool instances', async () => {
     // Create note with first tool instance
     const fs = new InMemoryFileSystemAdapter();
+    fs.setupTestRepo(testPath);
+    const validatedPath = MemoryPalace.validateRepositoryPath(fs, testPath);
+
+    // Create a test view for the new instance
+    const codebaseViewsStore = new CodebaseViewsStore(fs);
+    const testView: CodebaseView = {
+      id: 'test-view',
+      version: '1.0.0',
+      name: 'Test View',
+      description: 'Test view for testing',
+      overviewPath: 'README.md',
+      cells: {
+        'cell-1': {
+          patterns: ['src/**/*.ts'],
+          coordinates: [0, 0],
+        },
+      },
+      timestamp: Date.now().toString(),
+    };
+    codebaseViewsStore.saveView(validatedPath, testView);
+
     const tool1 = new CreateRepositoryAnchoredNoteTool(fs);
     await tool1.execute({
       note: 'Persistence test',

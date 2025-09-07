@@ -1,11 +1,9 @@
 import { z } from 'zod';
 import { BaseTool } from './base-tool';
 import { MemoryPalace } from '../../MemoryPalace';
-import { NodeFileSystemAdapter, findGitRoot } from '../../node-adapters/NodeFileSystemAdapter';
+import { NodeFileSystemAdapter } from '../../node-adapters/NodeFileSystemAdapter';
 import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
 import { McpToolResult } from '../types';
-import path from 'path';
-import { existsSync } from 'fs';
 
 const GetTagUsageSchema = z.object({
   directoryPath: z
@@ -43,37 +41,26 @@ export class GetTagUsageTool extends BaseTool {
     'Get comprehensive usage statistics for tags in a repository, showing which tags are used, how often, and whether they have descriptions';
   schema = GetTagUsageSchema;
 
-  // Allow injection of a custom filesystem adapter for testing
-  private fsAdapter?: FileSystemAdapter;
-
-  constructor(fsAdapter?: FileSystemAdapter) {
+  constructor(private fs: FileSystemAdapter = new NodeFileSystemAdapter()) {
     super();
-    this.fsAdapter = fsAdapter;
   }
 
   async execute(input: z.infer<typeof this.schema>): Promise<McpToolResult> {
     const parsed = this.schema.parse(input);
     const { directoryPath, filterTags, includeNoteIds, includeDescriptions } = parsed;
 
-    // Normalize the path
-    const normalizedPath = path.resolve(directoryPath);
-
-    // Check if path exists
-    if (!existsSync(normalizedPath)) {
-      throw new Error(`Path does not exist: ${normalizedPath}`);
-    }
-
-    // Find the git root
-    const repoRoot = findGitRoot(normalizedPath);
-    if (!repoRoot) {
+    // Normalize the path and validate it exists
+    let repoRoot: string;
+    try {
+      repoRoot = this.fs.normalizeRepositoryPath(directoryPath);
+    } catch {
       throw new Error(
-        `Not a git repository: ${normalizedPath}. This tool requires a git repository.`
+        `Not a git repository: ${directoryPath}. This tool requires a git repository.`
       );
     }
 
     // Create MemoryPalace instance
-    const adapter = this.fsAdapter || new NodeFileSystemAdapter();
-    const memoryPalace = new MemoryPalace(repoRoot, adapter);
+    const memoryPalace = new MemoryPalace(repoRoot, this.fs);
 
     // Get all tag descriptions using MemoryPalace
     const tagDescriptions = memoryPalace.getTagDescriptions();

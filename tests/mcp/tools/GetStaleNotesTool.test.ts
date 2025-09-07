@@ -12,13 +12,13 @@ describe('GetStaleAnchoredNotesTool', () => {
     // Set up in-memory filesystem
     inMemoryFs = new InMemoryFileSystemAdapter();
     testRepoPath = '/test-repo';
-    
+
     // Set up repository structure
     inMemoryFs.setupTestRepo(testRepoPath);
-    
+
     // Create MemoryPalace instance with in-memory adapter
     memoryPalace = new MemoryPalace(testRepoPath, inMemoryFs);
-    
+
     // Create the tool with the same in-memory adapter
     tool = new GetStaleAnchoredNotesTool(inMemoryFs);
   });
@@ -106,15 +106,19 @@ describe('GetStaleAnchoredNotesTool', () => {
 
     // Verify notes are included
     expect(response.notes).toHaveLength(2);
-    
+
     // Find notes by their content
-    const mixedNote = response.notes.find((n) => n.content === 'This note has mixed anchors');
-    const staleOnlyNote = response.notes.find((n) => n.content === 'This note has only stale anchors');
-    
+    const mixedNote = response.notes.find(
+      (n: { content: string }) => n.content === 'This note has mixed anchors'
+    );
+    const staleOnlyNote = response.notes.find(
+      (n: { content: string }) => n.content === 'This note has only stale anchors'
+    );
+
     expect(mixedNote).toBeDefined();
     expect(mixedNote.staleAnchors).toEqual(['deleted.ts']);
     expect(mixedNote.validAnchors).toEqual(['exists.ts']);
-    
+
     expect(staleOnlyNote).toBeDefined();
     expect(staleOnlyNote.staleAnchors).toEqual(['missing1.ts', 'missing2.ts']);
     expect(staleOnlyNote.validAnchors).toEqual([]);
@@ -208,7 +212,7 @@ describe('GetStaleAnchoredNotesTool', () => {
     // Create a directory without .git
     const nonGitPath = '/not-a-repo';
     inMemoryFs.createDir(nonGitPath);
-    
+
     await expect(
       tool.execute({
         directoryPath: nonGitPath,

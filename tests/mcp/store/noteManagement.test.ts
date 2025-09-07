@@ -1,32 +1,22 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import * as os from 'node:os';
-import { createTestView } from '../../test-helpers';
-import {
-  saveNote,
-  getNoteById,
-  deleteNoteById,
-  checkStaleAnchoredNotes,
-} from '../../../src/core/store/anchoredNotesStore';
+import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
+import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
+import { MemoryPalace } from '../../../src/MemoryPalace';
+import type { ValidatedRepositoryPath } from '../../../src/pure-core/types';
 
 describe('Note Management Functions', () => {
-  let tempDir: string;
-  let testRepoPath: string;
+  let store: AnchoredNotesStore;
+  let fs: InMemoryFileSystemAdapter;
+  const testRepoPath = '/test-repo';
+  let validatedRepoPath: ValidatedRepositoryPath;
 
   beforeEach(() => {
-    // Create a temporary directory for testing
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a24z-test-'));
-    testRepoPath = path.join(tempDir, 'test-repo');
-    fs.mkdirSync(testRepoPath, { recursive: true });
+    // Initialize in-memory filesystem and store
+    fs = new InMemoryFileSystemAdapter();
+    store = new AnchoredNotesStore(fs);
 
-    // Create a .git directory to make it a valid repository
-    fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
-    createTestView(testRepoPath, 'test-view');
-  });
-
-  afterEach(() => {
-    // Clean up temporary directory
-    fs.rmSync(tempDir, { recursive: true, force: true });
+    // Set up test repository
+    fs.setupTestRepo(testRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
   });
 
   describe('getNoteById', () => {
@@ -37,15 +27,15 @@ describe('Note Management Functions', () => {
         anchors: ['src/test.ts'],
         tags: ['testing', 'retrieval'],
         metadata: { testKey: 'testValue' },
-        directoryPath: testRepoPath,
+        directoryPath: validatedRepoPath,
         codebaseViewId: 'test-view',
       };
 
-      const savedNoteWithPath = saveNote(note);
+      const savedNoteWithPath = store.saveNote(note);
       const savedNote = savedNoteWithPath.note;
 
       // Retrieve the note by ID
-      const retrievedNote = getNoteById(testRepoPath, savedNote.id);
+      const retrievedNote = store.getNoteById(validatedRepoPath, savedNote.id);
 
       expect(retrievedNote).toBeDefined();
       expect(retrievedNote?.id).toBe(savedNote.id);
@@ -55,12 +45,12 @@ describe('Note Management Functions', () => {
     });
 
     it('should return null for non-existent note ID', () => {
-      const retrievedNote = getNoteById(testRepoPath, 'non-existent-id');
+      const retrievedNote = store.getNoteById(validatedRepoPath, 'non-existent-id');
       expect(retrievedNote).toBeNull();
     });
 
     it('should handle repository with no notes', () => {
-      const retrievedNote = getNoteById(testRepoPath, 'any-id');
+      const retrievedNote = store.getNoteById(validatedRepoPath, 'any-id');
       expect(retrievedNote).toBeNull();
     });
   });
@@ -73,30 +63,30 @@ describe('Note Management Functions', () => {
         anchors: ['src/delete-test.ts'],
         tags: ['testing', 'deletion'],
         metadata: {},
-        directoryPath: testRepoPath,
+        directoryPath: validatedRepoPath,
         codebaseViewId: 'test-view',
       };
 
-      const savedNoteWithPath = saveNote(note);
+      const savedNoteWithPath = store.saveNote(note);
       const savedNote = savedNoteWithPath.note;
 
       // Verify note exists
-      const existsBefore = getNoteById(testRepoPath, savedNote.id);
+      const existsBefore = store.getNoteById(validatedRepoPath, savedNote.id);
       expect(existsBefore).toBeDefined();
 
       // Delete the note
-      const deleted = deleteNoteById(testRepoPath, savedNote.id);
+      const deleted = store.deleteNoteById(validatedRepoPath, savedNote.id);
       expect(deleted).toBe(true);
 
       // Verify note no longer exists
-      const existsAfter = getNoteById(testRepoPath, savedNote.id);
+      const existsAfter = store.getNoteById(validatedRepoPath, savedNote.id);
       expect(existsAfter).toBeNull();
 
       // Verify the file is actually deleted
       const date = new Date(savedNote.timestamp);
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
-      const notePath = path.join(
+      const notePath = fs.join(
         testRepoPath,
         '.a24z',
         'notes',
@@ -104,11 +94,11 @@ describe('Note Management Functions', () => {
         month,
         `${savedNote.id}.json`
       );
-      expect(fs.existsSync(notePath)).toBe(false);
+      expect(fs.exists(notePath)).toBe(false);
     });
 
     it('should return false when deleting non-existent note', () => {
-      const deleted = deleteNoteById(testRepoPath, 'non-existent-id');
+      const deleted = store.deleteNoteById(validatedRepoPath, 'non-existent-id');
       expect(deleted).toBe(false);
     });
 
@@ -121,65 +111,65 @@ describe('Note Management Functions', () => {
           anchors: [`src/test${i}.ts`],
           tags: ['testing'],
           metadata: {},
-          directoryPath: testRepoPath,
+          directoryPath: validatedRepoPath,
           codebaseViewId: 'test-view',
         };
-        const savedNoteWithPath = saveNote(note);
+        const savedNoteWithPath = store.saveNote(note);
         notes.push(savedNoteWithPath.note);
       }
 
       // Delete the middle note
-      const deleted = deleteNoteById(testRepoPath, notes[1].id);
+      const deleted = store.deleteNoteById(validatedRepoPath, notes[1].id);
       expect(deleted).toBe(true);
 
       // Verify the correct notes remain
-      expect(getNoteById(testRepoPath, notes[0].id)).toBeDefined();
-      expect(getNoteById(testRepoPath, notes[1].id)).toBeNull();
-      expect(getNoteById(testRepoPath, notes[2].id)).toBeDefined();
+      expect(store.getNoteById(validatedRepoPath, notes[0].id)).toBeDefined();
+      expect(store.getNoteById(validatedRepoPath, notes[1].id)).toBeNull();
+      expect(store.getNoteById(validatedRepoPath, notes[2].id)).toBeDefined();
     });
   });
 
   describe('checkStaleNotes', () => {
     it('should identify notes with stale anchors', () => {
       // Create some test files
-      const validFile1 = path.join(testRepoPath, 'valid1.ts');
-      const validFile2 = path.join(testRepoPath, 'valid2.ts');
-      fs.writeFileSync(validFile1, 'content1');
-      fs.writeFileSync(validFile2, 'content2');
+      const validFile1 = fs.join(testRepoPath, 'valid1.ts');
+      const validFile2 = fs.join(testRepoPath, 'valid2.ts');
+      fs.writeFile(validFile1, 'content1');
+      fs.writeFile(validFile2, 'content2');
 
       // Save notes with various anchor configurations
-      const noteWithValidAnchorsWithPath = saveNote({
+      const noteWithValidAnchorsWithPath = store.saveNote({
         note: 'Note with all valid anchors',
         anchors: ['valid1.ts', 'valid2.ts'],
         tags: ['valid'],
         metadata: {},
         codebaseViewId: 'test-view',
-        directoryPath: testRepoPath,
+        directoryPath: validatedRepoPath,
       });
       const noteWithValidAnchors = noteWithValidAnchorsWithPath.note;
 
-      const noteWithMixedAnchorsWithPath = saveNote({
+      const noteWithMixedAnchorsWithPath = store.saveNote({
         note: 'Note with mixed anchors',
         anchors: ['valid1.ts', 'stale1.ts', 'stale2.ts'],
         tags: ['mixed'],
         metadata: {},
         codebaseViewId: 'test-view',
-        directoryPath: testRepoPath,
+        directoryPath: validatedRepoPath,
       });
       const noteWithMixedAnchors = noteWithMixedAnchorsWithPath.note;
 
-      const noteWithAllStaleAnchorsWithPath = saveNote({
+      const noteWithAllStaleAnchorsWithPath = store.saveNote({
         note: 'Note with all stale anchors',
         anchors: ['stale3.ts', 'stale4.ts'],
         tags: ['stale'],
         metadata: {},
         codebaseViewId: 'test-view',
-        directoryPath: testRepoPath,
+        directoryPath: validatedRepoPath,
       });
       const noteWithAllStaleAnchors = noteWithAllStaleAnchorsWithPath.note;
 
       // Check for stale notes
-      const staleNotes = checkStaleAnchoredNotes(testRepoPath);
+      const staleNotes = store.checkStaleAnchoredNotes(validatedRepoPath);
 
       // Should find 2 notes with stale anchors
       expect(staleNotes).toHaveLength(2);
@@ -203,60 +193,60 @@ describe('Note Management Functions', () => {
 
     it('should return empty array when all anchors are valid', () => {
       // Create test files
-      const file1 = path.join(testRepoPath, 'file1.ts');
-      const file2 = path.join(testRepoPath, 'file2.ts');
-      fs.writeFileSync(file1, 'content');
-      fs.writeFileSync(file2, 'content');
+      const file1 = fs.join(testRepoPath, 'file1.ts');
+      const file2 = fs.join(testRepoPath, 'file2.ts');
+      fs.writeFile(file1, 'content');
+      fs.writeFile(file2, 'content');
 
       // Save notes with valid anchors
-      saveNote({
+      store.saveNote({
         note: 'Note 1',
         anchors: ['file1.ts'],
         tags: ['test'],
         metadata: {},
         codebaseViewId: 'test-view',
-        directoryPath: testRepoPath,
+        directoryPath: validatedRepoPath,
       });
 
-      saveNote({
+      store.saveNote({
         note: 'Note 2',
         anchors: ['file2.ts'],
         tags: ['test'],
         metadata: {},
         codebaseViewId: 'test-view',
-        directoryPath: testRepoPath,
+        directoryPath: validatedRepoPath,
       });
 
-      const staleNotes = checkStaleAnchoredNotes(testRepoPath);
+      const staleNotes = store.checkStaleAnchoredNotes(validatedRepoPath);
       expect(staleNotes).toEqual([]);
     });
 
     it('should handle directories as anchors', () => {
       // Create a directory
-      const testDir = path.join(testRepoPath, 'src');
-      fs.mkdirSync(testDir, { recursive: true });
+      const testDir = fs.join(testRepoPath, 'src');
+      fs.createDir(testDir);
 
       // Save notes with directory anchors
-      saveNote({
+      store.saveNote({
         note: 'Note with valid directory anchor',
         anchors: ['src'],
         tags: ['directory'],
         metadata: {},
         codebaseViewId: 'test-view',
-        directoryPath: testRepoPath,
+        directoryPath: validatedRepoPath,
       });
 
-      const noteWithStaleDirWithPath = saveNote({
+      const noteWithStaleDirWithPath = store.saveNote({
         note: 'Note with stale directory anchor',
         anchors: ['non-existent-dir'],
         tags: ['directory'],
         metadata: {},
         codebaseViewId: 'test-view',
-        directoryPath: testRepoPath,
+        directoryPath: validatedRepoPath,
       });
       const noteWithStaleDir = noteWithStaleDirWithPath.note;
 
-      const staleNotes = checkStaleAnchoredNotes(testRepoPath);
+      const staleNotes = store.checkStaleAnchoredNotes(validatedRepoPath);
 
       // Should only find the note with stale directory
       expect(staleNotes).toHaveLength(1);
@@ -265,7 +255,7 @@ describe('Note Management Functions', () => {
     });
 
     it('should handle empty repository', () => {
-      const staleNotes = checkStaleAnchoredNotes(testRepoPath);
+      const staleNotes = store.checkStaleAnchoredNotes(validatedRepoPath);
       expect(staleNotes).toEqual([]);
     });
   });

@@ -1,58 +1,62 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import * as os from 'node:os';
-import {
-  addAllowedTag,
-  removeAllowedTag,
-  setEnforceAllowedTags,
-  getAllowedTags,
-} from '../../../src/core/store/anchoredNotesStore';
+import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
+import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
+import { MemoryPalace } from '../../../src/MemoryPalace';
+import type { ValidatedRepositoryPath } from '../../../src/pure-core/types';
 
 describe('Allowed Tags Helper Functions', () => {
-  let tempDir: string;
-  let testRepoPath: string;
+  let store: AnchoredNotesStore;
+  let fs: InMemoryFileSystemAdapter;
+  const testRepoPath = '/test-repo';
+  let validatedRepoPath: ValidatedRepositoryPath;
 
   beforeEach(() => {
-    // Create a temporary directory for testing
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a24z-test-'));
-    testRepoPath = path.join(tempDir, 'test-repo');
-    fs.mkdirSync(testRepoPath, { recursive: true });
+    // Initialize in-memory filesystem and store
+    fs = new InMemoryFileSystemAdapter();
+    store = new AnchoredNotesStore(fs);
 
-    // Create a .git directory to make it a valid repository
-    fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
-  });
-
-  afterEach(() => {
-    // Clean up temporary directory
-    fs.rmSync(tempDir, { recursive: true, force: true });
+    // Set up test repository
+    fs.setupTestRepo(testRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
   });
 
   describe('addAllowedTag', () => {
     it('should add a tag to empty allowed tags', () => {
-      addAllowedTag(testRepoPath, 'feature');
-      setEnforceAllowedTags(testRepoPath, true); // Enable enforcement to see tags
+      store.saveTagDescription(validatedRepoPath, 'feature', 'New features');
+      store.updateConfiguration(validatedRepoPath, {
+        tags: {
+          enforceAllowedTags: true,
+        },
+      });
 
-      const allowedTags = getAllowedTags(testRepoPath);
+      const allowedTags = store.getAllowedTags(validatedRepoPath);
       expect(allowedTags.tags).toContain('feature');
       expect(allowedTags.tags).toHaveLength(1);
     });
 
     it('should not add duplicate tags', () => {
-      addAllowedTag(testRepoPath, 'feature');
-      addAllowedTag(testRepoPath, 'feature'); // Duplicate
-      setEnforceAllowedTags(testRepoPath, true); // Enable enforcement to see tags
+      store.saveTagDescription(validatedRepoPath, 'feature', 'New features');
+      store.saveTagDescription(validatedRepoPath, 'feature', 'Updated description'); // Duplicate
+      store.updateConfiguration(validatedRepoPath, {
+        tags: {
+          enforceAllowedTags: true,
+        },
+      });
 
-      const allowedTags = getAllowedTags(testRepoPath);
+      const allowedTags = store.getAllowedTags(validatedRepoPath);
       expect(allowedTags.tags).toEqual(['feature']);
     });
 
     it('should add multiple different tags', () => {
-      addAllowedTag(testRepoPath, 'feature');
-      addAllowedTag(testRepoPath, 'bug');
-      addAllowedTag(testRepoPath, 'security');
-      setEnforceAllowedTags(testRepoPath, true); // Enable enforcement to see tags
+      store.saveTagDescription(validatedRepoPath, 'feature', 'New features');
+      store.saveTagDescription(validatedRepoPath, 'bug', 'Bug fixes');
+      store.saveTagDescription(validatedRepoPath, 'security', 'Security improvements');
+      store.updateConfiguration(validatedRepoPath, {
+        tags: {
+          enforceAllowedTags: true,
+        },
+      });
 
-      const allowedTags = getAllowedTags(testRepoPath);
+      const allowedTags = store.getAllowedTags(validatedRepoPath);
       expect(allowedTags.tags).toContain('feature');
       expect(allowedTags.tags).toContain('bug');
       expect(allowedTags.tags).toContain('security');
@@ -62,26 +66,30 @@ describe('Allowed Tags Helper Functions', () => {
 
   describe('removeAllowedTag', () => {
     it('should remove an existing tag', () => {
-      addAllowedTag(testRepoPath, 'feature');
-      addAllowedTag(testRepoPath, 'bug');
-      setEnforceAllowedTags(testRepoPath, true); // Enable enforcement to see tags
+      store.saveTagDescription(validatedRepoPath, 'feature', 'New features');
+      store.saveTagDescription(validatedRepoPath, 'bug', 'Bug fixes');
+      store.updateConfiguration(validatedRepoPath, {
+        tags: {
+          enforceAllowedTags: true,
+        },
+      });
 
-      const removed = removeAllowedTag(testRepoPath, 'feature');
+      const removed = store.deleteTagDescription(validatedRepoPath, 'feature');
 
       expect(removed).toBe(true);
-      const allowedTags = getAllowedTags(testRepoPath);
+      const allowedTags = store.getAllowedTags(validatedRepoPath);
       expect(allowedTags.tags).not.toContain('feature');
       expect(allowedTags.tags).toContain('bug');
     });
 
     it('should return false when removing non-existent tag', () => {
-      const removed = removeAllowedTag(testRepoPath, 'non-existent');
+      const removed = store.deleteTagDescription(validatedRepoPath, 'non-existent');
 
       expect(removed).toBe(false);
     });
 
     it('should handle empty allowed tags list', () => {
-      const removed = removeAllowedTag(testRepoPath, 'feature');
+      const removed = store.deleteTagDescription(validatedRepoPath, 'feature');
 
       expect(removed).toBe(false);
     });
@@ -89,25 +97,41 @@ describe('Allowed Tags Helper Functions', () => {
 
   describe('setEnforceAllowedTags', () => {
     it('should enable tag enforcement', () => {
-      setEnforceAllowedTags(testRepoPath, true);
+      store.updateConfiguration(validatedRepoPath, {
+        tags: {
+          enforceAllowedTags: true,
+        },
+      });
 
-      const allowedTags = getAllowedTags(testRepoPath);
+      const allowedTags = store.getAllowedTags(validatedRepoPath);
       expect(allowedTags.enforced).toBe(true);
     });
 
     it('should disable tag enforcement', () => {
-      setEnforceAllowedTags(testRepoPath, true);
-      setEnforceAllowedTags(testRepoPath, false);
+      store.updateConfiguration(validatedRepoPath, {
+        tags: {
+          enforceAllowedTags: true,
+        },
+      });
+      store.updateConfiguration(validatedRepoPath, {
+        tags: {
+          enforceAllowedTags: false,
+        },
+      });
 
-      const allowedTags = getAllowedTags(testRepoPath);
+      const allowedTags = store.getAllowedTags(validatedRepoPath);
       expect(allowedTags.enforced).toBe(false);
     });
 
     it('should default to false for new repositories', () => {
       // Explicitly ensure enforcement is disabled for this test
-      setEnforceAllowedTags(testRepoPath, false);
+      store.updateConfiguration(validatedRepoPath, {
+        tags: {
+          enforceAllowedTags: false,
+        },
+      });
 
-      const allowedTags = getAllowedTags(testRepoPath);
+      const allowedTags = store.getAllowedTags(validatedRepoPath);
       expect(allowedTags.enforced).toBe(false);
     });
   });
@@ -115,35 +139,43 @@ describe('Allowed Tags Helper Functions', () => {
   describe('Integration', () => {
     it('should work together to manage tag restrictions', () => {
       // Explicitly reset enforcement state for this test
-      setEnforceAllowedTags(testRepoPath, false);
+      store.updateConfiguration(validatedRepoPath, {
+        tags: {
+          enforceAllowedTags: false,
+        },
+      });
 
       // Start with no restrictions
-      const initial = getAllowedTags(testRepoPath);
+      const initial = store.getAllowedTags(validatedRepoPath);
       expect(initial.enforced).toBe(false);
       expect(initial.tags).toEqual([]);
 
       // Add some allowed tags
-      addAllowedTag(testRepoPath, 'feature');
-      addAllowedTag(testRepoPath, 'bug');
-      addAllowedTag(testRepoPath, 'security');
+      store.saveTagDescription(validatedRepoPath, 'feature', 'New features');
+      store.saveTagDescription(validatedRepoPath, 'bug', 'Bug fixes');
+      store.saveTagDescription(validatedRepoPath, 'security', 'Security improvements');
 
       // Enable enforcement
-      setEnforceAllowedTags(testRepoPath, true);
+      store.updateConfiguration(validatedRepoPath, {
+        tags: {
+          enforceAllowedTags: true,
+        },
+      });
 
       // Verify current state
-      const current = getAllowedTags(testRepoPath);
+      const current = store.getAllowedTags(validatedRepoPath);
       expect(current.enforced).toBe(true);
       expect(current.tags.sort()).toEqual(['bug', 'feature', 'security']);
 
       // Remove a tag
-      removeAllowedTag(testRepoPath, 'bug');
+      store.deleteTagDescription(validatedRepoPath, 'bug');
 
       // Add new tags individually (since we removed setAllowedTags)
-      addAllowedTag(testRepoPath, 'performance');
-      addAllowedTag(testRepoPath, 'documentation');
+      store.saveTagDescription(validatedRepoPath, 'performance', 'Performance improvements');
+      store.saveTagDescription(validatedRepoPath, 'documentation', 'Documentation updates');
 
       // Final verification
-      const final = getAllowedTags(testRepoPath);
+      const final = store.getAllowedTags(validatedRepoPath);
       expect(final.enforced).toBe(true);
       expect(final.tags).toContain('feature');
       expect(final.tags).toContain('performance');

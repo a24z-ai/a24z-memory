@@ -1,37 +1,22 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import * as os from 'node:os';
 import { MemoryPalace } from '../src/MemoryPalace';
 import { InMemoryFileSystemAdapter } from './test-adapters/InMemoryFileSystemAdapter';
-import { createTestView } from './test-helpers';
 
 describe('Path Validation for MemoryPalace', () => {
-  let tempDir: string;
   let gitRepoPath: string;
   let nonGitPath: string;
   let fsAdapter: InMemoryFileSystemAdapter;
 
   beforeEach(() => {
-    // Create temp directories
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a24z-path-test-'));
-
-    // Create a valid git repository
-    gitRepoPath = path.join(tempDir, 'valid-repo');
-    fs.mkdirSync(gitRepoPath, { recursive: true });
-    fs.mkdirSync(path.join(gitRepoPath, '.git'), { recursive: true });
-    createTestView(gitRepoPath, 'test-view');
-
-    // Create a non-git directory
-    nonGitPath = path.join(tempDir, 'not-a-repo');
-    fs.mkdirSync(nonGitPath, { recursive: true });
-
     // Set up file system adapter
     fsAdapter = new InMemoryFileSystemAdapter();
-  });
 
-  afterEach(() => {
-    // Clean up
-    fs.rmSync(tempDir, { recursive: true, force: true });
+    // Create a valid git repository in memory
+    gitRepoPath = '/valid-repo';
+    fsAdapter.setupTestRepo(gitRepoPath);
+
+    // Create a non-git directory
+    nonGitPath = '/not-a-repo';
+    fsAdapter.createDir(nonGitPath);
   });
 
   it('should reject relative paths', () => {
@@ -60,9 +45,9 @@ describe('Path Validation for MemoryPalace', () => {
     const memoryPalace = new MemoryPalace(gitRepoPath, fsAdapter);
     expect(memoryPalace).toBeDefined();
 
-    // Verify the note was saved in the correct location
-    const notesDir = path.join(gitRepoPath, '.a24z', 'notes');
-    expect(fs.existsSync(notesDir)).toBe(true);
+    // Verify the .a24z directory was created
+    const a24zDir = fsAdapter.join(gitRepoPath, '.a24z');
+    expect(fsAdapter.exists(a24zDir)).toBe(true);
   });
 
   it('should reject paths with ./ prefix', () => {
@@ -87,20 +72,19 @@ describe('Path Validation for MemoryPalace', () => {
         metadata: {},
         codebaseViewId: 'test-view',
       })
-    ).toThrow('At least one anchor path is required');
+    ).toThrow('Validation failed: Notes must have at least one anchor');
   });
 
   it('should reject missing anchors', () => {
     const memoryPalace = new MemoryPalace(gitRepoPath, fsAdapter);
-    expect(
-      () =>
-        memoryPalace.saveNote({
-          note: 'Test note',
-          anchors: [], // Empty array instead of missing property
-          tags: ['test'],
-          codebaseViewId: 'test-view',
-          metadata: {},
-        })
-    ).toThrow('At least one anchor path is required');
+    expect(() =>
+      memoryPalace.saveNote({
+        note: 'Test note',
+        anchors: [], // Empty array instead of missing property
+        tags: ['test'],
+        codebaseViewId: 'test-view',
+        metadata: {},
+      })
+    ).toThrow('Validation failed: Notes must have at least one anchor');
   });
 });

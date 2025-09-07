@@ -1,28 +1,18 @@
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import * as os from 'node:os';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { GetRepositoryGuidanceTool } from '../../../src/mcp/tools/GetRepositoryGuidanceTool';
+import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
+import { MemoryPalace } from '../../../src/MemoryPalace';
 
 describe('GetRepositoryGuidanceTool', () => {
   let tool: GetRepositoryGuidanceTool;
-  let tempDir: string;
-  let repoDir: string;
+  let fs: InMemoryFileSystemAdapter;
+  const testRepoPath = '/test-repo';
 
   beforeEach(() => {
-    tool = new GetRepositoryGuidanceTool();
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'guidance-test-'));
-    repoDir = path.join(tempDir, 'test-repo');
-    fs.mkdirSync(repoDir, { recursive: true });
-
-    // Create a package.json to make it look like a proper project root
-    fs.writeFileSync(path.join(repoDir, 'package.json'), '{}');
-  });
-
-  afterEach(() => {
-    if (fs.existsSync(tempDir)) {
-      fs.rmSync(tempDir, { recursive: true, force: true });
-    }
+    fs = new InMemoryFileSystemAdapter();
+    tool = new GetRepositoryGuidanceTool(fs);
+    fs.setupTestRepo(testRepoPath);
+    MemoryPalace.validateRepositoryPath(fs, testRepoPath);
   });
 
   describe('schema validation', () => {
@@ -39,92 +29,76 @@ describe('GetRepositoryGuidanceTool', () => {
 
   describe('execute', () => {
     it('should return comprehensive configuration including guidance', async () => {
-      // Create a .git directory to make it a valid repository
-      fs.mkdirSync(path.join(repoDir, '.git'), { recursive: true });
-
       // Create a repository-specific guidance file
-      const a24zDir = path.join(repoDir, '.a24z');
-      fs.mkdirSync(a24zDir, { recursive: true });
+      const a24zDir = fs.join(testRepoPath, '.a24z');
+      fs.createDir(a24zDir);
 
       const customGuidance = '# Custom Repository Guidance\n\nThis is project-specific guidance.';
-      fs.writeFileSync(path.join(a24zDir, 'note-guidance.md'), customGuidance);
+      fs.writeFile(fs.join(a24zDir, 'note-guidance.md'), customGuidance);
 
-      const result = await tool.handler({ path: repoDir });
+      const result = await tool.handler({ path: testRepoPath });
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
 
-      const text = result.content[0].text as string;
+      const data = JSON.parse(result.content[0].text as string);
       // Check for main sections
-      expect(text).toContain('# Repository Note Configuration');
-      expect(text).toContain('## Configuration Limits');
-      expect(text).toContain('## Tag Restrictions');
-      expect(text).toContain('## Note Guidance');
-      expect(text).toContain(customGuidance);
-      expect(text).toContain('## Summary');
+      expect(data.guidance).toContain(customGuidance);
+      expect(data.configuration).toBeDefined();
+      expect(data.configuration.allowedTags).toBeDefined();
+      expect(data.configuration.tagDescriptions).toBeDefined();
     });
 
     it('should show configuration with default guidance when no custom exists', async () => {
-      // Create a .git directory to make it a valid repository
-      fs.mkdirSync(path.join(repoDir, '.git'), { recursive: true });
-
-      const result = await tool.handler({ path: repoDir });
+      const result = await tool.handler({ path: testRepoPath });
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
 
-      const text = result.content[0].text as string;
+      const data = JSON.parse(result.content[0].text as string);
       // Should still show configuration sections
-      expect(text).toContain('# Repository Note Configuration');
-      expect(text).toContain('## Configuration Limits');
-      expect(text).toContain('## Tag Restrictions');
-      expect(text).toContain('## Note Guidance');
+      expect(data.guidance).toBeDefined();
+      expect(data.configuration).toBeDefined();
+      expect(data.configuration.allowedTags).toBeDefined();
+      expect(data.configuration.tagDescriptions).toBeDefined();
       // When no custom guidance exists, it shows the default template
-      expect(text).toContain('Repository Note Guidelines');
+      expect(data.guidance).toContain('Note Creation Guidelines');
     });
 
     it('should work with nested paths within repository', async () => {
-      // Create a .git directory to make it a valid repository
-      fs.mkdirSync(path.join(repoDir, '.git'), { recursive: true });
-
       // Create a nested directory structure
-      const nestedDir = path.join(repoDir, 'src', 'components');
-      fs.mkdirSync(nestedDir, { recursive: true });
+      const nestedDir = fs.join(testRepoPath, 'src', 'components');
+      fs.createDir(nestedDir);
 
       // Create guidance at repository root
-      const a24zDir = path.join(repoDir, '.a24z');
-      fs.mkdirSync(a24zDir, { recursive: true });
+      const a24zDir = fs.join(testRepoPath, '.a24z');
+      fs.createDir(a24zDir);
 
       const customGuidance = '# Repo Guidance from Root';
-      fs.writeFileSync(path.join(a24zDir, 'note-guidance.md'), customGuidance);
+      fs.writeFile(fs.join(a24zDir, 'note-guidance.md'), customGuidance);
 
       // Test with nested path
       const result = await tool.handler({ path: nestedDir });
 
-      const text = result.content[0].text as string;
-      expect(text).toContain('# Repository Note Configuration');
-      expect(text).toContain(customGuidance);
+      const data = JSON.parse(result.content[0].text as string);
+      expect(data.guidance).toContain(customGuidance);
+      expect(data.configuration).toBeDefined();
     });
 
     it('should include tag descriptions when available', async () => {
-      // Create a .git directory to make it a valid repository
-      fs.mkdirSync(path.join(repoDir, '.git'), { recursive: true });
-
       // Create tag descriptions as markdown files
-      const a24zDir = path.join(repoDir, '.a24z');
-      const tagsDir = path.join(a24zDir, 'tags');
-      fs.mkdirSync(tagsDir, { recursive: true });
+      const a24zDir = fs.join(testRepoPath, '.a24z');
+      const tagsDir = fs.join(a24zDir, 'tags');
+      fs.createDir(tagsDir);
 
-      fs.writeFileSync(path.join(tagsDir, 'feature.md'), 'New functionality');
-      fs.writeFileSync(path.join(tagsDir, 'bugfix.md'), 'Bug corrections');
+      fs.writeFile(fs.join(tagsDir, 'feature.md'), 'New functionality');
+      fs.writeFile(fs.join(tagsDir, 'bugfix.md'), 'Bug corrections');
 
-      const result = await tool.handler({ path: repoDir });
+      const result = await tool.handler({ path: testRepoPath });
 
-      const text = result.content[0].text as string;
-      expect(text).toContain('feature');
-      expect(text).toContain('New functionality');
-      expect(text).toContain('bugfix');
-      expect(text).toContain('Bug corrections');
+      const data = JSON.parse(result.content[0].text as string);
+      expect(data.configuration.tagDescriptions.feature).toBe('New functionality');
+      expect(data.configuration.tagDescriptions.bugfix).toBe('Bug corrections');
     });
   });
 

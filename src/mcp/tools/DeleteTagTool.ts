@@ -1,11 +1,9 @@
 import { z } from 'zod';
 import { BaseTool } from './base-tool';
 import { MemoryPalace } from '../../MemoryPalace';
-import { NodeFileSystemAdapter, findGitRoot } from '../../node-adapters/NodeFileSystemAdapter';
+import { NodeFileSystemAdapter } from '../../node-adapters/NodeFileSystemAdapter';
 import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
 import { McpToolResult } from '../types';
-import path from 'path';
-import { existsSync } from 'fs';
 
 const DeleteTagSchema = z.object({
   directoryPath: z
@@ -29,12 +27,8 @@ export class DeleteTagTool extends BaseTool {
     'Delete a tag from the repository, removing it from all notes and deleting its description';
   schema = DeleteTagSchema;
 
-  // Allow injection of a custom filesystem adapter for testing
-  private fsAdapter?: FileSystemAdapter;
-
-  constructor(fsAdapter?: FileSystemAdapter) {
+  constructor(private fs: FileSystemAdapter = new NodeFileSystemAdapter()) {
     super();
-    this.fsAdapter = fsAdapter;
   }
 
   async execute(input: z.infer<typeof this.schema>): Promise<McpToolResult> {
@@ -62,44 +56,18 @@ export class DeleteTagTool extends BaseTool {
       };
     }
 
-    // Use injected adapter for testing, or default to NodeFileSystemAdapter
-    const nodeFs = this.fsAdapter || new NodeFileSystemAdapter();
-
-    // For in-memory testing, we trust the provided path
-    // For production, we validate using the real filesystem
+    // Normalize the path and validate it exists
     let repoRoot: string;
-
-    if (this.fsAdapter) {
-      // Testing mode - trust the provided directory path as the git root
-      repoRoot = directoryPath;
-      if (!nodeFs.exists(repoRoot)) {
-        throw new Error(`Path does not exist: ${repoRoot}`);
-      }
-      if (!nodeFs.exists(nodeFs.join(repoRoot, '.git'))) {
-        throw new Error(`Not a git repository: ${repoRoot}. This tool requires a git repository.`);
-      }
-    } else {
-      // Production mode - use real filesystem validation
-      // Normalize the path
-      const normalizedPath = path.resolve(directoryPath);
-
-      // Check if path exists
-      if (!existsSync(normalizedPath)) {
-        throw new Error(`Path does not exist: ${normalizedPath}`);
-      }
-
-      // Find the git root
-      const foundRoot = findGitRoot(normalizedPath);
-      if (!foundRoot) {
-        throw new Error(
-          `Not a git repository: ${normalizedPath}. This tool requires a git repository.`
-        );
-      }
-      repoRoot = foundRoot;
+    try {
+      repoRoot = this.fs.normalizeRepositoryPath(directoryPath);
+    } catch {
+      throw new Error(
+        `Not a git repository: ${directoryPath}. This tool requires a git repository.`
+      );
     }
 
     // Create MemoryPalace instance
-    const memoryPalace = new MemoryPalace(repoRoot, nodeFs);
+    const memoryPalace = new MemoryPalace(repoRoot, this.fs);
 
     // Check if tag has a description
     const tagDescriptions = memoryPalace.getTagDescriptions();

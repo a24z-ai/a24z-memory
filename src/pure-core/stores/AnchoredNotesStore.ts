@@ -507,6 +507,21 @@ export class AnchoredNotesStore {
       });
     }
 
+    // Check for invalid tags if enforcement is enabled
+    if (config.tags?.enforceAllowedTags) {
+      const allowedTags = this.getAllowedTags(repositoryRootPath);
+      if (allowedTags.enforced && allowedTags.tags.length > 0) {
+        const invalidTags = note.tags.filter((tag) => !allowedTags.tags.includes(tag));
+        if (invalidTags.length > 0) {
+          errors.push({
+            type: 'invalidTags',
+            message: `The following tags are not allowed: ${invalidTags.join(', ')}. Allowed tags: ${allowedTags.tags.join(', ')}`,
+            context: { invalidTags, allowedTags: allowedTags.tags },
+          });
+        }
+      }
+    }
+
     return errors;
   }
 

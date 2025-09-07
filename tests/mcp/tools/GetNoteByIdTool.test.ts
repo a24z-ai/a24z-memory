@@ -1,35 +1,41 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import * as os from 'node:os';
 import { GetAnchoredNoteByIdTool } from '../../../src/mcp/tools/GetAnchoredNoteByIdTool';
-import { saveNote } from '../../../src/core/store/anchoredNotesStore';
-import { createTestView } from '../../test-helpers';
+import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
+import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
+import { CodebaseViewsStore } from '../../../src/pure-core/stores/CodebaseViewsStore';
+import { MemoryPalace } from '../../../src/MemoryPalace';
+import type { ValidatedRepositoryPath, CodebaseView } from '../../../src/pure-core/types';
 
 describe('GetAnchoredNoteByIdTool', () => {
-  let tempDir: string;
-  let testRepoPath: string;
+  let fs: InMemoryFileSystemAdapter;
+  let notesStore: AnchoredNotesStore;
   let tool: GetAnchoredNoteByIdTool;
+  const testRepoPath = '/test-repo';
+  let validatedRepoPath: ValidatedRepositoryPath;
 
   beforeEach(() => {
-    // Create a temporary directory for testing
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a24z-test-'));
-    testRepoPath = path.join(tempDir, 'test-repo');
-    fs.mkdirSync(testRepoPath, { recursive: true });
+    fs = new InMemoryFileSystemAdapter();
+    notesStore = new AnchoredNotesStore(fs);
+    tool = new GetAnchoredNoteByIdTool(fs);
+    fs.setupTestRepo(testRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
 
-    // Create a .git directory to make it a valid repository
-    fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
-    createTestView(testRepoPath, 'test-view');
-    tool = new GetAnchoredNoteByIdTool();
-  });
-
-  afterEach(() => {
-    // Clean up temporary directory
-    fs.rmSync(tempDir, { recursive: true, force: true });
+    // Create a test view using CodebaseViewsStore
+    const codebaseViewsStore = new CodebaseViewsStore(fs);
+    const testView: CodebaseView = {
+      id: 'test-view',
+      version: '1.0.0',
+      name: 'Test View',
+      description: 'Test view for testing',
+      overviewPath: 'README.md',
+      cells: {},
+      timestamp: new Date().toISOString(),
+    };
+    codebaseViewsStore.saveView(validatedRepoPath, testView);
   });
 
   it('should retrieve and format a note by ID', async () => {
     // Save a test note
-    const savedNoteWithPath = saveNote({
+    const savedNoteWithPath = notesStore.saveNote({
       note: '# Test Note\n\nThis is a test note with **markdown** content.',
       anchors: ['src/test.ts', 'docs/readme.md'],
       tags: ['testing', 'documentation', 'example'],
@@ -38,7 +44,7 @@ describe('GetAnchoredNoteByIdTool', () => {
         version: '1.0.0',
         relatedPR: 123,
       },
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
     const savedNote = savedNoteWithPath.note;
@@ -86,12 +92,12 @@ describe('GetAnchoredNoteByIdTool', () => {
   });
 
   it('should handle notes without metadata', async () => {
-    const savedNoteWithPath = saveNote({
+    const savedNoteWithPath = notesStore.saveNote({
       note: 'Simple note',
       anchors: ['file.ts'],
       tags: ['simple'],
       metadata: {},
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
     const savedNote = savedNoteWithPath.note;
@@ -112,19 +118,19 @@ describe('GetAnchoredNoteByIdTool', () => {
   });
 
   it('should work from subdirectory path', async () => {
-    const savedNoteWithPath = saveNote({
+    const savedNoteWithPath = notesStore.saveNote({
       note: 'Subdirectory test note',
       anchors: ['src/components/Component.tsx'],
       tags: ['component'],
       metadata: {},
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
     const savedNote = savedNoteWithPath.note;
 
     // Create a subdirectory
-    const subDir = path.join(testRepoPath, 'src', 'components');
-    fs.mkdirSync(subDir, { recursive: true });
+    const subDir = fs.join(testRepoPath, 'src', 'components');
+    fs.createDir(subDir);
 
     // Retrieve using subdirectory path
     const result = await tool.execute({
@@ -157,8 +163,8 @@ describe('GetAnchoredNoteByIdTool', () => {
   });
 
   it('should throw error for path outside git repository', async () => {
-    const nonGitDir = path.join(tempDir, 'non-git');
-    fs.mkdirSync(nonGitDir, { recursive: true });
+    const nonGitDir = '/non-git';
+    fs.createDir(nonGitDir);
 
     await expect(
       tool.execute({
@@ -169,14 +175,15 @@ describe('GetAnchoredNoteByIdTool', () => {
   });
 
   it('should format timestamp correctly', async () => {
-    const savedNote = saveNote({
+    const savedNoteWithPath = notesStore.saveNote({
       note: 'Timestamp test',
       anchors: ['file.ts'],
       tags: ['time'],
       metadata: {},
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
+    const savedNote = savedNoteWithPath;
 
     const result = await tool.execute({
       noteId: savedNote.note.id,
@@ -191,7 +198,7 @@ describe('GetAnchoredNoteByIdTool', () => {
   });
 
   it('should handle complex metadata structures', async () => {
-    const savedNote = saveNote({
+    const savedNoteWithPath = notesStore.saveNote({
       note: 'Complex metadata test',
       anchors: ['file.ts'],
       tags: ['complex'],
@@ -205,9 +212,10 @@ describe('GetAnchoredNoteByIdTool', () => {
         boolean: true,
         nullValue: null,
       },
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
+    const savedNote = savedNoteWithPath;
 
     const result = await tool.execute({
       noteId: savedNote.note.id,
@@ -234,14 +242,15 @@ describe('GetAnchoredNoteByIdTool', () => {
     ];
 
     for (const type of types) {
-      const savedNote = saveNote({
+      const savedNoteWithPath = notesStore.saveNote({
         note: `Note of type ${type}`,
         anchors: ['file.ts'],
         tags: [type],
         metadata: {},
-        directoryPath: testRepoPath,
+        directoryPath: validatedRepoPath,
         codebaseViewId: 'test-view',
       });
+      const savedNote = savedNoteWithPath;
 
       const result = await tool.execute({
         noteId: savedNote.note.id,

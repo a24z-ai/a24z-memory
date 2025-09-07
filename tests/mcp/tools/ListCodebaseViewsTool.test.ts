@@ -1,25 +1,31 @@
 import { ListCodebaseViewsTool } from '../../../src/mcp/tools/ListCodebaseViewsTool';
 import { MemoryPalace } from '../../../src/MemoryPalace';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
-import { type CodebaseView } from '../../../src/pure-core/types';
+import { CodebaseViewsStore } from '../../../src/pure-core/stores/CodebaseViewsStore';
+import { type CodebaseView, ValidatedRepositoryPath } from '../../../src/pure-core/types';
 
 describe('ListCodebaseViewsTool', () => {
   let inMemoryFs: InMemoryFileSystemAdapter;
   let testRepoPath: string;
   let tool: ListCodebaseViewsTool;
-  let memoryPalace: MemoryPalace;
+  let codebaseViewsStore: CodebaseViewsStore;
+  let validatedRepoPath: ValidatedRepositoryPath;
 
   beforeEach(() => {
     // Set up in-memory filesystem
     inMemoryFs = new InMemoryFileSystemAdapter();
     testRepoPath = '/test-repo';
-    
+
     // Set up repository structure
     inMemoryFs.setupTestRepo(testRepoPath);
-    
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(inMemoryFs, testRepoPath);
+
     // Create MemoryPalace instance with in-memory adapter
-    memoryPalace = new MemoryPalace(testRepoPath, inMemoryFs);
-    
+    new MemoryPalace(testRepoPath, inMemoryFs);
+
+    // Create CodebaseViewsStore for managing views
+    codebaseViewsStore = new CodebaseViewsStore(inMemoryFs);
+
     // Create the tool with the same in-memory adapter
     tool = new ListCodebaseViewsTool(inMemoryFs);
   });
@@ -71,8 +77,8 @@ describe('ListCodebaseViewsTool', () => {
     };
 
     // Save views using MemoryPalace
-    memoryPalace.saveView(view1);
-    memoryPalace.saveView(view2);
+    codebaseViewsStore.saveView(validatedRepoPath, view1);
+    codebaseViewsStore.saveView(validatedRepoPath, view2);
 
     // Execute tool
     const result = await tool.execute({ repositoryPath: testRepoPath });
@@ -125,7 +131,7 @@ describe('ListCodebaseViewsTool', () => {
       },
     };
 
-    memoryPalace.saveView(view);
+    codebaseViewsStore.saveView(validatedRepoPath, view);
 
     // Query from a nested path within the repository
     const nestedPath = inMemoryFs.join(testRepoPath, 'src', 'components');
@@ -178,9 +184,9 @@ describe('ListCodebaseViewsTool', () => {
     };
 
     // Save in non-alphabetical order
-    memoryPalace.saveView(viewZ);
-    memoryPalace.saveView(viewA);
-    memoryPalace.saveView(viewM);
+    codebaseViewsStore.saveView(validatedRepoPath, viewZ);
+    codebaseViewsStore.saveView(validatedRepoPath, viewA);
+    codebaseViewsStore.saveView(validatedRepoPath, viewM);
 
     const result = await tool.execute({ repositoryPath: testRepoPath });
     const data = JSON.parse(result.content[0].text!);

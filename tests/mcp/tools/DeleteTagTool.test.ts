@@ -1,44 +1,49 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import * as os from 'node:os';
-import { createTestView } from '../../test-helpers';
 import { DeleteTagTool } from '../../../src/mcp/tools/DeleteTagTool';
-import {
-  saveNote,
-  saveTagDescription,
-  getTagDescriptions,
-  getNotesForPath,
-} from '../../../src/core/store/anchoredNotesStore';
+import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
+import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
+import { CodebaseViewsStore } from '../../../src/pure-core/stores/CodebaseViewsStore';
+import { MemoryPalace } from '../../../src/MemoryPalace';
+import type {
+  ValidatedRepositoryPath,
+  ValidatedRelativePath,
+  CodebaseView,
+} from '../../../src/pure-core/types';
 
 describe('DeleteTagTool', () => {
-  let tempDir: string;
-  let testRepoPath: string;
   let tool: DeleteTagTool;
+  let notesStore: AnchoredNotesStore;
+  let fs: InMemoryFileSystemAdapter;
+  const testRepoPath = '/test-repo';
+  let validatedRepoPath: ValidatedRepositoryPath;
 
   beforeEach(() => {
-    // Create a temporary directory for testing
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a24z-test-'));
-    testRepoPath = path.join(tempDir, 'test-repo');
-    fs.mkdirSync(testRepoPath, { recursive: true });
+    fs = new InMemoryFileSystemAdapter();
+    tool = new DeleteTagTool(fs);
+    notesStore = new AnchoredNotesStore(fs);
+    fs.setupTestRepo(testRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
 
-    // Create a .git directory to make it a valid repository
-    fs.mkdirSync(path.join(testRepoPath, '.git'), { recursive: true });
-    createTestView(testRepoPath, 'test-view');
-    tool = new DeleteTagTool();
-  });
-
-  afterEach(() => {
-    // Clean up temporary directory
-    fs.rmSync(tempDir, { recursive: true, force: true });
+    // Create a test view using CodebaseViewsStore
+    const codebaseViewsStore = new CodebaseViewsStore(fs);
+    const testView: CodebaseView = {
+      id: 'test-view',
+      version: '1.0.0',
+      name: 'Test View',
+      description: 'Test view for testing',
+      overviewPath: 'README.md',
+      cells: {},
+      timestamp: new Date().toISOString(),
+    };
+    codebaseViewsStore.saveView(validatedRepoPath, testView);
   });
 
   it('should require confirmation to delete a tag', async () => {
     // Create a tag description
-    saveTagDescription(testRepoPath, 'test-tag', 'Test description');
+    notesStore.saveTagDescription(validatedRepoPath, 'test-tag', 'Test description');
 
     // Attempt to delete without confirmation
     const result = await tool.execute({
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       tag: 'test-tag',
       confirmDeletion: false,
     });
@@ -52,48 +57,48 @@ describe('DeleteTagTool', () => {
     expect(response.tagToDelete).toBe('test-tag');
 
     // Verify tag still exists
-    const tags = getTagDescriptions(testRepoPath);
+    const tags = notesStore.getTagDescriptions(validatedRepoPath);
     expect(tags['test-tag']).toBe('Test description');
   });
 
   it('should delete tag from notes and remove description', async () => {
     // Create a tag description
-    saveTagDescription(testRepoPath, 'delete-me', 'This tag will be deleted');
+    notesStore.saveTagDescription(validatedRepoPath, 'delete-me', 'This tag will be deleted');
 
     // Save notes with the tag
-    const note1WithPath = saveNote({
+    const note1WithPath = notesStore.saveNote({
       note: 'Note 1 with tag',
       anchors: ['file1.ts'],
       tags: ['delete-me', 'keep-me'],
       metadata: {},
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
     const note1 = note1WithPath.note;
 
-    const note2WithPath = saveNote({
+    const note2WithPath = notesStore.saveNote({
       note: 'Note 2 with tag',
       anchors: ['file2.ts'],
       tags: ['delete-me'],
       metadata: {},
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
     const note2 = note2WithPath.note;
 
-    const note3WithPath = saveNote({
+    const note3WithPath = notesStore.saveNote({
       note: 'Note 3 without tag',
       anchors: ['file3.ts'],
       tags: ['keep-me'],
       metadata: {},
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
     const note3 = note3WithPath.note;
 
     // Delete the tag with confirmation
     const result = await tool.execute({
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       tag: 'delete-me',
       confirmDeletion: true,
     });
@@ -111,35 +116,39 @@ describe('DeleteTagTool', () => {
     expect(response.deletedDescription).toBe('This tag will be deleted');
 
     // Verify tag is removed from notes
-    const allNotes = getNotesForPath(testRepoPath, true);
-    const updatedNote1 = allNotes.find((n) => n.id === note1.id);
-    const updatedNote2 = allNotes.find((n) => n.id === note2.id);
-    const updatedNote3 = allNotes.find((n) => n.id === note3.id);
+    const allNotes = notesStore.getNotesForPath(
+      validatedRepoPath,
+      '' as ValidatedRelativePath,
+      true
+    );
+    const updatedNote1 = allNotes.find((n) => n.note.id === note1.id);
+    const updatedNote2 = allNotes.find((n) => n.note.id === note2.id);
+    const updatedNote3 = allNotes.find((n) => n.note.id === note3.id);
 
-    expect(updatedNote1?.tags).toEqual(['keep-me']);
-    expect(updatedNote2?.tags).toEqual([]);
-    expect(updatedNote3?.tags).toEqual(['keep-me']);
+    expect(updatedNote1?.note.tags).toEqual(['keep-me']);
+    expect(updatedNote2?.note.tags).toEqual([]);
+    expect(updatedNote3?.note.tags).toEqual(['keep-me']);
 
     // Verify tag description is deleted
-    const tags = getTagDescriptions(testRepoPath);
+    const tags = notesStore.getTagDescriptions(validatedRepoPath);
     expect(tags['delete-me']).toBeUndefined();
   });
 
   it('should handle deletion of tag with no description', async () => {
     // Save notes with a tag that has no description
-    const note1WithPath = saveNote({
+    const note1WithPath = notesStore.saveNote({
       note: 'Note with undescribed tag',
       anchors: ['file.ts'],
       tags: ['no-description'],
       metadata: {},
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
     const note1 = note1WithPath.note;
 
     // Delete the tag
     const result = await tool.execute({
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       tag: 'no-description',
       confirmDeletion: true,
     });
@@ -155,18 +164,22 @@ describe('DeleteTagTool', () => {
     expect(response.deletedDescription).toBeUndefined();
 
     // Verify tag is removed from note
-    const allNotes = getNotesForPath(testRepoPath, true);
-    const updatedNote = allNotes.find((n) => n.id === note1.id);
-    expect(updatedNote?.tags).toEqual([]);
+    const allNotes = notesStore.getNotesForPath(
+      validatedRepoPath,
+      '' as ValidatedRelativePath,
+      true
+    );
+    const updatedNote = allNotes.find((n) => n.note.id === note1.id);
+    expect(updatedNote?.note.tags).toEqual([]);
   });
 
   it('should handle deletion of unused tag with description', async () => {
     // Create a tag description but don't use it in any notes
-    saveTagDescription(testRepoPath, 'unused-tag', 'This tag is not used');
+    notesStore.saveTagDescription(validatedRepoPath, 'unused-tag', 'This tag is not used');
 
     // Delete the tag
     const result = await tool.execute({
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       tag: 'unused-tag',
       confirmDeletion: true,
     });
@@ -182,14 +195,14 @@ describe('DeleteTagTool', () => {
     expect(response.deletedDescription).toBe('This tag is not used');
 
     // Verify tag description is deleted
-    const tags = getTagDescriptions(testRepoPath);
+    const tags = notesStore.getTagDescriptions(validatedRepoPath);
     expect(tags['unused-tag']).toBeUndefined();
   });
 
   it('should handle deletion of non-existent tag', async () => {
     // Try to delete a tag that doesn't exist
     const result = await tool.execute({
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       tag: 'nonexistent',
       confirmDeletion: true,
     });
@@ -207,18 +220,18 @@ describe('DeleteTagTool', () => {
 
   it('should preserve other tags when deleting one tag', async () => {
     // Save a note with multiple tags
-    const note = saveNote({
+    const note = notesStore.saveNote({
       note: 'Note with multiple tags',
       anchors: ['file.ts'],
       tags: ['tag1', 'tag2', 'tag3'],
       metadata: {},
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       codebaseViewId: 'test-view',
     });
 
     // Delete one tag
     const result = await tool.execute({
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       tag: 'tag2',
       confirmDeletion: true,
     });
@@ -228,9 +241,13 @@ describe('DeleteTagTool', () => {
     expect(response.results.notesModified).toBe(1);
 
     // Verify other tags are preserved
-    const allNotes = getNotesForPath(testRepoPath, true);
-    const updatedNote = allNotes.find((n) => n.id === note.note.id);
-    expect(updatedNote?.tags).toEqual(['tag1', 'tag3']);
+    const allNotes = notesStore.getNotesForPath(
+      validatedRepoPath,
+      '' as ValidatedRelativePath,
+      true
+    );
+    const updatedNote = allNotes.find((n) => n.note.id === note.note.id);
+    expect(updatedNote?.note.tags).toEqual(['tag1', 'tag3']);
   });
 
   it('should throw error for non-existent path', async () => {
@@ -240,13 +257,13 @@ describe('DeleteTagTool', () => {
         tag: 'test',
         confirmDeletion: true,
       })
-    ).rejects.toThrow('Path does not exist');
+    ).rejects.toThrow('Not a git repository');
   });
 
   it('should throw error for non-git repository', async () => {
     // Create a directory without .git
-    const nonGitPath = path.join(tempDir, 'non-git');
-    fs.mkdirSync(nonGitPath, { recursive: true });
+    const nonGitPath = '/non-git';
+    fs.createDir(nonGitPath);
 
     await expect(
       tool.execute({
@@ -262,12 +279,12 @@ describe('DeleteTagTool', () => {
     const notes: Array<{ note: { id: string } }> = [];
     for (let i = 0; i < 5; i++) {
       notes.push(
-        saveNote({
+        notesStore.saveNote({
           note: `Note ${i}`,
           anchors: [`file${i}.ts`],
           tags: ['common-tag', `unique-${i}`],
           metadata: {},
-          directoryPath: testRepoPath,
+          directoryPath: validatedRepoPath,
           codebaseViewId: 'test-view',
         })
       );
@@ -275,7 +292,7 @@ describe('DeleteTagTool', () => {
 
     // Delete the common tag
     const result = await tool.execute({
-      directoryPath: testRepoPath,
+      directoryPath: validatedRepoPath,
       tag: 'common-tag',
       confirmDeletion: true,
     });
@@ -285,11 +302,15 @@ describe('DeleteTagTool', () => {
     expect(response.results.notesModified).toBe(5);
 
     // Verify tag is removed from all notes but unique tags remain
-    const allNotes = getNotesForPath(testRepoPath, true);
+    const allNotes = notesStore.getNotesForPath(
+      validatedRepoPath,
+      '' as ValidatedRelativePath,
+      true
+    );
     for (let i = 0; i < 5; i++) {
-      const updatedNote = allNotes.find((n) => n.id === notes[i].note.id);
-      expect(updatedNote?.tags).toEqual([`unique-${i}`]);
-      expect(updatedNote?.tags).not.toContain('common-tag');
+      const updatedNote = allNotes.find((n) => n.note.id === notes[i].note.id);
+      expect(updatedNote?.note.tags).toEqual([`unique-${i}`]);
+      expect(updatedNote?.note.tags).not.toContain('common-tag');
     }
   });
 });

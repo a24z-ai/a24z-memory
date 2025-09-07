@@ -217,7 +217,7 @@ describe('MCP Server Integration', () => {
           expect(tagsResponse.error).toBeUndefined();
           const tagsResult = JSON.parse((tagsResponse.result as any).content[0].text);
           expect(tagsResult).toHaveProperty('usedTags');
-          expect(tagsResult).toHaveProperty('suggestedTags');
+          expect(tagsResult).toHaveProperty('tagRestrictions');
         } finally {
           server.kill();
         }

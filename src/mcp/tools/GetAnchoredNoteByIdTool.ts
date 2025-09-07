@@ -1,15 +1,17 @@
 import { z } from 'zod';
-import * as path from 'node:path';
-import * as fs from 'node:fs';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
 import { MemoryPalace } from '../../MemoryPalace';
+import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
 import { NodeFileSystemAdapter } from '../../node-adapters/NodeFileSystemAdapter';
-import { findGitRoot } from '../../node-adapters/NodeFileSystemAdapter';
 
 export class GetAnchoredNoteByIdTool extends BaseTool {
   name = 'get_repository_note';
   description = 'Get a repository note by its unique ID';
+
+  constructor(private fs: FileSystemAdapter = new NodeFileSystemAdapter()) {
+    super();
+  }
 
   schema = z.object({
     noteId: z
@@ -26,7 +28,7 @@ export class GetAnchoredNoteByIdTool extends BaseTool {
     const parsed = this.schema.parse(input);
 
     // Validate that directoryPath is absolute
-    if (!path.isAbsolute(parsed.directoryPath)) {
+    if (!this.fs.isAbsolute(parsed.directoryPath)) {
       throw new Error(
         `directoryPath must be an absolute path. ` +
           `Received relative path: "${parsed.directoryPath}". ` +
@@ -35,7 +37,7 @@ export class GetAnchoredNoteByIdTool extends BaseTool {
     }
 
     // Validate that directoryPath exists
-    if (!fs.existsSync(parsed.directoryPath)) {
+    if (!(await this.fs.exists(parsed.directoryPath))) {
       throw new Error(
         `directoryPath does not exist: "${parsed.directoryPath}". ` +
           `Please provide a valid absolute path to an existing directory.`
@@ -43,8 +45,10 @@ export class GetAnchoredNoteByIdTool extends BaseTool {
     }
 
     // Find the git repository root
-    const gitRoot = findGitRoot(parsed.directoryPath);
-    if (!gitRoot) {
+    let gitRoot: string;
+    try {
+      gitRoot = this.fs.normalizeRepositoryPath(parsed.directoryPath);
+    } catch {
       throw new Error(
         `directoryPath is not within a git repository: "${parsed.directoryPath}". ` +
           `Please provide a path within a git repository.`
@@ -52,8 +56,7 @@ export class GetAnchoredNoteByIdTool extends BaseTool {
     }
 
     // Create MemoryPalace instance for this repository
-    const nodeFs = new NodeFileSystemAdapter();
-    const memoryPalace = new MemoryPalace(gitRoot, nodeFs);
+    const memoryPalace = new MemoryPalace(gitRoot, this.fs);
 
     const note = memoryPalace.getNoteById(parsed.noteId);
 
