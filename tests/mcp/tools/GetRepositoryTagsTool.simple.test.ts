@@ -19,7 +19,7 @@ describe('GetRepositoryTagsTool (Simple)', () => {
 
     // Set up repository structure
     inMemoryFs.setupTestRepo(testPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(inMemoryFsPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(inMemoryFs, testPath);
 
     // Create the tool with in-memory adapter
     tool = new GetRepositoryTagsTool(inMemoryFs);

@@ -17,7 +17,7 @@ describe('Note Management Functions', () => {
 
     // Set up test repository
     fs.setupTestRepo(testRepoPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
   });
 
   describe('getNoteById', () => {

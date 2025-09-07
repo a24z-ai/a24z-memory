@@ -22,7 +22,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
     tool = new CreateRepositoryAnchoredNoteTool(fs);
     notesStore = new AnchoredNotesStore(fs);
     fs.setupTestRepo(testRepoPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
 
     // Create a test view using CodebaseViewsStore
     const codebaseViewsStore = new CodebaseViewsStore(fs);
@@ -35,7 +35,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
       cells: {},
       timestamp: new Date().toISOString(),
     };
-    codebaseViewsStore.saveView(validatedRepoPathView);
+    codebaseViewsStore.saveView(validatedRepoPath, testView);
   });
 
   describe('Schema Validation', () => {
@@ -341,7 +341,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
         cells: {},
         timestamp: new Date().toISOString(),
       };
-      codebaseViewsStore.saveView(validatedRepo2PathView2);
+      codebaseViewsStore.saveView(validatedRepo2Path, testView2);
 
       // Save note in first repository
       const input1 = {

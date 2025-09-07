@@ -19,7 +19,7 @@ describe('ListCodebaseViewsTool', () => {
 
     // Set up repository structure
     inMemoryFs.setupTestRepo(testRepoPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(inMemoryFsRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(inMemoryFs, testRepoPath);
 
     // Create MemoryPalace instance with in-memory adapter
     new MemoryPalace(testRepoPath, inMemoryFs);

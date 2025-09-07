@@ -19,7 +19,7 @@ describe('Default View Auto-Creation', () => {
 
     // Set up test repository
     fs.setupTestRepo(testPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testPath);
 
     // Create some test files to anchor to
     const srcDir = fs.join(testPath, 'src');

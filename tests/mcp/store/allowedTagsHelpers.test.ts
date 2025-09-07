@@ -17,7 +17,7 @@ describe('Allowed Tags Helper Functions', () => {
 
     // Set up test repository
     fs.setupTestRepo(testRepoPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
   });
 
   describe('addAllowedTag', () => {

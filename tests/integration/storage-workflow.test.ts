@@ -24,7 +24,7 @@ describe('File Operations Integration', () => {
 
     // Set up test repository
     fsAdapter.setupTestRepo(testPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsAdapterPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsAdapter, testPath);
 
     // Create a test view
     const testView: CodebaseView = {
@@ -41,7 +41,7 @@ describe('File Operations Integration', () => {
       },
       timestamp: Date.now().toString(),
     };
-    codebaseViewsStore.saveView(validatedRepoPathView);
+    codebaseViewsStore.saveView(validatedRepoPath, testView);
   });
 
   afterEach(() => {
@@ -140,7 +140,7 @@ describe('File Operations Integration', () => {
     // Create note with first tool instance
     const fs = new InMemoryFileSystemAdapter();
     fs.setupTestRepo(testPath);
-    const validatedPath = MemoryPalace.validateRepositoryPath(fsPath);
+    const validatedPath = MemoryPalace.validateRepositoryPath(fs, testPath);
 
     // Create a test view for the new instance
     const codebaseViewsStore = new CodebaseViewsStore(fs);
@@ -158,7 +158,7 @@ describe('File Operations Integration', () => {
       },
       timestamp: Date.now().toString(),
     };
-    codebaseViewsStore.saveView(validatedPathView);
+    codebaseViewsStore.saveView(validatedPath, testView);
 
     const tool1 = new CreateRepositoryAnchoredNoteTool(fs);
     await tool1.execute({

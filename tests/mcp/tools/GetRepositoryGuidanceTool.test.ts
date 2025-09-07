@@ -12,7 +12,7 @@ describe('GetRepositoryGuidanceTool', () => {
     fs = new InMemoryFileSystemAdapter();
     tool = new GetRepositoryGuidanceTool(fs);
     fs.setupTestRepo(testRepoPath);
-    MemoryPalace.validateRepositoryPath(fsRepoPath);
+    MemoryPalace.validateRepositoryPath(fs, testRepoPath);
   });
 
   describe('schema validation', () => {

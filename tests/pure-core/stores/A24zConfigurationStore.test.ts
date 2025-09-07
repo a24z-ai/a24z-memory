@@ -23,7 +23,7 @@ describe('Pure A24zConfigurationStore', () => {
     fs.setupTestRepo(testRepoPath);
 
     // Validate the repository path
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
   });
 
   describe('Repository Validation', () => {

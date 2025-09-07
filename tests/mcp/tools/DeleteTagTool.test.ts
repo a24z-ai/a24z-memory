@@ -22,7 +22,7 @@ describe('DeleteTagTool', () => {
     tool = new DeleteTagTool(fs);
     notesStore = new AnchoredNotesStore(fs);
     fs.setupTestRepo(testRepoPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
 
     // Create a test view using CodebaseViewsStore
     const codebaseViewsStore = new CodebaseViewsStore(fs);
@@ -35,7 +35,7 @@ describe('DeleteTagTool', () => {
       cells: {},
       timestamp: new Date().toISOString(),
     };
-    codebaseViewsStore.saveView(validatedRepoPathView);
+    codebaseViewsStore.saveView(validatedRepoPath, testView);
   });
 
   it('should require confirmation to delete a tag', async () => {

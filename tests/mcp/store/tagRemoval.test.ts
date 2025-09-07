@@ -22,7 +22,7 @@ describe('Tag Removal from Notes', () => {
 
     // Set up test repository
     fsAdapter.setupTestRepo(testRepoPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsAdapterRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsAdapter, testRepoPath);
 
     // Create a basic test note template
     testNote = {

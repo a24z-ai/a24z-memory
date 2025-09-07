@@ -20,7 +20,7 @@ describe('File-based note storage', () => {
 
     // Set up test repository
     fs.setupTestRepo(testRepoPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
 
     // Create a test view
     const testView: CodebaseView = {
@@ -32,7 +32,7 @@ describe('File-based note storage', () => {
       cells: {},
       timestamp: new Date().toISOString(),
     };
-    codebaseViewsStore.saveView(validatedRepoPathView);
+    codebaseViewsStore.saveView(validatedRepoPath, testView);
   });
 
   afterEach(() => {

@@ -23,7 +23,7 @@ describe('ReplaceTagTool', () => {
     notesStore = new AnchoredNotesStore(fs);
     tool = new ReplaceTagTool(fs);
     fs.setupTestRepo(testRepoPath);
-    validatedRepoPath = MemoryPalace.validateRepositoryPath(fsRepoPath);
+    validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
 
     // Create a test view using CodebaseViewsStore
     const codebaseViewsStore = new CodebaseViewsStore(fs);
@@ -36,7 +36,7 @@ describe('ReplaceTagTool', () => {
       cells: {},
       timestamp: new Date().toISOString(),
     };
-    codebaseViewsStore.saveView(validatedRepoPathView);
+    codebaseViewsStore.saveView(validatedRepoPath, testView);
   });
 
   it('should require confirmation to replace a tag', async () => {
