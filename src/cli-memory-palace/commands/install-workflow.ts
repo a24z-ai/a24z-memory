@@ -36,7 +36,7 @@ export function createInstallWorkflowCommand(): Command {
         }
 
         // Check if workflow already exists
-        const workflowPath = path.join(workflowsDir, 'alexandria-register.yml');
+        const workflowPath = path.join(workflowsDir, 'alexandria.yml');
         if (fs.existsSync(workflowPath) && !options.force) {
           console.error(
             `Error: Workflow already exists at ${path.relative(process.cwd(), workflowPath)}`

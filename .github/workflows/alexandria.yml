@@ -1,14 +1,9 @@
 # Alexandria Registry GitHub Action
 # 
-# This workflow automatically registers and updates your repository with Alexandria
+# This workflow automatically registers and updates your Alexandria documentation
 # when codebase views are added or modified.
-#
-# To use this workflow:
-# 1. Copy this file to .github/workflows/alexandria-register.yml
-# 2. Commit and push to your repository
-# 3. The workflow will run automatically when .a24z/views/ files change
 
-name: Register with Alexandria
+name: Update Alexandria Documentation 
 
 on:
   # Trigger on pull requests that modify views
@@ -21,14 +16,13 @@ on:
   push:
     branches:
       - main
-      - master
     paths:
       - '.a24z/views/**'
 
 jobs:
   register-alexandria:
     runs-on: ubuntu-latest
-    name: Register Repository with Alexandria
+    name: Update Alexandria Documentation
     
     steps:
       - name: Checkout repository
