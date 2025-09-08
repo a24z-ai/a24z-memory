@@ -50,6 +50,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
+    "commander": "^14.0.0",
     "globby": "^14.1.0",
     "gpt-tokenizer": "^3.0.1",
     "ignore": "^7.0.5",
