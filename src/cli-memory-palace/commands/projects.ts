@@ -5,6 +5,7 @@ import { NodeFileSystemAdapter } from '../../node-adapters/NodeFileSystemAdapter
 import { ProjectRegistryStore } from '../../projects-core/ProjectRegistryStore';
 import { MemoryPalace } from '../../MemoryPalace';
 import { getGitRemoteUrl } from '../../projects-core/utils';
+import { hasAlexandriaWorkflow, hasMemoryNotes } from '../../projects-core/workflow-utils';
 
 export function createProjectsCommand(): Command {
   const projectsCommand = new Command('projects').description('Manage your project registry');
@@ -91,7 +92,23 @@ export function createProjectsCommand(): Command {
               console.log(`   Remote: ${project.remoteUrl}`);
             }
 
-            if (!exists) {
+            if (exists) {
+              // Check for Alexandria workflow and memory notes
+              const hasWorkflow = hasAlexandriaWorkflow(fsAdapter, project.path);
+              const hasNotes = hasMemoryNotes(fsAdapter, project.path);
+
+              const features = [];
+              if (hasWorkflow) features.push('📚 Alexandria');
+              if (hasNotes) features.push('🧠 Notes');
+
+              if (features.length > 0) {
+                console.log(`   Features: ${features.join(', ')}`);
+              } else {
+                console.log(
+                  `   Features: None (run "memory-palace install-workflow" to add Alexandria)`
+                );
+              }
+            } else {
               console.log(`   ⚠️  Path no longer exists`);
             }
 
