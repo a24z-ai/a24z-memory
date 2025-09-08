@@ -1,0 +1,42 @@
+{
+  "id": "architecture-view",
+  "version": "1.0.0",
+  "name": "Architecture View",
+  "description": "Codebase view extracted from documentation",
+  "rows": 1,
+  "cols": 2,
+  "cells": {
+    "🟠 MemoryPalace (Bottom-Left)": {
+      "coordinates": [
+        0,
+        0
+      ],
+      "files": [
+        "ts"
+      ],
+      "priority": 0
+    },
+    "🟣 Integration Layer (Bottom-Right)": {
+      "coordinates": [
+        0,
+        1
+      ],
+      "files": [
+        "ts"
+      ],
+      "priority": 0
+    }
+  },
+  "overviewPath": "docs/architecture-overview.md",
+  "timestamp": "2025-09-07T22:45:16.649Z",
+  "metadata": {
+    "generationType": "user",
+    "ui": {
+      "enabled": true,
+      "rows": 1,
+      "cols": 2,
+      "showCellLabels": true,
+      "cellLabelPosition": "top"
+    }
+  }
+}

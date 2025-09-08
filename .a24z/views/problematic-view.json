@@ -1,0 +1,19 @@
+{
+  "name": "Problematic View",
+  "cells": {
+    "problematic": {
+      "coordinates": [
+        0,
+        0
+      ],
+      "files": [
+        "/absolute/path/not/allowed.ts",
+        "nonexistent/file.ts",
+        "src/MemoryPalace.ts"
+      ]
+    }
+  },
+  "id": "problematic-view",
+  "version": "1.0.0",
+  "timestamp": "2025-09-07T21:27:45.648Z"
+}

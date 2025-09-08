@@ -1,0 +1,42 @@
+{
+  "version": "0.1.0",
+  "id": "Core Architecture",
+  "name": "Core Architecture",
+  "cells": {
+    "abstractions": {
+      "patterns": [
+        "src/pure-core/abstractions/**/*"
+      ],
+      "coordinates": [0, 0],
+      "priority": 15,
+      "color": "#4CAF50"
+    },
+    "stores": {
+      "patterns": [
+        "src/pure-core/stores/**/*"
+      ],
+      "coordinates": [0, 1],
+      "priority": 15,
+      "color": "#2196F3"
+    },
+    "types-utils": {
+      "patterns": [
+        "src/pure-core/types/**/*",
+        "src/pure-core/utils/**/*"
+      ],
+      "coordinates": [1, 0],
+      "priority": 10,
+      "color": "#FF9800"
+    },
+    "config-integration": {
+      "patterns": [
+        "src/pure-core/config/**/*",
+        "src/pure-core/**/*"
+      ],
+      "coordinates": [1, 1],
+      "priority": 5,
+      "color": "#9C27B0"
+    }
+  },
+  "overviewPath": "docs/pure-core-architecture.md"
+}

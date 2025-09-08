@@ -3,9 +3,10 @@ dist
 *.log
 .DS_Store
 .history
+.a24z/lancedb
+
 
 .env.local
-.a24z/
 coverage/
 .claude/
 .vscode/
