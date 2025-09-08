@@ -55,6 +55,7 @@ describe('ListCodebaseViewsTool', () => {
       name: 'Test View One',
       description: 'First test view for unit testing',
       overviewPath: 'docs/test-view-1.md',
+      category: 'other',
       cells: {
         source: {
           files: ['src/index.ts', 'src/lib.ts'],
@@ -69,6 +70,7 @@ describe('ListCodebaseViewsTool', () => {
       name: 'Test View Two',
       description: 'Second test view for comprehensive coverage',
       overviewPath: 'docs/test-view-2.md',
+      category: 'other',
       cells: {
         tests: {
           files: ['test/index.test.ts', 'test/lib.test.ts'],
@@ -97,22 +99,29 @@ describe('ListCodebaseViewsTool', () => {
     expect(views[0].name).toBe('Test View One');
     expect(views[1].name).toBe('Test View Two');
 
-    // Check summary format - should only include id, name, description
+    // Check summary format - should include id, name, description, cellCount, gridSize, overviewPath, category
     expect(views[0]).toEqual({
       id: 'test-view-1',
       name: 'Test View One',
       description: 'First test view for unit testing',
+      cellCount: 1,
+      gridSize: [1, 1],
+      overviewPath: 'docs/test-view-1.md',
+      category: 'other', // Default category
     });
 
     expect(views[1]).toEqual({
       id: 'test-view-2',
       name: 'Test View Two',
       description: 'Second test view for comprehensive coverage',
+      cellCount: 1,
+      gridSize: [1, 2],
+      overviewPath: 'docs/test-view-2.md',
+      category: 'other', // Default category
     });
 
-    // Verify it doesn't include internal details like cells, rows, cols
+    // Verify it doesn't include internal details like cells, version
     expect(views[0].cells).toBeUndefined();
-    expect(views[0].rows).toBeUndefined();
     expect(views[0].version).toBeUndefined();
   });
 
@@ -124,6 +133,7 @@ describe('ListCodebaseViewsTool', () => {
       name: 'Nested Path Test',
       description: 'Testing nested path resolution',
       overviewPath: 'docs/nested-test.md',
+      category: 'other',
       cells: {
         source: {
           files: ['src/index.ts', 'src/lib.ts'],
@@ -163,6 +173,7 @@ describe('ListCodebaseViewsTool', () => {
       name: 'Z Last View',
       description: 'Should appear last',
       overviewPath: 'docs/z-view.md',
+      category: 'other',
       cells: {},
     };
 
@@ -172,6 +183,7 @@ describe('ListCodebaseViewsTool', () => {
       name: 'A First View',
       description: 'Should appear first',
       overviewPath: 'docs/a-view.md',
+      category: 'other',
       cells: {},
     };
 
@@ -181,6 +193,7 @@ describe('ListCodebaseViewsTool', () => {
       name: 'M Middle View',
       description: 'Should appear in middle',
       overviewPath: 'docs/m-view.md',
+      category: 'other',
       cells: {},
     };
 

@@ -240,6 +240,7 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
       version: '1.0.0',
       name: 'Default Exploration Log',
       description: 'Time-based catchall view that grows with each note creation',
+      category: 'reference', // Exploration logs are reference material
       timestamp: new Date().toISOString(),
       cells: {
         [cellName]: {

@@ -3,16 +3,8 @@ import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
 import { MemoryPalace } from '../../MemoryPalace';
 import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
-
-/**
- * Summary of a codebase view for user browsing and selection.
- * Contains only the essential information needed for choosing a view.
- */
-export interface CodebaseViewSummary {
-  id: string;
-  name: string;
-  description: string;
-}
+import type { CodebaseViewSummary } from '../../pure-core/types/summary';
+import { extractCodebaseViewSummary } from '../../pure-core/types/summary';
 
 /**
  * Response type for the ListCodebaseViewsTool.
@@ -78,12 +70,10 @@ export class ListCodebaseViewsTool extends BaseTool {
     const memoryPalace = new MemoryPalace(repositoryRoot, this.fs);
     const allCodebaseViews = memoryPalace.listViews();
 
-    // Transform to our summary format
-    const codebaseViewSummaries: CodebaseViewSummary[] = allCodebaseViews.map((view) => ({
-      id: view.id,
-      name: view.name,
-      description: view.description,
-    }));
+    // Transform to our summary format using the shared function
+    const codebaseViewSummaries: CodebaseViewSummary[] = allCodebaseViews.map(
+      extractCodebaseViewSummary
+    );
 
     return {
       codebaseViews: codebaseViewSummaries,

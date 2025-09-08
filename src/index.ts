@@ -21,6 +21,13 @@ export type {
   FileListValidationResult,
 } from './pure-core/types';
 
+// CodebaseView summary types
+export type { CodebaseViewSummary } from './pure-core/types/summary';
+export {
+  extractCodebaseViewSummary,
+  extractCodebaseViewSummaries,
+} from './pure-core/types/summary';
+
 // CodebaseView exports for VS Code extension integration
 export { CodebaseViewsStore, generateViewIdFromName } from './pure-core/stores/CodebaseViewsStore';
 

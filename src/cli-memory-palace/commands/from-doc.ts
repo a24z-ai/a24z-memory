@@ -76,6 +76,7 @@ export function createFromDocCommand(): Command {
           cols: extracted.cols,
           cells: extracted.cells,
           overviewPath: relativePath,
+          category: 'other', // Default category for CLI-generated views
           timestamp: new Date().toISOString(),
           metadata: {
             generationType: 'user',

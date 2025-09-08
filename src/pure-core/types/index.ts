@@ -165,6 +165,13 @@ export interface CodebaseView {
   overviewPath: string;
 
   /**
+   * Category for grouping and organizing views in UI.
+   * Common values: 'guide', 'reference', 'tutorial', 'explanation', 'other'
+   * Users can define custom categories as needed.
+   */
+  category: string;
+
+  /**
    * Optional scope filtering before grid layout.
    */
   scope?: CodebaseViewScope;

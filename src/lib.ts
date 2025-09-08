@@ -27,6 +27,13 @@ export type {
   FileListValidationResult,
 } from './pure-core/types';
 
+// CodebaseView summary types
+export type { CodebaseViewSummary } from './pure-core/types/summary';
+export {
+  extractCodebaseViewSummary,
+  extractCodebaseViewSummaries,
+} from './pure-core/types/summary';
+
 // Filesystem adapter for dependency injection
 export type { FileSystemAdapter } from './pure-core/abstractions/filesystem';
 export { NodeFileSystemAdapter } from './node-adapters/NodeFileSystemAdapter';
