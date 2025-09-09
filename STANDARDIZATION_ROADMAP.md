@@ -119,7 +119,7 @@ memory-palace watch                  # Real-time validation
 
 error: README.md is not associated with any CodebaseView
   rule: require-view-association
-  impact: AI agents lack spatial understanding of project structure
+  impact: AI agents lack structured context for project overview
 
 warning: docs/api.md context has not been updated in 120 days
   rule: stale-context
@@ -132,7 +132,7 @@ warning: docs/api.md context has not been updated in 120 days
 - **Context Coverage**: % of codebase with quality context
 - **Agent Success Rate**: Correlation with context quality
 - **Context Freshness**: Age vs code change frequency
-- **Spatial Coherence**: How well organized for agent navigation
+- **View Completeness**: % of views with all cells populated
 - **Token Efficiency**: Context value per token consumed
 
 ## Adoption Strategy
@@ -297,8 +297,8 @@ Current approaches fail because:
 
 ### Our Solution: Structured Context Engineering
 a24z-Memory solves this by:
-- **Spatial Organization**: CodebaseViews create navigable memory palaces
-- **Semantic Anchoring**: Context tied directly to code locations
+- **Structured Organization**: CodebaseViews create logical groupings of related files
+- **Direct Anchoring**: Context tied directly to code locations
 - **Living Documentation**: Context evolves with code through git
 - **Measurable Quality**: Lint-like rules ensure context completeness
 
