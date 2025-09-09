@@ -23,7 +23,70 @@ export function createFromDocCommand(): Command {
     .option('-d, --description <desc>', 'Description for the codebase view')
     .option('--default', 'Set this view as the default view')
     .option('-p, --path <path>', 'Repository path (defaults to current directory)')
+    .option('--skip-guidance', 'Skip the guidance on creating effective CodebaseViews')
     .action(async (docFile: string, options) => {
+      // Show guidance by default (unless skipped)
+      if (!options.skipGuidance) {
+        console.log(`
+📚 Creating Effective CodebaseViews from Documentation
+═══════════════════════════════════════════════════════
+
+IMPORTANT: The goal is to create CURRENT and MAINTAINABLE views that will be reliable going forward.
+
+🎯 Key Principles:
+
+1. ANCHOR TO FILE PATHS
+   Your documentation should reference specific files and directories.
+   Examples:
+   - "The authentication logic is in src/auth/provider.ts"
+   - "Database models are located in src/models/"
+   - "Configuration files: config/app.json and config/database.json"
+
+2. UPDATE STALE DOCUMENTATION IS ENCOURAGED! 
+   If you discover outdated references while creating a view:
+   ✅ DO update the documentation to reflect current file structure
+   ✅ DO remove references to deleted files
+   ✅ DO add references to new important files
+   
+   This is not just okay—it's ESSENTIAL for creating reliable CodebaseViews.
+
+3. STRUCTURE YOUR DOCUMENTATION
+   Organize your markdown with clear sections that map to grid cells:
+   
+   # Architecture Overview
+   
+   ## Core Components [0,0]
+   The main application entry point is in src/index.ts...
+   
+   ## API Layer [0,1]
+   REST endpoints are defined in src/api/routes/...
+   
+   ## Data Layer [1,0]
+   Database models in src/models/...
+
+4. BE SPECIFIC
+   Instead of: "The utils folder contains helper functions"
+   Write: "Utility functions in src/utils/string.ts, src/utils/date.ts"
+
+5. MAINTENANCE MINDSET
+   Remember: CodebaseViews are living documents. Creating them with accurate,
+   current file references ensures they remain useful and get maintained.
+
+💡 Tips:
+- Run 'memory-palace list-untracked-docs' to find documentation to convert
+- Check file existence before referencing them
+- Use relative paths from repository root
+- Group related files in the same grid cell
+- Consider the visual layout (typically 2-3 rows, 2-4 columns works well)
+
+Press Enter to continue, or Ctrl+C to exit...
+`);
+        // Wait for user input
+        await new Promise<void>((resolve) => {
+          process.stdin.once('data', () => resolve());
+        });
+        return;
+      }
       try {
         const palace = createMemoryPalace(options.path);
         const repoPath = getRepositoryRoot(options.path);
@@ -151,11 +214,15 @@ export function createFromDocCommand(): Command {
         }
 
         console.log('');
-        console.log(`💡 Tips:`);
-        console.log(`   - The view extracted file references from your documentation`);
-        console.log(`   - Sections with code references became grid cells`);
+        console.log(`💡 Next Steps:`);
+        console.log(`   - Review the extracted file references for accuracy`);
+        console.log(`   - If any references are outdated, UPDATE YOUR DOCUMENTATION!`);
+        console.log(`   - Keeping docs current ensures reliable, maintainable views`);
         console.log(`   - You can manually edit the JSON to refine the structure`);
         console.log(`   - Add more files to cells or reorganize the grid layout`);
+        console.log('');
+        console.log(`⚠️  Remember: It's GOOD to update stale documentation!`);
+        console.log(`   This ensures your CodebaseView remains useful over time.`);
 
         // Exit with error code if there were critical issues
         if (!validationResult.isValid) {
