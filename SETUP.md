@@ -1,27 +1,34 @@
 # Alexandria Setup - Get Started in Minutes
 
-Alexandria makes it incredibly easy to add intelligent memory to your codebase. With just two simple commands, you'll have a complete system that helps AI assistants understand your project's context and structure.
-
-## Why Setup Is So Simple
-
-Alexandria is designed for **zero-friction adoption**. Unlike complex documentation systems that require extensive configuration, Alexandria works with your existing workflow:
-
-- **No new file formats** - Uses standard JSON and Markdown
-- **Git-native** - Everything is tracked alongside your code
-- **IDE-agnostic** - Works with any editor or AI assistant
-- **Incremental adoption** - Start small, grow as needed
-
-## Step 1: Initialize Alexandria
-
 ```bash
 npx -y a24z-memory init
 ```
 
-This single command (implemented in `src/cli-alexandria/commands/init.ts`):
-- Creates a minimal `.alexandriarc.json` configuration using the schema from `src/config/schema.ts`
-- Registers your project in the global Alexandria registry via `src/projects-core/ProjectRegistryStore.ts`
-- Sets up automatic .gitignore pattern usage through the config system in `src/config/`
-- Offers to install GitHub Actions workflow (optional)
+## Step 1: Initialize Alexandria
+
+This single command creates everything you need:
+
+### Default Configuration Created
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/a24z-ai/alexandria/main/schema/alexandriarc.json",
+  "version": "1.0.0",
+  "context": {
+    "useGitignore": true,
+    "patterns": {
+      "exclude": [".a24z/**", ".alexandria/**"]
+    }
+  }
+}
+```
+
+### What It Does (implemented in `src/cli-alexandria/commands/init.ts`):
+- Creates `.alexandriarc.json` with gitignore-based file discovery enabled by default
+- Registers your project in the global registry (`~/.alexandria/projects.json`)
+- Excludes Alexandria's own directories from context scanning
+- Asks one optional question: install GitHub Actions workflow for auto-registration?
+
+The only interactive part is whether you want the GitHub workflow - everything else uses sensible defaults.
 
 ## Step 2: Start Using
 
