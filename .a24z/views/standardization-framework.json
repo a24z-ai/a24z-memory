@@ -1,0 +1,137 @@
+{
+  "id": "standardization-framework",
+  "version": "1.0.0",
+  "name": "standardization-framework",
+  "description": "Product roadmap for making a24z-Memory a documentation quality standard like ESLint/TypeScript",
+  "rows": 3,
+  "cols": 3,
+  "cells": {
+    "Core Framework": {
+      "coordinates": [
+        0,
+        0
+      ],
+      "files": [
+        "src/pure-core/config/defaultConfig.ts",
+        "src/pure-core/types/index.ts",
+        "src/pure-core/types/validation.ts",
+        ".a24z/configuration.json"
+      ],
+      "priority": 10,
+      "color": "#4CAF50"
+    },
+    "CLI & Commands": {
+      "coordinates": [
+        0,
+        1
+      ],
+      "files": [
+        "src/memory-palace-cli.ts",
+        "src/cli-memory-palace/commands/validate.ts",
+        "src/cli-memory-palace/commands/validate-all.ts",
+        "src/cli-memory-palace/commands/auto-create-views.ts"
+      ],
+      "priority": 10,
+      "color": "#2196F3"
+    },
+    "Rules & Validation": {
+      "coordinates": [
+        0,
+        2
+      ],
+      "files": [
+        "src/pure-core/utils/validation.ts",
+        "src/pure-core/validation/CodebaseViewValidator.ts"
+      ],
+      "priority": 10,
+      "color": "#FF9800"
+    },
+    "Configuration Schema": {
+      "coordinates": [
+        1,
+        0
+      ],
+      "files": [
+        "eslint.config.js",
+        "tsconfig.json",
+        "package.json"
+      ],
+      "priority": 8,
+      "color": "#9C27B0"
+    },
+    "Integration & MCP": {
+      "coordinates": [
+        1,
+        1
+      ],
+      "files": [
+        "src/mcp/server/McpServer.ts",
+        "src/mcp/tools/index.ts",
+        "src/MemoryPalace.ts"
+      ],
+      "priority": 8,
+      "color": "#F44336"
+    },
+    "GitHub Actions & CI": {
+      "coordinates": [
+        1,
+        2
+      ],
+      "files": [
+        ".husky/pre-commit"
+      ],
+      "priority": 8,
+      "color": "#00BCD4"
+    },
+    "Documentation": {
+      "coordinates": [
+        2,
+        0
+      ],
+      "files": [
+        "STANDARDIZATION_ROADMAP.md",
+        "README.md"
+      ],
+      "priority": 5,
+      "color": "#795548"
+    },
+    "Build & Distribution": {
+      "coordinates": [
+        2,
+        1
+      ],
+      "files": [
+        "build/build-cli.js",
+        "build/build-memory-palace-cli.js",
+        "build/fix-esm-imports.js"
+      ],
+      "priority": 5,
+      "color": "#607D8B"
+    },
+    "Testing & Quality": {
+      "coordinates": [
+        2,
+        2
+      ],
+      "files": [
+        "tests/test-mcp-build.sh"
+      ],
+      "priority": 5,
+      "color": "#3F51B5"
+    }
+  },
+  "overviewPath": "STANDARDIZATION_ROADMAP.md",
+  "category": "other",
+  "displayOrder": 0,
+  "timestamp": "2025-09-09T06:08:25.373Z",
+  "metadata": {
+    "generationType": "user",
+    "ui": {
+      "enabled": true,
+      "rows": 2,
+      "cols": 3,
+      "showCellLabels": true,
+      "cellLabelPosition": "top"
+    }
+  }
+}
