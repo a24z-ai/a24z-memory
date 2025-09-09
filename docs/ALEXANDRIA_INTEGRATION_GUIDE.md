@@ -10,6 +10,9 @@ To quickly assess your current Alexandria integration level:
 
 ### Manual Checks
 ```bash
+# Check for Alexandria section in Agents.md
+grep -i "## Alexandria" Agents.md || echo "No Alexandria section in Agents.md"
+
 # Check for pre-commit hooks
 ls -la .husky/pre-commit
 
@@ -26,23 +29,23 @@ grep "lint-staged" package.json
 ls -la .a24z/
 ```
 
-### Alexandria Adoption Assessment (Current Tools)
+### Alexandria Adoption Assessment
 ```bash
-# 1. Check existing documentation
-npx alexandria list
+# Core checks for Alexandria usage
+npx alexandria list          # How many views exist?
+npx alexandria validate-all  # Are views properly formatted?
+npx alexandria lint          # Any context quality issues?
 
-# 2. Add documentation (when needed)
-npx alexandria add-doc <file.md>
-
-# 3. Validate views
-npx alexandria validate-all
+# Optional deeper analysis
+npx alexandria list-untracked-docs  # Find documentation gaps
+npx alexandria projects             # Check registration status
 ```
 
 **Adoption Level Indicators:**
 - **Basic**: Has `.a24z/` directory with 1-2 views
 - **Intermediate**: 5+ validated views, no lint errors
 - **Advanced**: 10+ views, all docs tracked, CI/CD integrated
-- **Expert**: Custom configurations, team guidelines, Agents.md
+- **Expert**: Alexandria section in Agents.md, custom configurations, team guidelines
 
 ## Integration Levels
 
@@ -257,12 +260,12 @@ jobs:
 ### 4. Alexandria Usage Instructions for AI Agents (Agents.md)
 
 #### Purpose
-Create an `Agents.md` file that teaches AI agents how to use Alexandria effectively in your codebase:
+Add an Alexandria section to your `Agents.md` file (or create one) that teaches AI agents how to use Alexandria in your codebase. The key is having a section with `## Alexandria` or similar heading that agents can find:
 
 ```markdown
-# Alexandria Usage Guide for AI Agents
+# AI Agent Instructions
 
-## Available Alexandria Tools
+## Alexandria
 
 When working in this codebase, you have access to Alexandria for documentation management:
 
@@ -291,25 +294,31 @@ When working in this codebase, you have access to Alexandria for documentation m
 ```
 
 #### Implementation
-1. **Create Agents.md in your repository root**:
+1. **Check if Agents.md exists and has Alexandria section**:
    ```bash
-   cat > Agents.md << 'EOF'
-   # Alexandria Usage Guide for AI Agents
+   # Check for existing Alexandria section
+   grep -i "## Alexandria" Agents.md && echo "✓ Alexandria section found" || echo "✗ No Alexandria section"
+   ```
+
+2. **Add Alexandria section to Agents.md**:
+   ```bash
+   cat >> Agents.md << 'EOF'
    
-   This codebase uses Alexandria for documentation. As an AI agent, you should:
+   ## Alexandria
    
-   1. Check existing documentation: `npx alexandria list`
-   2. Add documentation: `npx alexandria add-doc <file.md>`
-   3. Validate views: `npx alexandria validate-all`
+   This codebase uses Alexandria for documentation. Key commands:
+   - Check docs: `npx alexandria list`
+   - Add docs: `npx alexandria add-doc <file.md>`
+   - Validate: `npx alexandria validate-all`
    EOF
    ```
 
-2. **Add to your AI agent's context**:
+3. **Add to your AI agent's context**:
    - Include Agents.md in your project root
    - Reference it in `.cursorrules` or similar AI config files
    - Ensure agents read it when starting work
 
-3. **Keep it updated with**:
+4. **Keep it updated with**:
    - Your team's Alexandria workflow
    - Common commands agents should use
    - Project-specific documentation patterns
