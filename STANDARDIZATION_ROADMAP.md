@@ -1,5 +1,24 @@
 # Alexandria Standardization Roadmap
 
+<div align="center">
+  
+<!-- Context Engineering Badge -->
+<img src="https://img.shields.io/badge/Context%20Engineering-Standard-8B5CF6?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwD0icb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIxIDEyYTkgOSAwIDEgMS02LTguNDg1Ii8+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMyIvPjxwYXRoIGQ9Ik0xMiA5djYiLz48cGF0aCBkPSJNOSAxMmg2Ii8+PC9zdmc+" alt="Context Engineering">
+
+<!-- AI-Native Badge -->
+<img src="https://img.shields.io/badge/AI--Native-Development-10B981?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0xMiAydjRNMTIgMTh2NEw4IDIwbDQgNCA0LTRNNSA5aDJMNSAxNWgyTTEzIDloMmwyIDZoLTJNOSA5aDZNOSAxNWg2Ii8+PC9zdmc+" alt="AI-Native">
+
+<!-- Dead Code Detection Badge -->
+<img src="https://img.shields.io/badge/Dead%20Code-Detection-EF4444?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0xMiAydjIwTTEyIDJsNCA0TTEyIDJMOCA2TTE3IDdsMi0yTTcgN0w1IDVNMTkgMTJoLTRNOSAxMkg1TTE5IDE4bC0yLTJNNyAxOGwyLTIiLz48L3N2Zz4=" alt="Dead Code Detection">
+
+<!-- Knowledge Library Badge -->
+<img src="https://img.shields.io/badge/Knowledge-Library-F59E0B?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPjxyZWN0IHg9IjQiIHk9IjIiIHdpZHRoPSI2IiBoZWlnaHQ9IjIwIiByeD0iMSIvPjxyZWN0IHg9IjEwIiB5PSIyIiB3aWR0aD0iNiIgaGVpZ2h0PSIyMCIgcng9IjEiLz48cGF0aCBkPSJNMTkgMnYyMGEyIDIgMCAwIDAgMi0yVjRhMiAyIDAgMCAwLTItMnoiLz48L3N2Zz4=" alt="Knowledge Library">
+
+<!-- Linting Standard Badge -->
+<img src="https://img.shields.io/badge/Linting-Standard-3B82F6?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0xNCA5VjVhMyAzIDAgMCAwLTMtM2wtNCAydjExIi8+PHBhdGggZD0iTTggOWg4TTE3IDloMWE0IDQgMCAwIDEgMCA4aC0xIi8+PHBhdGggZD0iTTMgOWgxYTQgNCAwIDAgMCAwIDhIMyIvPjxwYXRoIGQ9Ik0xNiAxOWgtOCIvPjwvc3ZnPg==" alt="Linting Standard">
+
+</div>
+
 ## Executive Summary
 
 Alexandria establishes the industry standard for **context engineering** in agentic development. As AI agents become integral to software development, the quality of context they receive determines their effectiveness. We provide a "context linting" system through **CodebaseViews** that ensures AI agents have accurate, navigable, and semantically-rich understanding of your codebase.
