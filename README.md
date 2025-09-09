@@ -3,10 +3,6 @@
 **Context Managment for your whole suite:** CLI for AI agents • VS Code for developers • Alexandria web for teams
 
 
-
-
-
-
 ## For Your Agent: CLI + MCP
 - `npm install -g a24z-memory` to download the alexandria cli
 - run `alexandria init` To Configure Your Project
@@ -33,14 +29,15 @@ Alexandria provides persistent memory infrastructure that enhances how AI agents
 - Install once, works with Claude, Cursor, Windsurf, and any MCP-compatible tool
 - Agents remember context across sessions and share knowledge
 - No more re-explaining your codebase every conversation
-- `npx -y a24z-memory` to get started
+- To Get StartedL `npm install -g a24z-memory`
+
 
 ### 👨‍💻 For Developers: VS Code Extension
 **Your intelligent coding companion**
-- Native VS Code integration with context-aware suggestions
+- View Code References Associated With Feature Documentation For Quick Context
 - Visual codebase navigation and understanding
-- Smart documentation that updates as you code
-- Install from VS Code marketplace (coming Q1 2025)
+- Install from VS Code marketplace:  [![Install in VS Code](https://img.shields.io/badge/Install%20in%20VS%20Code-0098FF?style=for-the-badge&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%7B%22name%22%3A%22a24z-memory%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22a24z-memory%22%5D%7D)
+
 
 ### 👥 For Teams: Alexandria Website
 **Your team's collective intelligence hub**
