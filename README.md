@@ -1,147 +1,185 @@
-<img width="2816" height="1536" alt="Gemini_Generated_Image_rx8a19rx8a19rx8a (1)" src="https://github.com/user-attachments/assets/f892952e-5955-4513-9670-7e0a6f67b01d" />
-
-# Alexandria - Development Agent Orchestration Platform
+# Alexandria - Development Memory Infrastructure
 
 [![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=a24z-memory&config=eyJjb21tYW5kIjoibnB4IC15IGEyNHotbWVtb3J5In0%3D) [![Install in VS Code](https://img.shields.io/badge/Install%20in%20VS%20Code-0098FF?style=for-the-badge&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%7B%22name%22%3A%22a24z-memory%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22a24z-memory%22%5D%7D)
 [![npm version](https://badge.fury.io/js/a24z-memory.svg)](https://www.npmjs.com/package/a24z-memory)
 [![Documentation](https://img.shields.io/badge/docs-a24z.ai-blue.svg)](https://docs.a24z.ai)
 
-**One-click install for Cursor & VS Code** ↑ • Works with Claude Code, Windsurf, Gemini CLI & Jules
+**Three ways to supercharge your development:** CLI for AI agents • VS Code for developers • Alexandria web for teams
 
-## The Multi-Agent Collaboration Revolution
+## One Platform, Three Experiences
 
-Modern development teams use multiple AI agents, but these agents work in isolation. Alexandria changes everything by creating a **unified context layer** that enables true multi-agent orchestration, helping development teams achieve **10x velocity improvements**.
+Alexandria provides persistent memory infrastructure that enhances how AI agents, developers, and teams work with codebases.
 
-### The Problem: Agent Isolation
+### 🤖 For AI Agents: CLI + MCP Server
+**Give your AI agents perfect memory**
+- Install once, works with Claude, Cursor, Windsurf, and any MCP-compatible tool
+- Agents remember context across sessions and share knowledge
+- No more re-explaining your codebase every conversation
+- `npx -y a24z-memory` to get started
 
-- 🤖 **Cursor** doesn't know what Copilot suggested
-- 🧠 **Claude** can't see your team's architectural decisions  
-- 🔧 **Custom agents** lack context from other tools
-- 📝 **Documentation** becomes stale the moment it's written
+### 👨‍💻 For Developers: VS Code Extension
+**Your intelligent coding companion**
+- Native VS Code integration with context-aware suggestions
+- Visual codebase navigation and understanding
+- Smart documentation that updates as you code
+- Install from VS Code marketplace (coming Q1 2025)
 
-### The Solution: Unified Agent Orchestration
+### 👥 For Teams: Alexandria Website
+**Your team's collective intelligence hub**
+- Web-based dashboard for entire engineering organization
+- Track agent usage, knowledge evolution, and team patterns
+- Manage codebase views and documentation standards
+- Enterprise features for governance and compliance
 
-Alexandria provides a **shared knowledge graph** that all agents can access and contribute to:
+## The Problem We Solve
 
-- ✅ **Universal Compatibility** - Works with all major AI development tools
-- 🔄 **Real-time Sync** - Keep all agents aligned with shared context
-- 📊 **Codebase Views** - Spatial knowledge maps for better understanding
-- 🎯 **Quality Control** - Maintain consistency across all agents
+**Without Alexandria:**
+- 🔄 Repeat yourself to every AI agent
+- 📝 Documentation goes stale immediately
+- 🧠 Lose context between sessions
+- 🤝 No knowledge sharing between tools
 
-## Quick Start - One Click Install
+**With Alexandria:**
+- ✅ Persistent memory across all sessions
+- 📊 Living documentation that evolves
+- 🔗 Shared context between all tools
+- 🚀 10x faster development velocity
 
-The convenience buttons above handle everything—just click to install. For manual setup:
+## Quick Start
 
+### 🤖 For AI Agents (CLI + MCP)
 ```bash
-# Initialize Alexandria in your project
+# One-command setup
 npx -y a24z-memory init
 
-# Start the MCP server
-npx a24z-memory
-
-# Create your first codebase view
-npx alexandria from-doc README.md --name overview
+# Your agents now have persistent memory!
+# Works with Claude, Cursor, Windsurf, etc.
 ```
 
-## How It Works: The Memory Palace Architecture
-
-### 🏗️ Create Spatial Knowledge Maps
-
-Transform your codebase into navigable **CodebaseViews**—grid-based memory palaces that organize knowledge spatially:
-
-```
-CodebaseView: "Frontend Architecture"
-→ Grid: 3×2 layout
-→ Cell [0,0]: Components (src/components/*)  
-→ Cell [0,1]: Services (src/services/*)
-→ Cell [1,0]: Utils (src/utils/*)
-→ Stored in: .a24z/views/frontend-architecture.json
-```
-
-### 🎯 Anchor Knowledge Across Agents
-
-When any agent discovers something important, it's preserved for all:
-
-```
-Cursor: "Found auth middleware issue with null headers"
-→ Saved to shared knowledge graph
-→ Available to Claude, Copilot, and all other agents
-→ Tagged: authentication, middleware, validation
-→ Anchored to: src/services/auth/middleware.ts
-```
-
-### 🧠 Orchestrated Agent Collaboration
-
-Your agents work together seamlessly:
-
-```
-You: "Build a new authentication system"
-Cursor: *Checks knowledge graph for auth patterns*
-Copilot: *Sees Cursor's implementation approach*
-Claude: *Reviews and suggests improvements based on team patterns*
-Result: Consistent, high-quality code following your standards
-```
-
-## Real-World Impact: 10x Development Velocity
-
-### 🚀 Rapid Feature Development
-Multiple agents collaborate in parallel:
-- Cursor handles UI components
-- Copilot manages backend logic
-- Claude reviews and refactors
-- All sharing context in real-time
-
-### 📖 Living Documentation
-Documentation that evolves automatically:
-- Updated by agent discoveries
-- Validated on every commit
-- Always current with your code
-
-### 🧠 Institutional Memory
-Preserve team knowledge permanently:
-- Architectural decisions
-- Bug fixes and solutions
-- Implementation patterns
-- Available to all future agents
-
-### 🔄 Seamless Agent Handoffs
-Switch between tools without losing context:
-- Start in Cursor
-- Continue in Claude
-- Review with Copilot
-- Deploy with custom agents
-
-## Core Features
-
-### Universal Agent Compatibility
-- **Cursor IDE** - Full integration via MCP
-- **VS Code** - Native extension support
-- **Claude** - MCP server included
-- **GitHub Copilot** - Context sharing
-- **Custom Agents** - SDK available
-
-### Codebase Views System
+### 👨‍💻 For Developers (VS Code)
 ```bash
-# List all views
-npx alexandria list
-
-# Create from documentation
-npx alexandria from-doc <doc-file> --name <view-name>
-
-# Validate views
-npx alexandria validate <view-name>
-
-# Track documentation
-npx alexandria list-untracked-docs
+# Coming Q1 2025
+# Install from VS Code marketplace
+# Or use the CLI version now
+npx -y a24z-memory init
 ```
 
-### Knowledge Management Tools
-Your AI assistants gain powerful capabilities:
-- **`askA24zMemory`** - Query shared knowledge
-- **`create_repository_note`** - Document insights
-- **`get_repository_guidance`** - Access team patterns
-- **`create_handoff_brief`** - Generate handoff docs
-- **`discover_a24z_tools`** - Explore all capabilities
+### 👥 For Teams (Web Dashboard)
+```bash
+# Initialize team workspace
+npx alexandria init --team
+
+# Access dashboard at https://app.a24z.ai
+# Or self-host with Enterprise plan
+```
+
+## How It Works
+
+### Memory Palace Architecture
+
+Alexandria creates a persistent knowledge layer that sits between your code and your tools:
+
+```
+┌─────────────────────────────────────┐
+│         Your Codebase               │
+├─────────────────────────────────────┤
+│     Alexandria Memory Layer         │
+│  • Codebase Views (spatial maps)    │
+│  • Knowledge Graph (connections)    │
+│  • Context Store (decisions)        │
+├─────────────────────────────────────┤
+│   CLI/MCP  │  VS Code  │   Web      │
+│  (Agents)  │  (Devs)   │  (Teams)   │
+└─────────────────────────────────────┘
+```
+
+### Real Example: Authentication Refactor
+
+**Without Alexandria:**
+```
+Day 1: Explain auth system to Claude → implements feature
+Day 2: Explain auth system to Cursor → different approach
+Day 3: Explain auth system to new dev → inconsistent patterns
+Result: Three different implementations, technical debt
+```
+
+**With Alexandria:**
+```
+Day 1: Claude learns auth system → saves to memory
+Day 2: Cursor reads memory → consistent implementation
+Day 3: New dev uses VS Code → sees all context
+Result: Consistent, maintainable code
+```
+
+## Features by User Type
+
+### 🤖 AI Agent Features (CLI + MCP)
+
+**Available Now:**
+- `create_repository_note` - Save important discoveries
+- `get_repository_guidance` - Access team patterns
+- `askA24zMemory` - Query the knowledge graph
+- `create_codebase_view` - Build spatial maps
+- `validate_documentation` - Ensure accuracy
+
+**Benefits:**
+- No more context repetition
+- Consistent implementations
+- Shared knowledge between sessions
+- Works with any MCP-compatible tool
+
+### 👨‍💻 Developer Features (VS Code Extension)
+
+**Coming Q1 2025:**
+- Visual codebase navigation
+- Inline documentation hints
+- Smart code suggestions based on team patterns
+- Automatic documentation updates
+- Context-aware refactoring
+
+**Benefits:**
+- Understand any codebase instantly
+- Follow team patterns automatically
+- Never lose important context
+- Seamless integration with daily workflow
+
+### 👥 Team Features (Alexandria Website)
+
+**Available Now:**
+- Web dashboard at app.a24z.ai
+- Agent usage analytics
+- Knowledge graph visualization
+- Documentation health metrics
+- Team pattern library
+
+**Benefits:**
+- See how your team uses AI
+- Track knowledge evolution
+- Maintain consistency at scale
+- Enterprise governance and compliance
+
+## Use Cases
+
+### For AI Agent Users
+**"I'm tired of explaining my codebase to Claude every time"**
+- Install Alexandria MCP server once
+- Claude remembers everything between sessions
+- Share context with Cursor, Windsurf, and other tools
+- Build complex features without re-explaining
+
+### For Individual Developers
+**"I want to understand this codebase faster"**
+- VS Code extension shows visual code maps
+- See architectural decisions inline
+- Get context-aware suggestions
+- Navigate complex codebases effortlessly
+
+### For Engineering Teams
+**"We need consistency across our AI usage"**
+- Track how different team members use AI
+- Ensure consistent patterns and practices
+- Build institutional knowledge that persists
+- Onboard new developers 10x faster
 
 ## Installation & Setup
 
@@ -216,19 +254,27 @@ Create `.alexandriarc.json` in your project root:
 }
 ```
 
-## Pricing & Plans
+## Pricing
 
+### 🤖 AI Agent Users
+| Plan | Price | Best For |
+|------|-------|----------|
+| **Free** | $0 | Individual developers, open source |
+| **Pro** | $29/month | Power users, multiple projects |
+| **Team** | $99/seat/month | Small teams, shared context |
+
+### 👨‍💻 VS Code Extension
 | Plan | Price | Features |
 |------|-------|----------|
-| **Community** | Free | 2 agents, local storage, basic views |
-| **Professional** | $29/month | Unlimited agents, cloud sync, advanced views |
-| **Team** | $99/seat/month | Collaboration, shared knowledge, analytics |
-| **Enterprise** | $149/seat/month | Custom deployment, SSO, priority support |
+| **Community** | Free | Basic navigation, local storage |
+| **Professional** | $19/month | Advanced visualizations, cloud sync |
 
-### Additional Services
-- **Alexandria Cloud**: $20/seat/month - Cloud storage and sync
-- **Training & Certification**: $500-$2,000 - Team onboarding
-- **Marketplace**: 30% revenue share on custom agents
+### 👥 Alexandria Platform
+| Plan | Price | Includes |
+|------|-------|----------|
+| **Startup** | $299/month | 10 seats, basic analytics |
+| **Growth** | $999/month | 50 seats, advanced features |
+| **Enterprise** | Custom | Unlimited seats, SSO, compliance |
 
 ## Architecture
 
