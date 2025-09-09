@@ -1,0 +1,401 @@
+# Alexandria Integration & Continuous Documentation Guide
+
+## Overview
+
+Alexandria provides multiple integration points to ensure your codebase documentation stays current and violations are caught early. This guide covers all integration options, from simple pre-commit hooks to comprehensive CI/CD pipelines.
+
+## Quick Integration Status Check
+
+To quickly assess your current Alexandria integration level:
+
+```bash
+# Check for pre-commit hooks
+ls -la .husky/pre-commit
+
+# Check for GitHub Actions
+ls -la .github/workflows/alexandria.yml
+
+# Check for Alexandria configuration
+ls -la .alexandriarc.json
+
+# Check for lint-staged configuration
+grep "lint-staged" package.json
+
+# Check for memory storage
+ls -la .a24z/
+```
+
+## Integration Levels
+
+### Level 1: Basic Setup (5 minutes)
+
+Initialize Alexandria in your project:
+
+```bash
+npx -y a24z-memory init
+```
+
+This creates:
+- `.alexandriarc.json` - Configuration file
+- `.a24z/` directory - Memory storage for notes and views
+- Local registry entry in `~/.alexandria/projects.json`
+
+### Level 2: Pre-commit Hooks (10 minutes)
+
+#### Current Implementation
+
+The repository uses Husky with lint-staged for pre-commit validation:
+
+```json
+// package.json
+{
+  "scripts": {
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "tests/**/*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  }
+}
+```
+
+```bash
+# .husky/pre-commit
+echo "Running type checking..."
+npm run typecheck
+
+echo "Running lint-staged..."
+npx lint-staged
+
+echo "Testing MCP server build..."
+npm run test:mcp
+
+echo "Running tests..."
+npm test
+```
+
+#### Future Alexandria-Specific Hooks
+
+Coming soon - dedicated Alexandria linting in pre-commit:
+
+```json
+{
+  "husky": {
+    "hooks": {
+      "pre-commit": "alexandria lint --max-warnings 0"
+    }
+  }
+}
+```
+
+### Level 3: GitHub Actions Integration (15 minutes)
+
+#### Automatic Documentation Registry
+
+The `.github/workflows/alexandria.yml` workflow provides:
+
+1. **Automatic Registration**: Updates Alexandria registry when views change
+2. **PR Comments**: Notifies about documentation status
+3. **Branch Awareness**: Handles default and feature branches correctly
+4. **View Counting**: Tracks number of codebase views
+
+```yaml
+name: Update Alexandria Documentation
+
+on:
+  pull_request:
+    paths:
+      - '.a24z/views/**'
+  push:
+    branches:
+      - main
+    paths:
+      - '.a24z/views/**'
+
+jobs:
+  register-alexandria:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Register with Alexandria
+        run: |
+          # Automatically registers/updates your documentation
+          # at https://a24z-ai.github.io/alexandria
+```
+
+### Level 4: Full CI/CD Integration (Coming Soon)
+
+Future comprehensive integration:
+
+```yaml
+# .github/workflows/context-quality.yml
+name: Context Quality Check
+on: [push, pull_request]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: alexandria/action@v1
+        with:
+          config: .alexandriarc.json
+          fail-on-error: true
+```
+
+## What Happens When Violations Occur
+
+### During Development
+
+1. **Editor Integration** (planned):
+   - Real-time validation in VS Code
+   - Inline warnings for missing documentation
+   - Quick-fix suggestions
+
+2. **Pre-commit Stage**:
+   - **Current**: Blocks commit if tests/linting fails
+   - **Future**: `alexandria lint` will check:
+     - Undocumented critical paths
+     - Orphaned documentation
+     - Missing anchors in notes
+     - Exceeding warning thresholds
+
+### In CI/CD Pipeline
+
+1. **Pull Request Checks**:
+   - GitHub Action validates codebase views
+   - Posts status comment on PR
+   - Blocks merge if critical violations exist
+
+2. **Main Branch Protection**:
+   - Automatically updates Alexandria registry
+   - Syncs documentation to global registry
+   - Tracks documentation coverage metrics
+
+## Configuration Options
+
+### Basic Configuration (.alexandriarc.json)
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/a24z-ai/alexandria/main/schema/alexandriarc.json",
+  "version": "1.0.0",
+  "context": {
+    "useGitignore": true,
+    "patterns": {
+      "exclude": [".a24z/**", ".alexandria/**"]
+    }
+  },
+  "rules": {
+    "require-documentation": {
+      "level": "error",
+      "paths": ["src/core/**", "src/api/**"]
+    },
+    "max-warnings": 10
+  }
+}
+```
+
+### Memory Configuration (.a24z/configuration.json)
+
+```json
+{
+  "version": 1,
+  "limits": {
+    "noteMaxLength": 10000,
+    "maxTagsPerNote": 10
+  },
+  "tags": {
+    "enforceAllowedTags": true
+  }
+}
+```
+
+## Integration Best Practices
+
+### 1. Start Simple
+- Begin with `npx -y a24z-memory init`
+- Add notes as you work: `alexandria save "insight" --anchor file.ts`
+- Let the system grow organically
+
+### 2. Progressive Enhancement
+- **Week 1**: Capture insights with simple notes
+- **Week 2**: Create first CodebaseView
+- **Week 3**: Add pre-commit hooks
+- **Month 1**: Full CI/CD integration
+
+### 3. Team Adoption Strategy
+- Start with opt-in for early adopters
+- Share success stories in team meetings
+- Gradually increase enforcement levels
+- Make it part of onboarding process
+
+### 4. AI Agent Documentation (Agents.md)
+
+#### Purpose
+Create or maintain an `Agents.md` file to document AI agent integrations and usage patterns:
+
+```markdown
+# AI Agents Integration
+
+## Active Agents
+- Cursor: Primary development
+- Claude: Documentation and architecture
+- GitHub Copilot: Code completion
+- Custom agents: [List your specialized agents]
+
+## Agent Capabilities
+Document what each agent is best suited for in your codebase.
+
+## Context Requirements
+List the specific context each agent needs to work effectively.
+
+## Usage Patterns
+Share successful prompts and workflows that work well with your codebase.
+```
+
+#### Implementation
+1. **Check for existing Agents.md**:
+   ```bash
+   ls Agents.md || echo "No Agents.md found"
+   ```
+
+2. **Create if missing**:
+   ```bash
+   alexandria scaffold --template agents > Agents.md
+   ```
+
+3. **Add to CodebaseView**:
+   ```bash
+   alexandria add-doc Agents.md --name "agent-integration"
+   ```
+
+4. **Keep it updated**:
+   - Document new agent integrations
+   - Record successful prompts and patterns
+   - Note agent-specific quirks or requirements
+   - Track which agents work best for different tasks
+
+#### Best Practices for Agents.md
+- **Agent Registry**: List all AI agents used by the team
+- **Context Mappings**: Document which CodebaseViews each agent should reference
+- **Prompt Library**: Share effective prompts for common tasks
+- **Performance Notes**: Track which agents excel at specific tasks
+- **Integration Points**: Document MCP server connections, API keys, configurations
+
+### 5. Violation Response Strategy
+
+#### For New Code
+- Require documentation before merge
+- Use PR comments for gentle reminders
+- Provide templates and examples
+
+#### For Legacy Code
+- Set baseline with current state
+- Document as you touch files
+- Gradual improvement over sprints
+- Track coverage metrics
+
+## Monitoring Integration Health
+
+### Command-Line Tools
+
+```bash
+# Check documentation coverage
+alexandria coverage
+
+# Find undocumented areas
+alexandria lint --show-missing
+
+# Validate all notes and views
+alexandria validate
+
+# Show integration status
+alexandria status
+```
+
+### Metrics to Track
+
+1. **Documentation Coverage**: % of critical paths documented
+2. **Note Quality**: Average confidence levels
+3. **Update Frequency**: How often docs are updated
+4. **Team Participation**: Number of contributors
+5. **AI Utilization**: How often AI agents use the context
+
+## Troubleshooting Common Issues
+
+### Pre-commit Hook Failures
+
+```bash
+# Skip hooks temporarily (use sparingly)
+git commit --no-verify
+
+# Fix and retry
+alexandria lint --fix
+git add -A
+git commit
+```
+
+### GitHub Action Failures
+
+Check the action logs for:
+- Network connectivity to Alexandria registry
+- Valid JSON in codebase views
+- Correct branch permissions
+
+### Missing Documentation Warnings
+
+```bash
+# Find what needs documentation
+alexandria lint --verbose
+
+# Auto-generate basic documentation
+alexandria scaffold --path src/
+
+# Add specific note
+alexandria save "Explanation" --anchor src/file.ts --type explanation
+```
+
+## Future Roadmap
+
+### Short Term (Next Month)
+- `alexandria lint --fix` capability
+- VS Code extension with inline warnings
+- Watch mode for development
+
+### Medium Term (Next Quarter)
+- Enterprise config presets
+- Metrics dashboard
+- Advanced pre-commit hooks
+- IDE plugins for JetBrains, Vim
+
+### Long Term (Next Year)
+- AI-powered documentation suggestions
+- Automatic PR documentation generation
+- Cross-repository knowledge graph
+- Team knowledge analytics
+
+## Getting Help
+
+- **Documentation**: https://a24z-ai.github.io/alexandria
+- **Issues**: https://github.com/a24z-ai/a24z-memory/issues
+- **Discord**: Coming soon
+- **Email**: support@a24z.ai
+
+## Quick Reference
+
+| Integration Type | Setup Time | Enforcement Level | Best For |
+|-----------------|------------|-------------------|----------|
+| Basic Init | 5 min | None | Personal projects |
+| Pre-commit | 10 min | Local | Small teams |
+| GitHub Actions | 15 min | PR/Push | Open source |
+| Full CI/CD | 30 min | Strict | Enterprise |
+
+---
+
+**Ready to integrate?** Start with `npx -y a24z-memory init` and grow from there. Alexandria is designed to provide value at every integration level, from simple notes to comprehensive documentation systems.
