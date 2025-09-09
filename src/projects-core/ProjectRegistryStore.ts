@@ -6,7 +6,8 @@
 
 import { FileSystemAdapter } from '../pure-core/abstractions/filesystem';
 import { ValidatedRepositoryPath } from '../pure-core/types';
-import { ProjectEntry, ProjectRegistryData } from './types';
+import { AlexandriaEntry } from '../pure-core/types/repository';
+import { ProjectRegistryData } from './types';
 
 export class ProjectRegistryStore {
   private fs: FileSystemAdapter;
@@ -80,12 +81,18 @@ export class ProjectRegistryStore {
       throw new Error(`Path already registered as '${existingProject.name}'`);
     }
 
-    registry.projects.push({
+    const entry: AlexandriaEntry = {
       name,
       path: projectPath,
       remoteUrl,
       registeredAt: new Date().toISOString(),
-    });
+      github: undefined, // Will be populated when fetching from GitHub
+      hasViews: false, // Will be updated when scanning for views
+      viewCount: 0,
+      views: [],
+    };
+
+    registry.projects.push(entry);
 
     this.saveRegistry(registry);
   }
@@ -93,7 +100,7 @@ export class ProjectRegistryStore {
   /**
    * List all registered projects
    */
-  public listProjects(): ProjectEntry[] {
+  public listProjects(): AlexandriaEntry[] {
     const registry = this.loadRegistry();
     return registry.projects;
   }
@@ -101,7 +108,7 @@ export class ProjectRegistryStore {
   /**
    * Get a project by name
    */
-  public getProject(name: string): ProjectEntry | undefined {
+  public getProject(name: string): AlexandriaEntry | undefined {
     const registry = this.loadRegistry();
     return registry.projects.find((p) => p.name === name);
   }
@@ -127,7 +134,7 @@ export class ProjectRegistryStore {
    */
   public updateProject(
     name: string,
-    updates: Partial<Omit<ProjectEntry, 'name' | 'registeredAt'>>
+    updates: Partial<Omit<AlexandriaEntry, 'name' | 'registeredAt'>>
   ): void {
     const registry = this.loadRegistry();
     const project = registry.projects.find((p) => p.name === name);

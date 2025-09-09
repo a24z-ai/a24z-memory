@@ -28,6 +28,14 @@ export {
   extractCodebaseViewSummaries,
 } from './pure-core/types/summary';
 
+// Repository types
+export type {
+  GithubRepository,
+  AlexandriaRepository,
+  AlexandriaEntry,
+  AlexandriaRepositoryRegistry,
+} from './pure-core/types/repository';
+
 // CodebaseView exports for VS Code extension integration
 export { CodebaseViewsStore, generateViewIdFromName } from './pure-core/stores/CodebaseViewsStore';
 

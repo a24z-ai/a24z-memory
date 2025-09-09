@@ -2,16 +2,9 @@
  * Project registry types
  */
 
-import { ValidatedRepositoryPath } from '../pure-core/types';
-
-export interface ProjectEntry {
-  name: string;
-  path: ValidatedRepositoryPath;
-  remoteUrl?: string;
-  registeredAt: string;
-}
+import { AlexandriaEntry } from '../pure-core/types/repository';
 
 export interface ProjectRegistryData {
   version: string;
-  projects: ProjectEntry[];
+  projects: AlexandriaEntry[];
 }
