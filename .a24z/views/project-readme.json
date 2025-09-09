@@ -1,0 +1,93 @@
+{
+  "id": "project-readme",
+  "version": "1.0.0",
+  "name": "project-readme",
+  "description": "Main project README documentation",
+  "rows": 3,
+  "cols": 3,
+  "cells": {
+    "🏗️ Create Spatial Knowledge Maps": {
+      "coordinates": [
+        0,
+        0
+      ],
+      "files": [
+        "json"
+      ],
+      "priority": 0
+    },
+    "🎯 Anchor Knowledge Spatially": {
+      "coordinates": [
+        0,
+        1
+      ],
+      "files": [
+        "ts"
+      ],
+      "priority": 0
+    },
+    "🧠 Navigate Your Memory Palace": {
+      "coordinates": [
+        0,
+        2
+      ],
+      "files": [
+        "ts"
+      ],
+      "priority": 0
+    },
+    "Learn More": {
+      "coordinates": [
+        1,
+        0
+      ],
+      "files": [
+        "USAGE_GUIDE.md"
+      ],
+      "priority": 0
+    },
+    "Prerequisites": {
+      "coordinates": [
+        1,
+        1
+      ],
+      "files": [
+        "js"
+      ],
+      "priority": 0
+    },
+    "Best Practices": {
+      "coordinates": [
+        1,
+        2
+      ],
+      "files": [
+        "USAGE_GUIDE.md"
+      ],
+      "priority": 0
+    },
+    "Contributing": {
+      "coordinates": [
+        2,
+        0
+      ],
+      "files": [
+        "CONTRIBUTING.md"
+      ],
+      "priority": 0
+    }
+  },
+  "overviewPath": "README.md",
+  "category": "other",
+  "timestamp": "2025-09-09T21:38:45.697Z",
+  "metadata": {
+    "generationType": "user",
+    "ui": {
+      "enabled": true,
+      "rows": 3,
+      "cols": 3,
+      "showCellLabels": true,
+      "cellLabelPosition": "top"
+    }
+  }
+}

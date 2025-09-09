@@ -1,0 +1,66 @@
+{
+  "id": "repository-metadata-standardization",
+  "version": "1.0.0",
+  "name": "Repository Metadata Standardization",
+  "description": "Unified type system for repository metadata across the a24z ecosystem",
+  "rows": 2,
+  "cols": 3,
+  "cells": {
+    "Type Definitions": {
+      "coordinates": [
+        0,
+        0
+      ],
+      "files": [
+        "src/pure-core/types/repository.ts"
+      ],
+      "priority": 0
+    },
+    "Project Registry": {
+      "coordinates": [
+        0,
+        1
+      ],
+      "files": [
+        "src/projects-core/ProjectRegistryStore.ts",
+        "src/projects-core/types.ts"
+      ],
+      "priority": 0
+    },
+    "Type Exports": {
+      "coordinates": [
+        0,
+        2
+      ],
+      "files": [
+        "src/index.ts"
+      ],
+      "priority": 0
+    },
+    "Documentation": {
+      "coordinates": [
+        1,
+        0
+      ],
+      "files": [
+        "docs/REPOSITORY_METADATA_STANDARDIZATION.md",
+        "docs/CODEBASE_VIEW_SUMMARY_ARCHITECTURE.md"
+      ],
+      "priority": 0
+    }
+  },
+  "overviewPath": "docs/REPOSITORY_METADATA_STANDARDIZATION.md",
+  "category": "architecture",
+  "displayOrder": 0,
+  "timestamp": "2025-09-09T21:18:26.140Z",
+  "metadata": {
+    "generationType": "user",
+    "ui": {
+      "enabled": true,
+      "rows": 2,
+      "cols": 3,
+      "showCellLabels": true,
+      "cellLabelPosition": "top"
+    }
+  }
+}

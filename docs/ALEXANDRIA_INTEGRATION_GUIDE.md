@@ -8,6 +8,7 @@ Alexandria provides multiple integration points to ensure your codebase document
 
 To quickly assess your current Alexandria integration level:
 
+### Manual Checks
 ```bash
 # Check for pre-commit hooks
 ls -la .husky/pre-commit
@@ -24,6 +25,30 @@ grep "lint-staged" package.json
 # Check for memory storage
 ls -la .a24z/
 ```
+
+### Alexandria Adoption Assessment (Current Tools)
+```bash
+# Step 1: Check how many views you have
+npx alexandria list
+
+# Step 2: Validate all views are properly formatted
+npx alexandria validate-all
+
+# Step 3: Check for context quality issues
+npx alexandria lint
+
+# Step 4: Find undocumented markdown files
+npx alexandria list-untracked-docs
+
+# Step 5: Check project registration status
+npx alexandria projects
+```
+
+**Adoption Level Indicators:**
+- **Basic**: Has `.a24z/` directory with 1-2 views
+- **Intermediate**: 5+ validated views, no lint errors
+- **Advanced**: 10+ views, all docs tracked, CI/CD integrated
+- **Expert**: Custom configurations, team guidelines, Agents.md
 
 ## Integration Levels
 
@@ -305,19 +330,40 @@ Share successful prompts and workflows that work well with your codebase.
 
 ### Command-Line Tools
 
+#### Currently Available Commands
+
 ```bash
-# Check documentation coverage
-alexandria coverage
+# List all codebase views and their status
+npx alexandria list
 
-# Find undocumented areas
-alexandria lint --show-missing
+# Validate all views for schema compliance
+npx alexandria validate-all
 
-# Validate all notes and views
-alexandria validate
+# Lint for context quality issues
+npx alexandria lint
 
-# Show integration status
-alexandria status
+# Find documentation not in any CodebaseView
+npx alexandria list-untracked-docs
+
+# Manage project registry
+npx alexandria projects
 ```
+
+#### Coming Soon (Planned)
+
+These important commands are in development to provide comprehensive adoption metrics:
+
+```bash
+# Check documentation coverage (COMING SOON)
+alexandria coverage
+# Will show: % of files documented, coverage by directory, heat map
+
+# Show comprehensive integration status (COMING SOON)
+alexandria status  
+# Will show: hooks installed, CI/CD setup, view count, note count, team adoption metrics
+```
+
+**Note**: Until these commands are available, use the combination of `list`, `validate-all`, and `lint` to assess your Alexandria adoption level.
 
 ### Metrics to Track
 
@@ -364,7 +410,9 @@ alexandria save "Explanation" --anchor src/file.ts --type explanation
 ## Future Roadmap
 
 ### Short Term (Next Month)
-- `alexandria lint --fix` capability
+- `alexandria status` command for comprehensive adoption metrics
+- `alexandria coverage` command for documentation coverage analysis
+- `alexandria lint --fix` capability for auto-fixing issues
 - VS Code extension with inline warnings
 - Watch mode for development
 

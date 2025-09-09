@@ -1,115 +1,97 @@
 {
-  "name": "integration-guide",
+  "id": "integration-guide",
+  "version": "1.0.0",
+  "name": "Integration Guide",
   "description": "Comprehensive guide covering all Alexandria integration options from pre-commit hooks to CI/CD pipelines, including violation handling and best practices",
-  "layout": {
-    "style": "grid",
-    "rows": 3,
-    "columns": 3
-  },
-  "cells": [
-    {
-      "id": "quick-check",
-      "gridPosition": { "row": 0, "column": 0 },
-      "title": "Quick Integration Check",
-      "summary": "Commands to assess current Alexandria integration level",
-      "details": "Check integration status with:\n- `.husky/pre-commit` - Pre-commit hooks\n- `.github/workflows/alexandria.yml` - GitHub Actions\n- `.alexandriarc.json` - Alexandria config\n- `package.json` - lint-staged config\n- `.a24z/` - Memory storage",
-      "anchors": [
+  "rows": 3,
+  "cols": 3,
+  "cells": {
+    "Quick Integration Check": {
+      "coordinates": [0, 0],
+      "files": [
         ".husky/pre-commit",
         ".github/workflows/alexandria.yml",
         ".alexandriarc.json",
         "package.json"
-      ]
+      ],
+      "priority": 0
     },
-    {
-      "id": "setup-levels",
-      "gridPosition": { "row": 0, "column": 1 },
-      "title": "Integration Levels",
-      "summary": "Progressive integration from basic to enterprise",
-      "details": "Four levels of integration:\n1. Basic Setup (5 min) - `npx -y a24z-memory init`\n2. Pre-commit Hooks (10 min) - Husky + lint-staged\n3. GitHub Actions (15 min) - Auto-registration\n4. Full CI/CD (30 min) - Complete enforcement",
-      "anchors": [
+    "Integration Levels": {
+      "coordinates": [0, 1],
+      "files": [
         "SETUP.md",
         "docs/ALEXANDRIA_INTEGRATION_GUIDE.md"
-      ]
+      ],
+      "priority": 0
     },
-    {
-      "id": "violations",
-      "gridPosition": { "row": 0, "column": 2 },
-      "title": "Violation Handling",
-      "summary": "What happens when documentation rules are broken",
-      "details": "Violations are caught at multiple stages:\n- **Development**: Future VS Code integration\n- **Pre-commit**: Blocks commits via `.husky/pre-commit`\n- **Pull Requests**: GitHub Action validates views\n- **Main Branch**: Auto-updates registry",
-      "anchors": [
+    "Violation Handling": {
+      "coordinates": [0, 2],
+      "files": [
         ".husky/pre-commit",
         ".github/workflows/alexandria.yml"
-      ]
+      ],
+      "priority": 0
     },
-    {
-      "id": "precommit",
-      "gridPosition": { "row": 1, "column": 0 },
-      "title": "Pre-commit Configuration",
-      "summary": "Current Husky and lint-staged setup",
-      "details": "Pre-commit hooks run:\n- Type checking: `npm run typecheck`\n- Linting: ESLint + Prettier via lint-staged\n- Tests: `npm test`\n- MCP validation: `npm run test:mcp`\n\nConfigured in `package.json` lint-staged section",
-      "anchors": [
+    "Pre-commit Configuration": {
+      "coordinates": [1, 0],
+      "files": [
         ".husky/pre-commit",
         "package.json"
-      ]
+      ],
+      "priority": 0
     },
-    {
-      "id": "github-actions",
-      "gridPosition": { "row": 1, "column": 1 },
-      "title": "GitHub Actions",
-      "summary": "Automated Alexandria registry updates",
-      "details": "The `.github/workflows/alexandria.yml` workflow:\n- Triggers on `.a24z/views/**` changes\n- Registers with Alexandria API\n- Posts PR status comments\n- Tracks view counts\n- Updates https://a24z-ai.github.io/alexandria",
-      "anchors": [
+    "GitHub Actions": {
+      "coordinates": [1, 1],
+      "files": [
         ".github/workflows/alexandria.yml"
-      ]
+      ],
+      "priority": 0
     },
-    {
-      "id": "configuration",
-      "gridPosition": { "row": 1, "column": 2 },
-      "title": "Configuration Files",
-      "summary": "Alexandria and memory system configuration",
-      "details": "Two main config files:\n- `.alexandriarc.json` - Alexandria linting rules\n- `.a24z/configuration.json` - Memory limits and tags\n\nBoth support enforcement levels, patterns, and limits",
-      "anchors": [
+    "Configuration Files": {
+      "coordinates": [1, 2],
+      "files": [
         "docs/CONFIGURATION.md",
         ".alexandriarc.json"
-      ]
+      ],
+      "priority": 0
     },
-    {
-      "id": "future-roadmap",
-      "gridPosition": { "row": 2, "column": 0 },
-      "title": "Future Roadmap",
-      "summary": "Planned integration enhancements",
-      "details": "Coming soon:\n- `alexandria lint --fix` auto-fixing\n- VS Code extension with inline warnings\n- Watch mode for development\n- Enterprise config presets\n- Metrics dashboard",
-      "anchors": [
+    "Future Roadmap": {
+      "coordinates": [2, 0],
+      "files": [
         "STANDARDIZATION_ROADMAP.md"
-      ]
+      ],
+      "priority": 0
     },
-    {
-      "id": "best-practices",
-      "gridPosition": { "row": 2, "column": 1 },
-      "title": "Best Practices & Agents.md",
-      "summary": "Recommended adoption strategy including AI agent documentation",
-      "details": "Progressive enhancement approach:\n- Week 1: Capture insights with notes\n- Week 2: Create first CodebaseView\n- Week 3: Add pre-commit hooks\n- Month 1: Full CI/CD integration\n\n**Agents.md**: Document all AI agents, their capabilities, context requirements, and successful usage patterns. Create with `alexandria scaffold --template agents`",
-      "anchors": [
+    "Best Practices & Agents.md": {
+      "coordinates": [2, 1],
+      "files": [
         "docs/ALEXANDRIA_INTEGRATION_GUIDE.md",
         "SETUP.md",
         "docs/USAGE_GUIDE.md"
-      ]
+      ],
+      "priority": 0
     },
-    {
-      "id": "troubleshooting",
-      "gridPosition": { "row": 2, "column": 2 },
-      "title": "Troubleshooting",
-      "summary": "Common issues and solutions",
-      "details": "Common fixes:\n- Skip hooks: `git commit --no-verify`\n- Auto-fix: `alexandria lint --fix`\n- Find missing: `alexandria lint --verbose`\n- Scaffold docs: `alexandria scaffold --path src/`",
-      "anchors": [
+    "Troubleshooting": {
+      "coordinates": [2, 2],
+      "files": [
         "docs/ALEXANDRIA_INTEGRATION_GUIDE.md"
-      ]
+      ],
+      "priority": 0
     }
-  ],
+  },
+  "overviewPath": "docs/ALEXANDRIA_INTEGRATION_GUIDE.md",
+  "category": "other",
+  "displayOrder": 10,
+  "timestamp": "2025-01-09T10:00:00.000Z",
   "metadata": {
-    "created": "2025-01-09",
-    "documentPath": "docs/ALEXANDRIA_INTEGRATION_GUIDE.md",
+    "generationType": "user",
+    "ui": {
+      "enabled": true,
+      "rows": 3,
+      "cols": 3,
+      "showCellLabels": true,
+      "cellLabelPosition": "top"
+    },
     "tags": ["integration", "ci-cd", "pre-commit", "github-actions", "configuration"]
   }
 }
