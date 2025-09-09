@@ -1,14 +1,15 @@
-# Alexandria Setup - Get Started in Minutes
+# Alexandria Setup - Install 
 
 ```bash
 npx -y a24z-memory init
 ```
 
-## Step 1: Initialize Alexandria
+## Step 1: Install Artifacts 
 
-This single command creates everything you need:
+### Creates .alexandriarc.json
 
-### Default Configuration Created
+- Simple configuration with gitignore-based file discovery enabled by default
+
 ```json
 {
   "$schema": "https://raw.githubusercontent.com/a24z-ai/alexandria/main/schema/alexandriarc.json",
@@ -22,13 +23,11 @@ This single command creates everything you need:
 }
 ```
 
-### What It Does (implemented in `src/cli-alexandria/commands/init.ts`):
-- Creates `.alexandriarc.json` with gitignore-based file discovery enabled by default
-- Registers your project in the global registry (`~/.alexandria/projects.json`)
-- Excludes Alexandria's own directories from context scanning
-- Asks one optional question: install GitHub Actions workflow for auto-registration?
+### Registers your project in the local registry
+- `~/.alexandria/projects.json`
 
-The only interactive part is whether you want the GitHub workflow - everything else uses sensible defaults.
+### Optional Global Registry with Github Action
+- If you choose the github workflow install, you will be able to see you documentation on https://a24z-ai.github.io/Alexandria/ 
 
 ## Step 2: Start Using
 
