@@ -36,6 +36,12 @@ export interface ValidationResult {
     warnings: number;
     info: number;
   };
+  /** Validation details about displayOrder */
+  displayOrderInfo?: {
+    current: number | undefined;
+    category: string;
+    suggestedNext?: number;
+  };
 }
 
 /**
@@ -71,11 +77,45 @@ export class CodebaseViewValidator {
       info: issues.filter((i) => i.severity === 'info').length,
     };
 
+    // Prepare displayOrder information
+    const displayOrderInfo = {
+      current: validatedView.displayOrder,
+      category: validatedView.category || 'other',
+      suggestedNext: undefined as number | undefined,
+    };
+
+    // If displayOrder is missing, calculate suggested next value
+    if (displayOrderInfo.current === undefined || displayOrderInfo.current === null) {
+      // Get all views in the same category to calculate next order
+      const viewsDir = this.fs.join(repositoryPath, '.a24z', 'views');
+      if (this.fs.exists(viewsDir)) {
+        const files = this.fs.readDir(viewsDir).filter((f) => f.endsWith('.json'));
+        let maxOrder = -1;
+
+        for (const file of files) {
+          try {
+            const content = this.fs.readFile(this.fs.join(viewsDir, file));
+            const otherView = JSON.parse(content) as CodebaseView;
+            if ((otherView.category || 'other') === displayOrderInfo.category) {
+              maxOrder = Math.max(maxOrder, otherView.displayOrder || 0);
+            }
+          } catch {
+            // Ignore parse errors
+          }
+        }
+
+        displayOrderInfo.suggestedNext = maxOrder + 1;
+      } else {
+        displayOrderInfo.suggestedNext = 0;
+      }
+    }
+
     return {
       isValid: summary.errors === 0,
       issues,
       validatedView,
       summary,
+      displayOrderInfo,
     };
   }
 
@@ -130,6 +170,21 @@ export class CodebaseViewValidator {
         type: 'missing_required_field',
         message: 'View must have an overviewPath',
         location: 'view.overviewPath',
+      });
+    }
+
+    // DisplayOrder is required
+    if (
+      view.displayOrder === undefined ||
+      view.displayOrder === null ||
+      typeof view.displayOrder !== 'number'
+    ) {
+      issues.push({
+        severity: 'error',
+        type: 'missing_required_field',
+        message: 'View must have a displayOrder number',
+        location: 'view.displayOrder',
+        context: 'The displayOrder field determines the ordering within a category',
       });
     }
 

@@ -71,6 +71,24 @@ export class CodebaseViewsStore {
   // ============================================================================
 
   /**
+   * Get the next available display order for a category.
+   */
+  private getNextDisplayOrder(
+    repositoryRootPath: ValidatedRepositoryPath,
+    category: string
+  ): number {
+    const views = this.listViews(repositoryRootPath);
+    const categoryViews = views.filter((v) => v.category === category);
+
+    if (categoryViews.length === 0) {
+      return 0;
+    }
+
+    const maxOrder = Math.max(...categoryViews.map((v) => v.displayOrder || 0));
+    return maxOrder + 1;
+  }
+
+  /**
    * Save a view configuration to storage.
    */
   saveView(repositoryRootPath: ValidatedRepositoryPath, view: CodebaseView): void {
@@ -78,11 +96,18 @@ export class CodebaseViewsStore {
 
     const filePath = this.getViewFilePath(repositoryRootPath, view.id);
 
+    // Auto-assign displayOrder if not provided
+    let displayOrder = view.displayOrder;
+    if (displayOrder === undefined || displayOrder === null) {
+      displayOrder = this.getNextDisplayOrder(repositoryRootPath, view.category || 'other');
+    }
+
     // Add defaults for required fields if not present
     const viewToSave = {
       ...view,
       version: view.version || '1.0.0', // Default to 1.0.0 if not specified
       timestamp: view.timestamp || new Date().toISOString(),
+      displayOrder,
     };
 
     this.fs.writeFile(filePath, JSON.stringify(viewToSave, null, 2));
@@ -129,7 +154,24 @@ export class CodebaseViewsStore {
       }
     }
 
-    return views.sort((a, b) => a.name.localeCompare(b.name));
+    // Sort by category first, then by displayOrder, then by name as fallback
+    return views.sort((a, b) => {
+      const catA = a.category || 'other';
+      const catB = b.category || 'other';
+
+      if (catA !== catB) {
+        return catA.localeCompare(catB);
+      }
+
+      const orderA = a.displayOrder ?? 999999;
+      const orderB = b.displayOrder ?? 999999;
+
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+
+      return a.name.localeCompare(b.name);
+    });
   }
 
   /**
@@ -160,12 +202,26 @@ export class CodebaseViewsStore {
       return false;
     }
 
+    // If category changed but displayOrder wasn't provided, recalculate it
+    let displayOrder = updates.displayOrder;
+    if (
+      updates.category &&
+      updates.category !== existingView.category &&
+      displayOrder === undefined
+    ) {
+      displayOrder = this.getNextDisplayOrder(repositoryRootPath, updates.category);
+    }
+
     const updatedView: CodebaseView = {
       ...existingView,
       ...updates,
       id: viewId, // Ensure ID cannot be changed
       timestamp: new Date().toISOString(),
     };
+
+    if (displayOrder !== undefined) {
+      updatedView.displayOrder = displayOrder;
+    }
 
     this.saveView(repositoryRootPath, updatedView);
     return true;

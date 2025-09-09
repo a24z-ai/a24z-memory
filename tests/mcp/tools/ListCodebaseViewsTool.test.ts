@@ -56,6 +56,7 @@ describe('ListCodebaseViewsTool', () => {
       description: 'First test view for unit testing',
       overviewPath: 'docs/test-view-1.md',
       category: 'other',
+      displayOrder: 0,
       cells: {
         source: {
           files: ['src/index.ts', 'src/lib.ts'],
@@ -71,6 +72,7 @@ describe('ListCodebaseViewsTool', () => {
       description: 'Second test view for comprehensive coverage',
       overviewPath: 'docs/test-view-2.md',
       category: 'other',
+      displayOrder: 0,
       cells: {
         tests: {
           files: ['test/index.test.ts', 'test/lib.test.ts'],
@@ -99,7 +101,7 @@ describe('ListCodebaseViewsTool', () => {
     expect(views[0].name).toBe('Test View One');
     expect(views[1].name).toBe('Test View Two');
 
-    // Check summary format - should include id, name, description, cellCount, gridSize, overviewPath, category
+    // Check summary format - should include id, name, description, cellCount, gridSize, overviewPath, category, displayOrder
     expect(views[0]).toEqual({
       id: 'test-view-1',
       name: 'Test View One',
@@ -108,6 +110,7 @@ describe('ListCodebaseViewsTool', () => {
       gridSize: [1, 1],
       overviewPath: 'docs/test-view-1.md',
       category: 'other', // Default category
+      displayOrder: 0, // Default display order
     });
 
     expect(views[1]).toEqual({
@@ -118,6 +121,7 @@ describe('ListCodebaseViewsTool', () => {
       gridSize: [1, 2],
       overviewPath: 'docs/test-view-2.md',
       category: 'other', // Default category
+      displayOrder: 0, // Default display order
     });
 
     // Verify it doesn't include internal details like cells, version
@@ -165,8 +169,8 @@ describe('ListCodebaseViewsTool', () => {
     );
   });
 
-  it('should sort views alphabetically by name', async () => {
-    // Create views with names that will test sorting
+  it('should sort views by displayOrder within category', async () => {
+    // Create views with displayOrder values that will test sorting
     const viewZ: CodebaseView = {
       id: 'z-view',
       version: '1.0.0',
@@ -174,6 +178,7 @@ describe('ListCodebaseViewsTool', () => {
       description: 'Should appear last',
       overviewPath: 'docs/z-view.md',
       category: 'other',
+      displayOrder: 2, // Explicitly set order to ensure correct sorting
       cells: {},
     };
 
@@ -184,6 +189,7 @@ describe('ListCodebaseViewsTool', () => {
       description: 'Should appear first',
       overviewPath: 'docs/a-view.md',
       category: 'other',
+      displayOrder: 0, // Explicitly set order to ensure correct sorting
       cells: {},
     };
 
@@ -194,6 +200,7 @@ describe('ListCodebaseViewsTool', () => {
       description: 'Should appear in middle',
       overviewPath: 'docs/m-view.md',
       category: 'other',
+      displayOrder: 1, // Explicitly set order to ensure correct sorting
       cells: {},
     };
 

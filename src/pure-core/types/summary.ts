@@ -31,6 +31,9 @@ export interface CodebaseViewSummary {
 
   /** Category for grouping and organizing views in UI (defaults to 'other' if not specified) */
   category: string;
+
+  /** Display order within the category. Lower numbers appear first. */
+  displayOrder: number;
 }
 
 /**
@@ -59,6 +62,7 @@ export function extractCodebaseViewSummary(view: CodebaseView): CodebaseViewSumm
     gridSize: [maxRow + 1, maxCol + 1], // +1 because coordinates are 0-indexed
     overviewPath: view.overviewPath || '',
     category: view.category || 'other', // Default to 'other' for backward compatibility
+    displayOrder: view.displayOrder || 0, // Default to 0 for backward compatibility
   };
 }
 

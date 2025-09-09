@@ -241,6 +241,7 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
       name: 'Default Exploration Log',
       description: 'Time-based catchall view that grows with each note creation',
       category: 'reference', // Exploration logs are reference material
+      displayOrder: 0, // Will be auto-assigned when saved
       timestamp: new Date().toISOString(),
       cells: {
         [cellName]: {

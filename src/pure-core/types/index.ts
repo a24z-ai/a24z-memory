@@ -172,6 +172,12 @@ export interface CodebaseView {
   category: string;
 
   /**
+   * Display order within the category.
+   * Lower numbers appear first. Automatically assigned if not provided.
+   */
+  displayOrder: number;
+
+  /**
    * Optional scope filtering before grid layout.
    */
   scope?: CodebaseViewScope;

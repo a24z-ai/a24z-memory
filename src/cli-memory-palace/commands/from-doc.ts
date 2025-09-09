@@ -140,6 +140,7 @@ Press Enter to continue, or Ctrl+C to exit...
           cells: extracted.cells,
           overviewPath: relativePath,
           category: 'other', // Default category for CLI-generated views
+          displayOrder: 0, // Will be auto-assigned when saved
           timestamp: new Date().toISOString(),
           metadata: {
             generationType: 'user',
