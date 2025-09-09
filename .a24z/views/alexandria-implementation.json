@@ -1,0 +1,57 @@
+{
+  "id": "alexandria-implementation",
+  "version": "1.0.0",
+  "name": "alexandria-implementation",
+  "description": "Track Alexandria standardization implementation progress",
+  "rows": 1,
+  "cols": 3,
+  "cells": {
+    "Configuration System": {
+      "coordinates": [
+        0,
+        0
+      ],
+      "files": [
+        "src/config/types.ts",
+        "src/config/schema.ts",
+        "src/config/loader.ts",
+        "src/config/validator.ts",
+        "src/config/index.ts"
+      ],
+      "priority": 0
+    },
+    "Implementation Status": {
+      "coordinates": [
+        0,
+        1
+      ],
+      "files": [
+        "IMPLEMENTATION_STATUS.md",
+        "STANDARDIZATION_ROADMAP.md"
+      ],
+      "priority": 0
+    },
+    "Next Steps": {
+      "coordinates": [
+        0,
+        2
+      ],
+      "files": [],
+      "priority": 0
+    }
+  },
+  "overviewPath": "IMPLEMENTATION_STATUS.md",
+  "category": "other",
+  "displayOrder": 0,
+  "timestamp": "2025-09-09T07:59:12.303Z",
+  "metadata": {
+    "generationType": "user",
+    "ui": {
+      "enabled": true,
+      "rows": 1,
+      "cols": 3,
+      "showCellLabels": true,
+      "cellLabelPosition": "top"
+    }
+  }
+}
