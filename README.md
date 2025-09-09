@@ -1,32 +1,53 @@
 <img width="2816" height="1536" alt="Gemini_Generated_Image_rx8a19rx8a19rx8a (1)" src="https://github.com/user-attachments/assets/f892952e-5955-4513-9670-7e0a6f67b01d" />
 
-# a24z-memory: Your Codebase's Living Memory
+# Alexandria - Development Agent Orchestration Platform
 
 [![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=a24z-memory&config=eyJjb21tYW5kIjoibnB4IC15IGEyNHotbWVtb3J5In0%3D) [![Install in VS Code](https://img.shields.io/badge/Install%20in%20VS%20Code-0098FF?style=for-the-badge&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%7B%22name%22%3A%22a24z-memory%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22a24z-memory%22%5D%7D)
+[![npm version](https://badge.fury.io/js/a24z-memory.svg)](https://www.npmjs.com/package/a24z-memory)
 [![Documentation](https://img.shields.io/badge/docs-a24z.ai-blue.svg)](https://docs.a24z.ai)
 
 **One-click install for Cursor & VS Code** ↑ • Works with Claude Code, Windsurf, Gemini CLI & Jules
 
-## The Problem We Solve
+## The Multi-Agent Collaboration Revolution
 
-Every codebase accumulates tribal knowledge—those critical insights about why things work the way they do, what pitfalls to avoid, and which patterns to follow. But this knowledge gets lost in:
+Modern development teams use multiple AI agents, but these agents work in isolation. Alexandria changes everything by creating a **unified context layer** that enables true multi-agent orchestration, helping development teams achieve **10x velocity improvements**.
 
-- 🧠 **Developers' heads** when they leave or forget
-- 💬 **Slack threads** that disappear into history
-- 📝 **PR comments** that nobody reads again
-- 📚 **Documentation** that becomes stale the moment it's written
+### The Problem: Agent Isolation
 
-## Our Solution: Knowledge That Lives With Your Code
+- 🤖 **Cursor** doesn't know what Copilot suggested
+- 🧠 **Claude** can't see your team's architectural decisions  
+- 🔧 **Custom agents** lack context from other tools
+- 📝 **Documentation** becomes stale the moment it's written
 
-**a24z-memory** captures and preserves your team's hard-won insights by anchoring them directly to your code. Unlike traditional documentation that rots or embeddings that become stale, our knowledge stays fresh because it's connected to the actual files.
+### The Solution: Unified Agent Orchestration
 
-When your AI assistant needs context, it doesn't get outdated embeddings—it gets your team's accumulated wisdom plus the current state of your code.
+Alexandria provides a **shared knowledge graph** that all agents can access and contribute to:
 
-## How It Works: The Memory Palace Approach
+- ✅ **Universal Compatibility** - Works with all major AI development tools
+- 🔄 **Real-time Sync** - Keep all agents aligned with shared context
+- 📊 **Codebase Views** - Spatial knowledge maps for better understanding
+- 🎯 **Quality Control** - Maintain consistency across all agents
+
+## Quick Start - One Click Install
+
+The convenience buttons above handle everything—just click to install. For manual setup:
+
+```bash
+# Initialize Alexandria in your project
+npx -y a24z-memory init
+
+# Start the MCP server
+npx a24z-memory
+
+# Create your first codebase view
+npx alexandria from-doc README.md --name overview
+```
+
+## How It Works: The Memory Palace Architecture
 
 ### 🏗️ Create Spatial Knowledge Maps
 
-Transform your codebase into navigable **CodebaseViews**—grid-based memory palaces that organize files spatially:
+Transform your codebase into navigable **CodebaseViews**—grid-based memory palaces that organize knowledge spatially:
 
 ```
 CodebaseView: "Frontend Architecture"
@@ -37,304 +58,249 @@ CodebaseView: "Frontend Architecture"
 → Stored in: .a24z/views/frontend-architecture.json
 ```
 
-### 🎯 Anchor Knowledge Spatially
+### 🎯 Anchor Knowledge Across Agents
 
-When you discover something important, anchor it to specific view coordinates:
-
-```
-"Auth middleware breaks with null headers - always validate before parsing"
-→ View: "Frontend Architecture"  
-→ Cell: [0,1] (Services grid location)
-→ Tagged as: authentication, middleware, validation
-→ Anchored to: src/services/auth/middleware.ts (relative paths only, no globs)
-→ Stored in: .a24z/notes/ (synced via git)
-```
-
-### 🧠 Navigate Your Memory Palace
-
-Your AI assistant uses spatial context for knowledge discovery:
+When any agent discovers something important, it's preserved for all:
 
 ```
-You: "Why does our auth sometimes fail?"
-AI: *Navigates to Services cell [0,1] in Frontend Architecture view*
-AI: "Found spatial knowledge: Auth middleware breaks with null headers in the Services grid location. This is anchored to src/services/auth/middleware.ts where validation is needed before parsing."
+Cursor: "Found auth middleware issue with null headers"
+→ Saved to shared knowledge graph
+→ Available to Claude, Copilot, and all other agents
+→ Tagged: authentication, middleware, validation
+→ Anchored to: src/services/auth/middleware.ts
 ```
 
-### 🔄 Spatial Knowledge That Evolves
+### 🧠 Orchestrated Agent Collaboration
 
-As your codebase grows, your memory palace adapts:
-
-- **Spatial anchors** connect knowledge to grid coordinates AND file locations
-- **Multiple views** provide different organizational perspectives  
-- **Git tracks evolution** of both code and spatial organization
-- **Cross-view navigation** links related knowledge across different memory palaces
-- **Team contributions** build comprehensive spatial understanding
-
-## The Spatial Knowledge Architecture
-
-We use a clean **four-layer spatial architecture** that creates navigable memory palaces for your codebase:
+Your agents work together seamlessly:
 
 ```
-🏗️  Views    → Spatial grid layouts organizing your codebase (CodebaseViews)
-📝 Notes    → Your team's spatially-anchored insights and knowledge
-🏷️  Tags     → Semantic categories for discovery (authentication, bugfix, pattern)
-🔗 Anchors  → Direct connections to specific files and code locations
+You: "Build a new authentication system"
+Cursor: *Checks knowledge graph for auth patterns*
+Copilot: *Sees Cursor's implementation approach*
+Claude: *Reviews and suggests improvements based on team patterns*
+Result: Consistent, high-quality code following your standards
 ```
 
-Plus **Git distribution** ensures both your code and spatial organization evolve together with your team.
+## Real-World Impact: 10x Development Velocity
 
-This isn't just storage—it's a **living memory palace system** where knowledge has both semantic meaning and spatial location, making it intuitive to navigate and impossible to lose.
+### 🚀 Rapid Feature Development
+Multiple agents collaborate in parallel:
+- Cursor handles UI components
+- Copilot manages backend logic
+- Claude reviews and refactors
+- All sharing context in real-time
 
-## Real-World Impact
+### 📖 Living Documentation
+Documentation that evolves automatically:
+- Updated by agent discoveries
+- Validated on every commit
+- Always current with your code
 
-### For Individual Developers
+### 🧠 Institutional Memory
+Preserve team knowledge permanently:
+- Architectural decisions
+- Bug fixes and solutions
+- Implementation patterns
+- Available to all future agents
 
-- **Never lose context** when switching between projects
-- **Learn from past mistakes** without repeating them
-- **Understand "why"** not just "what" in unfamiliar code
+### 🔄 Seamless Agent Handoffs
+Switch between tools without losing context:
+- Start in Cursor
+- Continue in Claude
+- Review with Copilot
+- Deploy with custom agents
 
-### For Teams
+## Core Features
 
-- **Onboard faster** with accumulated team knowledge
-- **Share insights** automatically through git
-- **Build institutional memory** that survives team changes
+### Universal Agent Compatibility
+- **Cursor IDE** - Full integration via MCP
+- **VS Code** - Native extension support
+- **Claude** - MCP server included
+- **GitHub Copilot** - Context sharing
+- **Custom Agents** - SDK available
 
-### For AI Assistants
+### Codebase Views System
+```bash
+# List all views
+npx alexandria list
 
-- **Context-aware responses** based on real team knowledge
-- **Avoid known pitfalls** documented by your team
-- **Follow established patterns** specific to your codebase
+# Create from documentation
+npx alexandria from-doc <doc-file> --name <view-name>
 
-## Getting Started
+# Validate views
+npx alexandria validate <view-name>
 
-The convenience buttons above handle everything—just click to install. For manual setup or advanced configuration, see the [detailed installation guide](#detailed-installation) below.
+# Track documentation
+npx alexandria list-untracked-docs
+```
 
----
+### Knowledge Management Tools
+Your AI assistants gain powerful capabilities:
+- **`askA24zMemory`** - Query shared knowledge
+- **`create_repository_note`** - Document insights
+- **`get_repository_guidance`** - Access team patterns
+- **`create_handoff_brief`** - Generate handoff docs
+- **`discover_a24z_tools`** - Explore all capabilities
 
-## Learn More
-
-📖 **[Complete Documentation](https://docs.a24z.ai)** - Comprehensive guides and API reference  
-📚 **[Usage Guide](./USAGE_GUIDE.md)** - Quick reference and examples  
-🔧 **[Advanced Configuration](#advanced-configuration)** - Customize for your workflow
-
----
-
-## Detailed Installation
-
-<details>
-<summary><b>Manual Installation Steps</b></summary>
+## Installation & Setup
 
 ### Prerequisites
-
 - Node.js 18+
-- Git repository (for knowledge storage)
-- MCP-compatible editor (Cursor, VS Code, Claude Code, etc.)
+- Git repository
+- MCP-compatible editor
 
-### Install Package
-
+### Basic Setup (5 minutes)
 ```bash
-# Global installation (recommended)
-npm install -g a24z-memory
+# Install and initialize
+npx -y a24z-memory init
 
-# Or project-specific
-npm install a24z-memory --save-dev
-
-# Verify installation
-npx a24z-memory --help
+# This creates:
+# - .alexandriarc.json (configuration)
+# - .a24z/ directory (local storage)
+# - Project registration
 ```
 
-### Start the Server
-
+### Add Pre-commit Hooks (10 minutes)
 ```bash
-# Keep this running in a terminal
-npx a24z-memory
+# Install dependencies
+npm install --save-dev husky lint-staged
+npx husky init
 
-# Expected output:
-# ✅ a24z-Memory MCP server started successfully
-# 📁 MCP Server working directory: /path/to/cwd
+# Add to package.json
+{
+  "lint-staged": {
+    "*.md": "npx alexandria validate",
+    "*.{ts,tsx,js,jsx}": "npx alexandria check-coverage"
+  }
+}
 ```
 
-### Configure Your Editor
+### GitHub Actions Integration (15 minutes)
+```bash
+# Install workflow
+npx alexandria install-workflow
 
-**For Cursor/VS Code/Claude Code:**
+# Enables:
+# - Automatic registry updates
+# - PR documentation status
+# - Coverage reports
+```
+
+## Configuration
+
+Create `.alexandriarc.json` in your project root:
 
 ```json
 {
-  "mcpServers": {
-    "a24z-memory": {
-      "command": "npx",
-      "args": ["-y", "a24z-memory"]
+  "version": "1.0.0",
+  "project": {
+    "name": "your-project",
+    "description": "Multi-agent orchestrated development"
+  },
+  "views": {
+    "default": "overview",
+    "autoGenerate": true
+  },
+  "agents": {
+    "syncInterval": 5000,
+    "sharedContext": true
+  },
+  "lint": {
+    "enabled": true,
+    "rules": {
+      "require-descriptions": true,
+      "validate-links": true
     }
   }
 }
 ```
 
-**For other editors**, consult their MCP configuration documentation.
+## Pricing & Plans
 
-</details>
+| Plan | Price | Features |
+|------|-------|----------|
+| **Community** | Free | 2 agents, local storage, basic views |
+| **Professional** | $29/month | Unlimited agents, cloud sync, advanced views |
+| **Team** | $99/seat/month | Collaboration, shared knowledge, analytics |
+| **Enterprise** | $149/seat/month | Custom deployment, SSO, priority support |
 
-## Advanced Configuration
+### Additional Services
+- **Alexandria Cloud**: $20/seat/month - Cloud storage and sync
+- **Training & Certification**: $500-$2,000 - Team onboarding
+- **Marketplace**: 30% revenue share on custom agents
 
-<details>
-<summary><b>System Prompt for AI Assistants</b></summary>
-
-Add this to your AI assistant's system prompt for optimal integration:
-
-```markdown
-When working on development tasks, you have access to a a24z-memory MCP server...
-
-### Available Tools
-
-#### discover_a24z_tools - Discover all available tools and capabilities
-
-#### askA24zMemory - Search tribal knowledge and get contextual guidance
-
-#### create_repository_note - Document insights and decisions
-
-#### get_notes - Browse raw notes without AI processing
-
-#### get_repository_tags - Manage note categorization
-
-#### get_repository_types - Get available note types
-
-#### get_repository_guidance - Get repository-specific guidelines
-
-...
-
-### Best Practices
-
-1. Check existing knowledge before starting work
-2. Use absolute paths starting with /
-3. Document insights after solving problems
-4. Read guidance token before creating notes
-```
-
-Full system prompt available in [USAGE_GUIDE.md](./USAGE_GUIDE.md).
-
-</details>
-
-## Troubleshooting
-
-<details>
-<summary><b>Common Issues and Solutions</b></summary>
-
-### 🔍 Server Not Starting
-
-```bash
-npx a24z-memory
-# Should show: "✅ a24z-Memory MCP server started successfully"
-# If errors, check Node version: node --version (needs 18+)
-```
-
-### 🔍 AI Not Using Tools
-
-1. Verify server is running in separate terminal
-2. Check system prompt includes tool definitions
-3. Test with: "What a24z-Memory tools are available?"
-
-### 🔍 Path Errors
-
-Always use absolute paths:
-
-```bash
-pwd  # Get current directory
-# Use this path in your commands
-```
-
-### 🔍 Repository Errors
-
-```bash
-git status  # Verify you're in a git repo
-git init    # Initialize if needed
-```
-
-### 🔍 Debug Mode
-
-```bash
-DEBUG=a24z-memory:* npx a24z-memory
-```
-
-For detailed troubleshooting, see the [complete checklist](./USAGE_GUIDE.md#complete-mcp-setup-checklist-for-llm-integration).
-
-</details>
-
-## Quick Demo
-
-1. **Install with one click** using the buttons above
-2. **Ask your AI**: "What a24z-Memory tools are available?"
-3. **Start capturing**: Document your first insight about your code
-4. **Experience the difference**: Watch your AI leverage accumulated knowledge
-
-## Handoff Briefs: Seamless Knowledge Transfer
-
-When transitioning work—whether switching projects, onboarding teammates, or handing off tasks—create a **handoff brief** that captures everything the next person needs to know:
-
-### What Gets Included
-
-- **Context & Current State**: Where things stand and what's been done
-- **Code References**: Specific files with explanations of their role
-- **Key Decisions**: Why certain approaches were taken
-- **Next Steps**: What needs attention moving forward
-
-### How It Works
+## Architecture
 
 ```
-You: "Create a handoff brief for the auth refactoring"
-AI: *Generates comprehensive handoff document*
-    - Overview of changes made
-    - References to modified files with context
-    - Outstanding tasks and considerations
-    - Saved to .a24z/handoffs/ for sharing
+src/
+├── core/           # Core orchestration engine
+│   ├── store/      # Knowledge graph storage
+│   ├── views/      # Codebase view engine
+│   └── sync/       # Agent synchronization
+├── agents/         # Agent integrations
+│   ├── mcp/        # MCP server
+│   ├── cursor/     # Cursor integration
+│   └── copilot/    # Copilot integration
+├── cli/            # CLI commands
+└── ui/             # Web interface
 ```
 
-Your teammate receives a complete picture—not just what changed, but **why** and **what's next**. The brief lives in your repository, traveling with the code it describes.
+## Why Alexandria Is Different
 
-## Available Tools
+| Traditional Approach | Alexandria |
+|---------------------|------------|
+| Agents work in isolation | Agents collaborate seamlessly |
+| Static documentation | Living knowledge graph |
+| Manual context sharing | Automatic synchronization |
+| Inconsistent patterns | Enforced team standards |
+| Lost tribal knowledge | Permanent institutional memory |
 
-Your AI assistant gains access to powerful knowledge management tools:
+## Roadmap
 
-- **`askA24zMemory`** - Query tribal knowledge with semantic search
-- **`create_repository_note`** - Document new insights and decisions
-- **`get_notes`** - Browse existing knowledge
-- **`get_repository_tags`** - Get available tags for categorization
-- **`get_repository_types`** - Get available note types
-- **`get_repository_guidance`** - Access team guidelines
-- **`get_repository_note`** - Retrieve specific note by ID
-- **`delete_repository_note`** - Remove outdated notes
-- **`create_handoff_brief`** - Generate handoff documentation
-- **`discover_a24z_tools`** - Explore all capabilities
+### Q1 2025
+- [ ] VS Code marketplace release
+- [ ] JetBrains plugin
+- [ ] Real-time collaboration dashboard
+- [ ] Advanced analytics
 
-## Why This Is Different
+### Q2 2025
+- [ ] Cross-repository knowledge graph
+- [ ] AI agent marketplace
+- [ ] Custom agent SDK v2
+- [ ] Enterprise SSO
 
-| Traditional Approach              | a24z-Memory                           |
-| --------------------------------- | ------------------------------------- |
-| Static documentation that rots    | Dynamic knowledge anchored to code    |
-| Embeddings that become stale      | Fresh context read from current files |
-| Knowledge in silos (Slack, wikis) | Knowledge in your repository          |
-| Manual knowledge sharing          | Automatic distribution via git        |
-| AI without context                | AI with your team's wisdom            |
+## Support & Community
 
-## Programmatic Usage
-
-```typescript
-import { run } from 'a24z-memory';
-run();
-```
+- 📖 **[Complete Documentation](https://docs.a24z.ai)**
+- 💬 **[Discord Community](https://discord.gg/a24z-memory)**
+- 🐛 **[GitHub Issues](https://github.com/a24z-ai/a24z-memory/issues)**
+- 📧 **[Enterprise Support](mailto:support@a24z.ai)**
 
 ## Contributing
 
-We welcome contributions! See our [contribution guidelines](./CONTRIBUTING.md) for details.
+We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+
+```bash
+# Clone repository
+git clone https://github.com/a24z-ai/a24z-memory.git
+
+# Install dependencies
+npm install
+
+# Run tests
+npm test
+
+# Build project
+npm run build
+```
 
 ## License
 
 MIT License - see [LICENSE](./LICENSE) for details.
 
-## Support
-
-- 📧 [Email Support](mailto:support@a24z.ai)
-- 🐛 [Report Issues](https://github.com/a24z-ai/a24z-memory/issues)
-- 💬 [Join Discord](https://discord.gg/a24z-memory)
-
 ---
 
-Built with ❤️ by the [a24z team](https://a24z.ai) to make every codebase smarter.
+**Alexandria** - Orchestrating the future of AI-assisted development.
+
+Built with ❤️ by the [a24z team](https://a24z.ai) to achieve 10x development velocity.

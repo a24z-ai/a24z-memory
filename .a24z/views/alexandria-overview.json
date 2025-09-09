@@ -1,0 +1,104 @@
+{
+  "id": "alexandria-overview",
+  "version": "1.0.0",
+  "name": "alexandria-overview",
+  "description": "Alexandria Development Agent Orchestration Platform overview",
+  "rows": 3,
+  "cols": 3,
+  "cells": {
+    "Quick Start - One Click Install": {
+      "coordinates": [
+        0,
+        0
+      ],
+      "files": [
+        "md"
+      ],
+      "priority": 0
+    },
+    "🏗️ Create Spatial Knowledge Maps": {
+      "coordinates": [
+        0,
+        1
+      ],
+      "files": [
+        "json"
+      ],
+      "priority": 0
+    },
+    "🎯 Anchor Knowledge Across Agents": {
+      "coordinates": [
+        0,
+        2
+      ],
+      "files": [
+        "ts"
+      ],
+      "priority": 0
+    },
+    "Prerequisites": {
+      "coordinates": [
+        1,
+        0
+      ],
+      "files": [
+        "js"
+      ],
+      "priority": 0
+    },
+    "Basic Setup (5 minutes)": {
+      "coordinates": [
+        1,
+        1
+      ],
+      "files": [
+        "json"
+      ],
+      "priority": 0
+    },
+    "Add Pre-commit Hooks (10 minutes)": {
+      "coordinates": [
+        1,
+        2
+      ],
+      "files": [
+        "json"
+      ],
+      "priority": 0
+    },
+    "Configuration": {
+      "coordinates": [
+        2,
+        0
+      ],
+      "files": [
+        "json"
+      ],
+      "priority": 0
+    },
+    "Contributing": {
+      "coordinates": [
+        2,
+        1
+      ],
+      "files": [
+        "CONTRIBUTING.md"
+      ],
+      "priority": 0
+    }
+  },
+  "overviewPath": "README.md",
+  "category": "other",
+  "displayOrder": 0,
+  "timestamp": "2025-09-09T22:22:58.797Z",
+  "metadata": {
+    "generationType": "user",
+    "ui": {
+      "enabled": true,
+      "rows": 3,
+      "cols": 3,
+      "showCellLabels": true,
+      "cellLabelPosition": "top"
+    }
+  }
+}
