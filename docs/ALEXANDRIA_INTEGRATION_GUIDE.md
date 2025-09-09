@@ -305,7 +305,7 @@ When working in this codebase, you have access to Alexandria for documentation m
    This codebase uses Alexandria for documentation. As an AI agent, you should:
    
    1. Check existing documentation: `npx alexandria list`
-   2. Save new insights: `npx alexandria save "insight" --anchor file.ts`
+   2. Add documentation: `npx alexandria add-doc <file.md>`
    3. Validate views: `npx alexandria validate-all`
    EOF
    ```
