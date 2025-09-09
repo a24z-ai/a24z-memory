@@ -66,8 +66,7 @@
       "coordinates": [2, 1],
       "files": [
         "docs/ALEXANDRIA_INTEGRATION_GUIDE.md",
-        "SETUP.md",
-        "docs/USAGE_GUIDE.md"
+        "SETUP.md"
       ],
       "priority": 0
     },

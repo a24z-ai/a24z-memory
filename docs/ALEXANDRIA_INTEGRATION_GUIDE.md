@@ -260,58 +260,73 @@ jobs:
 - Gradually increase enforcement levels
 - Make it part of onboarding process
 
-### 4. AI Agent Documentation (Agents.md)
+### 4. Alexandria Usage Instructions for AI Agents (Agents.md)
 
 #### Purpose
-Create or maintain an `Agents.md` file to document AI agent integrations and usage patterns:
+Create an `Agents.md` file that teaches AI agents how to use Alexandria effectively in your codebase:
 
 ```markdown
-# AI Agents Integration
+# Alexandria Usage Guide for AI Agents
 
-## Active Agents
-- Cursor: Primary development
-- Claude: Documentation and architecture
-- GitHub Copilot: Code completion
-- Custom agents: [List your specialized agents]
+## Available Alexandria Tools
 
-## Agent Capabilities
-Document what each agent is best suited for in your codebase.
+When working in this codebase, you have access to Alexandria for documentation management:
 
-## Context Requirements
-List the specific context each agent needs to work effectively.
+### Reading Documentation
+- Use `npx alexandria list` to see all available codebase views
+- Use `npx alexandria validate <view-name>` to check a view's validity
+- CodebaseViews are in `.a24z/views/` directory
 
-## Usage Patterns
-Share successful prompts and workflows that work well with your codebase.
+### Creating Documentation
+- Use `npx alexandria save <note>` to capture insights
+- Use `npx alexandria add-doc <file.md>` to add documentation to the library
+- Always anchor notes to specific files with `--anchor <file>`
+
+### Best Practices
+1. Before making changes, check for existing notes: `npx alexandria list`
+2. After significant changes, document decisions: `npx alexandria save "why we did X" --anchor file.ts`
+3. Keep CodebaseViews updated when file structure changes
+4. Use appropriate tags: bug, feature, architecture, performance
+
+## Project-Specific Alexandria Configuration
+
+[Document any custom Alexandria setup for this project]
+- Custom tags we use: [list them]
+- Important CodebaseViews to reference: [list key views]
+- Documentation standards: [any specific requirements]
 ```
 
 #### Implementation
-1. **Check for existing Agents.md**:
+1. **Create Agents.md in your repository root**:
    ```bash
-   ls Agents.md || echo "No Agents.md found"
+   cat > Agents.md << 'EOF'
+   # Alexandria Usage Guide for AI Agents
+   
+   This codebase uses Alexandria for documentation. As an AI agent, you should:
+   
+   1. Check existing documentation: `npx alexandria list`
+   2. Save new insights: `npx alexandria save "insight" --anchor file.ts`
+   3. Validate views: `npx alexandria validate-all`
+   EOF
    ```
 
-2. **Create if missing**:
-   ```bash
-   alexandria scaffold --template agents > Agents.md
-   ```
+2. **Add to your AI agent's context**:
+   - Include Agents.md in your project root
+   - Reference it in `.cursorrules` or similar AI config files
+   - Ensure agents read it when starting work
 
-3. **Add to CodebaseView**:
-   ```bash
-   alexandria add-doc Agents.md --name "agent-integration"
-   ```
+3. **Keep it updated with**:
+   - Your team's Alexandria workflow
+   - Common commands agents should use
+   - Project-specific documentation patterns
+   - Links to key CodebaseViews
 
-4. **Keep it updated**:
-   - Document new agent integrations
-   - Record successful prompts and patterns
-   - Note agent-specific quirks or requirements
-   - Track which agents work best for different tasks
-
-#### Best Practices for Agents.md
-- **Agent Registry**: List all AI agents used by the team
-- **Context Mappings**: Document which CodebaseViews each agent should reference
-- **Prompt Library**: Share effective prompts for common tasks
-- **Performance Notes**: Track which agents excel at specific tasks
-- **Integration Points**: Document MCP server connections, API keys, configurations
+#### What to Include in Agents.md
+- **Alexandria CLI commands** relevant to your workflow
+- **Location of views**: `.a24z/views/` directory structure
+- **Documentation standards**: How your team uses Alexandria
+- **Key views to reference**: Important CodebaseViews for context
+- **Common workflows**: Step-by-step Alexandria usage patterns
 
 ### 5. Violation Response Strategy
 
