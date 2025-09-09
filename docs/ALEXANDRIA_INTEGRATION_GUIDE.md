@@ -64,56 +64,76 @@ This creates:
 
 ### Level 2: Pre-commit Hooks (10 minutes)
 
-#### Current Implementation
+#### Adding Alexandria Pre-commit Hooks
 
-The repository uses Husky with lint-staged for pre-commit validation:
+To ensure documentation stays up-to-date with code changes, add Alexandria checks to your pre-commit workflow:
 
+##### Option 1: Simple Alexandria Validation
+```bash
+# .husky/pre-commit
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Validate all Alexandria views before commit
+echo "Validating Alexandria documentation..."
+npx alexandria validate-all || {
+  echo "❌ Alexandria validation failed. Fix issues before committing."
+  exit 1
+}
+
+# Check for untracked documentation
+npx alexandria list-untracked-docs
+```
+
+##### Option 2: With lint-staged Integration
 ```json
 // package.json
 {
-  "scripts": {
-    "prepare": "husky"
-  },
   "lint-staged": {
-    "src/**/*.{ts,js}": [
-      "eslint --fix",
-      "prettier --write"
+    "*.md": [
+      "npx alexandria validate-all"
     ],
-    "tests/**/*.{ts,js}": [
-      "eslint --fix",
-      "prettier --write"
+    ".a24z/views/*.json": [
+      "npx alexandria validate"
     ]
   }
 }
 ```
 
+##### Option 3: Comprehensive Pre-commit (Recommended)
 ```bash
 # .husky/pre-commit
-echo "Running type checking..."
-npm run typecheck
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
 
-echo "Running lint-staged..."
-npx lint-staged
+# Check if views have been modified
+if git diff --cached --name-only | grep -q "\.a24z/views/"; then
+  echo "📚 Alexandria views modified - validating..."
+  npx alexandria validate-all || exit 1
+fi
 
-echo "Testing MCP server build..."
-npm run test:mcp
+# Check if markdown docs have been modified
+if git diff --cached --name-only | grep -q "\.md$"; then
+  echo "📝 Documentation modified - checking Alexandria tracking..."
+  npx alexandria list-untracked-docs
+  
+  # Optional: Fail if critical docs are untracked
+  # npx alexandria lint || exit 1
+fi
 
-echo "Running tests..."
-npm test
+# Remind to update Agents.md if significant changes
+if git diff --cached --name-only | grep -qE "(src/|lib/|api/)"; then
+  echo "💡 Remember to update Agents.md Alexandria section if needed"
+fi
 ```
 
-#### Future Alexandria-Specific Hooks
+#### Future Enhancement (Coming Soon)
 
-Coming soon - dedicated Alexandria linting in pre-commit:
+Dedicated Alexandria linting with configurable thresholds:
 
-```json
-{
-  "husky": {
-    "hooks": {
-      "pre-commit": "alexandria lint --max-warnings 0"
-    }
-  }
-}
+```bash
+# .husky/pre-commit (future)
+npx alexandria lint --max-warnings 0 --require-views-for-docs
 ```
 
 ### Level 3: GitHub Actions Integration (15 minutes)
