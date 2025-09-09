@@ -1,7 +1,11 @@
 # Alexandria Setup - Install 
 
 ```bash
-npx -y a24z-memory init
+# Install globally to get the alexandria command
+npm install -g a24z-memory
+
+# Initialize Alexandria in your project
+alexandria init
 ```
 
 ## Step 1: Install Artifacts 
@@ -86,4 +90,4 @@ The beauty of Alexandria is that each step is optional and valuable on its own. 
 
 ---
 
-**Ready to start?** Run `npx -y a24z-memory init` in your project directory.
+**Ready to start?** Run `npm install -g a24z-memory` then `alexandria init` in your project directory.

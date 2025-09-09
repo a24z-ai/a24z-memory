@@ -54,7 +54,11 @@ npx alexandria projects             # Check registration status
 Initialize Alexandria in your project:
 
 ```bash
-npx -y a24z-memory init
+# Install globally to get the alexandria command
+npm install -g a24z-memory
+
+# Initialize Alexandria in your project
+alexandria init
 ```
 
 This creates:
@@ -261,12 +265,12 @@ jobs:
 ## Integration Best Practices
 
 ### 1. Start Simple
-- Begin with `npx -y a24z-memory init`
+- Begin with `npm install -g a24z-memory` then `alexandria init`
 - Add notes as you work: `alexandria save "insight" --anchor file.ts`
 - Let the system grow organically
 
 ### 2. Progressive Enhancement
-- **Week 1**: Capture insights with simple notes
+- **Week 1**: Install alexandria and capture insights with simple notes
 - **Week 2**: Create first CodebaseView
 - **Week 3**: Add pre-commit hooks
 - **Month 1**: Full CI/CD integration
@@ -491,4 +495,4 @@ alexandria save "Explanation" --anchor src/file.ts --type explanation
 
 ---
 
-**Ready to integrate?** Start with `npx -y a24z-memory init` and grow from there. Alexandria is designed to provide value at every integration level, from simple notes to comprehensive documentation systems.
+**Ready to integrate?** Start with `npm install -g a24z-memory` then `alexandria init` and grow from there. Alexandria is designed to provide value at every integration level, from simple notes to comprehensive documentation systems.
