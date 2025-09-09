@@ -14,6 +14,8 @@ import { createFromDocCommand } from './cli-memory-palace/commands/from-doc.js';
 import { createInstallWorkflowCommand } from './cli-memory-palace/commands/install-workflow.js';
 import { createProjectsCommand } from './cli-memory-palace/commands/projects.js';
 import { createListUntrackedDocsCommand } from './cli-memory-palace/commands/list-untracked-docs.js';
+import { createAutoCreateViewsCommand } from './cli-memory-palace/commands/auto-create-views.js';
+import { createValidateAllCommand } from './cli-memory-palace/commands/validate-all.js';
 
 const program = new Command();
 
@@ -26,7 +28,9 @@ program
 program.addCommand(createListCommand());
 program.addCommand(createSaveCommand());
 program.addCommand(createValidateCommand());
+program.addCommand(createValidateAllCommand());
 program.addCommand(createFromDocCommand());
+program.addCommand(createAutoCreateViewsCommand());
 program.addCommand(createInstallWorkflowCommand());
 program.addCommand(createProjectsCommand());
 program.addCommand(createListUntrackedDocsCommand());
