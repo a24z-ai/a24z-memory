@@ -73,7 +73,7 @@ IMPORTANT: The goal is to create CURRENT and MAINTAINABLE views that will be rel
    current file references ensures they remain useful and get maintained.
 
 💡 Tips:
-- Run 'memory-palace list-untracked-docs' to find documentation to convert
+- Run 'alexandria list-untracked-docs' to find documentation to convert
 - Check file existence before referencing them
 - Use relative paths from repository root
 - Group related files in the same grid cell
@@ -183,9 +183,9 @@ Press Enter to continue, or Ctrl+C to exit...
         console.log(`📝 How to Modify:`);
         console.log(`   1. Edit the view: ${path.relative(process.cwd(), savedPath)}`);
         console.log(
-          `   2. Validate changes: memory-palace validate ${validationResult.validatedView.id}`
+          `   2. Validate changes: alexandria validate ${validationResult.validatedView.id}`
         );
-        console.log(`   3. List all views: memory-palace list`);
+        console.log(`   3. List all views: alexandria list`);
 
         // Set as default if requested
         if (options.default) {

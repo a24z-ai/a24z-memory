@@ -107,7 +107,7 @@ export function createSaveCommand(): Command {
           // Provide guidance on next steps
           console.log(`💡 To fix these issues:`);
           console.log(`   - Edit: ${path.relative(process.cwd(), savedPath)}`);
-          console.log(`   - Run: memory-palace validate ${validationResult.validatedView.id}`);
+          console.log(`   - Run: alexandria validate ${validationResult.validatedView.id}`);
         }
 
         // Exit with error code if there were critical issues

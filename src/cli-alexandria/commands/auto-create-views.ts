@@ -114,8 +114,8 @@ export function createAutoCreateViewsCommand(): Command {
         // Next steps
         if (!options.dryRun && stats.successful > 0) {
           console.log(`\n💡 Next steps:`);
-          console.log(`   - Review created views: memory-palace list`);
-          console.log(`   - Validate all views: memory-palace validate-all`);
+          console.log(`   - Review created views: alexandria list`);
+          console.log(`   - Validate all views: alexandria validate-all`);
           console.log(`   - Edit view configurations in .a24z/views/ as needed`);
 
           if (stats.totalIssues > 0) {

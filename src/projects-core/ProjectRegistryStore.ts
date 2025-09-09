@@ -14,7 +14,7 @@ export class ProjectRegistryStore {
 
   constructor(fileSystemAdapter: FileSystemAdapter, homeDir: string) {
     this.fs = fileSystemAdapter;
-    this.registryPath = this.fs.join(homeDir, '.a24z-memory', 'projects.json');
+    this.registryPath = this.fs.join(homeDir, '.alexandria', 'projects.json');
   }
 
   /**

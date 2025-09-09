@@ -26,6 +26,7 @@ export interface AlexandriaConfig {
       exclude?: string[];
       priority?: PriorityPattern[];
     };
+    useGitignore?: boolean;
     maxDepth?: number;
     followSymlinks?: boolean;
   };

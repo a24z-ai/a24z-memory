@@ -149,10 +149,10 @@ export function createValidateAllCommand(): Command {
           console.log(`   - Edit view files in .a24z/views/ to fix errors`);
           console.log(`   - Update documentation files to fix missing file references`);
           console.log(
-            `   - Use 'memory-palace validate <view-id>' for detailed validation of specific views`
+            `   - Use 'alexandria validate <view-id>' for detailed validation of specific views`
           );
           console.log(
-            `   - Use 'memory-palace validate-all --issues-only' to focus on problematic views`
+            `   - Use 'alexandria validate-all --issues-only' to focus on problematic views`
           );
         }
 

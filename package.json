@@ -7,13 +7,13 @@
   "types": "dist/lib.d.ts",
   "bin": {
     "a24z-memory": "dist/mcp-cli.js",
-    "memory-palace": "dist/memory-palace-cli.js"
+    "alexandria": "dist/alexandria-cli.js"
   },
   "type": "module",
   "scripts": {
-    "build": "bun run clean && bun run build:lib && bun run fix:imports && bun run build:mcp-cli && bun run build:memory-palace-cli",
+    "build": "bun run clean && bun run build:lib && bun run fix:imports && bun run build:mcp-cli && bun run build:alexandria-cli",
     "build:mcp-cli": "bun build/build-cli.js",
-    "build:memory-palace-cli": "bun build/build-memory-palace-cli.js",
+    "build:alexandria-cli": "bun build/build-alexandria-cli.js",
     "clean": "rm -rf dist",
     "build:lib": "tsc",
     "fix:imports": "bun build/fix-esm-imports.js",

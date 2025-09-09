@@ -9,7 +9,7 @@ import * as os from 'node:os';
 import { execSync } from 'node:child_process';
 import { MemoryPalace } from '../../../src/MemoryPalace';
 import { NodeFileSystemAdapter } from '../../../src/node-adapters/NodeFileSystemAdapter';
-import { createListCommand } from '../../../src/cli-memory-palace/commands/list';
+import { createListCommand } from '../../../src/cli-alexandria/commands/list';
 import type { CodebaseView } from '../../../src/pure-core/types';
 
 describe('CLI - list command', () => {

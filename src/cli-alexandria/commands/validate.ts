@@ -90,11 +90,11 @@ export function createValidateCommand(): Command {
 
           if (viewNameOrPath.endsWith('.json') || viewNameOrPath.includes('/')) {
             console.log(`   - Edit the file: ${viewNameOrPath}`);
-            console.log(`   - Re-run: memory-palace validate ${viewNameOrPath}`);
+            console.log(`   - Re-run: alexandria validate ${viewNameOrPath}`);
           } else {
             const viewPath = path.join(repoPath, '.a24z', 'views', `${view.id}.json`);
             console.log(`   - Edit: ${path.relative(process.cwd(), viewPath)}`);
-            console.log(`   - Re-run: memory-palace validate ${view.id}`);
+            console.log(`   - Re-run: alexandria validate ${view.id}`);
           }
         }
 

@@ -69,9 +69,7 @@ export function createProjectsCommand(): Command {
         const projects = registry.listProjects();
 
         if (projects.length === 0) {
-          console.log(
-            'No projects registered yet. Use "memory-palace projects register" to add one.'
-          );
+          console.log('No projects registered yet. Use "alexandria projects register" to add one.');
           return;
         }
 
@@ -105,7 +103,7 @@ export function createProjectsCommand(): Command {
                 console.log(`   Features: ${features.join(', ')}`);
               } else {
                 console.log(
-                  `   Features: None (run "memory-palace install-workflow" to add Alexandria)`
+                  `   Features: None (run "alexandria install-workflow" to add Alexandria)`
                 );
               }
             } else {
