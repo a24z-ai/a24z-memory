@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-Alexandria establishes the industry standard for **context engineering** in agentic development. As AI agents become integral to software development, the quality of context they receive determines their effectiveness. We provide a "context linting" system through **CodebaseViews** that ensures AI agents have accurate, well-organized, and semantically-rich understanding of your codebase.
+Alexandria establishes the industry standard for **context engineering** in agentic development. As AI agents become integral to software development, the quality of context they receive determines their effectiveness. We provide a "context linting" system through **CodebaseViews** that ensures AI agents have accurate, navigable, and semantically-rich understanding of your codebase.
 
 ## Product Positioning
 
