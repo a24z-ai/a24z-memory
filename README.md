@@ -1,5 +1,6 @@
 <img width="1024" height="559" alt="image" src="https://github.com/user-attachments/assets/55678688-7739-46d1-8e9f-66b4fc9efb3d" />
 
+**Context Managment for your whole suite:** CLI for AI agents • VS Code for developers • Alexandria web for teams
 
 
 
@@ -21,10 +22,8 @@ https://github.com/user-attachments/assets/8bf7b277-c6e9-4fbf-8fc8-10857d5bdac7
 https://github.com/user-attachments/assets/89892c54-8b26-4cdb-ac17-12299c1e97a6
 
 
-
 [![npm version](https://badge.fury.io/js/a24z-memory.svg)](https://www.npmjs.com/package/a24z-memory)
 [![Documentation](https://img.shields.io/badge/docs-a24z.ai-blue.svg)](https://a24z-ai.github.io/Alexandria)
-**Three ways to supercharge your development:** CLI for AI agents • VS Code for developers • Alexandria web for teams
 
 ## One Platform, Three Experiences
 
