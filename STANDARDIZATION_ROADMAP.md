@@ -2,28 +2,28 @@
 
 ## Executive Summary
 
-a24z-Memory aims to become the industry standard for documentation quality assurance, similar to how ESLint enforces code style and TypeScript enforces type safety. We provide a "documentation linting" system through **CodebaseViews** that ensures all markdown documentation is properly categorized, maintained, and associated with relevant code.
+a24z-Memory establishes the industry standard for **context engineering** in agentic development. As AI agents become integral to software development, the quality of context they receive determines their effectiveness. We provide a "context linting" system through **CodebaseViews** that ensures AI agents have accurate, spatially-organized, and semantically-rich understanding of your codebase.
 
 ## Product Positioning
 
-### The Documentation Quality Standard
+### The Context Engineering Standard for Agentic Development
 
 | Tool | Domain | Standard It Sets |
 |------|--------|-----------------|
 | **ESLint** | Code Style | Enforces consistent code formatting and patterns |
 | **TypeScript** | Type Safety | Enforces type correctness and compile-time checks |
 | **Jest/Vitest** | Test Coverage | Enforces test quality and coverage metrics |
-| **a24z-Memory** | Documentation Quality | Enforces documentation completeness and relevance |
+| **a24z-Memory** | Context Engineering | Enforces context quality for AI agents and documentation |
 
 ### Our Value Proposition
 
-**"If ESLint is for code quality and TypeScript is for type safety, a24z-Memory is for documentation integrity."**
+**"If ESLint is for code quality and TypeScript is for type safety, a24z-Memory is for context integrity in agentic development."**
 
 We ensure that:
-- Every markdown file is associated with a CodebaseView
-- Documentation stays synchronized with code changes
-- Teams maintain consistent documentation standards
-- AI assistants have proper context through spatial organization
+- AI agents receive spatially-organized context through CodebaseViews
+- Documentation serves as high-quality context for agent decision-making
+- Teams build accumulated knowledge that enhances agent performance
+- Context quality metrics become as measurable as code quality
 
 ## Framework Architecture
 
@@ -95,39 +95,45 @@ memory-palace watch                  # Real-time validation
 #### Rule Categories
 
 **Critical Rules** (errors)
-- `require-view-association`: Every .md file must belong to a view
-- `valid-view-structure`: Views must have valid grid coordinates
-- `orphaned-views`: Views must reference existing files
+- `require-view-association`: Every .md file must belong to a view for proper context mapping
+- `valid-view-structure`: Views must have valid grid coordinates for spatial navigation
+- `orphaned-views`: Views must reference existing files to maintain context accuracy
+- `context-completeness`: Critical code areas must have associated context documentation
 
 **Quality Rules** (warnings)
-- `stale-documentation`: Docs unchanged for X days
-- `missing-code-references`: Docs without file anchors
-- `unreviewed-category`: Too many unreviewed docs
+- `stale-context`: Context unchanged for X days while code evolved
+- `missing-code-references`: Context without file anchors reduces agent understanding
+- `unreviewed-category`: Too many unreviewed contexts risk agent hallucination
+- `context-coverage`: Low context coverage in high-complexity areas
 
-**Style Rules** (info)
-- `view-naming-convention`: Consistent view naming
-- `metadata-completeness`: Missing optional metadata
+**Agent Performance Rules** (info)
+- `context-density`: Optimal token-to-insight ratio for agent consumption
+- `spatial-organization`: Logical grouping for agent navigation
+- `semantic-richness`: Context includes "why" not just "what"
 
 ### 4. Reporting & Metrics
 
 #### Standard Output Format
 ```
-✖ 12 problems (4 errors, 8 warnings)
+✖ 12 context issues (4 errors, 8 warnings)
 
 error: README.md is not associated with any CodebaseView
   rule: require-view-association
+  impact: AI agents lack spatial understanding of project structure
 
-warning: docs/api.md has not been updated in 120 days
-  rule: stale-documentation
+warning: docs/api.md context has not been updated in 120 days
+  rule: stale-context
+  impact: Agents may use outdated patterns
 
 4 errors and 8 warnings potentially fixable with --fix
 ```
 
-#### Dashboard Metrics
-- Documentation coverage percentage
-- View health score
-- Team contribution metrics
-- Staleness indicators
+#### Agent Performance Metrics
+- **Context Coverage**: % of codebase with quality context
+- **Agent Success Rate**: Correlation with context quality
+- **Context Freshness**: Age vs code change frequency
+- **Spatial Coherence**: How well organized for agent navigation
+- **Token Efficiency**: Context value per token consumed
 
 ## Adoption Strategy
 
@@ -184,16 +190,17 @@ warning: docs/api.md has not been updated in 120 days
 ## Success Metrics
 
 ### Adoption Indicators
-- Number of repos using a24z-Memory
-- Weekly npm downloads
-- GitHub stars and forks
-- Community contributions
+- Number of repos using a24z-Memory for context engineering
+- Weekly npm downloads from AI development teams
+- GitHub stars and forks from agentic development community
+- Community contributions to context patterns
 
-### Quality Indicators
-- Average documentation coverage in repos
-- Reduction in stale documentation
-- Time to documentation updates after code changes
-- AI assistant effectiveness improvements
+### Agent Performance Indicators
+- **Task Success Rate**: % improvement in agent task completion
+- **Context Utilization**: How effectively agents use provided context
+- **Hallucination Reduction**: Decrease in incorrect agent assumptions
+- **Development Velocity**: Speed improvement with better context
+- **Onboarding Time**: Reduction in time for new agents/developers to understand codebase
 
 ## Integration Points
 
@@ -248,14 +255,15 @@ jobs:
 ## Marketing & Messaging
 
 ### Tagline Options
-- "The ESLint for Documentation"
-- "Documentation Linting for Modern Codebases"
-- "Enforce Documentation Standards, Automatically"
+- "Context Engineering for Agentic Development"
+- "The ESLint for AI Context Quality"
+- "Make Your Codebase AI-Native"
 
 ### Key Messages
-1. **For Individual Developers**: "Never let documentation fall behind again"
-2. **For Team Leads**: "Enforce documentation standards across your team"
-3. **For Organizations**: "Measure and improve documentation quality at scale"
+1. **For AI-First Developers**: "Give your agents the context they deserve"
+2. **For Team Leads**: "Measure and improve agent performance through better context"
+3. **For Organizations**: "Transform tribal knowledge into agent intelligence"
+4. **For Open Source**: "Make your project instantly understandable to AI contributors"
 
 ### Badge System
 ```markdown
@@ -271,8 +279,33 @@ jobs:
 4. **Develop GitHub Action**: Official action for CI/CD integration
 5. **Launch Beta Program**: Get early adopters for feedback
 
+## Why Context Engineering Matters
+
+### The Agentic Development Revolution
+As AI agents become primary contributors to codebases, the quality of context they receive directly impacts:
+- **Code Quality**: Better context → better code generation
+- **Bug Detection**: Agents understand system constraints and edge cases
+- **Refactoring Safety**: Agents know architectural decisions and patterns
+- **Feature Development**: Agents build on accumulated team knowledge
+
+### The Context Quality Crisis
+Current approaches fail because:
+- **RAG/Embeddings**: Lose spatial and semantic relationships
+- **Documentation**: Goes stale, lacks structure for agent consumption
+- **Comments**: Scattered, inconsistent, not queryable
+- **PR History**: Buried in git, not accessible during development
+
+### Our Solution: Structured Context Engineering
+a24z-Memory solves this by:
+- **Spatial Organization**: CodebaseViews create navigable memory palaces
+- **Semantic Anchoring**: Context tied directly to code locations
+- **Living Documentation**: Context evolves with code through git
+- **Measurable Quality**: Lint-like rules ensure context completeness
+
 ## Conclusion
 
-By positioning a24z-Memory as the "ESLint for documentation," we create a familiar mental model for developers while addressing a critical gap in the development toolchain. Our spatial memory palace approach, combined with standard linting paradigms, will make documentation quality as enforceable and measurable as code quality.
+By positioning a24z-Memory as the context engineering standard for agentic development, we address the most critical bottleneck in AI-assisted software development: **context quality**. 
 
-The key to adoption is making it as easy to add a24z-Memory to a project as it is to add ESLint or TypeScript - with sensible defaults, clear value proposition, and seamless integration into existing workflows.
+Just as ESLint made code style measurable and TypeScript made type safety enforceable, a24z-Memory makes context quality for AI agents a quantifiable, improvable metric.
+
+The future of software development is agentic. The teams that master context engineering will build better software, faster, with AI agents that truly understand their codebases.
