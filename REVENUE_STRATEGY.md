@@ -1,6 +1,8 @@
-# Alexandria
+# 
 
 <div align="center">
+  <h1>Alexandria</h1>
+  <p><strong>The Unified Context Layer for AI Development</strong></p>
   <h3>
     Context Engineering → Agent Orchestration → 10x Velocity
   </h3>
@@ -33,9 +35,10 @@
 
 ### The Current Reality (Q4 2025)
 - **Agent proliferation**: Teams use 5-10 different AI agents (Cursor, Copilot, Claude, specialized agents)
-- **Coordination chaos**: Agents work in silos, duplicating effort and creating conflicts
-- **Quality crisis**: Without orchestration, agent-generated code degrades rapidly
-- **Speed bottleneck**: Developers spend 60% of time managing agent conflicts
+- **Inference waste**: Agents are useful but not optimized—teams burn 80% of inference on redundant context processing
+- **Agent slop crisis**: Developers spend hours cleaning up low-quality agent output and hallucinations
+- **Manual herding**: Teams resort to markdown files and READMEs trying to corral agents into coherent behavior
+- **Quality degradation**: Without proper context, agent-generated code creates more tech debt than value
 
 ### Alexandria's Solution: Development Agent Orchestration
 - **Unified context layer**: All agents share the same high-quality context
@@ -51,18 +54,13 @@
 |---------|------------------|----------------------------|--------------------|--------------------------|
 | **Agent Orchestration** |
 | Basic MCP server | ✅ | ✅ | ✅ | ✅ |
-| Agent coordination | Limited | ✅ | ✅ | ✅ |
+| Agent coordination | - | ✅ | ✅ | ✅ |
 | Multi-agent workflows | - | 3 agents | Unlimited | Unlimited |
-| Custom agent integrations | - | - | ✅ | ✅ |
+| Fine-tuned Principal Agent | - | - | ✅ | ✅ |
 | **Repository Management** |
 | Repository limit | 3 | Unlimited | Unlimited | Unlimited |
 | CodebaseView features | Standard | Advanced | Advanced | Advanced |
 | Cross-repo intelligence | - | - | ✅ | ✅ |
-| **Rules & Automation** |
-| Community rule packages | ✅ | ✅ | ✅ | ✅ |
-| Custom rule creation | - | ✅ | ✅ | ✅ |
-| Auto-fix capabilities | - | ✅ | ✅ | ✅ |
-| Custom rule packages | - | - | ✅ | ✅ |
 | **Team Features** |
 | Configuration sharing | - | Basic | Advanced | Advanced |
 | Centralized management | - | - | ✅ | ✅ |

@@ -1,13 +1,13 @@
 {
   "id": "revenue-strategy",
   "version": "1.0.0",
-  "name": "revenue-strategy",
+  "name": "Revenue Strategy",
   "description": "Alexandria's business model and path to M ARR",
   "rows": 1,
   "cols": 1,
   "cells": {},
   "overviewPath": "REVENUE_STRATEGY.md",
-  "category": "other",
+  "category": "roadmap",
   "displayOrder": 0,
   "timestamp": "2025-09-09T18:01:21.606Z",
   "metadata": {
