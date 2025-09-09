@@ -13,6 +13,7 @@ import { createValidateCommand } from './cli-memory-palace/commands/validate.js'
 import { createFromDocCommand } from './cli-memory-palace/commands/from-doc.js';
 import { createInstallWorkflowCommand } from './cli-memory-palace/commands/install-workflow.js';
 import { createProjectsCommand } from './cli-memory-palace/commands/projects.js';
+import { createListUntrackedDocsCommand } from './cli-memory-palace/commands/list-untracked-docs.js';
 
 const program = new Command();
 
@@ -28,6 +29,7 @@ program.addCommand(createValidateCommand());
 program.addCommand(createFromDocCommand());
 program.addCommand(createInstallWorkflowCommand());
 program.addCommand(createProjectsCommand());
+program.addCommand(createListUntrackedDocsCommand());
 
 // Parse command line arguments
 program.parse(process.argv);
