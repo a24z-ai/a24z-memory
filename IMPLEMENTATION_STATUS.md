@@ -52,7 +52,7 @@ Files: src/config/types.ts, src/config/schema.ts, src/config/loader.ts, src/conf
 - [ ] **`diff`** - Compare views across versions
 
 ### 📝 Document Management (Partially Complete)
-- [x] `from-doc` - Create view from markdown
+- [x] `add-doc` - Add documentation to library as view
 - [x] `auto-create-views` - Bulk view creation
 - [x] `list-untracked-docs` - Find orphaned docs
 - [ ] **Two-way sync** - Keep views and docs synchronized
@@ -152,7 +152,7 @@ src/
 │       ├── save.ts         
 │       ├── validate.ts     
 │       ├── validate-all.ts # Enhancement commands
-│       ├── from-doc.ts     
+│       ├── add-doc.ts     
 │       ├── auto-create-views.ts
 │       ├── list-untracked-docs.ts
 │       ├── install-workflow.ts

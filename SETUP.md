@@ -78,7 +78,7 @@ Start with simple notes. Add views when you need spatial organization. Each step
 After setup, most teams follow this natural progression:
 
 1. **Week 1**: Use `alexandria save` to capture key insights as you work
-2. **Week 2**: Create your first CodebaseView with `alexandria from-doc` 
+2. **Week 2**: Create your first CodebaseView with `alexandria add-doc` 
 3. **Week 3**: Set up automated linting in CI with `alexandria lint`
 4. **Month 1**: Team members discover searchable institutional knowledge
 

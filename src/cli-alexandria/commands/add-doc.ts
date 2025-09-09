@@ -1,5 +1,5 @@
 /**
- * From-doc command - Create a codebase view from a documentation file
+ * Add-doc command - Add a documentation file to the Alexandria library as a codebase view
  */
 
 import { Command } from 'commander';
@@ -13,11 +13,11 @@ import { MemoryPalace } from '../../MemoryPalace.js';
 import { NodeFileSystemAdapter } from '../../node-adapters/NodeFileSystemAdapter.js';
 import type { CodebaseView, ValidatedRepositoryPath } from '../../pure-core/types/index.js';
 
-export function createFromDocCommand(): Command {
-  const command = new Command('from-doc');
+export function createAddDocCommand(): Command {
+  const command = new Command('add-doc');
 
   command
-    .description('Create a codebase view from a documentation file')
+    .description('Add a documentation file to the Alexandria library as a codebase view')
     .argument('<doc-file>', 'Path to the markdown documentation file')
     .option('-n, --name <name>', 'Name for the codebase view')
     .option('-d, --description <desc>', 'Description for the codebase view')
@@ -28,10 +28,10 @@ export function createFromDocCommand(): Command {
       // Show guidance by default (unless skipped)
       if (!options.skipGuidance) {
         console.log(`
-📚 Creating Effective CodebaseViews from Documentation
+📚 Adding Documentation to the Alexandria Library
 ═══════════════════════════════════════════════════════
 
-IMPORTANT: The goal is to create CURRENT and MAINTAINABLE views that will be reliable going forward.
+IMPORTANT: The goal is to add CURRENT and MAINTAINABLE documentation to the library that will be reliable going forward.
 
 🎯 Key Principles:
 
@@ -73,7 +73,7 @@ IMPORTANT: The goal is to create CURRENT and MAINTAINABLE views that will be rel
    current file references ensures they remain useful and get maintained.
 
 💡 Tips:
-- Run 'alexandria list-untracked-docs' to find documentation to convert
+- Run 'alexandria list-untracked-docs' to find documentation to add to the library
 - Check file existence before referencing them
 - Use relative paths from repository root
 - Group related files in the same grid cell
@@ -162,7 +162,7 @@ Press Enter to continue, or Ctrl+C to exit...
         const savedPath = path.join(viewsDir, `${validationResult.validatedView.id}.json`);
 
         console.log('');
-        console.log(`✅ Codebase view created from documentation!`);
+        console.log(`✅ Documentation added to the Alexandria library!`);
         console.log('');
         console.log(`📍 View Details:`);
         console.log(`   Name: ${validationResult.validatedView.name}`);

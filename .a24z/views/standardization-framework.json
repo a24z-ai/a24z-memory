@@ -1,7 +1,7 @@
 {
   "id": "standardization-framework",
   "version": "1.0.0",
-  "name": "standardization-framework",
+  "name": "Product Roadmap",
   "description": "Product roadmap for making a24z-Memory a documentation quality standard like ESLint/TypeScript",
   "rows": 3,
   "cols": 3,

@@ -160,7 +160,7 @@ export function createInitCommand(): Command {
         console.log('\n✨ Alexandria initialized successfully!');
         console.log('\nNext steps:');
         console.log('  1. Run: alexandria list');
-        console.log('  2. Create views: alexandria from-doc <path>');
+        console.log('  2. Add docs to library: alexandria add-doc <path>');
         if (fs.existsSync(path.join(repoPath, '.github', 'workflows', 'alexandria.yml'))) {
           console.log('  3. Commit and push to activate GitHub workflow');
         }

@@ -58,7 +58,7 @@ export function createInstallWorkflowCommand(): Command {
         if (!hasViews) {
           console.log('\n⚠️  Note: No .a24z/views/ directory found');
           console.log('   Create codebase views first using:');
-          console.log('   alexandria from-doc <documentation-file>');
+          console.log('   alexandria add-doc <documentation-file>');
         }
 
         // Provide next steps
