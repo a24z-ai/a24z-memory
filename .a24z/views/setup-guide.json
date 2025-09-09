@@ -1,0 +1,60 @@
+{
+  "id": "setup-guide",
+  "version": "1.0.0",
+  "name": "Setup Guide",
+  "description": "Alexandria setup process and implementation - from initialization to first use",
+  "rows": 1,
+  "cols": 3,
+  "cells": {
+    "Step 1: Initialize Alexandria": {
+      "coordinates": [
+        0,
+        0
+      ],
+      "files": [
+        "src/cli-alexandria/commands/init.ts",
+        "src/config/schema.ts",
+        "src/projects-core/ProjectRegistryStore.ts"
+      ],
+      "priority": 0
+    },
+    "Step 2: Start Using": {
+      "coordinates": [
+        0,
+        1
+      ],
+      "files": [
+        "src/rules/engine.ts",
+        "src/cli-alexandria/commands/list.ts",
+        "src/MemoryPalace.ts"
+      ],
+      "priority": 0
+    },
+    "What Happens During Setup": {
+      "coordinates": [
+        0,
+        2
+      ],
+      "files": [
+        "src/pure-core/stores/CodebaseViewsStore.ts",
+        "src/pure-core/stores/AnchoredNotesStore.ts",
+        "src/config/types.ts"
+      ],
+      "priority": 0
+    }
+  },
+  "overviewPath": "SETUP.md",
+  "category": "other",
+  "displayOrder": 0,
+  "timestamp": "2025-09-09T10:15:39.457Z",
+  "metadata": {
+    "generationType": "user",
+    "ui": {
+      "enabled": true,
+      "rows": 1,
+      "cols": 3,
+      "showCellLabels": true,
+      "cellLabelPosition": "top"
+    }
+  }
+}

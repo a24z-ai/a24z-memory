@@ -17,8 +17,18 @@ export const requireViewAssociation: LibraryRule = {
     // Build a set of all markdown files that are associated with views or notes
     const associatedFiles = new Set<string>();
 
-    // Check files directly referenced in view cells
+    // Check files directly referenced in view cells and overviews
     for (const view of views) {
+      // Check overview path
+      if (
+        'overviewPath' in view &&
+        typeof view.overviewPath === 'string' &&
+        view.overviewPath.endsWith('.md')
+      ) {
+        associatedFiles.add(view.overviewPath);
+      }
+
+      // Check files in cells
       if (view.cells) {
         for (const cellName in view.cells) {
           const cell = view.cells[cellName];
