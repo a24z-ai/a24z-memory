@@ -28,20 +28,14 @@ ls -la .a24z/
 
 ### Alexandria Adoption Assessment (Current Tools)
 ```bash
-# Step 1: Check how many views you have
+# 1. Check existing documentation
 npx alexandria list
 
-# Step 2: Validate all views are properly formatted
+# 2. Add documentation (when needed)
+npx alexandria add-doc <file.md>
+
+# 3. Validate views
 npx alexandria validate-all
-
-# Step 3: Check for context quality issues
-npx alexandria lint
-
-# Step 4: Find undocumented markdown files
-npx alexandria list-untracked-docs
-
-# Step 5: Check project registration status
-npx alexandria projects
 ```
 
 **Adoption Level Indicators:**
@@ -347,13 +341,20 @@ When working in this codebase, you have access to Alexandria for documentation m
 
 #### Currently Available Commands
 
+The core Alexandria workflow (as documented in Agents.md):
 ```bash
-# List all codebase views and their status
+# 1. Check existing documentation
 npx alexandria list
 
-# Validate all views for schema compliance
-npx alexandria validate-all
+# 2. Add documentation
+npx alexandria add-doc <file.md>
 
+# 3. Validate views
+npx alexandria validate-all
+```
+
+Additional commands for deeper analysis:
+```bash
 # Lint for context quality issues
 npx alexandria lint
 
