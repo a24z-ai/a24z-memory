@@ -107,9 +107,9 @@ memory-palace watch                  # Real-time validation
 - `context-coverage`: Low context coverage in high-complexity areas
 
 **Agent Performance Rules** (info)
-- `context-density`: Optimal token-to-insight ratio for agent consumption
-- `spatial-organization`: Logical grouping for agent navigation
-- `semantic-richness`: Context includes "why" not just "what"
+- `max-files-per-view`: Warn when view exceeds 50 total files (context window limits)
+- `overview-length`: Warn when overview markdown exceeds 1000 lines (affects initial context loading)
+- `file-size-limits`: Flag files >5000 lines as too complex for agent context
 
 ### 4. Reporting & Metrics
 
