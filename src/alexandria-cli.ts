@@ -17,6 +17,7 @@ import { createListUntrackedDocsCommand } from './cli-alexandria/commands/list-u
 import { createAutoCreateViewsCommand } from './cli-alexandria/commands/auto-create-views.js';
 import { createValidateAllCommand } from './cli-alexandria/commands/validate-all.js';
 import { createInitCommand } from './cli-alexandria/commands/init.js';
+import { lintCommand } from './cli-alexandria/commands/lint.js';
 
 const program = new Command();
 
@@ -27,6 +28,7 @@ program
 
 // Add commands
 program.addCommand(createInitCommand());
+program.addCommand(lintCommand);
 program.addCommand(createListCommand());
 program.addCommand(createSaveCommand());
 program.addCommand(createValidateCommand());

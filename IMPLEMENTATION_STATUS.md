@@ -43,22 +43,33 @@ Files: src/config/types.ts, src/config/schema.ts, src/config/loader.ts, src/conf
 - [ ] Report command
 
 ### Rules Engine
-- [ ] Rule definition structure
-- [ ] Rule loader
-- [ ] Rule executor
-- [ ] Built-in rules
+- [x] Rule definition structure (`LibraryRule` interface)
+- [x] Rule loader and executor (`LibraryRulesEngine`)
+- [x] Built-in rules (3 implemented):
+  - [x] `require-view-association` (error): Markdown files must be associated with CodebaseViews
+  - [x] `orphaned-references` (error): View/note references to non-existent files
+  - [x] `stale-context` (warning): Context not updated since referenced files changed
+- [x] CLI integration (`alexandria lint` command)
 - [ ] Custom rule support
 
 ### Reporting & Metrics
-- [ ] Report generator
-- [ ] Console formatter
-- [ ] JSON formatter
+- [x] Console formatter (color-coded, ESLint-style output)
+- [x] JSON formatter (`--json` flag)
+- [x] Metrics collection (error/warning/info counts)
 - [ ] HTML formatter
-- [ ] Metrics collection
+- [ ] Advanced metrics collection
 
 ## Recent Changes (2025-01-09)
 
-### Completed
+### Completed - Rules Engine Implementation
+3. ✅ **Rules Engine Foundation** - Complete lint system implementation:
+   - Core `LibraryRulesEngine` class with rule registration and execution
+   - Three production-ready rules targeting Alexandria-specific quality issues
+   - `alexandria lint` command with ESLint-style output and JSON support
+   - Integration with existing `ValidatedRepositoryPath` and `CodebaseView` types
+   - Directory path utilities with `.a24z/` → `.alexandria/` migration support
+
+### Completed - Configuration & CLI
 1. ✅ **Config initialization command** - `alexandria init` now:
    - Creates minimal .alexandriarc.json with `useGitignore: true`
    - Auto-registers project in global registry at ~/.alexandria/
@@ -79,8 +90,8 @@ Files: src/config/types.ts, src/config/schema.ts, src/config/loader.ts, src/conf
 ## Next Steps
 
 1. **Immediate**: Implement useGitignore flag handling in config loader
-2. **Short-term**: Build basic rule engine with a few starter rules
-3. **Medium-term**: Implement reporting system with console output
+2. **Short-term**: Add custom rule support and more built-in rules
+3. **Medium-term**: Build analyze and report commands
 
 ## Technical Decisions
 
