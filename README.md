@@ -4,7 +4,7 @@
 
 
 * For Your Agent
-** `npx -y a24z-memory` to get started
+  ** `npx -y a24z-memory` to get started
   
 * For Your Developer
 
