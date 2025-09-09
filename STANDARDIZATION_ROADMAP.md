@@ -12,16 +12,18 @@ Alexandria establishes the industry standard for **context engineering** in agen
 |------|--------|-----------------|
 | **ESLint** | Code Style | Enforces consistent code formatting and patterns |
 | **TypeScript** | Type Safety | Enforces type correctness and compile-time checks |
+| **Knip** | Dead Code | Identifies unused exports, dependencies, and files |
 | **Jest/Vitest** | Test Coverage | Enforces test quality and coverage metrics |
 | **Alexandria** | Context Engineering | Enforces context quality for AI agents and documentation |
 
 ### Our Value Proposition
 
-**"If ESLint is for code quality and TypeScript is for type safety, Alexandria is for context integrity in agentic development."**
+**"If ESLint is for code quality, TypeScript is for type safety, and Knip is for dead code detection, Alexandria is for context integrity in agentic development."**
 
 We ensure that:
-- AI agents receive spatially-organized context through CodebaseViews
+- AI agents receive well-organized context through CodebaseViews
 - Documentation serves as high-quality context for agent decision-making
+- Dead code is identified to prevent context pollution (via Knip integration)
 - Teams build accumulated knowledge that enhances agent performance
 - Context quality metrics become as measurable as code quality
 
@@ -35,6 +37,7 @@ Alexandria Framework
 ├── CLI (alexandria)
 ├── Rules Engine
 ├── Reporting & Metrics
+├── Dead Code Integration (Knip)
 └── Editor Integration (MCP)
 ```
 
@@ -49,7 +52,14 @@ Alexandria Framework
     "max-unreviewed-docs": ["warn", 10],
     "stale-documentation": ["error", { "days": 90 }],
     "missing-code-references": "warn",
-    "orphaned-views": "error"
+    "orphaned-views": "error",
+    "dead-code-context": "error"
+  },
+  "integrations": {
+    "knip": {
+      "enabled": true,
+      "removeDeadContext": true
+    }
   },
   "views": {
     "autoCreate": true,
@@ -77,6 +87,7 @@ npm install @alexandria/config-enterprise
 # Basic linting
 alexandria lint                    # Check context quality
 alexandria lint --fix             # Auto-fix issues
+alexandria lint --with-knip       # Include dead code analysis
 
 # Initialization
 alexandria init                   # Interactive setup
@@ -88,6 +99,9 @@ alexandria lint --max-warnings 0  # Strict mode
 
 # Watch mode
 alexandria watch                  # Real-time validation
+
+# Holistic analysis
+alexandria analyze                # Run full suite: context + dead code
 ```
 
 ### 3. Rules Engine
@@ -99,6 +113,7 @@ alexandria watch                  # Real-time validation
 - `valid-view-structure`: Each view cell must contain at least one valid file reference
 - `orphaned-views`: Views must reference existing files to maintain context accuracy
 - `context-completeness`: Critical code areas must have associated context documentation
+- `dead-code-context`: Context references to deleted/unused code (integrates with Knip)
 
 **Quality Rules** (warnings)
 - `stale-context`: Context unchanged for X days while code evolved
@@ -133,6 +148,7 @@ warning: docs/api.md context has not been updated in 120 days
 - **Agent Success Rate**: Correlation with context quality
 - **Context Freshness**: Age vs code change frequency
 - **View Completeness**: % of views with all cells populated
+- **Dead Code Ratio**: % of context pointing to unused code (via Knip)
 - **Token Efficiency**: Context value per token consumed
 
 ## Adoption Strategy
@@ -148,6 +164,7 @@ warning: docs/api.md context has not been updated in 120 days
 - [ ] Create .alexandriarc.json configuration
 - [ ] Build shareable config packages
 - [ ] Add --fix capability for auto-remediation
+- [ ] Integrate Knip for dead code detection
 
 ### Phase 3: Developer Experience (Q2 2025)
 - [ ] VS Code extension for real-time linting
@@ -239,18 +256,19 @@ jobs:
 
 ## Comparison Matrix
 
-| Feature | ESLint | TypeScript | Alexandria |
-|---------|--------|------------|-------------|
-| Configuration File | .eslintrc | tsconfig.json | .alexandriarc.json |
-| CLI Tool | eslint | tsc | alexandria |
-| Auto-fix | ✅ --fix | ❌ | ✅ --fix |
-| Watch Mode | ✅ | ✅ --watch | ✅ watch |
-| Shareable Configs | ✅ | ✅ extends | ✅ extends |
-| Custom Rules | ✅ plugins | ❌ | 🔄 (planned) |
-| Editor Integration | ✅ | ✅ | 🔄 (in progress) |
-| CI/CD Actions | ✅ | ✅ | 🔄 (planned) |
-| Ignore Patterns | ✅ | ✅ | ✅ |
-| Severity Levels | ✅ | ❌ | ✅ |
+| Feature | ESLint | TypeScript | Knip | Alexandria |
+|---------|--------|------------|------|------------|
+| Configuration File | .eslintrc | tsconfig.json | knip.json | .alexandriarc.json |
+| CLI Tool | eslint | tsc | knip | alexandria |
+| Auto-fix | ✅ --fix | ❌ | ✅ --fix | ✅ --fix |
+| Watch Mode | ✅ | ✅ --watch | ✅ --watch | ✅ watch |
+| Shareable Configs | ✅ | ✅ extends | ✅ | ✅ extends |
+| Custom Rules | ✅ plugins | ❌ | ✅ plugins | 🔄 (planned) |
+| Editor Integration | ✅ | ✅ | ✅ | 🔄 (in progress) |
+| CI/CD Actions | ✅ | ✅ | ✅ | 🔄 (planned) |
+| Ignore Patterns | ✅ | ✅ | ✅ | ✅ |
+| Severity Levels | ✅ | ❌ | ✅ | ✅ |
+| Dead Code Detection | ❌ | ❌ | ✅ | ✅ (via integration) |
 
 ## Marketing & Messaging
 
@@ -287,6 +305,7 @@ As AI agents become primary contributors to codebases, the quality of context th
 - **Bug Detection**: Agents understand system constraints and edge cases
 - **Refactoring Safety**: Agents know architectural decisions and patterns
 - **Feature Development**: Agents build on accumulated team knowledge
+- **Dead Code Awareness**: Agents avoid referencing or using obsolete code paths
 
 ### The Context Quality Crisis
 Current approaches fail because:
@@ -300,12 +319,15 @@ Alexandria solves this by:
 - **Structured Organization**: CodebaseViews create logical groupings of related files
 - **Direct Anchoring**: Context tied directly to code locations
 - **Living Documentation**: Context evolves with code through git
+- **Dead Code Detection**: Knip integration prevents context pollution
 - **Measurable Quality**: Lint-like rules ensure context completeness
 
 ## Conclusion
 
 By positioning Alexandria as the context engineering standard for agentic development, we address the most critical bottleneck in AI-assisted software development: **context quality**. 
 
-Just as ESLint made code style measurable and TypeScript made type safety enforceable, Alexandria makes context quality for AI agents a quantifiable, improvable metric.
+Just as ESLint made code style measurable, TypeScript made type safety enforceable, and Knip made dead code detectable, Alexandria makes context quality for AI agents a quantifiable, improvable metric.
+
+The integration with tools like Knip ensures a **holistic approach** to codebase health—not just having good documentation, but ensuring that documentation points to living, relevant code. This prevents AI agents from learning from or referencing obsolete patterns.
 
 The future of software development is agentic. The teams that master context engineering will build better software, faster, with AI agents that truly understand their codebases.
