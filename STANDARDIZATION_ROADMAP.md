@@ -96,7 +96,7 @@ memory-palace watch                  # Real-time validation
 
 **Critical Rules** (errors)
 - `require-view-association`: Every .md file must belong to a view for proper context mapping
-- `valid-view-structure`: Views must have valid grid coordinates for spatial navigation
+- `valid-view-structure`: Each view cell must contain at least one valid file reference
 - `orphaned-views`: Views must reference existing files to maintain context accuracy
 - `context-completeness`: Critical code areas must have associated context documentation
 
