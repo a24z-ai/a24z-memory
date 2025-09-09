@@ -2,10 +2,7 @@
 
 <div align="center">
   <h1>Alexandria</h1>
-  <p><strong>The Unified Context Layer for AI Development</strong></p>
-  <h3>
-    Context Engineering → Agent Orchestration → 10x Velocity
-  </h3>
+  <p><strong>The Unified Context Layer for Agentic Development</strong></p>
   <p><em>The 8-Week Path to Market Dominance</em></p>
 </div>
 
@@ -14,7 +11,7 @@
 **What We Are**: Alexandria is the breakthrough **Development Agent Orchestration** platform that transforms how AI agents collaborate on software projects.
 
 **Our Innovation**: 
-- 🚀 **Not just context improvement** — full multi-agent orchestration
+- 🚀 **Not just context improvement** — up-to-date unified context layer
 - 🤝 **Seamless agent collaboration** — Cursor, Copilot, Claude working as one team  
 - ⚡ **10x development velocity** — while dramatically improving code quality
 
