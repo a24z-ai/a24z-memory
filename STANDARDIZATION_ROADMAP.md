@@ -1,8 +1,8 @@
-# a24z-Memory Standardization Roadmap
+# Alexandria Standardization Roadmap
 
 ## Executive Summary
 
-a24z-Memory establishes the industry standard for **context engineering** in agentic development. As AI agents become integral to software development, the quality of context they receive determines their effectiveness. We provide a "context linting" system through **CodebaseViews** that ensures AI agents have accurate, spatially-organized, and semantically-rich understanding of your codebase.
+Alexandria establishes the industry standard for **context engineering** in agentic development. As AI agents become integral to software development, the quality of context they receive determines their effectiveness. We provide a "context linting" system through **CodebaseViews** that ensures AI agents have accurate, well-organized, and semantically-rich understanding of your codebase.
 
 ## Product Positioning
 
@@ -13,11 +13,11 @@ a24z-Memory establishes the industry standard for **context engineering** in age
 | **ESLint** | Code Style | Enforces consistent code formatting and patterns |
 | **TypeScript** | Type Safety | Enforces type correctness and compile-time checks |
 | **Jest/Vitest** | Test Coverage | Enforces test quality and coverage metrics |
-| **a24z-Memory** | Context Engineering | Enforces context quality for AI agents and documentation |
+| **Alexandria** | Context Engineering | Enforces context quality for AI agents and documentation |
 
 ### Our Value Proposition
 
-**"If ESLint is for code quality and TypeScript is for type safety, a24z-Memory is for context integrity in agentic development."**
+**"If ESLint is for code quality and TypeScript is for type safety, Alexandria is for context integrity in agentic development."**
 
 We ensure that:
 - AI agents receive spatially-organized context through CodebaseViews
@@ -30,9 +30,9 @@ We ensure that:
 ### Core Components (Similar to ESLint/TypeScript)
 
 ```
-a24z-Memory Framework
-├── Configuration (.a24zrc.json)
-├── CLI (memory-palace)
+Alexandria Framework
+├── Configuration (.alexandriarc.json)
+├── CLI (alexandria)
 ├── Rules Engine
 ├── Reporting & Metrics
 └── Editor Integration (MCP)
@@ -40,10 +40,10 @@ a24z-Memory Framework
 
 ### 1. Configuration System
 
-#### Default Configuration (.a24zrc.json)
+#### Default Configuration (.alexandriarc.json)
 ```json
 {
-  "extends": "@a24z/recommended",
+  "extends": "@alexandria/recommended",
   "rules": {
     "require-view-association": "error",
     "max-unreviewed-docs": ["warn", 10],
@@ -66,28 +66,28 @@ a24z-Memory Framework
 
 #### Shareable Configs (Like ESLint)
 ```bash
-npm install @a24z/config-strict
-npm install @a24z/config-minimal
-npm install @a24z/config-enterprise
+npm install @alexandria/config-strict
+npm install @alexandria/config-minimal
+npm install @alexandria/config-enterprise
 ```
 
 ### 2. CLI Commands (Like ESLint/TSC)
 
 ```bash
 # Basic linting
-memory-palace lint                    # Check documentation quality
-memory-palace lint --fix             # Auto-fix issues
+alexandria lint                    # Check context quality
+alexandria lint --fix             # Auto-fix issues
 
 # Initialization
-memory-palace init                   # Interactive setup
-memory-palace init --config strict   # Use preset config
+alexandria init                   # Interactive setup
+alexandria init --config strict   # Use preset config
 
 # CI/CD Integration
-memory-palace lint --format json     # For CI pipelines
-memory-palace lint --max-warnings 0  # Strict mode
+alexandria lint --format json     # For CI pipelines
+alexandria lint --max-warnings 0  # Strict mode
 
 # Watch mode
-memory-palace watch                  # Real-time validation
+alexandria watch                  # Real-time validation
 ```
 
 ### 3. Rules Engine
@@ -145,7 +145,7 @@ warning: docs/api.md context has not been updated in 120 days
 
 ### Phase 2: Standardization (Q1 2025)
 - [ ] Implement rules engine
-- [ ] Create .a24zrc.json configuration
+- [ ] Create .alexandriarc.json configuration
 - [ ] Build shareable config packages
 - [ ] Add --fix capability for auto-remediation
 
@@ -170,15 +170,15 @@ warning: docs/api.md context has not been updated in 120 days
 ## Implementation Priorities
 
 ### Immediate (Next 2 Weeks)
-1. Standardize configuration format (.a24zrc.json)
+1. Standardize configuration format (.alexandriarc.json)
 2. Implement basic rules engine with 3-5 core rules
 3. Add `lint` command with error/warning/info levels
-4. Create `@a24z/recommended` config package
+4. Create `@alexandria/recommended` config package
 
 ### Short Term (Next Month)
 1. Build --fix capability for auto-association
 2. Add GitHub Actions workflow template
-3. Create installation wizard (`memory-palace init`)
+3. Create installation wizard (`alexandria init`)
 4. Implement watch mode for development
 
 ### Medium Term (Next Quarter)
@@ -190,7 +190,7 @@ warning: docs/api.md context has not been updated in 120 days
 ## Success Metrics
 
 ### Adoption Indicators
-- Number of repos using a24z-Memory for context engineering
+- Number of repos using Alexandria for context engineering
 - Weekly npm downloads from AI development teams
 - GitHub stars and forks from agentic development community
 - Community contributions to context patterns
@@ -206,17 +206,17 @@ warning: docs/api.md context has not been updated in 120 days
 
 ### CI/CD Pipeline
 ```yaml
-# .github/workflows/documentation.yml
-name: Documentation Quality
+# .github/workflows/context-quality.yml
+name: Context Quality Check
 on: [push, pull_request]
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: a24z/memory-action@v1
+      - uses: alexandria/action@v1
         with:
-          config: .a24zrc.json
+          config: .alexandriarc.json
           fail-on-error: true
 ```
 
@@ -225,7 +225,7 @@ jobs:
 {
   "husky": {
     "hooks": {
-      "pre-commit": "memory-palace lint --max-warnings 0"
+      "pre-commit": "alexandria lint --max-warnings 0"
     }
   }
 }
@@ -239,10 +239,10 @@ jobs:
 
 ## Comparison Matrix
 
-| Feature | ESLint | TypeScript | a24z-Memory |
+| Feature | ESLint | TypeScript | Alexandria |
 |---------|--------|------------|-------------|
-| Configuration File | .eslintrc | tsconfig.json | .a24zrc.json |
-| CLI Tool | eslint | tsc | memory-palace |
+| Configuration File | .eslintrc | tsconfig.json | .alexandriarc.json |
+| CLI Tool | eslint | tsc | alexandria |
 | Auto-fix | ✅ --fix | ❌ | ✅ --fix |
 | Watch Mode | ✅ | ✅ --watch | ✅ watch |
 | Shareable Configs | ✅ | ✅ extends | ✅ extends |
@@ -255,25 +255,25 @@ jobs:
 ## Marketing & Messaging
 
 ### Tagline Options
-- "Context Engineering for Agentic Development"
-- "The ESLint for AI Context Quality"
-- "Make Your Codebase AI-Native"
+- "Alexandria: The Context Library for Agentic Development"
+- "Where Knowledge Meets Intelligence"
+- "The Standard for AI Context Engineering"
 
 ### Key Messages
-1. **For AI-First Developers**: "Give your agents the context they deserve"
-2. **For Team Leads**: "Measure and improve agent performance through better context"
-3. **For Organizations**: "Transform tribal knowledge into agent intelligence"
-4. **For Open Source**: "Make your project instantly understandable to AI contributors"
+1. **For AI-First Developers**: "Build your codebase's knowledge library for AI agents"
+2. **For Team Leads**: "Preserve and share team wisdom through structured context"
+3. **For Organizations**: "Transform institutional knowledge into competitive advantage"
+4. **For Open Source**: "Make your project's context as accessible as its code"
 
 ### Badge System
 ```markdown
-[![Documentation: a24z](https://img.shields.io/badge/documentation-a24z-green.svg)](https://a24z.ai)
-[![Docs Coverage](https://img.shields.io/badge/docs-95%25-brightgreen.svg)](https://a24z.ai)
+[![Context: Alexandria](https://img.shields.io/badge/context-alexandria-purple.svg)](https://alexandria.dev)
+[![Context Coverage](https://img.shields.io/badge/context-95%25-brightgreen.svg)](https://alexandria.dev)
 ```
 
 ## Next Steps
 
-1. **Finalize Configuration Schema**: Define the complete .a24zrc.json structure
+1. **Finalize Configuration Schema**: Define the complete .alexandriarc.json structure
 2. **Build Rules Engine**: Implement core rule set with error/warning/info levels
 3. **Create Init Wizard**: Interactive setup like `eslint --init`
 4. **Develop GitHub Action**: Official action for CI/CD integration
@@ -296,7 +296,7 @@ Current approaches fail because:
 - **PR History**: Buried in git, not accessible during development
 
 ### Our Solution: Structured Context Engineering
-a24z-Memory solves this by:
+Alexandria solves this by:
 - **Structured Organization**: CodebaseViews create logical groupings of related files
 - **Direct Anchoring**: Context tied directly to code locations
 - **Living Documentation**: Context evolves with code through git
@@ -304,8 +304,8 @@ a24z-Memory solves this by:
 
 ## Conclusion
 
-By positioning a24z-Memory as the context engineering standard for agentic development, we address the most critical bottleneck in AI-assisted software development: **context quality**. 
+By positioning Alexandria as the context engineering standard for agentic development, we address the most critical bottleneck in AI-assisted software development: **context quality**. 
 
-Just as ESLint made code style measurable and TypeScript made type safety enforceable, a24z-Memory makes context quality for AI agents a quantifiable, improvable metric.
+Just as ESLint made code style measurable and TypeScript made type safety enforceable, Alexandria makes context quality for AI agents a quantifiable, improvable metric.
 
 The future of software development is agentic. The teams that master context engineering will build better software, faster, with AI agents that truly understand their codebases.
