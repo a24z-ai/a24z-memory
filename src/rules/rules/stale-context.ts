@@ -1,7 +1,7 @@
 import { LibraryRule, LibraryRuleViolation, LibraryRuleContext } from '../types';
 import { execSync } from 'child_process';
 import { join } from 'path';
-import { getViewsDir, getNotesDir } from '../../utils/alexandria-paths';
+import { getNotesDir } from '../../utils/alexandria-paths';
 
 export const staleContext: LibraryRule = {
   id: 'stale-context',
@@ -35,12 +35,15 @@ export const staleContext: LibraryRule = {
 
       // Check views with overview files
       for (const view of views) {
-        const viewPath = join(getViewsDir(projectRoot), `${view.name}.json`);
-        const viewLastModified = getLastGitModified(viewPath);
+        // Only check views that have an overview file
+        if (!view.overviewPath) continue;
 
-        if (!viewLastModified) continue;
+        const overviewPath = join(projectRoot, view.overviewPath);
+        const overviewLastModified = getLastGitModified(overviewPath);
 
-        // Check if any referenced files have been modified after the view
+        if (!overviewLastModified) continue;
+
+        // Check if any referenced files have been modified after the overview
         let newestFileModification: Date | null = null;
         let newestFile: string | null = null;
 
@@ -64,15 +67,16 @@ export const staleContext: LibraryRule = {
           }
         }
 
-        if (newestFileModification && newestFileModification > viewLastModified) {
+        if (newestFileModification && newestFileModification > overviewLastModified) {
           const daysSinceUpdate = Math.floor(
-            (newestFileModification.getTime() - viewLastModified.getTime()) / (1000 * 60 * 60 * 24)
+            (newestFileModification.getTime() - overviewLastModified.getTime()) /
+              (1000 * 60 * 60 * 24)
           );
           violations.push({
             ruleId: this.id,
             severity: this.severity,
-            file: `views/${view.name}.json`,
-            message: `View "${view.name}" has not been updated for ${daysSinceUpdate} days since "${newestFile}" changed`,
+            file: view.overviewPath,
+            message: `Overview "${view.overviewPath}" has not been updated for ${daysSinceUpdate} days since "${newestFile}" changed`,
             impact: this.impact,
             fixable: this.fixable,
           });

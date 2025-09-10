@@ -79,9 +79,15 @@ views/architecture.json
 
 **Default Severity:** `warning` (configurable)
 
-**Description:** Identifies outdated or stale context in your documentation that may need updating.
+**Description:** Identifies when overview documentation hasn't been updated after the code files it references have changed. This rule checks the last Git modification date of the overview markdown file against all referenced files in the view.
 
-**Impact:** Outdated documentation can mislead AI agents about the current state of your codebase.
+**How it works:**
+- For views with an `overviewPath`, compares the overview file's last modification against all referenced code files
+- Reports how many days the overview is out of date relative to the most recently changed file
+- Only checks views that have an overview file defined
+- Uses Git history to determine modification dates
+
+**Impact:** Outdated documentation can mislead AI agents about the current state of your codebase, causing them to use obsolete patterns or incorrect assumptions.
 
 ## Configuration
 

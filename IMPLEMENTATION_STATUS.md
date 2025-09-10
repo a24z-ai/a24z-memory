@@ -27,7 +27,7 @@ Files: src/config/types.ts, src/config/schema.ts, src/config/loader.ts, src/conf
 - [x] Essential built-in rules:
   - `require-view-association` - Ensures docs are tracked
   - `orphaned-references` - Catches broken links
-  - `stale-context` - Warns about outdated content
+  - `stale-context` - Warns when overview docs are outdated relative to referenced code
 - [x] Console and JSON output formats
 
 ### ✅ Project Registry (Complete)

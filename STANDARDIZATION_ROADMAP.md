@@ -185,7 +185,7 @@ alexandria watch                  # Real-time validation (planned)
 - `dead-code-context`: Context references to deleted/unused code (integrates with Knip)
 
 **Quality Rules** (warnings)
-- `stale-context`: Context unchanged for X days while code evolved
+- `stale-context`: Overview documentation unchanged for X days while referenced code files evolved
 - `missing-code-references`: Context without file anchors reduces agent understanding
 - `unreviewed-category`: Too many unreviewed contexts risk agent hallucination
 - `context-coverage`: Low context coverage in high-complexity areas
@@ -205,9 +205,9 @@ error: README.md is not associated with any CodebaseView
   rule: require-view-association
   impact: AI agents lack structured context for project overview
 
-warning: docs/api.md context has not been updated in 120 days
+warning: docs/api.md has not been updated in 120 days since src/api/client.ts changed
   rule: stale-context
-  impact: Agents may use outdated patterns
+  impact: Agents may use outdated patterns from stale documentation
 
 4 errors and 8 warnings potentially fixable with --fix
 ```
