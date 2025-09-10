@@ -2,36 +2,39 @@
   "version": "0.1.0",
   "id": "Core Architecture",
   "name": "Core Architecture",
+  "description": "Pure functional core architecture with dependency injection",
+  "displayOrder": 4,
   "cells": {
     "abstractions": {
-      "patterns": [
-        "src/pure-core/abstractions/**/*"
+      "files": [
+        "src/pure-core/abstractions/filesystem.ts"
       ],
       "coordinates": [0, 0],
       "priority": 15,
       "color": "#4CAF50"
     },
     "stores": {
-      "patterns": [
-        "src/pure-core/stores/**/*"
+      "files": [
+        "src/pure-core/stores/AnchoredNotesStore.ts",
+        "src/pure-core/stores/A24zConfigurationStore.ts"
       ],
       "coordinates": [0, 1],
       "priority": 15,
       "color": "#2196F3"
     },
     "types-utils": {
-      "patterns": [
-        "src/pure-core/types/**/*",
-        "src/pure-core/utils/**/*"
+      "files": [
+        "src/pure-core/types/index.ts",
+        "src/pure-core/utils/validation.ts"
       ],
       "coordinates": [1, 0],
       "priority": 10,
       "color": "#FF9800"
     },
     "config-integration": {
-      "patterns": [
-        "src/pure-core/config/**/*",
-        "src/pure-core/**/*"
+      "files": [
+        "src/config/loader.ts",
+        "src/config/schema.ts"
       ],
       "coordinates": [1, 1],
       "priority": 5,

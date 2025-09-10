@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "name": "Architecture View",
   "description": "Codebase view extracted from documentation",
+  "displayOrder": 2,
   "rows": 1,
   "cols": 2,
   "cells": {

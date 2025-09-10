@@ -1,10 +1,15 @@
-import { readFileSync, existsSync } from 'fs';
 import { join, resolve } from 'path';
 import { AlexandriaConfig } from './types';
 import { CONFIG_FILENAMES, DEFAULT_CONFIG } from './schema';
+import { FileSystemAdapter } from '../pure-core/abstractions/filesystem';
 
 export class ConfigLoader {
   private configCache: Map<string, AlexandriaConfig> = new Map();
+  private fsAdapter: FileSystemAdapter;
+
+  constructor(fsAdapter: FileSystemAdapter) {
+    this.fsAdapter = fsAdapter;
+  }
 
   findConfigFile(startDir: string = process.cwd()): string | null {
     let currentDir = resolve(startDir);
@@ -13,7 +18,7 @@ export class ConfigLoader {
     while (currentDir !== root) {
       for (const filename of CONFIG_FILENAMES) {
         const configPath = join(currentDir, filename);
-        if (existsSync(configPath)) {
+        if (this.fsAdapter.exists(configPath)) {
           return configPath;
         }
       }
@@ -38,7 +43,7 @@ export class ConfigLoader {
     }
 
     try {
-      const content = readFileSync(path, 'utf-8');
+      const content = this.fsAdapter.readFile(path);
       const config = JSON.parse(content) as AlexandriaConfig;
 
       const merged = this.mergeWithDefaults(config);

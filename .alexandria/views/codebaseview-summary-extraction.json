@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "name": "CodebaseView Summary Extraction",
   "description": "Architecture and implementation of centralized CodebaseView summary extraction",
+  "displayOrder": 1,
   "rows": 2,
   "cols": 3,
   "cells": {

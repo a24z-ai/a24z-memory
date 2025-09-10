@@ -7,6 +7,7 @@ export const lintCommand = new Command('lint')
   .option('--fix', 'Automatically fix fixable violations')
   .option('--json', 'Output results as JSON')
   .option('--quiet', 'Only show errors')
+  .option('--errors-only', 'Exit with error code only if there are errors (not warnings)')
   .option('--enable <rules...>', 'Enable specific rules')
   .option('--disable <rules...>', 'Disable specific rules')
   .action(async (options) => {
@@ -22,7 +23,14 @@ export const lintCommand = new Command('lint')
 
     if (options.json) {
       console.log(JSON.stringify(result, null, 2));
-      process.exit(result.errorCount > 0 ? 1 : 0);
+      const exitCode = options.errorsOnly
+        ? result.errorCount > 0
+          ? 1
+          : 0
+        : result.violations.length > 0
+          ? 1
+          : 0;
+      process.exit(exitCode);
     }
 
     // Format output similar to ESLint
@@ -95,5 +103,7 @@ export const lintCommand = new Command('lint')
       );
     }
 
-    process.exit(errorCount > 0 ? 1 : 0);
+    // Determine exit code based on options
+    const exitCode = options.errorsOnly ? (errorCount > 0 ? 1 : 0) : violations.length > 0 ? 1 : 0;
+    process.exit(exitCode);
   });

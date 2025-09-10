@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/a24z-ai/alexandria/main/schema/alexandriarc.json",
+  "version": "1.0.0",
+  "context": {
+    "useGitignore": true,
+    "patterns": {
+      "exclude": [".alexandria/**"]
+    },
+    "rules": [
+      {
+        "id": "require-view-association",
+        "name": "Require View Association",
+        "severity": "warning",
+        "enabled": true
+      },
+      {
+        "id": "orphaned-references", 
+        "name": "Orphaned References",
+        "severity": "warning",
+        "enabled": true
+      }
+    ]
+  }
+}

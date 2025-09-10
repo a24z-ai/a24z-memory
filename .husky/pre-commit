@@ -13,3 +13,21 @@ npm run test:mcp
 # Run tests
 echo "Running tests..."
 npm test
+
+# Alexandria validation
+echo "Running Alexandria validation..."
+npx alexandria validate-all --errors-only || {
+  echo "❌ Alexandria validation failed (errors found)"
+  echo "   Run 'alexandria validate-all' to see details"
+  exit 1
+}
+
+echo "Running Alexandria lint..."
+npx alexandria lint --errors-only 2>/dev/null || {
+  # Only fail if lint exits with non-zero code
+  if [ $? -ne 0 ]; then
+    echo "❌ Alexandria lint failed"
+    echo "   Run 'alexandria lint' to see details"
+    exit 1
+  fi
+}

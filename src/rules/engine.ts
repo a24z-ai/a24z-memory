@@ -11,7 +11,7 @@ import { orphanedReferences } from './rules/orphaned-references';
 import { staleContext } from './rules/stale-context';
 import { statSync, readdirSync } from 'fs';
 import { join, relative } from 'path';
-import { AlexandriaConfig } from '../config/types';
+import { AlexandriaConfig, RuleSeverity } from '../config/types';
 import { ConfigLoader } from '../config/loader';
 import { ValidatedRepositoryPath } from '../pure-core/types';
 import { MemoryPalace } from '../MemoryPalace';
@@ -19,9 +19,14 @@ import { NodeFileSystemAdapter } from '../node-adapters/NodeFileSystemAdapter';
 
 export class LibraryRulesEngine {
   private rules: Map<string, LibraryRule> = new Map();
-  private configLoader = new ConfigLoader();
+  private configLoader: ConfigLoader;
+  private fsAdapter: NodeFileSystemAdapter;
 
   constructor() {
+    // Create file system adapter
+    this.fsAdapter = new NodeFileSystemAdapter();
+    this.configLoader = new ConfigLoader(this.fsAdapter);
+
     // Register built-in rules
     this.registerRule(requireViewAssociation);
     this.registerRule(orphanedReferences);
@@ -121,6 +126,17 @@ export class LibraryRulesEngine {
       gitignorePatterns,
     };
 
+    // Build a map of rule configuration overrides from config
+    const ruleOverrides = new Map<string, { severity?: RuleSeverity; enabled?: boolean }>();
+    if (config?.context?.rules) {
+      for (const ruleConfig of config.context.rules) {
+        ruleOverrides.set(ruleConfig.id, {
+          severity: ruleConfig.severity,
+          enabled: ruleConfig.enabled,
+        });
+      }
+    }
+
     // Run enabled rules
     const violations: LibraryRuleViolation[] = [];
     for (const [ruleId, rule] of this.rules) {
@@ -129,10 +145,22 @@ export class LibraryRulesEngine {
         continue;
       }
 
+      // Check if rule is enabled (with config override)
+      const override = ruleOverrides.get(ruleId);
+      const isEnabled = override?.enabled ?? rule.enabled;
+
       // Only run enabled rules (or all if no specific list provided)
       if (!options.enabledRules || options.enabledRules.includes(ruleId)) {
-        if (rule.enabled) {
+        if (isEnabled) {
           const ruleViolations = await rule.check(context);
+
+          // Apply severity override from config
+          if (override?.severity) {
+            for (const violation of ruleViolations) {
+              violation.severity = override.severity;
+            }
+          }
+
           violations.push(...ruleViolations);
         }
       }

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "name": "project-readme",
   "description": "Main project README documentation",
+  "displayOrder": 3,
   "rows": 3,
   "cols": 3,
   "cells": {

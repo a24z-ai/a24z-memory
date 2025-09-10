@@ -23,6 +23,7 @@ import { lintCommand } from './cli-alexandria/commands/lint.js';
 import { createUpdateCommand } from './cli-alexandria/commands/update.js';
 import { createStatusCommand } from './cli-alexandria/commands/status.js';
 import { createAgentsCommand } from './cli-alexandria/commands/agents.js';
+import { createHooksCommand } from './cli-alexandria/commands/hooks.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -41,6 +42,7 @@ program
 program.addCommand(createInitCommand());
 program.addCommand(createStatusCommand());
 program.addCommand(createAgentsCommand());
+program.addCommand(createHooksCommand());
 program.addCommand(lintCommand);
 program.addCommand(createListCommand());
 program.addCommand(createSaveCommand());

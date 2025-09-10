@@ -13,6 +13,7 @@ import { MemoryPalace } from '../../MemoryPalace.js';
 import { getGitRemoteUrl } from '../../projects-core/utils.js';
 import { getAlexandriaWorkflowTemplate } from '../templates/alexandria-workflow.js';
 import { ALEXANDRIA_DIRS } from '../../constants/paths';
+import { execSync } from 'node:child_process';
 
 function prompt(question: string): Promise<string> {
   const rl = readline.createInterface({
@@ -44,6 +45,8 @@ export function createInitCommand(): Command {
     .option('-f, --force', 'Overwrite existing configuration')
     .option('--no-register', 'Skip registering project in global registry')
     .option('--no-workflow', 'Skip GitHub workflow setup')
+    .option('--no-agents', 'Skip adding Alexandria guidance to AGENTS.md')
+    .option('--no-hooks', 'Skip setting up husky pre-commit hooks')
     .action(async (options) => {
       try {
         const repoPath = process.cwd();
@@ -122,6 +125,94 @@ export function createInitCommand(): Command {
           }
         }
 
+        // Ask about AGENTS.md if not opted out
+        if (options.agents !== false) {
+          console.log('');
+          const installAgents = await promptYesNo(
+            '📚 Would you like to add Alexandria guidance to AGENTS.md?\n   This helps AI assistants understand Alexandria commands',
+            true
+          );
+
+          if (installAgents) {
+            try {
+              // Use the agents command functionality
+              const agentsPath = path.join(repoPath, 'AGENTS.md');
+
+              // Check if AGENTS.md exists and has Alexandria section
+              let hasAgentsFile = fs.existsSync(agentsPath);
+              let hasAlexandriaSection = false;
+
+              if (hasAgentsFile) {
+                const content = fs.readFileSync(agentsPath, 'utf8');
+                hasAlexandriaSection = content.includes('## Alexandria');
+              }
+
+              if (!hasAgentsFile) {
+                // Create AGENTS.md with Alexandria guidance
+                execSync('npx alexandria agents --add', {
+                  cwd: repoPath,
+                  stdio: 'pipe',
+                });
+                console.log('✅ Created AGENTS.md with Alexandria guidance');
+              } else if (!hasAlexandriaSection) {
+                // Add Alexandria section to existing AGENTS.md
+                execSync('npx alexandria agents --add', {
+                  cwd: repoPath,
+                  stdio: 'pipe',
+                });
+                console.log('✅ Added Alexandria guidance to AGENTS.md');
+              } else {
+                console.log('ℹ️  AGENTS.md already contains Alexandria guidance');
+              }
+            } catch (error) {
+              console.warn(
+                `⚠️  Could not add Alexandria guidance to AGENTS.md: ${error instanceof Error ? error.message : error}`
+              );
+            }
+          }
+        }
+
+        // Ask about husky hooks if not opted out
+        if (options.hooks !== false && fs.existsSync(path.join(repoPath, '.git'))) {
+          console.log('');
+          const installHooks = await promptYesNo(
+            '🪝 Would you like to set up husky pre-commit hooks?\n   This will validate Alexandria views before each commit',
+            true
+          );
+
+          if (installHooks) {
+            try {
+              // Check if husky is installed
+              const huskyPath = path.join(repoPath, '.husky');
+              const hasHusky = fs.existsSync(huskyPath);
+
+              if (!hasHusky) {
+                // Initialize husky
+                console.log('📦 Installing husky...');
+                execSync('npm install --save-dev husky', {
+                  cwd: repoPath,
+                  stdio: 'inherit',
+                });
+                execSync('npx husky init', {
+                  cwd: repoPath,
+                  stdio: 'inherit',
+                });
+              }
+
+              // Add Alexandria hooks
+              execSync('npx alexandria hooks --add', {
+                cwd: repoPath,
+                stdio: 'pipe',
+              });
+              console.log('✅ Added Alexandria validation to pre-commit hooks');
+            } catch (error) {
+              console.warn(
+                `⚠️  Could not set up husky hooks: ${error instanceof Error ? error.message : error}`
+              );
+            }
+          }
+        }
+
         // Ask about GitHub workflow if not opted out
         if (options.workflow !== false && fs.existsSync(path.join(repoPath, '.git'))) {
           console.log('');
@@ -162,8 +253,24 @@ export function createInitCommand(): Command {
         console.log('\nNext steps:');
         console.log('  1. Run: alexandria list');
         console.log('  2. Add docs to library: alexandria add-doc <path>');
-        if (fs.existsSync(path.join(repoPath, '.github', 'workflows', 'alexandria.yml'))) {
-          console.log('  3. Commit and push to activate GitHub workflow');
+
+        const hasWorkflow = fs.existsSync(
+          path.join(repoPath, '.github', 'workflows', 'alexandria.yml')
+        );
+        const hasHooks =
+          fs.existsSync(path.join(repoPath, '.husky', 'pre-commit')) &&
+          fs
+            .readFileSync(path.join(repoPath, '.husky', 'pre-commit'), 'utf8')
+            .includes('alexandria');
+
+        if (hasWorkflow || hasHooks) {
+          console.log('  3. Commit your changes to:');
+          if (hasWorkflow) {
+            console.log('     • Activate GitHub workflow');
+          }
+          if (hasHooks) {
+            console.log('     • Enable pre-commit validation');
+          }
         }
       } catch (error) {
         console.error('Error:', error instanceof Error ? error.message : String(error));
