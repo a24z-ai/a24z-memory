@@ -2,7 +2,7 @@
 
 <div align="center">
 <h1>Context Engineering Should be as Easy as Linting</h1>
-<p>This is how you do it: During onboarding we add references to the documentation and our reference system maintains it as your code changes with hooks and configurable validations.</p>
+<p>This is how you do it: During onboarding we add references to your documentation and our context management system ensures it is maintained as your code changes</p>
 </div>
 
 <div align="center">
