@@ -56,6 +56,8 @@ If the project has a pre-commit hook configured, `alexandria lint` will run auto
 - Stale context that needs updating
 - Invalid view structures
 
+For detailed information about hooks, rules, and configuration options, see [docs/HOOKS_AND_RULES.md](../docs/HOOKS_AND_RULES.md).
+
 ### Repository Views
 
 For projects with GitHub integration, codebase views are automatically published to:
