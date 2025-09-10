@@ -9,6 +9,7 @@ import {
 import { requireViewAssociation } from './rules/require-view-association';
 import { orphanedReferences } from './rules/orphaned-references';
 import { staleContext } from './rules/stale-context';
+import { documentOrganization } from './rules/document-organization';
 import { statSync, readdirSync } from 'fs';
 import { join, relative } from 'path';
 import { AlexandriaConfig, RuleSeverity } from '../config/types';
@@ -31,6 +32,7 @@ export class LibraryRulesEngine {
     this.registerRule(requireViewAssociation);
     this.registerRule(orphanedReferences);
     this.registerRule(staleContext);
+    this.registerRule(documentOrganization);
   }
 
   registerRule(rule: LibraryRule): void {
@@ -124,6 +126,7 @@ export class LibraryRulesEngine {
       files,
       markdownFiles,
       gitignorePatterns,
+      config: config || undefined,
     };
 
     // Build a map of rule configuration overrides from config

@@ -1,7 +1,8 @@
 import { ValidatedRepositoryPath, CodebaseView, AnchoredNoteWithPath } from '../pure-core/types';
+import { AlexandriaConfig, RuleOptions } from '../config/types';
 
 export type LibraryRuleSeverity = 'error' | 'warning' | 'info';
-export type LibraryRuleCategory = 'critical' | 'quality' | 'performance';
+export type LibraryRuleCategory = 'critical' | 'quality' | 'performance' | 'structure';
 
 export interface LibraryRuleViolation {
   ruleId: string;
@@ -37,6 +38,7 @@ export interface LibraryRuleContext {
   markdownFiles: FileInfo[];
   gitHistory?: Map<string, GitFileHistory>;
   gitignorePatterns?: string[];
+  config?: AlexandriaConfig;
 }
 
 export interface LibraryRule {
@@ -48,6 +50,7 @@ export interface LibraryRule {
   impact: string;
   fixable: boolean;
   enabled: boolean;
+  options?: RuleOptions; // Default options for the rule
   check: (context: LibraryRuleContext) => Promise<LibraryRuleViolation[]>;
   fix?: (violation: LibraryRuleViolation, context: LibraryRuleContext) => Promise<void>;
 }

@@ -18,6 +18,26 @@
         "name": "Orphaned References",
         "severity": "warning",
         "enabled": true
+      },
+      {
+        "id": "document-organization",
+        "name": "Document Organization",
+        "severity": "info",
+        "enabled": true,
+        "options": {
+          "documentFolders": ["docs", "documentation"],
+          "rootExceptions": [
+            "README.md", 
+            "CHANGELOG.md", 
+            "CONTRIBUTING.md", 
+            "LICENSE.md", 
+            "SETUP.md",
+            "AGENTS.md",
+            "IMPLEMENTATION_STATUS.md",
+            "STANDARDIZATION_ROADMAP.md"
+          ],
+          "checkNested": true
+        }
       }
     ]
   }

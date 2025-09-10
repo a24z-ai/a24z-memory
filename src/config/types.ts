@@ -50,6 +50,22 @@ export interface AlexandriaConfig {
   };
 }
 
+// Rule-specific option types
+export interface DocumentOrganizationOptions {
+  documentFolders?: string[];
+  rootExceptions?: string[];
+  checkNested?: boolean;
+}
+
+export interface StaleContextOptions {
+  maxAgeDays?: number;
+}
+
+export type RuleOptions =
+  | DocumentOrganizationOptions
+  | StaleContextOptions
+  | Record<string, string | number | boolean | string[]>;
+
 export interface ContextRule {
   id: string;
   name: string;
@@ -58,6 +74,7 @@ export interface ContextRule {
   enabled?: boolean;
   pattern?: string;
   message?: string;
+  options?: RuleOptions;
   fix?: {
     type: FixType;
     suggestion?: string;
