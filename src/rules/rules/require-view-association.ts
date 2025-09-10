@@ -1,4 +1,5 @@
 import { LibraryRule, LibraryRuleViolation, LibraryRuleContext } from '../types';
+import { RequireViewAssociationOptions } from '../../config/types';
 import { ALEXANDRIA_DIRS } from '../../constants/paths';
 
 export const requireViewAssociation: LibraryRule = {
@@ -13,7 +14,11 @@ export const requireViewAssociation: LibraryRule = {
 
   async check(context: LibraryRuleContext): Promise<LibraryRuleViolation[]> {
     const violations: LibraryRuleViolation[] = [];
-    const { markdownFiles, views, notes } = context;
+    const { markdownFiles, views, notes, config } = context;
+
+    // Get options from config
+    const ruleConfig = config?.context?.rules?.find((r) => r.id === 'require-view-association');
+    const configOptions = ruleConfig?.options as RequireViewAssociationOptions | undefined;
 
     // Build a set of all markdown files that are associated with views or notes
     const associatedFiles = new Set<string>();
@@ -60,6 +65,11 @@ export const requireViewAssociation: LibraryRule = {
 
       // Skip alexandria's own files
       if (relativePath.startsWith(`${ALEXANDRIA_DIRS.PRIMARY}/`)) {
+        continue;
+      }
+
+      // Skip files explicitly excluded in config
+      if (configOptions?.excludeFiles?.includes(relativePath)) {
         continue;
       }
 

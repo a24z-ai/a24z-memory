@@ -1,0 +1,23 @@
+{
+  "id": "alexandria-rules-documentation",
+  "version": "1.0.0",
+  "name": "Alexandria Rules Documentation",
+  "description": "Codebase view extracted from documentation",
+  "rows": 1,
+  "cols": 1,
+  "cells": {},
+  "overviewPath": "docs/RULES.md",
+  "category": "other",
+  "displayOrder": 0,
+  "timestamp": "2025-09-10T17:00:23.643Z",
+  "metadata": {
+    "generationType": "user",
+    "ui": {
+      "enabled": true,
+      "rows": 1,
+      "cols": 1,
+      "showCellLabels": true,
+      "cellLabelPosition": "top"
+    }
+  }
+}

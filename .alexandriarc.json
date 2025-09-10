@@ -11,7 +11,15 @@
         "id": "require-view-association",
         "name": "Require View Association",
         "severity": "warning",
-        "enabled": true
+        "enabled": true,
+        "options": {
+          "excludeFiles": [
+            "LICENSE.md",
+            "AGENTS.md",
+            "CONTRIBUTING.md",
+            "CHANGELOG.md"
+          ]
+        }
       },
       {
         "id": "orphaned-references", 

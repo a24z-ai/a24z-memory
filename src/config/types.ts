@@ -50,9 +50,14 @@ export interface StaleContextOptions {
   maxAgeDays?: number;
 }
 
+export interface RequireViewAssociationOptions {
+  excludeFiles?: string[];
+}
+
 export type RuleOptions =
   | DocumentOrganizationOptions
   | StaleContextOptions
+  | RequireViewAssociationOptions
   | Record<string, string | number | boolean | string[]>;
 
 export interface ContextRule {
