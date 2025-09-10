@@ -6,7 +6,9 @@
  */
 
 import { Command } from 'commander';
-import { BRANDING } from './branding.js';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import { createListCommand } from './cli-alexandria/commands/list.js';
 import { createSaveCommand } from './cli-alexandria/commands/save.js';
 import { createValidateCommand } from './cli-alexandria/commands/validate.js';
@@ -18,13 +20,20 @@ import { createAutoCreateViewsCommand } from './cli-alexandria/commands/auto-cre
 import { createValidateAllCommand } from './cli-alexandria/commands/validate-all.js';
 import { createInitCommand } from './cli-alexandria/commands/init.js';
 import { lintCommand } from './cli-alexandria/commands/lint.js';
+import { createUpdateCommand } from './cli-alexandria/commands/update.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Get version from package.json
+const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf8'));
 
 const program = new Command();
 
 program
   .name('alexandria')
-  .description('Alexandria CLI - Codebase knowledge management')
-  .version(BRANDING.MCP_VERSION);
+  .description('Alexandria CLI - Unified Context Management')
+  .version(packageJson.version);
 
 // Add commands
 program.addCommand(createInitCommand());
@@ -38,6 +47,7 @@ program.addCommand(createAutoCreateViewsCommand());
 program.addCommand(createInstallWorkflowCommand());
 program.addCommand(createProjectsCommand());
 program.addCommand(createListUntrackedDocsCommand());
+program.addCommand(createUpdateCommand());
 
 // Parse command line arguments
 program.parse(process.argv);
