@@ -3,9 +3,9 @@ import { execSync } from 'child_process';
 import { join } from 'path';
 import { getNotesDir } from '../../utils/alexandria-paths';
 
-export const staleContext: LibraryRule = {
-  id: 'stale-context',
-  name: 'Stale Context',
+export const staleReferences: LibraryRule = {
+  id: 'stale-references',
+  name: 'Stale References',
   severity: 'warning',
   category: 'quality',
   description: 'Context documentation has not been updated since referenced files changed',

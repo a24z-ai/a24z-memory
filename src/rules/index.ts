@@ -14,6 +14,6 @@ export {
 export { CodebaseView, AnchoredNoteWithPath } from '../pure-core/types';
 
 export { LibraryRulesEngine } from './engine';
-export { requireViewAssociation } from './rules/require-view-association';
+export { requireReferences } from './rules/require-references';
 export { orphanedReferences } from './rules/orphaned-references';
-export { staleContext } from './rules/stale-context';
+export { staleReferences } from './rules/stale-references';

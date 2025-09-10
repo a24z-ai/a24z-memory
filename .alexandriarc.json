@@ -8,8 +8,8 @@
     },
     "rules": [
       {
-        "id": "require-view-association",
-        "name": "Require View Association",
+        "id": "require-references",
+        "name": "Require References",
         "severity": "warning",
         "enabled": true,
         "options": {

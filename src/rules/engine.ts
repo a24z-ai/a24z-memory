@@ -6,9 +6,9 @@ import {
   LibraryRuleSet,
   FileInfo,
 } from './types';
-import { requireViewAssociation } from './rules/require-view-association';
+import { requireReferences } from './rules/require-references';
 import { orphanedReferences } from './rules/orphaned-references';
-import { staleContext } from './rules/stale-context';
+import { staleReferences } from './rules/stale-references';
 import { documentOrganization } from './rules/document-organization';
 import { statSync, readdirSync } from 'fs';
 import { join, relative } from 'path';
@@ -29,9 +29,9 @@ export class LibraryRulesEngine {
     this.configLoader = new ConfigLoader(this.fsAdapter);
 
     // Register built-in rules
-    this.registerRule(requireViewAssociation);
+    this.registerRule(requireReferences);
     this.registerRule(orphanedReferences);
-    this.registerRule(staleContext);
+    this.registerRule(staleReferences);
     this.registerRule(documentOrganization);
   }
 

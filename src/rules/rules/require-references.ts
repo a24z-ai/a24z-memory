@@ -1,10 +1,10 @@
 import { LibraryRule, LibraryRuleViolation, LibraryRuleContext } from '../types';
-import { RequireViewAssociationOptions } from '../../config/types';
+import { RequireReferencesOptions } from '../../config/types';
 import { ALEXANDRIA_DIRS } from '../../constants/paths';
 
-export const requireViewAssociation: LibraryRule = {
-  id: 'require-view-association',
-  name: 'Require View Association',
+export const requireReferences: LibraryRule = {
+  id: 'require-references',
+  name: 'Require References',
   severity: 'error',
   category: 'critical',
   description: 'Every markdown file must be associated with at least one CodebaseView',
@@ -17,8 +17,8 @@ export const requireViewAssociation: LibraryRule = {
     const { markdownFiles, views, notes, config } = context;
 
     // Get options from config
-    const ruleConfig = config?.context?.rules?.find((r) => r.id === 'require-view-association');
-    const configOptions = ruleConfig?.options as RequireViewAssociationOptions | undefined;
+    const ruleConfig = config?.context?.rules?.find((r) => r.id === 'require-references');
+    const configOptions = ruleConfig?.options as RequireReferencesOptions | undefined;
 
     // Build a set of all markdown files that are associated with views or notes
     const associatedFiles = new Set<string>();

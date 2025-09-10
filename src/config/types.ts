@@ -46,18 +46,18 @@ export interface DocumentOrganizationOptions {
   checkNested?: boolean;
 }
 
-export interface StaleContextOptions {
+export interface StaleReferencesOptions {
   maxAgeDays?: number;
 }
 
-export interface RequireViewAssociationOptions {
+export interface RequireReferencesOptions {
   excludeFiles?: string[];
 }
 
 export type RuleOptions =
   | DocumentOrganizationOptions
-  | StaleContextOptions
-  | RequireViewAssociationOptions
+  | StaleReferencesOptions
+  | RequireReferencesOptions
   | Record<string, string | number | boolean | string[]>;
 
 export interface ContextRule {

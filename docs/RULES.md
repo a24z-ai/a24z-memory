@@ -50,7 +50,7 @@ src/components/Button.md
 
 ## Document Validation Rules
 
-### `require-view-association`
+### `require-references`
 
 **Purpose:** Ensures every markdown file in your repository is associated with at least one CodebaseView.
 
@@ -67,7 +67,7 @@ src/components/Button.md
 ```
 docs/API.md
     ✖ Markdown file "docs/API.md" is not associated with any CodebaseView
-      rule: require-view-association
+      rule: require-references
 ```
 
 **How to Fix:**
@@ -100,7 +100,7 @@ views/architecture.json
 - Update file paths if files were moved
 - Restore accidentally deleted files if they're still needed
 
-### `stale-context`
+### `stale-references`
 
 **Purpose:** Identifies when overview documentation hasn't been updated after the code files it references have changed.
 
@@ -118,7 +118,7 @@ views/architecture.json
 ```
 docs/api-overview.md
     ⚠ Overview "docs/api-overview.md" is 5 days behind the latest changes in referenced files
-      rule: stale-context
+      rule: stale-references
 ```
 
 **How to Fix:**
@@ -152,7 +152,7 @@ Configure rules in your `.alexandriarc.json` file:
         }
       },
       {
-        "id": "require-view-association",
+        "id": "require-references",
         "name": "Require View Association",
         "severity": "error",
         "enabled": true
@@ -164,7 +164,7 @@ Configure rules in your `.alexandriarc.json` file:
         "enabled": true
       },
       {
-        "id": "stale-context",
+        "id": "stale-references",
         "name": "Stale Context",
         "severity": "warning",
         "enabled": true
@@ -180,11 +180,11 @@ Rules can have three severity levels that affect both output display and exit co
 
 - **`error`** - Critical issues that should block commits (exit code 1)
   - Use for structural problems that break functionality
-  - Recommended for: `orphaned-references`, `require-view-association`
+  - Recommended for: `orphaned-references`, `require-references`
 
 - **`warning`** - Issues that should be fixed but don't block commits
   - Use for quality improvements that don't break functionality
-  - Recommended for: `document-organization`, `stale-context`
+  - Recommended for: `document-organization`, `stale-references`
 
 - **`info`** - Informational messages for awareness
   - Use for suggestions and non-critical observations
@@ -212,10 +212,10 @@ alexandria lint --quiet
 
 ```bash
 # Enable specific rules (others remain as configured)
-alexandria lint --enable document-organization require-view-association
+alexandria lint --enable document-organization require-references
 
 # Disable specific rules for this run
-alexandria lint --disable stale-context
+alexandria lint --disable stale-references
 
 # Combine with other options
 alexandria lint --enable document-organization --errors-only
@@ -267,12 +267,12 @@ For active development with frequent changes:
       "enabled": true
     },
     {
-      "id": "stale-context",
+      "id": "stale-references",
       "severity": "info",
       "enabled": true
     },
     {
-      "id": "require-view-association",
+      "id": "require-references",
       "severity": "warning",
       "enabled": true
     }
@@ -297,7 +297,7 @@ For mature projects with established documentation practices:
       }
     },
     {
-      "id": "require-view-association",
+      "id": "require-references",
       "severity": "error",
       "enabled": true
     },
@@ -307,7 +307,7 @@ For mature projects with established documentation practices:
       "enabled": true
     },
     {
-      "id": "stale-context",
+      "id": "stale-references",
       "severity": "warning",
       "enabled": true
     }
