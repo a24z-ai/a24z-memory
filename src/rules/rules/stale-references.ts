@@ -2,6 +2,7 @@ import { LibraryRule, LibraryRuleViolation, LibraryRuleContext } from '../types'
 import { execSync } from 'child_process';
 import { join } from 'path';
 import { getNotesDir } from '../../utils/alexandria-paths';
+import { statSync, existsSync } from 'fs';
 
 export const staleReferences: LibraryRule = {
   id: 'stale-references',
@@ -18,8 +19,20 @@ export const staleReferences: LibraryRule = {
     const { views, notes, projectRoot } = context;
 
     try {
-      // Helper to get last git modification date for a file
-      const getLastGitModified = (filePath: string): Date | null => {
+      // Helper to get last modification date for a file (git or filesystem)
+      const getLastModified = (filePath: string): Date | null => {
+        // First try to get filesystem modification time
+        try {
+          if (existsSync(filePath)) {
+            const stats = statSync(filePath);
+            return stats.mtime;
+          }
+        } catch {
+          // File doesn't exist
+        }
+
+        // Fallback to git modification time if file doesn't exist on filesystem
+        // (This can happen if we're checking git history)
         try {
           const relativePath = filePath.replace(projectRoot + '/', '');
           const gitCommand = `cd "${projectRoot}" && git log -1 --format=%at -- "${relativePath}" 2>/dev/null`;
@@ -39,7 +52,7 @@ export const staleReferences: LibraryRule = {
         if (!view.overviewPath) continue;
 
         const overviewPath = join(projectRoot, view.overviewPath);
-        const overviewLastModified = getLastGitModified(overviewPath);
+        const overviewLastModified = getLastModified(overviewPath);
 
         if (!overviewLastModified) continue;
 
@@ -54,7 +67,7 @@ export const staleReferences: LibraryRule = {
             if ('files' in cell && Array.isArray(cell.files)) {
               for (const file of cell.files) {
                 const filePath = join(projectRoot, file);
-                const fileModified = getLastGitModified(filePath);
+                const fileModified = getLastModified(filePath);
                 if (
                   fileModified &&
                   (!newestFileModification || fileModified > newestFileModification)
@@ -75,7 +88,14 @@ export const staleReferences: LibraryRule = {
           let timeMessage: string;
           if (hoursSinceUpdate < 24) {
             if (hoursSinceUpdate === 0) {
-              timeMessage = 'was modified after';
+              const minutesSinceUpdate = Math.floor(
+                (newestFileModification.getTime() - overviewLastModified.getTime()) / (1000 * 60)
+              );
+              if (minutesSinceUpdate <= 1) {
+                timeMessage = 'was modified just after';
+              } else {
+                timeMessage = `was modified ${minutesSinceUpdate} minutes after`;
+              }
             } else if (hoursSinceUpdate === 1) {
               timeMessage = 'has not been updated for 1 hour since';
             } else {
@@ -106,7 +126,7 @@ export const staleReferences: LibraryRule = {
         if (!noteWithPath.note.anchors || noteWithPath.note.anchors.length === 0) continue;
 
         const notePath = join(getNotesDir(projectRoot), `${noteWithPath.note.id}.json`);
-        const noteLastModified = getLastGitModified(notePath);
+        const noteLastModified = getLastModified(notePath);
 
         if (!noteLastModified) continue;
 
@@ -115,7 +135,7 @@ export const staleReferences: LibraryRule = {
 
         for (const anchorPath of noteWithPath.note.anchors) {
           const filePath = join(projectRoot, anchorPath);
-          const fileModified = getLastGitModified(filePath);
+          const fileModified = getLastModified(filePath);
           if (fileModified && (!newestFileModification || fileModified > newestFileModification)) {
             newestFileModification = fileModified;
             newestFile = anchorPath;
@@ -130,7 +150,14 @@ export const staleReferences: LibraryRule = {
           let timeMessage: string;
           if (hoursSinceUpdate < 24) {
             if (hoursSinceUpdate === 0) {
-              timeMessage = 'was modified after';
+              const minutesSinceUpdate = Math.floor(
+                (newestFileModification.getTime() - noteLastModified.getTime()) / (1000 * 60)
+              );
+              if (minutesSinceUpdate <= 1) {
+                timeMessage = 'was modified just after';
+              } else {
+                timeMessage = `was modified ${minutesSinceUpdate} minutes after`;
+              }
             } else if (hoursSinceUpdate === 1) {
               timeMessage = 'has not been updated for 1 hour since';
             } else {

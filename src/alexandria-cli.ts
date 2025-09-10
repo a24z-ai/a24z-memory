@@ -25,6 +25,7 @@ import { createStatusCommand } from './cli-alexandria/commands/status.js';
 import { createAgentsCommand } from './cli-alexandria/commands/agents.js';
 import { createHooksCommand } from './cli-alexandria/commands/hooks.js';
 import { createCoverageCommand } from './cli-alexandria/commands/coverage.js';
+import { createOutpostCommand } from './cli-alexandria/commands/outpost.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -56,6 +57,7 @@ program.addCommand(createProjectsCommand());
 program.addCommand(createListUntrackedDocsCommand());
 program.addCommand(createUpdateCommand());
 program.addCommand(createCoverageCommand());
+program.addCommand(createOutpostCommand());
 
 // Parse command line arguments
 program.parse(process.argv);
