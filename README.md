@@ -13,7 +13,11 @@ alexandria init
 ```
 ## For Your Developer: [![Install in VS Code](https://img.shields.io/badge/Install%20in%20VS%20Code-0098FF?style=for-the-badge&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%7B%22name%22%3A%22a24z-memory%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22a24z-memory%22%5D%7D)
 
-
+<video width="560" height="315" controls>
+  <source src="https://github.com/user-attachments/assets/8bf7b277-c6e9-4fbf-8fc8-10857d5bdac7" type="video/quicktime">
+  <source src="https://github.com/user-attachments/assets/8bf7b277-c6e9-4fbf-8fc8-10857d5bdac7" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 ![Demo Video](https://github.com/user-attachments/assets/8bf7b277-c6e9-4fbf-8fc8-10857d5bdac7)
 https://github.com/user-attachments/assets/8bf7b277-c6e9-4fbf-8fc8-10857d5bdac7
 
