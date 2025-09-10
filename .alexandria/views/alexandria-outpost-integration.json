@@ -1,0 +1,51 @@
+{
+  "id": "alexandria-outpost-integration",
+  "version": "1.0.0",
+  "name": "Alexandria Outpost Integration",
+  "description": "Implementation of the Alexandria Outpost UI server command integration",
+  "rows": 2,
+  "cols": 2,
+  "cells": {
+    "command": {
+      "coordinates": [0, 0],
+      "label": "Outpost Command",
+      "files": [
+        "src/cli-alexandria/commands/outpost.ts",
+        "src/alexandria-cli.ts"
+      ],
+      "description": "Main command implementation and CLI integration"
+    },
+    "config": {
+      "coordinates": [0, 1],
+      "label": "Configuration",
+      "files": [
+        "package.json",
+        "build/build-alexandria-cli.js"
+      ],
+      "description": "Package dependencies and build configuration"
+    },
+    "docs": {
+      "coordinates": [1, 0],
+      "label": "Documentation",
+      "files": [
+        "docs/alexandria-outpost-integration.md",
+        "OUTPOST_BUG_REPORT.md"
+      ],
+      "description": "Implementation documentation and bug reports"
+    }
+  },
+  "overviewPath": "docs/alexandria-outpost-integration.md",
+  "category": "other",
+  "displayOrder": 0,
+  "timestamp": "2025-09-10T22:31:59.638Z",
+  "metadata": {
+    "generationType": "user",
+    "ui": {
+      "enabled": true,
+      "rows": 1,
+      "cols": 1,
+      "showCellLabels": true,
+      "cellLabelPosition": "top"
+    }
+  }
+}
