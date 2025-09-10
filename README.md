@@ -1,12 +1,13 @@
 <img width="1024" height="559" alt="image" src="https://github.com/user-attachments/assets/55678688-7739-46d1-8e9f-66b4fc9efb3d" />
 
 <div align="center">
-<h1>For Your Agents, Developers, and Organization</h1>
+<h1>Context Management as Easy as Linting and Typechecking</h1>
+<p>We make managing context as easy as linting and typechecking, in two steps: During onboarding we add references to the documentation and our reference system maintains it as your code changes with hooks and configurable validations.</p>
 </div>
 
-## Context Management as Easy as Linting and Typechecking
-
-We make managing context as easy as linting and typechecking, in two steps: During onboarding we add references to the documentation and our reference system maintains it as your code changes with hooks and configurable validations.
+<div align="center">
+<h2>For Your Agents, Developers, and Organization</h2>
+</div>
 
 ## For Your Agent [![npm version](https://badge.fury.io/js/a24z-memory.svg)](https://www.npmjs.com/package/a24z-memory)
 ```bash
