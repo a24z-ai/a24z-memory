@@ -8,6 +8,7 @@
 <div align="center">
 <h2>For Your Agents, Developers, and Organization</h2>
 </div>
+
 ```bash
 # Download alexandria cli
 npm install -g a24z-memory
@@ -15,6 +16,7 @@ npm install -g a24z-memory
 # To Configure Your Project
 alexandria init
 ```
+
 ## For Your Agent [![npm version](https://badge.fury.io/js/a24z-memory.svg)](https://www.npmjs.com/package/a24z-memory)
 <img width="1191" height="603" alt="Screenshot 2025-09-10 at 1 03 16 PM" src="https://github.com/user-attachments/assets/a2f841d8-aa4a-4d93-83da-8a408195e725" />
 
