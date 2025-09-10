@@ -65,6 +65,26 @@ This plan outlines the implementation of the local API server to support the Ale
 - Parse `views.json` and individual view files
 - Map to `AlexandriaRepository` type structure
 - Implement file system watcher for updates
+- Integrate with existing MemoryPalace stores when available
+
+**Discovery Service with FileSystemAdapter**:
+```typescript
+class DiscoveryService {
+  constructor(
+    private readonly fsAdapter: FileSystemAdapter,
+    private readonly viewsStore?: CodebaseViewsStore,
+    private readonly notesStore?: AnchoredNotesStore
+  ) {
+    // Reuse existing Alexandria stores when available
+  }
+  
+  async scanForRepositories(basePath: string): Promise<AlexandriaRepository[]> {
+    // Use fsAdapter for all filesystem operations
+    // Can leverage viewsStore.getViews() if available
+    // Can leverage notesStore.getNotesForPath() for additional context
+  }
+}
+```
 
 ### Phase 2: Data Layer
 
@@ -79,14 +99,51 @@ This plan outlines the implementation of the local API server to support the Ale
 - Periodic background scanning
 - Cache invalidation on file changes
 - Query methods for filtering/searching
+- Uses FileSystemAdapter for abstraction (like MemoryPalace)
+- Can leverage existing MemoryPalace functionality
 
 **Interface**:
 ```typescript
 interface RepositoryRegistry {
+  constructor(fsAdapter: FileSystemAdapter, memoryPalace?: MemoryPalace);
   getAllRepositories(): AlexandriaRepository[];
   getRepository(owner: string, name: string): AlexandriaRepository | null;
   registerRepository(path: string): Promise<AlexandriaRepository>;
   refreshCache(): Promise<void>;
+  // Leverage MemoryPalace for repository notes/context
+  getRepositoryNotes(owner: string, name: string): Promise<RepositoryNote[]>;
+}
+```
+
+**FileSystem Adapter Pattern**:
+```typescript
+class RepositoryRegistry {
+  constructor(
+    private readonly fsAdapter: FileSystemAdapter,
+    private readonly memoryPalace?: MemoryPalace
+  ) {
+    // Use the same filesystem abstraction as MemoryPalace
+    // Enables testing with InMemoryFileSystemAdapter
+    // Production uses NodeFileSystemAdapter
+  }
+  
+  async discoverRepositories(basePaths: string[]): Promise<void> {
+    for (const basePath of basePaths) {
+      // Use fsAdapter.readDir instead of fs.readdir
+      const dirs = await this.fsAdapter.readDir(basePath);
+      // Process directories...
+    }
+  }
+  
+  async loadViewsFromRepository(repoPath: string): Promise<CodebaseViewSummary[]> {
+    const alexandriaPath = join(repoPath, '.alexandria');
+    if (this.fsAdapter.exists(alexandriaPath)) {
+      const viewsPath = join(alexandriaPath, 'views.json');
+      const content = this.fsAdapter.readFile(viewsPath);
+      return JSON.parse(content);
+    }
+    return [];
+  }
 }
 ```
 
@@ -167,14 +224,29 @@ router.get('/raw/:owner/:repo/:branch/*', (req, res) => {
 - Add `--local` flag to serve local API
 - Start both UI server and API server
 - Configure UI to use local API endpoint
+- Initialize with FileSystemAdapter and optional MemoryPalace
 
 ```typescript
 // In serve command
 if (options.local) {
+  // Create filesystem adapter (can be swapped for testing)
+  const fsAdapter = new NodeFileSystemAdapter();
+  
+  // Optionally create MemoryPalace for enhanced functionality
+  let memoryPalace: MemoryPalace | undefined;
+  if (options.useMemoryPalace) {
+    memoryPalace = new MemoryPalace(fsAdapter);
+  }
+  
+  // Create registry with adapter pattern
+  const registry = new RepositoryRegistry(fsAdapter, memoryPalace);
+  
   const apiServer = new LocalAPIServer({
     port: apiPort,
+    registry,
     registryPaths: options.paths || getDefaultPaths()
   });
+  
   await apiServer.start();
   apiUrl = `http://localhost:${apiPort}`;
 }
@@ -224,12 +296,74 @@ interface OutpostConfig {
 - Integration tests for API endpoints
 - Mock file system for testing
 - Error handling scenarios
+- Test with InMemoryFileSystemAdapter for isolation
+
+**Testing with FileSystemAdapter**:
+```typescript
+describe('RepositoryRegistry', () => {
+  it('should discover repositories using adapter', async () => {
+    // Use InMemoryFileSystemAdapter for testing
+    const fsAdapter = new InMemoryFileSystemAdapter();
+    
+    // Set up test data in memory
+    fsAdapter.writeFile('/repos/test-repo/.alexandria/views.json', JSON.stringify({
+      views: [{ id: 'test-view', name: 'Test View' }]
+    }));
+    
+    // Create registry with test adapter
+    const registry = new RepositoryRegistry(fsAdapter);
+    await registry.discoverRepositories(['/repos']);
+    
+    const repos = registry.getAllRepositories();
+    expect(repos).toHaveLength(1);
+    expect(repos[0].name).toBe('test-repo');
+  });
+  
+  it('should integrate with MemoryPalace when provided', async () => {
+    const fsAdapter = new InMemoryFileSystemAdapter();
+    const memoryPalace = new MemoryPalace(fsAdapter);
+    
+    // Add test note
+    await memoryPalace.addNote('test-repo', 'Test note', ['test.ts']);
+    
+    const registry = new RepositoryRegistry(fsAdapter, memoryPalace);
+    const notes = await registry.getRepositoryNotes('owner', 'test-repo');
+    
+    expect(notes).toHaveLength(1);
+    expect(notes[0].note).toBe('Test note');
+  });
+});
+```
 
 #### 13. Documentation Updates
 - API usage examples
 - Configuration guide
 - Troubleshooting section
 - Performance tuning tips
+
+## Architecture Benefits
+
+### FileSystemAdapter Pattern Advantages
+
+1. **Testability**: 
+   - Use `InMemoryFileSystemAdapter` for unit tests
+   - No need for temporary files or filesystem mocking
+   - Fast, isolated test execution
+
+2. **Flexibility**:
+   - Swap implementations without changing business logic
+   - Support for different storage backends in future
+   - Easy to add caching layers
+
+3. **Code Reuse**:
+   - Leverage existing MemoryPalace functionality
+   - Use proven stores like `CodebaseViewsStore` and `AnchoredNotesStore`
+   - Consistent patterns across the codebase
+
+4. **Enhanced Features**:
+   - When MemoryPalace is provided, get repository notes and context
+   - Ability to cross-reference with existing knowledge base
+   - Richer API responses with contextual information
 
 ## Technical Considerations
 
@@ -326,9 +460,14 @@ app.use((err, req, res, next) => {
 ```
 
 ### Internal Dependencies
-- Existing Alexandria types
-- MemoryPalace stores
-- FileSystemAdapter abstraction
+- Existing Alexandria types from `pure-core/types/`
+- FileSystemAdapter abstraction from `pure-core/adapters/`
+- MemoryPalace and its stores:
+  - `CodebaseViewsStore` for view management
+  - `AnchoredNotesStore` for repository notes
+  - `A24zConfigurationStore` for configuration
+- NodeFileSystemAdapter for production
+- InMemoryFileSystemAdapter for testing
 
 ## Risk Mitigation
 
