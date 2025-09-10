@@ -23,11 +23,8 @@ npx alexandria validate-all --errors-only || {
 }
 
 echo "Running Alexandria lint..."
-npx alexandria lint --errors-only 2>/dev/null || {
-  # Only fail if lint exits with non-zero code
-  if [ $? -ne 0 ]; then
-    echo "❌ Alexandria lint failed"
-    echo "   Run 'alexandria lint' to see details"
-    exit 1
-  fi
+npx alexandria lint --errors-only || {
+  echo "❌ Alexandria lint failed (errors found)"
+  echo "   Run 'alexandria lint' to see details"
+  exit 1
 }

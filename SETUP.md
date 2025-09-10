@@ -1,18 +1,22 @@
-# Alexandria Setup - Install 
+# Alexandria Setup Guide
+
+## Quick Start
 
 ```bash
 # Install globally to get the alexandria command
 npm install -g a24z-memory
 
-# Initialize Alexandria in your project
+# Initialize Alexandria in your project (interactive setup)
 alexandria init
 ```
 
-## Step 1: Install Artifacts 
+## What Happens During `alexandria init`
 
-### Creates .alexandriarc.json
+The initialization process will guide you through several optional setup steps. Each one is designed to enhance your Alexandria experience, but all are optional.
 
-- Simple configuration with gitignore-based file discovery enabled by default
+### 1. Core Configuration (Always Created)
+
+Creates `.alexandriarc.json` with minimal, sensible defaults:
 
 ```json
 {
@@ -27,13 +31,79 @@ alexandria init
 }
 ```
 
-### Registers your project in the local registry
-- `~/.alexandria/projects.json`
+**What this does**: Sets up Alexandria to respect your `.gitignore` patterns and excludes its own directories from analysis.
 
-### Optional Global Registry with Github Action
-- If you choose the github workflow install, you will be able to see you documentation on https://a24z-ai.github.io/Alexandria/ 
+### 2. Global Project Registry (Automatic)
 
-## Step 2: Start Using
+Registers your project in `~/.alexandria/projects.json` for easy discovery across your system.
+
+**What this does**: Allows you to list all Alexandria-enabled projects with `alexandria projects` command.
+
+### 3. AI Assistant Guidance (Optional)
+
+**Question**: "Would you like to add Alexandria guidance to AGENTS.md?"
+
+**What this does**: 
+- Creates or updates `AGENTS.md` with instructions for AI assistants
+- Helps Claude, Copilot, and other AI tools understand Alexandria commands
+- Improves AI assistance quality when working with your codebase
+
+**Skip if**: You don't use AI assistants or prefer to manage AGENTS.md manually
+
+### 4. Pre-commit Hooks (Optional)
+
+**Question**: "Would you like to set up husky pre-commit hooks?"
+
+**What this does**:
+- Installs husky if not present
+- Adds Alexandria validation to your pre-commit workflow
+- Runs `alexandria validate-all --errors-only` before each commit
+- Runs `alexandria lint --errors-only` to check documentation quality
+
+**Skip if**: You already have complex git hooks or prefer manual validation
+
+### 5. GitHub Action Workflow (Optional)
+
+**Question**: "Would you like to install the GitHub Action workflow?"
+
+**What this does**:
+- Creates `.github/workflows/alexandria.yml`
+- Auto-registers your project when pushed to GitHub
+- Enables documentation visibility at https://a24z-ai.github.io/Alexandria/
+- Runs Alexandria validation in CI/CD pipeline
+
+**Skip if**: You don't use GitHub Actions or have your own CI/CD setup
+
+## Non-Interactive Setup
+
+You can skip specific setup steps using command-line flags:
+
+```bash
+# Skip all optional features
+alexandria init --no-agents --no-hooks --no-workflow
+
+# Skip only specific features
+alexandria init --no-hooks  # Skip husky setup
+alexandria init --no-agents # Skip AGENTS.md
+alexandria init --no-workflow # Skip GitHub Action
+```
+
+## Manual Setup Options
+
+If you prefer manual setup or need to add features later:
+
+```bash
+# Add AI assistant guidance later
+alexandria agents --add
+
+# Set up hooks after initial setup  
+alexandria hooks --add
+
+# Install GitHub workflow separately
+alexandria install-workflow
+```
+
+## After Setup: Start Using Alexandria
 
 That's it! Alexandria is ready to use. You can immediately:
 
