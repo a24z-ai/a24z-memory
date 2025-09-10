@@ -1,7 +1,7 @@
 <img width="1024" height="559" alt="image" src="https://github.com/user-attachments/assets/55678688-7739-46d1-8e9f-66b4fc9efb3d" />
 
 <div align="center">
-<strong>Context Managment for your whole suite:</strong> CLI for AI agents • VS Code for developers • Alexandria web for teams
+<strong>For Your Agents, Developers, and Organization</strong>
 </div>
 
 
