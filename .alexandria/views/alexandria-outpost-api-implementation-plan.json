@@ -1,0 +1,101 @@
+{
+  "id": "alexandria-outpost-api-implementation-plan",
+  "version": "1.0.0",
+  "name": "Alexandria Outpost API Implementation Plan",
+  "description": "Plan for implementing local API server to support Alexandria Outpost UI with repository discovery and serving",
+  "rows": 3,
+  "cols": 3,
+  "cells": {
+    "server": {
+      "coordinates": [0, 0],
+      "label": "API Server Core",
+      "files": [
+        "src/cli-alexandria/api/server.ts",
+        "src/cli-alexandria/api/routes/index.ts"
+      ],
+      "description": "Main Express server and route definitions (to be implemented)"
+    },
+    "middleware": {
+      "coordinates": [0, 1],
+      "label": "Middleware",
+      "files": [
+        "src/cli-alexandria/api/middleware/cors.ts",
+        "src/cli-alexandria/api/middleware/error.ts"
+      ],
+      "description": "CORS and error handling middleware (to be implemented)"
+    },
+    "services": {
+      "coordinates": [0, 2],
+      "label": "Services",
+      "files": [
+        "src/cli-alexandria/api/services/discovery.ts",
+        "src/cli-alexandria/api/services/cache.ts"
+      ],
+      "description": "Repository discovery and caching services (to be implemented)"
+    },
+    "stores": {
+      "coordinates": [1, 0],
+      "label": "Data Stores",
+      "files": [
+        "src/cli-alexandria/api/stores/RepositoryRegistry.ts"
+      ],
+      "description": "Repository registry store for managing discovered repos (to be implemented)"
+    },
+    "types": {
+      "coordinates": [1, 1],
+      "label": "Type Definitions",
+      "files": [
+        "src/pure-core/types/repository.ts",
+        "src/pure-core/types/summary.ts"
+      ],
+      "description": "Existing Alexandria types to be used"
+    },
+    "config": {
+      "coordinates": [1, 2],
+      "label": "Configuration",
+      "files": [
+        "src/cli-alexandria/api/config.ts"
+      ],
+      "description": "API server configuration (to be implemented)"
+    },
+    "integration": {
+      "coordinates": [2, 0],
+      "label": "Outpost Integration",
+      "files": [
+        "src/cli-alexandria/commands/outpost.ts"
+      ],
+      "description": "Existing outpost command to be extended with --local flag"
+    },
+    "tests": {
+      "coordinates": [2, 1],
+      "label": "Test Suite",
+      "files": [
+        "tests/cli-alexandria/api/"
+      ],
+      "description": "Test directory for API endpoints (to be implemented)"
+    },
+    "docs": {
+      "coordinates": [2, 2],
+      "label": "Documentation",
+      "files": [
+        "docs/OUTPOST_API_IMPLEMENTATION_PLAN.md"
+      ],
+      "description": "Implementation plan and API specification"
+    }
+  },
+  "overviewPath": "docs/OUTPOST_API_IMPLEMENTATION_PLAN.md",
+  "category": "other",
+  "displayOrder": 0,
+  "timestamp": "2025-09-10T22:57:14.436Z",
+  "metadata": {
+    "generationType": "user",
+    "status": "planned",
+    "ui": {
+      "enabled": true,
+      "rows": 3,
+      "cols": 3,
+      "showCellLabels": true,
+      "cellLabelPosition": "top"
+    }
+  }
+}
