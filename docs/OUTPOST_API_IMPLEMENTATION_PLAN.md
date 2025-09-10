@@ -53,49 +53,18 @@ This plan outlines the implementation of the local API server to support the Ale
 }
 ```
 
-#### 2. Repository Discovery Service
-**Location**: `src/cli-alexandria/api/services/`
-
-**Files to create**:
-- `src/cli-alexandria/api/services/discovery.ts` - File system scanning
-- `src/cli-alexandria/api/services/cache.ts` - Caching layer
-
-**Functionality**:
-- Scan configured directories for `.alexandria` folders
-- Parse `views.json` and individual view files
-- Map to `AlexandriaRepository` type structure
-- Implement file system watcher for updates
-- Integrate with existing MemoryPalace stores when available
-
-**Discovery Service with FileSystemAdapter**:
-```typescript
-class DiscoveryService {
-  constructor(
-    private readonly fsAdapter: FileSystemAdapter,
-    private readonly viewsStore?: CodebaseViewsStore,
-    private readonly notesStore?: AnchoredNotesStore
-  ) {
-    // Reuse existing Alexandria stores when available
-  }
-  
-  async scanForRepositories(basePath: string): Promise<AlexandriaRepository[]> {
-    // Use fsAdapter for all filesystem operations
-    // Can leverage viewsStore.getViews() if available
-    // Can leverage notesStore.getNotesForPath() for additional context
-  }
-}
-```
-
 ### Phase 2: Data Layer
 
-#### 3. Repository Registry Store
+#### 2. Repository Registry Store
 **Location**: `src/cli-alexandria/api/stores/`
 
 **Files to create**:
 - `src/cli-alexandria/api/stores/RepositoryRegistry.ts`
+- `src/cli-alexandria/api/services/cache.ts` - Caching layer
 
 **Features**:
 - In-memory store for discovered repositories
+- Built-in repository discovery and scanning
 - Periodic background scanning
 - Cache invalidation on file changes
 - Query methods for filtering/searching
@@ -109,6 +78,7 @@ interface RepositoryRegistry {
   getAllRepositories(): AlexandriaRepository[];
   getRepository(owner: string, name: string): AlexandriaRepository | null;
   registerRepository(path: string): Promise<AlexandriaRepository>;
+  scanForRepositories(basePaths: string[]): Promise<void>;
   refreshCache(): Promise<void>;
   // Leverage MemoryPalace for repository notes/context
   getRepositoryNotes(owner: string, name: string): Promise<RepositoryNote[]>;
@@ -118,27 +88,61 @@ interface RepositoryRegistry {
 **FileSystem Adapter Pattern**:
 ```typescript
 class RepositoryRegistry {
+  private repositories: Map<string, AlexandriaRepository> = new Map();
+  private lastScan: Date | null = null;
+  
   constructor(
     private readonly fsAdapter: FileSystemAdapter,
-    private readonly memoryPalace?: MemoryPalace
+    private readonly memoryPalace?: MemoryPalace,
+    private readonly viewsStore?: CodebaseViewsStore,
+    private readonly notesStore?: AnchoredNotesStore
   ) {
     // Use the same filesystem abstraction as MemoryPalace
     // Enables testing with InMemoryFileSystemAdapter
     // Production uses NodeFileSystemAdapter
   }
   
-  async discoverRepositories(basePaths: string[]): Promise<void> {
+  async scanForRepositories(basePaths: string[]): Promise<void> {
     for (const basePath of basePaths) {
       // Use fsAdapter.readDir instead of fs.readdir
       const dirs = await this.fsAdapter.readDir(basePath);
-      // Process directories...
+      
+      for (const dir of dirs) {
+        const repoPath = join(basePath, dir);
+        const alexandriaPath = join(repoPath, '.alexandria');
+        
+        if (this.fsAdapter.exists(alexandriaPath)) {
+          const repository = await this.loadRepository(repoPath);
+          if (repository) {
+            this.repositories.set(`${repository.owner}/${repository.name}`, repository);
+          }
+        }
+      }
     }
+    
+    this.lastScan = new Date();
   }
   
-  async loadViewsFromRepository(repoPath: string): Promise<CodebaseViewSummary[]> {
+  private async loadRepository(repoPath: string): Promise<AlexandriaRepository | null> {
     const alexandriaPath = join(repoPath, '.alexandria');
-    if (this.fsAdapter.exists(alexandriaPath)) {
-      const viewsPath = join(alexandriaPath, 'views.json');
+    
+    // Load views - can leverage viewsStore if available
+    const views = this.viewsStore 
+      ? await this.viewsStore.getViews()
+      : await this.loadViewsFromFile(alexandriaPath);
+    
+    // Get repository notes if notesStore is available
+    const notes = this.notesStore
+      ? await this.notesStore.getNotesForPath(repoPath)
+      : [];
+    
+    // Map to AlexandriaRepository structure
+    return this.mapToRepository(repoPath, views, notes);
+  }
+  
+  private async loadViewsFromFile(alexandriaPath: string): Promise<CodebaseViewSummary[]> {
+    const viewsPath = join(alexandriaPath, 'views.json');
+    if (this.fsAdapter.exists(viewsPath)) {
       const content = this.fsAdapter.readFile(viewsPath);
       return JSON.parse(content);
     }
@@ -149,7 +153,7 @@ class RepositoryRegistry {
 
 ### Phase 3: API Endpoints
 
-#### 4. List Repositories Endpoint
+#### 3. List Repositories Endpoint
 **Route**: `GET /api/alexandria/repos`
 
 **Implementation**:
@@ -164,7 +168,7 @@ router.get('/api/alexandria/repos', async (req, res) => {
 });
 ```
 
-#### 5. Get Repository Endpoint
+#### 4. Get Repository Endpoint
 **Route**: `GET /api/alexandria/repos/:owner/:name`
 
 **Implementation**:
@@ -180,7 +184,7 @@ router.get('/api/alexandria/repos/:owner/:name', async (req, res) => {
 });
 ```
 
-#### 6. Register Repository Endpoint
+#### 5. Register Repository Endpoint
 **Route**: `POST /api/alexandria/repos`
 
 **Implementation**:
@@ -199,7 +203,7 @@ router.post('/api/alexandria/repos', async (req, res) => {
 });
 ```
 
-#### 7. Raw Content Endpoint
+#### 6. Raw Content Endpoint
 **Route**: `GET /raw/:owner/:repo/:branch/*`
 
 **Implementation**:
@@ -217,7 +221,7 @@ router.get('/raw/:owner/:repo/:branch/*', (req, res) => {
 
 ### Phase 4: Integration
 
-#### 8. Outpost Command Integration
+#### 7. Outpost Command Integration
 **Modify**: `src/cli-alexandria/commands/outpost.ts`
 
 **Changes**:
@@ -252,7 +256,7 @@ if (options.local) {
 }
 ```
 
-#### 9. Configuration Support
+#### 8. Configuration Support
 **Location**: `src/cli-alexandria/api/config.ts`
 
 **Features**:
@@ -273,14 +277,14 @@ interface OutpostConfig {
 
 ### Phase 5: Optimization
 
-#### 10. Caching Implementation
+#### 9. Caching Implementation
 **Features**:
 - In-memory cache with TTL
 - File system watcher for invalidation
 - Lazy loading of view details
 - Background refresh
 
-#### 11. Performance Optimizations
+#### 10. Performance Optimizations
 - Parallel directory scanning
 - Debounced file watchers
 - Streaming for large files
@@ -288,7 +292,7 @@ interface OutpostConfig {
 
 ### Phase 6: Testing & Documentation
 
-#### 12. Test Suite
+#### 11. Test Suite
 **Location**: `tests/cli-alexandria/api/`
 
 **Test Coverage**:
@@ -335,7 +339,7 @@ describe('RepositoryRegistry', () => {
 });
 ```
 
-#### 13. Documentation Updates
+#### 12. Documentation Updates
 - API usage examples
 - Configuration guide
 - Troubleshooting section
@@ -416,8 +420,8 @@ app.use((err, req, res, next) => {
 
 ### Week 1
 - [ ] Core server infrastructure
-- [ ] Repository discovery service
-- [ ] Basic registry store
+- [ ] Repository registry store with built-in discovery
+- [ ] Basic caching layer
 
 ### Week 2
 - [ ] API endpoints implementation
