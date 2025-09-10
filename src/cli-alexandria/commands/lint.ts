@@ -57,10 +57,13 @@ export const lintCommand = new Command('lint')
               ? chalk.yellow
               : chalk.blue;
 
-        console.log(`  ${color(icon)} ${violation.message}`);
+        // Include line number if available
+        const location = violation.line ? chalk.gray(`  ${violation.line}:1`) : '  ';
+
+        console.log(`${location}  ${color(icon)} ${violation.message}`);
         if (!options.quiet) {
-          console.log(chalk.gray(`    rule: ${violation.ruleId}`));
-          console.log(chalk.gray(`    impact: ${violation.impact}`));
+          console.log(chalk.gray(`      rule: ${violation.ruleId}`));
+          console.log(chalk.gray(`      impact: ${violation.impact}`));
         }
       }
       console.log();
