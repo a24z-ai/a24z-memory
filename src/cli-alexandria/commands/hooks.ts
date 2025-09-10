@@ -69,6 +69,17 @@ function initializeHusky(repoPath: string): void {
         stdio: 'inherit',
       });
 
+      // Remove the default placeholder if it exists
+      const hookPath = path.join(repoPath, HUSKY_DIR, PRE_COMMIT_HOOK);
+      if (fs.existsSync(hookPath)) {
+        const content = fs.readFileSync(hookPath, 'utf8').trim();
+        if (content === 'npm test') {
+          // Remove the placeholder file - we'll create our own when --add is used
+          fs.unlinkSync(hookPath);
+          console.log('ℹ️  Removed default husky placeholder hook');
+        }
+      }
+
       console.log('✅ Husky installed and initialized');
     } catch (error) {
       throw new Error(
@@ -100,16 +111,24 @@ function addAlexandriaHook(repoPath: string): void {
 
   if (fs.existsSync(hookPath)) {
     // Append to existing hook
-    const existingContent = fs.readFileSync(hookPath, 'utf8');
+    let existingContent = fs.readFileSync(hookPath, 'utf8');
 
     // Check if already has Alexandria hook
     if (existingContent.includes(ALEXANDRIA_HOOK_MARKER)) {
       return;
     }
 
-    // Add Alexandria hook at the end
-    const updatedContent = existingContent.trimEnd() + '\n\n' + alexandriaContent;
-    fs.writeFileSync(hookPath, updatedContent, 'utf8');
+    // Remove default husky placeholder if it's the only content
+    const trimmedContent = existingContent.trim();
+    if (trimmedContent === 'npm test') {
+      // Replace the placeholder entirely
+      fs.writeFileSync(hookPath, alexandriaContent, 'utf8');
+      console.log('ℹ️  Replaced default husky placeholder with Alexandria validation');
+    } else {
+      // Add Alexandria hook at the end
+      const updatedContent = existingContent.trimEnd() + '\n\n' + alexandriaContent;
+      fs.writeFileSync(hookPath, updatedContent, 'utf8');
+    }
   } else {
     // Create new hook file
     fs.writeFileSync(hookPath, alexandriaContent, 'utf8');

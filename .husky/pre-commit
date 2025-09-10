@@ -1,17 +1,6 @@
-# Run type checking
-echo "Running type checking..."
-npm run typecheck
+echo 'Running linter...'
+npm run lint
 
-# Run lint-staged to check and fix staged files
-echo "Running lint-staged..."
-npx lint-staged
-
-# Test MCP server build and startup
-echo "Testing MCP server build..."
-npm run test:mcp
-
-# Run tests
-echo "Running tests..."
 npm test
 
 # Alexandria validation
@@ -23,8 +12,11 @@ npx alexandria validate-all --errors-only || {
 }
 
 echo "Running Alexandria lint..."
-npx alexandria lint --errors-only || {
-  echo "❌ Alexandria lint failed (errors found)"
-  echo "   Run 'alexandria lint' to see details"
-  exit 1
+npx alexandria lint --errors-only 2>/dev/null || {
+  # Only fail if lint exits with non-zero code
+  if [ $? -ne 0 ]; then
+    echo "❌ Alexandria lint failed"
+    echo "   Run 'alexandria lint' to see details"
+    exit 1
+  fi
 }

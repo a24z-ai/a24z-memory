@@ -22,7 +22,10 @@ Alexandria can automatically set up husky pre-commit hooks to validate your code
 # Install hooks during init
 alexandria init
 
-# Or add hooks manually
+# Initialize husky if not already installed
+alexandria hooks --init
+
+# Add Alexandria validation to pre-commit hook
 alexandria hooks --add
 
 # Remove hooks
@@ -31,6 +34,8 @@ alexandria hooks --remove
 # Check if hooks are installed
 alexandria hooks --check
 ```
+
+**Note:** When adding Alexandria hooks to a new project, the command automatically detects and replaces the default `npm test` placeholder that husky creates. If your pre-commit hook only contains `npm test`, it will be replaced entirely with Alexandria validation. If you have other commands in your pre-commit hook, Alexandria validation will be appended to preserve your existing setup.
 
 ### What Hooks Do
 
@@ -43,7 +48,7 @@ By default, hooks only fail on **errors**, not warnings. This allows you to comm
 
 ## Lint Rules
 
-Alexandria includes three built-in lint rules that help maintain documentation quality:
+Alexandria includes four built-in lint rules that help maintain documentation quality:
 
 ### 1. `require-view-association`
 
@@ -89,6 +94,34 @@ views/architecture.json
 
 **Impact:** Outdated documentation can mislead AI agents about the current state of your codebase, causing them to use obsolete patterns or incorrect assumptions.
 
+### 4. `document-organization`
+
+**Default Severity:** `warning` (configurable)
+
+**Description:** Ensures documentation files are properly organized in designated folders rather than scattered throughout the codebase.
+
+**How it works:**
+- Scans for all markdown files (`.md` and `.mdx`) in the repository
+- Checks if documentation files are in approved locations:
+  - Designated documentation folders (default: `docs`, `documentation`, `doc`)
+  - Root directory for standard files (README, LICENSE, CONTRIBUTING, etc.)
+  - Special directories like `.github`, `templates`, `examples`
+- Reports violations when documentation is found outside approved locations
+
+**Configuration Options:**
+- `documentFolders`: Array of folder names where documentation should be stored (default: `['docs', 'documentation', 'doc']`)
+- `rootExceptions`: Array of filenames allowed in the root directory (default: common files like README.md, LICENSE.md)
+- `checkNested`: Whether to check parent directories for doc folders (default: `true`)
+
+**Impact:** Disorganized documentation makes it harder for both humans and AI agents to find relevant information. Keeping docs in standard locations improves discoverability and maintainability.
+
+**Example Violation:**
+```
+src/components/Button.md
+    ⚠ Documentation file "src/components/Button.md" should be in a documentation folder (e.g., docs/, documentation/)
+      rule: document-organization
+```
+
 ## Configuration
 
 ### Rule Configuration in `.alexandriarc.json`
@@ -122,6 +155,17 @@ You can configure rule severity and enable/disable rules in your `.alexandriarc.
         "name": "Stale Context",
         "severity": "info",     // Changed from warning to info
         "enabled": false        // Disabled
+      },
+      {
+        "id": "document-organization",
+        "name": "Document Organization",
+        "severity": "warning",
+        "enabled": true,
+        "options": {
+          "documentFolders": ["docs", "documentation"],
+          "rootExceptions": ["README.md", "LICENSE.md", "CONTRIBUTING.md"],
+          "checkNested": true
+        }
       }
     ]
   }
@@ -334,6 +378,11 @@ jobs:
 4. **Hooks not running**
    - Check if husky is installed: `alexandria hooks --check`
    - Reinstall hooks: `alexandria hooks --remove && alexandria hooks --add`
+
+5. **Default `npm test` placeholder interfering with hooks**
+   - Alexandria automatically handles this when you run `alexandria hooks --add`
+   - If your pre-commit only contains `npm test`, it will be replaced with Alexandria validation
+   - Existing hooks with real content are preserved
 
 ### Getting Help
 
