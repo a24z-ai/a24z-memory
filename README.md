@@ -24,9 +24,9 @@ https://github.com/user-attachments/assets/89892c54-8b26-4cdb-ac17-12299c1e97a6
 
 
 
-## One Platform, Three Experiences
+## Unified Context Management: One Platform, Three Experiences
 
-Alexandria unified context managment infrastructure that enhances how AI agents, developers, and teams work with and maintain codebases.
+a24z's unified context managment infrastructure that enhances how AI agents, developers, and teams work with and maintain codebases.
 
 ### 🤖 For AI Agents: CLI + MCP Server
 **Give your AI agents perfect memory**
