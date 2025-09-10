@@ -63,13 +63,11 @@ This plan outlines the implementation of the local API server to support the Ale
 - `src/cli-alexandria/api/services/cache.ts` - Caching layer
 
 **Features**:
-- In-memory store for discovered repositories
-- Built-in repository discovery and scanning
-- Periodic background scanning
-- Cache invalidation on file changes
+- In-memory store for registered repositories
+- Simple repository registration via paths
 - Query methods for filtering/searching
 - Uses FileSystemAdapter for abstraction (like MemoryPalace)
-- Can leverage existing MemoryPalace functionality
+- Can leverage existing MemoryPalace functionality for enhanced context
 
 **Interface**:
 ```typescript
@@ -78,9 +76,7 @@ interface RepositoryRegistry {
   getAllRepositories(): AlexandriaRepository[];
   getRepository(owner: string, name: string): AlexandriaRepository | null;
   registerRepository(path: string): Promise<AlexandriaRepository>;
-  scanForRepositories(basePaths: string[]): Promise<void>;
-  refreshCache(): Promise<void>;
-  // Leverage MemoryPalace for repository notes/context
+  // Leverage MemoryPalace for repository notes/context when available
   getRepositoryNotes(owner: string, name: string): Promise<RepositoryNote[]>;
 }
 ```
@@ -89,62 +85,77 @@ interface RepositoryRegistry {
 ```typescript
 class RepositoryRegistry {
   private repositories: Map<string, AlexandriaRepository> = new Map();
-  private lastScan: Date | null = null;
   
   constructor(
     private readonly fsAdapter: FileSystemAdapter,
-    private readonly memoryPalace?: MemoryPalace,
-    private readonly viewsStore?: CodebaseViewsStore,
-    private readonly notesStore?: AnchoredNotesStore
+    private readonly memoryPalace?: MemoryPalace
   ) {
     // Use the same filesystem abstraction as MemoryPalace
     // Enables testing with InMemoryFileSystemAdapter
     // Production uses NodeFileSystemAdapter
   }
   
-  async scanForRepositories(basePaths: string[]): Promise<void> {
-    for (const basePath of basePaths) {
-      // Use fsAdapter.readDir instead of fs.readdir
-      const dirs = await this.fsAdapter.readDir(basePath);
-      
-      for (const dir of dirs) {
-        const repoPath = join(basePath, dir);
-        const alexandriaPath = join(repoPath, '.alexandria');
-        
-        if (this.fsAdapter.exists(alexandriaPath)) {
-          const repository = await this.loadRepository(repoPath);
-          if (repository) {
-            this.repositories.set(`${repository.owner}/${repository.name}`, repository);
-          }
-        }
-      }
+  async getAllRepositories(): AlexandriaRepository[] {
+    return Array.from(this.repositories.values());
+  }
+  
+  async getRepository(owner: string, name: string): AlexandriaRepository | null {
+    return this.repositories.get(`${owner}/${name}`) || null;
+  }
+  
+  async registerRepository(path: string): Promise<AlexandriaRepository> {
+    const repository = await this.loadRepository(path);
+    if (repository) {
+      this.repositories.set(`${repository.owner}/${repository.name}`, repository);
+      return repository;
     }
-    
-    this.lastScan = new Date();
+    throw new Error(`Could not load repository from ${path}`);
   }
   
   private async loadRepository(repoPath: string): Promise<AlexandriaRepository | null> {
     const alexandriaPath = join(repoPath, '.alexandria');
     
-    // Load views - can leverage viewsStore if available
-    const views = this.viewsStore 
-      ? await this.viewsStore.getViews()
-      : await this.loadViewsFromFile(alexandriaPath);
+    // Check if .alexandria directory exists
+    if (!this.fsAdapter.exists(alexandriaPath)) {
+      return null;
+    }
     
-    // Get repository notes if notesStore is available
-    const notes = this.notesStore
-      ? await this.notesStore.getNotesForPath(repoPath)
-      : [];
-    
-    // Map to AlexandriaRepository structure
-    return this.mapToRepository(repoPath, views, notes);
-  }
-  
-  private async loadViewsFromFile(alexandriaPath: string): Promise<CodebaseViewSummary[]> {
+    // Load views from the views.json file
     const viewsPath = join(alexandriaPath, 'views.json');
+    let views: CodebaseViewSummary[] = [];
+    
     if (this.fsAdapter.exists(viewsPath)) {
       const content = this.fsAdapter.readFile(viewsPath);
-      return JSON.parse(content);
+      const viewsData = JSON.parse(content);
+      views = viewsData.views || [];
+    }
+    
+    // Extract owner and name from path
+    const pathParts = repoPath.split('/');
+    const name = pathParts[pathParts.length - 1];
+    const owner = pathParts[pathParts.length - 2] || 'local';
+    
+    // Map to AlexandriaRepository structure
+    return {
+      id: `${owner}/${name}`,
+      owner,
+      name,
+      description: '',
+      stars: 0,
+      hasViews: views.length > 0,
+      viewCount: views.length,
+      views,
+      tags: [],
+      metadata: {}
+    };
+  }
+  
+  async getRepositoryNotes(owner: string, name: string): Promise<any[]> {
+    // If MemoryPalace is available, use it for notes
+    if (this.memoryPalace) {
+      // MemoryPalace would have its own method to get notes
+      // This is just a placeholder for when that's implemented
+      return [];
     }
     return [];
   }
