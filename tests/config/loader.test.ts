@@ -94,8 +94,7 @@ describe('ConfigLoader', () => {
       const config = loader.loadConfig(configPath);
       expect(config).not.toBeNull();
       // Should have defaults
-      expect(config?.context.maxDepth).toBe(10);
-      expect(config?.ai.contextWindow?.target).toBe(100000);
+      expect(config?.context?.maxDepth).toBe(10);
       expect(config?.reporting?.format).toBe('text');
     });
 

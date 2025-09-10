@@ -68,14 +68,6 @@ export class ConfigLoader {
           ...config.context?.patterns,
         },
       },
-      ai: {
-        ...DEFAULT_CONFIG.ai,
-        ...config.ai,
-        contextWindow: {
-          ...DEFAULT_CONFIG.ai?.contextWindow,
-          ...config.ai?.contextWindow,
-        },
-      },
       reporting: {
         ...DEFAULT_CONFIG.reporting,
         ...config.reporting,

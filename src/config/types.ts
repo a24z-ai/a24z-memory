@@ -10,7 +10,7 @@ export interface AlexandriaConfig {
   $schema?: string;
   version: '1.0.0';
 
-  project: {
+  project?: {
     name: string;
     description?: string;
     version?: string;
@@ -19,7 +19,7 @@ export interface AlexandriaConfig {
     framework?: string | string[];
   };
 
-  context: {
+  context?: {
     rules?: ContextRule[];
     patterns?: {
       include?: string[];
@@ -29,17 +29,6 @@ export interface AlexandriaConfig {
     useGitignore?: boolean;
     maxDepth?: number;
     followSymlinks?: boolean;
-  };
-
-  ai: {
-    guidelines?: string[];
-    capabilities?: string[];
-    restrictions?: string[];
-    preferredModels?: string[];
-    contextWindow?: {
-      target?: number;
-      max?: number;
-    };
   };
 
   reporting?: {

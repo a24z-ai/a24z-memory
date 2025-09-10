@@ -25,12 +25,6 @@ export const DEFAULT_CONFIG: Partial<AlexandriaConfig> = {
       ],
     },
   },
-  ai: {
-    contextWindow: {
-      target: 100000,
-      max: 200000,
-    },
-  },
   reporting: {
     output: 'console',
     format: 'text',

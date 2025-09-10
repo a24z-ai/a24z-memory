@@ -11,6 +11,8 @@ import { createMemoryPalace, getRepositoryRoot } from '../utils/repository.js';
 import { ALEXANDRIA_DIRS } from '../../constants/paths';
 import { NodeFileSystemAdapter } from '../../node-adapters/NodeFileSystemAdapter.js';
 import { MemoryPalace } from '../../MemoryPalace.js';
+import { ConfigValidator } from '../../config/validator.js';
+import { ValidationResult } from '../../config/types.js';
 
 interface ConfigData {
   version?: string;
@@ -26,6 +28,7 @@ interface StatusInfo {
   hasConfig: boolean;
   configPath?: string;
   config?: ConfigData;
+  configValidation?: ValidationResult;
   hasHuskyHook: boolean;
   huskyHookPath?: string;
   hasGitWorkflow: boolean;
@@ -198,9 +201,22 @@ export function createStatusCommand(): Command {
           status.hasConfig = true;
           status.configPath = configPath;
           try {
-            status.config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-          } catch {
+            const configContent = fs.readFileSync(configPath, 'utf8');
+            status.config = JSON.parse(configContent);
+            
+            // Validate the configuration
+            const validator = new ConfigValidator();
+            status.configValidation = validator.validate(status.config);
+          } catch (error) {
             // Config exists but can't be parsed
+            status.configValidation = {
+              valid: false,
+              errors: [{
+                path: 'root',
+                message: `Failed to parse JSON: ${error instanceof Error ? error.message : String(error)}`,
+              }],
+              warnings: [],
+            };
           }
         }
 
@@ -236,9 +252,36 @@ export function createStatusCommand(): Command {
         console.log('📁 Configuration');
         console.log('───────────────');
         if (status.hasConfig) {
-          console.log(`✅ Config file: ${CONFIG_FILENAME}`);
-          if (options.verbose && status.config) {
-            console.log('   Settings:');
+          if (status.configValidation?.valid) {
+            console.log(`✅ Config file: ${CONFIG_FILENAME}`);
+          } else {
+            console.log(`❌ Config file: ${CONFIG_FILENAME} (has errors)`);
+          }
+          
+          // Show validation errors
+          if (status.configValidation?.errors && status.configValidation.errors.length > 0) {
+            console.log('\n   ❌ Errors:');
+            status.configValidation.errors.forEach(error => {
+              console.log(`      • ${error.path ? `[${error.path}] ` : ''}${error.message}`);
+              if (error.value !== undefined) {
+                console.log(`        Current value: ${JSON.stringify(error.value)}`);
+              }
+            });
+          }
+          
+          // Show validation warnings
+          if (status.configValidation?.warnings && status.configValidation.warnings.length > 0) {
+            console.log('\n   ⚠️  Warnings:');
+            status.configValidation.warnings.forEach(warning => {
+              console.log(`      • ${warning.path ? `[${warning.path}] ` : ''}${warning.message}`);
+              if (warning.suggestion) {
+                console.log(`        💡 ${warning.suggestion}`);
+              }
+            });
+          }
+          
+          if (options.verbose && status.config && status.configValidation?.valid) {
+            console.log('\n   Settings:');
             console.log(`   • Version: ${status.config.version || 'unknown'}`);
             console.log(`   • Use .gitignore: ${status.config.context?.useGitignore ?? true}`);
             if (status.config.context?.patterns?.exclude) {
