@@ -10,8 +10,32 @@ export const lintCommand = new Command('lint')
   .option('--errors-only', 'Exit with error code only if there are errors (not warnings)')
   .option('--enable <rules...>', 'Enable specific rules')
   .option('--disable <rules...>', 'Disable specific rules')
+  .option('--list-rules', 'List all available lint rules and their configurations')
   .action(async (options) => {
     const engine = new LibraryRulesEngine();
+
+    // Handle --list-rules option
+    if (options.listRules) {
+      console.log(chalk.blue('📋 Available Alexandria Lint Rules:\n'));
+      
+      const rules = engine.getAllRules();
+      for (const [ruleId, rule] of rules) {
+        console.log(chalk.bold(`${ruleId}`));
+        console.log(`  ${chalk.gray('Description:')} ${rule.description}`);
+        console.log(`  ${chalk.gray('Default Severity:')} ${rule.severity}`);
+        console.log(`  ${chalk.gray('Impact:')} ${rule.impact}`);
+        
+        if (rule.fixable) {
+          console.log(`  ${chalk.gray('Fixable:')} ${chalk.green('Yes')}`);
+        }
+        
+        console.log();
+      }
+      
+      console.log(chalk.dim('Configure rules in your .alexandriarc.json file.'));
+      console.log(chalk.dim('Use --enable or --disable flags to override configuration for this run.'));
+      process.exit(0);
+    }
 
     console.log(chalk.blue('🔍 Linting Alexandria library...\n'));
 

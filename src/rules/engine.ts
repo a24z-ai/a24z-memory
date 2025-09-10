@@ -39,6 +39,10 @@ export class LibraryRulesEngine {
     this.rules.set(rule.id, rule);
   }
 
+  getAllRules(): Map<string, LibraryRule> {
+    return this.rules;
+  }
+
   private async scanFiles(
     projectRoot: ValidatedRepositoryPath,
     _gitignorePatterns?: string[]
