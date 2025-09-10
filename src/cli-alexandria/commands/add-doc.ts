@@ -20,6 +20,7 @@ export function createAddDocCommand(): Command {
     .option('--default', 'Set this view as the default view')
     .option('-p, --path <path>', 'Repository path (defaults to current directory)')
     .option('--skip-guidance', 'Skip the guidance on creating effective CodebaseViews')
+    .option('--dry-run', 'Preview what would be created without actually creating the view')
     .action(async (docFile: string, options) => {
       // Show guidance by default (unless skipped)
       if (!options.skipGuidance) {
@@ -81,7 +82,6 @@ Press Enter to continue, or Ctrl+C to exit...
         await new Promise<void>((resolve) => {
           process.stdin.once('data', () => resolve());
         });
-        return;
       }
       try {
         const palace = createMemoryPalace(options.path);
@@ -116,7 +116,7 @@ Press Enter to continue, or Ctrl+C to exit...
         const result = createViewFromDocument(repoPath, docInfo, {
           category: 'other',
           skipValidation: false,
-          dryRun: false,
+          dryRun: options.dryRun || false,
           name: options.name,
           description: options.description,
         });
@@ -131,7 +131,11 @@ Press Enter to continue, or Ctrl+C to exit...
         const savedPath = path.join(viewsDir, `${result.viewId}.json`);
 
         console.log('');
-        console.log(`✅ Documentation added to the Alexandria library!`);
+        if (options.dryRun) {
+          console.log(`🔍 DRY RUN - Preview of what would be created:`);
+        } else {
+          console.log(`✅ Documentation added to the Alexandria library!`);
+        }
         console.log('');
         console.log(`📍 View Details:`);
         console.log(`   Name: ${result.viewName}`);
@@ -154,8 +158,8 @@ Press Enter to continue, or Ctrl+C to exit...
         console.log(`   2. Validate changes: alexandria validate ${result.viewId}`);
         console.log(`   3. List all views: alexandria list`);
 
-        // Set as default if requested
-        if (options.default) {
+        // Set as default if requested (but not in dry-run mode)
+        if (options.default && !options.dryRun) {
           try {
             const defaultView = {
               ...result.view!,
@@ -171,6 +175,9 @@ Press Enter to continue, or Ctrl+C to exit...
               `⚠️  Could not set as default view: ${error instanceof Error ? error.message : String(error)}`
             );
           }
+        } else if (options.default && options.dryRun) {
+          console.log('');
+          console.log(`🔧 Would set as default view (skipped in dry-run)`);
         }
 
         // Display validation results if there are issues

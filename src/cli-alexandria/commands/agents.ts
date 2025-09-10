@@ -35,6 +35,10 @@ alexandria list
 
 # Add a specific documentation file to the library
 alexandria add-doc README.md
+# Skip the interactive guidance prompt
+alexandria add-doc README.md --skip-guidance
+# Preview what would be created without actually creating it
+alexandria add-doc README.md --skip-guidance --dry-run
 
 # Add all untracked documentation files at once
 alexandria add-all-docs
@@ -47,6 +51,13 @@ alexandria validate-all
 
 # Check for context quality issues
 alexandria lint
+# Only fail on errors, not warnings
+alexandria lint --errors-only
+
+# Manage pre-commit hooks
+alexandria hooks --add     # Add Alexandria validation to pre-commit
+alexandria hooks --remove  # Remove Alexandria validation
+alexandria hooks --check   # Check if hooks are installed
 \`\`\`
 
 ### What Alexandria Provides
@@ -80,6 +91,8 @@ If the project has a pre-commit hook configured, \`alexandria lint\` will run au
 - Orphaned references in codebase views
 - Stale context that needs updating
 - Invalid view structures
+
+For detailed information about hooks, rules, and configuration options, see [docs/HOOKS_AND_RULES.md](../docs/HOOKS_AND_RULES.md).
 
 ### Repository Views
 

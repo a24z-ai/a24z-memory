@@ -30,6 +30,8 @@ interface StatusInfo {
   huskyHookPath?: string;
   hasGitWorkflow: boolean;
   workflowPath?: string;
+  hasAgentsGuidance: boolean;
+  agentsPath?: string;
   isPrivateRepo: boolean;
   repoUrl?: string;
   viewsCount: number;
@@ -49,6 +51,20 @@ function checkHuskyHook(repoPath: string): { hasHook: boolean; hookPath?: string
   }
 
   return { hasHook: false };
+}
+
+function checkAgentsGuidance(repoPath: string): { hasGuidance: boolean; agentsPath?: string } {
+  const agentsPath = path.join(repoPath, 'AGENTS.md');
+
+  if (fs.existsSync(agentsPath)) {
+    const content = fs.readFileSync(agentsPath, 'utf8');
+    if (content.includes('## Alexandria')) {
+      return { hasGuidance: true, agentsPath };
+    }
+    return { hasGuidance: false, agentsPath };
+  }
+
+  return { hasGuidance: false };
 }
 
 function checkGitWorkflow(repoPath: string): { hasWorkflow: boolean; workflowPath?: string } {
@@ -170,6 +186,7 @@ export function createStatusCommand(): Command {
           hasConfig: false,
           hasHuskyHook: false,
           hasGitWorkflow: false,
+          hasAgentsGuidance: false,
           isPrivateRepo: false,
           viewsCount: 0,
           untrackedDocsCount: 0,
@@ -196,6 +213,11 @@ export function createStatusCommand(): Command {
         const workflowCheck = checkGitWorkflow(repoPath);
         status.hasGitWorkflow = workflowCheck.hasWorkflow;
         status.workflowPath = workflowCheck.workflowPath;
+
+        // Check for AGENTS.md guidance
+        const agentsCheck = checkAgentsGuidance(repoPath);
+        status.hasAgentsGuidance = agentsCheck.hasGuidance;
+        status.agentsPath = agentsCheck.agentsPath;
 
         // Check if private repo
         status.isPrivateRepo = isPrivateRepository(repoPath);
@@ -231,6 +253,23 @@ export function createStatusCommand(): Command {
         }
         console.log('');
 
+        // Display AGENTS.md status
+        console.log('📚 AI Guidance');
+        console.log('──────────────');
+        if (status.hasAgentsGuidance) {
+          console.log(`✅ AGENTS.md has Alexandria guidance`);
+          if (options.verbose) {
+            console.log(`   Path: ${status.agentsPath}`);
+          }
+        } else if (status.agentsPath) {
+          console.log(`⚠️  AGENTS.md exists but missing Alexandria guidance`);
+          console.log(`   To add: alexandria agents --add`);
+        } else {
+          console.log(`ℹ️  No AGENTS.md file`);
+          console.log(`   To create: alexandria agents --add`);
+        }
+        console.log('');
+
         // Display hooks status
         console.log('🪝 Git Hooks');
         console.log('────────────');
@@ -241,7 +280,7 @@ export function createStatusCommand(): Command {
           }
         } else {
           console.log(`ℹ️  No husky pre-commit hook`);
-          console.log(`   To add: npx husky add .husky/pre-commit "npx alexandria lint"`);
+          console.log(`   To add: alexandria hooks --add`);
         }
         console.log('');
 

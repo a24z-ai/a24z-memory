@@ -82,6 +82,9 @@ export interface AlexandriaRepository {
 
   /** ISO timestamp when metadata was last verified/refreshed */
   lastChecked?: string;
+
+  /** Optional color for visual representation (e.g., "#FF5733", "blue", "rgb(255,87,51)") */
+  bookColor?: string;
 }
 
 /**
