@@ -355,7 +355,9 @@ export class AnchoredNotesStore {
    * Read all notes from a repository
    */
   private readAllNotes(repositoryRootPath: ValidatedRepositoryPath): AnchoredNoteWithPath[] {
-    const notesDir = this.getNotesDir();
+    // Calculate the notes directory for the specific repository
+    const repositoryAlexandriaPath = this.fs.join(repositoryRootPath, '.a24z');
+    const notesDir = this.fs.join(repositoryAlexandriaPath, 'notes');
     const notes: AnchoredNoteWithPath[] = [];
 
     if (!this.fs.exists(notesDir)) {
@@ -438,10 +440,11 @@ export class AnchoredNotesStore {
 
   /**
    * Validate a note against repository configuration
+   * TODO: _repositoryRootPath to be used to validate anchors exist in the fs
    */
   validateNote(
     note: Omit<StoredAnchoredNote, 'id' | 'timestamp'>,
-    repositoryRootPath: ValidatedRepositoryPath
+    _repositoryRootPath: ValidatedRepositoryPath
   ): ValidationError[] {
     const errors: ValidationError[] = [];
     const config = this.getConfiguration();

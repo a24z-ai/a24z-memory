@@ -4,7 +4,11 @@ import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSyste
 import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
 import { CodebaseViewsStore } from '../../../src/pure-core/stores/CodebaseViewsStore';
 import { MemoryPalace } from '../../../src/MemoryPalace';
-import type { ValidatedRepositoryPath, CodebaseView } from '../../../src/pure-core/types';
+import type {
+  ValidatedRepositoryPath,
+  ValidatedAlexandriaPath,
+  CodebaseView,
+} from '../../../src/pure-core/types';
 
 describe('GetAnchoredNoteByIdTool', () => {
   let fs: InMemoryFileSystemAdapter;
@@ -12,16 +16,19 @@ describe('GetAnchoredNoteByIdTool', () => {
   let tool: GetAnchoredNoteByIdTool;
   const testRepoPath = '/test-repo';
   let validatedRepoPath: ValidatedRepositoryPath;
+  let alexandriaPath: ValidatedAlexandriaPath;
 
   beforeEach(() => {
     fs = new InMemoryFileSystemAdapter();
-    notesStore = new AnchoredNotesStore(fs);
     tool = new GetAnchoredNoteByIdTool(fs);
     fs.setupTestRepo(testRepoPath);
     validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    alexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepoPath, fs);
+
+    notesStore = new AnchoredNotesStore(fs, alexandriaPath);
 
     // Create a test view using CodebaseViewsStore
-    const codebaseViewsStore = new CodebaseViewsStore(fs);
+    const codebaseViewsStore = new CodebaseViewsStore(fs, alexandriaPath);
     const testView: CodebaseView = {
       id: 'test-view',
       version: '1.0.0',

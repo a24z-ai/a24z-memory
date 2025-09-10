@@ -7,6 +7,7 @@ import { MemoryPalace } from '../../../src/MemoryPalace';
 import type {
   ValidatedRepositoryPath,
   ValidatedRelativePath,
+  ValidatedAlexandriaPath,
   CodebaseView,
 } from '../../../src/pure-core/types';
 
@@ -16,16 +17,19 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
   let fs: InMemoryFileSystemAdapter;
   const testRepoPath = '/test-repo';
   let validatedRepoPath: ValidatedRepositoryPath;
+  let alexandriaPath: ValidatedAlexandriaPath;
 
   beforeEach(() => {
     fs = new InMemoryFileSystemAdapter();
     tool = new CreateRepositoryAnchoredNoteTool(fs);
-    notesStore = new AnchoredNotesStore(fs);
     fs.setupTestRepo(testRepoPath);
     validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    alexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepoPath, fs);
+
+    notesStore = new AnchoredNotesStore(fs, alexandriaPath);
 
     // Create a test view using CodebaseViewsStore
-    const codebaseViewsStore = new CodebaseViewsStore(fs);
+    const codebaseViewsStore = new CodebaseViewsStore(fs, alexandriaPath);
     const testView: CodebaseView = {
       id: 'test-view',
       version: '1.0.0',
@@ -331,7 +335,8 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
       const validatedRepo2Path = MemoryPalace.validateRepositoryPath(fs, repo2Path);
 
       // Create a test view for the second repository
-      const codebaseViewsStore = new CodebaseViewsStore(fs);
+      const repo2AlexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepo2Path, fs);
+      const codebaseViewsStore = new CodebaseViewsStore(fs, repo2AlexandriaPath);
       const testView2: CodebaseView = {
         id: 'test-view',
         version: '1.0.0',

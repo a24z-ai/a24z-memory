@@ -4,7 +4,11 @@ import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSyste
 import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
 import { CodebaseViewsStore } from '../../../src/pure-core/stores/CodebaseViewsStore';
 import { MemoryPalace } from '../../../src/MemoryPalace';
-import type { ValidatedRepositoryPath, CodebaseView } from '../../../src/pure-core/types';
+import type {
+  ValidatedRepositoryPath,
+  CodebaseView,
+  ValidatedAlexandriaPath,
+} from '../../../src/pure-core/types';
 
 describe('DeleteAnchoredNoteTool', () => {
   let fs: InMemoryFileSystemAdapter;
@@ -12,16 +16,19 @@ describe('DeleteAnchoredNoteTool', () => {
   let tool: DeleteAnchoredNoteTool;
   const testRepoPath = '/test-repo';
   let validatedRepoPath: ValidatedRepositoryPath;
+  let alexandriaPath: ValidatedAlexandriaPath;
 
   beforeEach(() => {
     fs = new InMemoryFileSystemAdapter();
-    notesStore = new AnchoredNotesStore(fs);
     tool = new DeleteAnchoredNoteTool(fs);
     fs.setupTestRepo(testRepoPath);
     validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    alexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepoPath, fs);
+
+    notesStore = new AnchoredNotesStore(fs, alexandriaPath);
 
     // Create a test view using CodebaseViewsStore
-    const codebaseViewsStore = new CodebaseViewsStore(fs);
+    const codebaseViewsStore = new CodebaseViewsStore(fs, alexandriaPath);
     const testView: CodebaseView = {
       id: 'test-view',
       version: '1.0.0',
@@ -47,7 +54,7 @@ describe('DeleteAnchoredNoteTool', () => {
     const savedNote = savedNoteWithPath.note;
 
     // Verify note exists
-    expect(notesStore.getNoteById(validatedRepoPath, savedNote.id)).toBeDefined();
+    expect(notesStore.getNoteById(savedNote.id)).toBeDefined();
 
     // Delete the note
     const result = await tool.execute({
@@ -63,7 +70,7 @@ describe('DeleteAnchoredNoteTool', () => {
     expect(text).toContain('Tags: testing, deletion');
 
     // Verify note no longer exists
-    expect(notesStore.getNoteById(validatedRepoPath, savedNote.id)).toBeNull();
+    expect(notesStore.getNoteById(savedNote.id)).toBeNull();
   });
 
   it('should throw error when trying to delete non-existent note', async () => {
@@ -104,7 +111,7 @@ describe('DeleteAnchoredNoteTool', () => {
     expect(text).toContain(`Successfully deleted note ${savedNote.id}`);
 
     // Verify deletion
-    expect(notesStore.getNoteById(validatedRepoPath, savedNote.id)).toBeNull();
+    expect(notesStore.getNoteById(savedNote.id)).toBeNull();
   });
 
   it('should throw error for non-absolute path', async () => {

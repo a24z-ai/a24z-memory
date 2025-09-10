@@ -2,22 +2,29 @@ import { describe, it, expect, beforeEach } from 'bun:test';
 import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
 import { MemoryPalace } from '../../../src/MemoryPalace';
-import type { ValidatedRepositoryPath, ValidatedRelativePath } from '../../../src/pure-core/types';
+import type {
+  ValidatedRepositoryPath,
+  ValidatedRelativePath,
+  ValidatedAlexandriaPath,
+} from '../../../src/pure-core/types';
 
 describe('Anchor Normalization and Matching', () => {
   let store: AnchoredNotesStore;
   let fs: InMemoryFileSystemAdapter;
   const testRepoPath = '/test-repo';
   let validatedRepoPath: ValidatedRepositoryPath;
+  let alexandriaPath: ValidatedAlexandriaPath;
 
   beforeEach(() => {
     // Initialize in-memory filesystem and store
     fs = new InMemoryFileSystemAdapter();
-    store = new AnchoredNotesStore(fs);
 
     // Set up test repository
     fs.setupTestRepo(testRepoPath);
     validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    alexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepoPath, fs);
+
+    store = new AnchoredNotesStore(fs, alexandriaPath);
   });
 
   describe('anchor normalization on save', () => {

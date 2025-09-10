@@ -7,30 +7,36 @@ import { describe, it, expect, beforeEach } from 'bun:test';
 import { A24zConfigurationStore } from '../../../src/pure-core/stores/A24zConfigurationStore';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
 import { MemoryPalace } from '../../../src/MemoryPalace';
-import type { ValidatedRepositoryPath } from '../../../src/pure-core/types';
+import type {
+  ValidatedRepositoryPath,
+  ValidatedAlexandriaPath,
+} from '../../../src/pure-core/types';
 
 describe('Pure A24zConfigurationStore', () => {
   let store: A24zConfigurationStore;
   let fs: InMemoryFileSystemAdapter;
   const testRepoPath = '/test-repo';
   let validatedRepoPath: ValidatedRepositoryPath;
+  let alexandriaPath: ValidatedAlexandriaPath;
 
   beforeEach(() => {
     fs = new InMemoryFileSystemAdapter();
-    store = new A24zConfigurationStore(fs);
 
     // Set up the test repository structure
     fs.setupTestRepo(testRepoPath);
 
     // Validate the repository path
     validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+
+    // Get alexandria path and create store
+    alexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepoPath, fs);
+    store = new A24zConfigurationStore(fs, alexandriaPath);
   });
 
   describe('Repository Validation', () => {
     it('should create .a24z directory when it does not exist', () => {
       // Create a new fs and store without setupTestRepo to test directory creation
       const cleanFs = new InMemoryFileSystemAdapter();
-      const cleanStore = new A24zConfigurationStore(cleanFs);
 
       // Set up just the git repo without .a24z
       cleanFs.createDir('/clean-repo');
@@ -41,9 +47,11 @@ describe('Pure A24zConfigurationStore', () => {
 
       // Validate and use the path
       const cleanValidatedPath = MemoryPalace.validateRepositoryPath(cleanFs, '/clean-repo');
+      const cleanAlexandriaPath = MemoryPalace.getAlexandriaPath(cleanValidatedPath, cleanFs);
+      const cleanStore = new A24zConfigurationStore(cleanFs, cleanAlexandriaPath);
 
       // Accessing configuration should work (directory creation is handled by adapter)
-      const config = cleanStore.getConfiguration(cleanValidatedPath);
+      const config = cleanStore.getConfiguration();
       expect(config).toBeTruthy();
       expect(config.version).toBe(1);
 
@@ -55,7 +63,7 @@ describe('Pure A24zConfigurationStore', () => {
       // Pre-create .a24z directory
       fs.createDir('/test-repo/.a24z');
 
-      const config = store.getConfiguration(validatedRepoPath);
+      const config = store.getConfiguration();
       expect(config).toBeTruthy();
     });
 
@@ -68,11 +76,14 @@ describe('Pure A24zConfigurationStore', () => {
 
       // Since we're testing the store directly with an invalid path,
       // we need to bypass validation by casting
-      const invalidPath = '/invalid/path' as ValidatedRepositoryPath;
 
       expect(() => {
-        store.getConfiguration(invalidPath);
-      }).toThrow('Invalid repository root path: /invalid/path');
+        // Create store with invalid alexandria path to test error handling
+        const invalidAlexandriaPath = '/invalid/path/.a24z' as ValidatedAlexandriaPath;
+        const invalidStore = new A24zConfigurationStore(fs, invalidAlexandriaPath);
+        // updateConfiguration should trigger directory creation and fail
+        invalidStore.updateConfiguration({ storage: { compressionEnabled: true } });
+      }).toThrow();
 
       // Restore original method
       fs.createDir = originalCreateDir;
@@ -81,7 +92,7 @@ describe('Pure A24zConfigurationStore', () => {
 
   describe('Configuration Management', () => {
     it('should return default configuration when none exists', () => {
-      const config = store.getConfiguration(validatedRepoPath);
+      const config = store.getConfiguration();
 
       expect(config.version).toBe(1);
       expect(config.limits.noteMaxLength).toBe(500);
@@ -101,15 +112,15 @@ describe('Pure A24zConfigurationStore', () => {
         storage: { compressionEnabled: true },
       };
 
-      const updated = store.updateConfiguration(validatedRepoPath, updates);
+      const updated = store.updateConfiguration(updates);
 
       expect(updated.limits.noteMaxLength).toBe(8000);
       expect(updated.limits.maxTagsPerNote).toBe(8);
       expect(updated.storage.compressionEnabled).toBe(true);
 
       // Verify persistence by creating new store instance
-      const newStore = new A24zConfigurationStore(fs);
-      const loaded = newStore.getConfiguration(validatedRepoPath);
+      const newStore = new A24zConfigurationStore(fs, alexandriaPath);
+      const loaded = newStore.getConfiguration();
 
       expect(loaded.limits.noteMaxLength).toBe(8000);
       expect(loaded.storage.compressionEnabled).toBe(true);
@@ -117,7 +128,7 @@ describe('Pure A24zConfigurationStore', () => {
 
     it('should merge partial updates with existing config', () => {
       // First, set some custom config
-      store.updateConfiguration(validatedRepoPath, {
+      store.updateConfiguration({
         limits: {
           noteMaxLength: 8000,
           maxTagsPerNote: 8,
@@ -127,7 +138,7 @@ describe('Pure A24zConfigurationStore', () => {
       });
 
       // Then update only storage settings
-      const updated = store.updateConfiguration(validatedRepoPath, {
+      const updated = store.updateConfiguration({
         storage: { compressionEnabled: true },
       });
 
@@ -143,22 +154,22 @@ describe('Pure A24zConfigurationStore', () => {
       fs.writeFile('/test-repo/.a24z/config.json', 'invalid json {');
 
       // Should return default config when parsing fails
-      const config = store.getConfiguration(validatedRepoPath);
+      const config = store.getConfiguration();
       expect(config.limits.noteMaxLength).toBe(500); // Default value
     });
   });
 
   describe('Configuration File Management', () => {
     it('should check if custom configuration exists', () => {
-      expect(store.hasCustomConfiguration(validatedRepoPath)).toBe(false);
+      expect(store.hasCustomConfiguration()).toBe(false);
 
-      store.updateConfiguration(validatedRepoPath, { storage: { compressionEnabled: true } });
-      expect(store.hasCustomConfiguration(validatedRepoPath)).toBe(true);
+      store.updateConfiguration({ storage: { compressionEnabled: true } });
+      expect(store.hasCustomConfiguration()).toBe(true);
     });
 
     it('should reset configuration to defaults', () => {
       // Set custom config
-      store.updateConfiguration(validatedRepoPath, {
+      store.updateConfiguration({
         limits: {
           noteMaxLength: 5000,
           maxTagsPerNote: 5,
@@ -168,31 +179,31 @@ describe('Pure A24zConfigurationStore', () => {
       });
 
       // Reset to defaults
-      const reset = store.resetConfiguration(validatedRepoPath);
+      const reset = store.resetConfiguration();
       expect(reset.limits.noteMaxLength).toBe(500); // Default value
 
       // Verify it's persistent
-      const loaded = store.getConfiguration(validatedRepoPath);
+      const loaded = store.getConfiguration();
       expect(loaded.limits.noteMaxLength).toBe(500);
     });
 
     it('should delete configuration file', () => {
       // Set custom config
-      store.updateConfiguration(validatedRepoPath, { storage: { compressionEnabled: true } });
-      expect(store.hasCustomConfiguration(validatedRepoPath)).toBe(true);
+      store.updateConfiguration({ storage: { compressionEnabled: true } });
+      expect(store.hasCustomConfiguration()).toBe(true);
 
       // Delete config
-      const deleted = store.deleteConfiguration(validatedRepoPath);
+      const deleted = store.deleteConfiguration();
       expect(deleted).toBe(true);
-      expect(store.hasCustomConfiguration(validatedRepoPath)).toBe(false);
+      expect(store.hasCustomConfiguration()).toBe(false);
 
       // Should return defaults after deletion
-      const config = store.getConfiguration(validatedRepoPath);
+      const config = store.getConfiguration();
       expect(config.storage.compressionEnabled).toBe(false); // Default value
     });
 
     it('should return false when deleting non-existent config', () => {
-      const deleted = store.deleteConfiguration(validatedRepoPath);
+      const deleted = store.deleteConfiguration();
       expect(deleted).toBe(false);
     });
   });
@@ -214,7 +225,7 @@ describe('Pure A24zConfigurationStore', () => {
 
   describe('FileSystemAdapter Integration', () => {
     it('should use the provided filesystem adapter', () => {
-      store.updateConfiguration(validatedRepoPath, {
+      store.updateConfiguration({
         limits: {
           noteMaxLength: 7500,
           maxTagsPerNote: 7,

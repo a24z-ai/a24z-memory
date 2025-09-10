@@ -11,19 +11,22 @@ import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesS
 import { NodeFileSystemAdapter } from '../../../src/node-adapters/NodeFileSystemAdapter';
 import { createTestView } from '../../test-helpers';
 import { MemoryPalace } from '../../../src/MemoryPalace';
-import type { ValidatedRepositoryPath } from '../../../src/pure-core/types';
+import type {
+  ValidatedRepositoryPath,
+  ValidatedAlexandriaPath,
+} from '../../../src/pure-core/types';
 
 describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
   let store: AnchoredNotesStore;
   let tempDir: string;
   let gitRepoPath: string;
   let validatedRepoPath: ValidatedRepositoryPath;
+  let alexandriaPath: ValidatedAlexandriaPath;
   let nodeFs: NodeFileSystemAdapter;
 
   beforeEach(() => {
     // Create the store with Node.js filesystem adapter
     nodeFs = new NodeFileSystemAdapter();
-    store = new AnchoredNotesStore(nodeFs);
 
     // Create temp directories
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a24z-pure-test-'));
@@ -34,8 +37,12 @@ describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
     fs.mkdirSync(path.join(gitRepoPath, '.git'), { recursive: true });
     createTestView(gitRepoPath, 'test-view');
 
-    // Validate the repository path
+    // Validate the repository path and get alexandria path
     validatedRepoPath = MemoryPalace.validateRepositoryPath(nodeFs, gitRepoPath);
+    alexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepoPath, nodeFs);
+
+    // Create the store with alexandria path
+    store = new AnchoredNotesStore(nodeFs, alexandriaPath);
   });
 
   afterEach(() => {
@@ -113,8 +120,8 @@ describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
     expect(fs.existsSync(configPath)).toBe(true);
 
     // Create a new store instance to verify persistence
-    const newStore = new AnchoredNotesStore(new NodeFileSystemAdapter());
-    const loaded = newStore.getConfiguration(validatedRepoPath);
+    const newStore = new AnchoredNotesStore(nodeFs, alexandriaPath);
+    const loaded = newStore.getConfiguration();
 
     expect(loaded.limits.noteMaxLength).toBe(8000);
     expect(loaded.storage.compressionEnabled).toBe(true);
@@ -131,7 +138,7 @@ describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
       directoryPath: validatedRepoPath,
     };
 
-    expect(() => store.saveNote(longNoteInput)).toThrow('Note is too long');
+    expect(() => store.saveNote(longNoteInput)).toThrow('Validation failed: Note is too long');
 
     // Test no anchors
     const noAnchorsInput = {
@@ -143,7 +150,9 @@ describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
       directoryPath: validatedRepoPath,
     };
 
-    expect(() => store.saveNote(noAnchorsInput)).toThrow('Notes must have at least one anchor');
+    expect(() => store.saveNote(noAnchorsInput)).toThrow(
+      'Validation failed: Notes must have at least one anchor'
+    );
   });
 
   it('should handle note deletion', () => {
@@ -201,12 +210,12 @@ describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
     // Save with current adapter
     const saved = store.saveNote(noteInput);
 
-    // Create another store instance with the same adapter type
-    // In a real scenario, this could be a different adapter (InMemory, S3, etc.)
-    const anotherStore = new AnchoredNotesStore(new NodeFileSystemAdapter());
+    // Create another store instance with the same adapter instance
+    // This demonstrates that data persists within the same adapter
+    const sameAdapterStore = new AnchoredNotesStore(nodeFs, alexandriaPath);
 
-    // Verify the other store can read the same data
-    const retrieved = anotherStore.getNoteById(validatedRepoPath, saved.note.id);
+    // Verify the other store can read the same data (same adapter instance)
+    const retrieved = sameAdapterStore.getNoteById(validatedRepoPath, saved.note.id);
     expect(retrieved).toEqual(saved.note);
 
     console.log('✅ Pure AnchoredNotesStore successfully uses dependency injection pattern');

@@ -6,6 +6,7 @@ import type {
   ValidatedRepositoryPath,
   ValidatedRelativePath,
   StoredAnchoredNote,
+  ValidatedAlexandriaPath,
 } from '../../../src/pure-core/types';
 
 describe('Tag Removal from Notes', () => {
@@ -13,16 +14,19 @@ describe('Tag Removal from Notes', () => {
   let fsAdapter: InMemoryFileSystemAdapter;
   const testRepoPath = '/test-repo';
   let validatedRepoPath: ValidatedRepositoryPath;
+  let alexandriaPath: ValidatedAlexandriaPath;
   let testNote: Omit<StoredAnchoredNote, 'id' | 'timestamp'>;
 
   beforeEach(() => {
     // Initialize in-memory filesystem and store
     fsAdapter = new InMemoryFileSystemAdapter();
-    store = new AnchoredNotesStore(fsAdapter);
 
     // Set up test repository
     fsAdapter.setupTestRepo(testRepoPath);
     validatedRepoPath = MemoryPalace.validateRepositoryPath(fsAdapter, testRepoPath);
+    alexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepoPath, fsAdapter);
+
+    store = new AnchoredNotesStore(fsAdapter, alexandriaPath);
 
     // Create a basic test note template
     testNote = {
@@ -102,14 +106,14 @@ describe('Tag Removal from Notes', () => {
 
     it('should delete tag description file', () => {
       // First add a tag description
-      store.saveTagDescription(validatedRepoPath, 'bugfix', 'Bug fix related changes');
+      store.saveTagDescription('bugfix', 'Bug fix related changes');
 
       // Verify it exists
       const tagPath = fsAdapter.join(testRepoPath, '.a24z', 'tags', 'bugfix.md');
       expect(fsAdapter.exists(tagPath)).toBe(true);
 
       // Delete the tag description
-      const result = store.deleteTagDescription(validatedRepoPath, 'bugfix');
+      const result = store.deleteTagDescription('bugfix');
 
       expect(result).toBe(true);
       expect(fsAdapter.exists(tagPath)).toBe(false);
@@ -122,7 +126,7 @@ describe('Tag Removal from Notes', () => {
 
     it('should return false when tag description does not exist', () => {
       // Try to delete a non-existent tag description
-      const result = store.deleteTagDescription(validatedRepoPath, 'nonexistent');
+      const result = store.deleteTagDescription('nonexistent');
 
       expect(result).toBe(false);
     });

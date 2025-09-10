@@ -7,28 +7,35 @@ import { describe, it, expect, beforeEach } from 'bun:test';
 import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
 import { MemoryPalace } from '../../../src/MemoryPalace';
-import type { ValidatedRepositoryPath } from '../../../src/pure-core/types';
+import type {
+  ValidatedRepositoryPath,
+  ValidatedAlexandriaPath,
+} from '../../../src/pure-core/types';
 
 describe('Pure AnchoredNotesStore', () => {
   let store: AnchoredNotesStore;
   let fs: InMemoryFileSystemAdapter;
   const testRepoPath = '/test-repo';
   let validatedRepoPath: ValidatedRepositoryPath;
+  let alexandriaPath: ValidatedAlexandriaPath;
 
   beforeEach(() => {
     fs = new InMemoryFileSystemAdapter();
-    store = new AnchoredNotesStore(fs);
 
     // Set up the test repository structure
     fs.setupTestRepo(testRepoPath);
 
     // Validate the repository path
     validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+
+    // Get alexandria path and create store
+    alexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepoPath, fs);
+    store = new AnchoredNotesStore(fs, alexandriaPath);
   });
 
   describe('Configuration Management', () => {
     it('should return default config when none exists', () => {
-      const config = store.getConfiguration(validatedRepoPath);
+      const config = store.getConfiguration();
 
       expect(config.version).toBe(1);
       expect(config.limits.noteMaxLength).toBe(500);
@@ -55,7 +62,7 @@ describe('Pure AnchoredNotesStore', () => {
       expect(updated.storage.compressionEnabled).toBe(true);
 
       // Verify it's persisted
-      const loaded = store.getConfiguration(validatedRepoPath);
+      const loaded = store.getConfiguration();
       expect(loaded.limits.noteMaxLength).toBe(5000);
       expect(loaded.limits.maxAnchorsPerNote).toBe(15);
       expect(loaded.storage.compressionEnabled).toBe(true);

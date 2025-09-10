@@ -2,70 +2,68 @@ import { describe, it, expect, beforeEach } from 'bun:test';
 import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
 import { MemoryPalace } from '../../../src/MemoryPalace';
-import type { ValidatedRepositoryPath } from '../../../src/pure-core/types';
+import type {
+  ValidatedRepositoryPath,
+  ValidatedAlexandriaPath,
+} from '../../../src/pure-core/types';
 
 describe('Tag Descriptions', () => {
   let store: AnchoredNotesStore;
   let fs: InMemoryFileSystemAdapter;
   const testRepoPath = '/test-repo';
   let validatedRepoPath: ValidatedRepositoryPath;
+  let alexandriaPath: ValidatedAlexandriaPath;
 
   beforeEach(() => {
     // Initialize in-memory filesystem and store
     fs = new InMemoryFileSystemAdapter();
-    store = new AnchoredNotesStore(fs);
 
     // Set up test repository
     fs.setupTestRepo(testRepoPath);
     validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    alexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepoPath, fs);
+
+    store = new AnchoredNotesStore(fs, alexandriaPath);
   });
 
   describe('Basic Operations', () => {
     it('should save and retrieve tag descriptions', () => {
-      store.saveTagDescription(
-        validatedRepoPath,
-        'feature',
-        'New functionality added to the system'
-      );
-      store.saveTagDescription(
-        validatedRepoPath,
-        'bugfix',
-        'Corrections to existing functionality'
-      );
+      store.saveTagDescription('feature', 'New functionality added to the system');
+      store.saveTagDescription('bugfix', 'Corrections to existing functionality');
 
-      const descriptions = store.getTagDescriptions(validatedRepoPath);
+      const descriptions = store.getTagDescriptions();
 
       expect(descriptions['feature']).toBe('New functionality added to the system');
       expect(descriptions['bugfix']).toBe('Corrections to existing functionality');
     });
 
     it('should update existing tag description', () => {
-      store.saveTagDescription(validatedRepoPath, 'feature', 'Original description');
-      store.saveTagDescription(validatedRepoPath, 'feature', 'Updated description');
+      store.saveTagDescription('feature', 'Original description');
+      store.saveTagDescription('feature', 'Updated description');
 
-      const descriptions = store.getTagDescriptions(validatedRepoPath);
+      const descriptions = store.getTagDescriptions();
       expect(descriptions['feature']).toBe('Updated description');
     });
 
     it('should delete tag descriptions', () => {
-      store.saveTagDescription(validatedRepoPath, 'feature', 'Feature description');
-      store.saveTagDescription(validatedRepoPath, 'bugfix', 'Bugfix description');
+      store.saveTagDescription('feature', 'Feature description');
+      store.saveTagDescription('bugfix', 'Bugfix description');
 
-      const deleted = store.deleteTagDescription(validatedRepoPath, 'feature');
+      const deleted = store.deleteTagDescription('feature');
       expect(deleted).toBe(true);
 
-      const descriptions = store.getTagDescriptions(validatedRepoPath);
+      const descriptions = store.getTagDescriptions();
       expect(descriptions['feature']).toBeUndefined();
       expect(descriptions['bugfix']).toBe('Bugfix description');
     });
 
     it('should return false when deleting non-existent tag', () => {
-      const deleted = store.deleteTagDescription(validatedRepoPath, 'non-existent');
+      const deleted = store.deleteTagDescription('non-existent');
       expect(deleted).toBe(false);
     });
 
     it('should handle empty repository', () => {
-      const descriptions = store.getTagDescriptions(validatedRepoPath);
+      const descriptions = store.getTagDescriptions();
       expect(descriptions).toEqual({});
     });
   });
@@ -73,7 +71,6 @@ describe('Tag Descriptions', () => {
   describe('Markdown File Storage', () => {
     it('should store tag descriptions as markdown files', () => {
       store.saveTagDescription(
-        validatedRepoPath,
         'feature',
         '# Feature Tag\n\nThis tag is used for new functionality.'
       );
@@ -86,28 +83,28 @@ describe('Tag Descriptions', () => {
     });
 
     it('should enforce description length limit', () => {
-      const config = store.getConfiguration(validatedRepoPath);
+      const config = store.getConfiguration();
       const longDescription = 'a'.repeat(config.limits.tagDescriptionMaxLength + 1);
 
       expect(() => {
-        store.saveTagDescription(validatedRepoPath, 'feature', longDescription);
+        store.saveTagDescription('feature', longDescription);
       }).toThrow(/Tag description exceeds maximum length/);
     });
 
     it('should support markdown content within length limits', () => {
       const markdownContent = `# Feature Tag\n\n## Usage\n- New features\n- Enhancements`;
 
-      store.saveTagDescription(validatedRepoPath, 'feature', markdownContent);
+      store.saveTagDescription('feature', markdownContent);
 
-      const descriptions = store.getTagDescriptions(validatedRepoPath);
+      const descriptions = store.getTagDescriptions();
       expect(descriptions['feature']).toBe(markdownContent);
     });
   });
 
   describe('File Storage', () => {
     it('should create individual markdown files in .a24z/tags directory', () => {
-      store.saveTagDescription(validatedRepoPath, 'feature', 'Test description');
-      store.saveTagDescription(validatedRepoPath, 'bugfix', 'Bug fixes');
+      store.saveTagDescription('feature', 'Test description');
+      store.saveTagDescription('bugfix', 'Bug fixes');
 
       const featureFile = fs.join(testRepoPath, '.a24z', 'tags', 'feature.md');
       const bugfixFile = fs.join(testRepoPath, '.a24z', 'tags', 'bugfix.md');
@@ -120,22 +117,22 @@ describe('Tag Descriptions', () => {
     });
 
     it('should remove individual markdown files when deleted', () => {
-      store.saveTagDescription(validatedRepoPath, 'feature', 'Test description');
+      store.saveTagDescription('feature', 'Test description');
       const tagFile = fs.join(testRepoPath, '.a24z', 'tags', 'feature.md');
 
       expect(fs.exists(tagFile)).toBe(true);
 
-      store.deleteTagDescription(validatedRepoPath, 'feature');
+      store.deleteTagDescription('feature');
 
       expect(fs.exists(tagFile)).toBe(false);
     });
 
     it('should remove tag file when deleted', () => {
-      store.saveTagDescription(validatedRepoPath, 'feature', 'Test');
+      store.saveTagDescription('feature', 'Test');
       const tagFile = fs.join(testRepoPath, '.a24z', 'tags', 'feature.md');
       expect(fs.exists(tagFile)).toBe(true);
 
-      store.deleteTagDescription(validatedRepoPath, 'feature');
+      store.deleteTagDescription('feature');
 
       // File should be removed
       expect(fs.exists(tagFile)).toBe(false);
@@ -146,7 +143,7 @@ describe('Tag Descriptions', () => {
       const longDescription = 'a'.repeat(2500); // Default is 2000
 
       try {
-        store.saveTagDescription(validatedRepoPath, 'feature', longDescription);
+        store.saveTagDescription('feature', longDescription);
         fail('Should have thrown an error');
       } catch (error: unknown) {
         expect((error as Error).message).toContain('Current length: 2500');
@@ -158,18 +155,18 @@ describe('Tag Descriptions', () => {
   describe('Integration with Tag Restrictions', () => {
     it('should return tags with descriptions for allowed tags', () => {
       // Set up tag restrictions
-      store.updateConfiguration(validatedRepoPath, {
+      store.updateConfiguration({
         tags: {
           enforceAllowedTags: true,
         },
       });
 
       // Add descriptions for some tags
-      store.saveTagDescription(validatedRepoPath, 'feature', 'New features');
-      store.saveTagDescription(validatedRepoPath, 'bugfix', 'Bug fixes');
-      store.saveTagDescription(validatedRepoPath, 'security', 'Security improvements');
+      store.saveTagDescription('feature', 'New features');
+      store.saveTagDescription('bugfix', 'Bug fixes');
+      store.saveTagDescription('security', 'Security improvements');
 
-      const tagsWithDescriptions = store.getTagsWithDescriptions(validatedRepoPath);
+      const tagsWithDescriptions = store.getTagsWithDescriptions();
 
       // Should include all tags with descriptions
       expect(tagsWithDescriptions).toHaveLength(3);
@@ -189,10 +186,10 @@ describe('Tag Descriptions', () => {
 
     it('should only include tags with descriptions when no restrictions', () => {
       // No tag restrictions
-      store.saveTagDescription(validatedRepoPath, 'custom', 'Custom tag description');
-      store.saveTagDescription(validatedRepoPath, 'feature', 'Feature description');
+      store.saveTagDescription('custom', 'Custom tag description');
+      store.saveTagDescription('feature', 'Feature description');
 
-      const tagsWithDescriptions = store.getTagsWithDescriptions(validatedRepoPath);
+      const tagsWithDescriptions = store.getTagsWithDescriptions();
 
       expect(tagsWithDescriptions).toHaveLength(2);
 
@@ -209,7 +206,7 @@ describe('Tag Descriptions', () => {
 
     it('should handle empty results when no descriptions exist', () => {
       // No tag descriptions created
-      const tagsWithDescriptions = store.getTagsWithDescriptions(validatedRepoPath);
+      const tagsWithDescriptions = store.getTagsWithDescriptions();
 
       expect(tagsWithDescriptions).toHaveLength(0);
     });
@@ -220,12 +217,14 @@ describe('Tag Descriptions', () => {
       const repo2Path = '/test-repo2';
       fs.setupTestRepo(repo2Path);
       const validatedRepo2Path = MemoryPalace.validateRepositoryPath(fs, repo2Path);
+      const repo2AlexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepo2Path, fs);
+      const store2 = new AnchoredNotesStore(fs, repo2AlexandriaPath);
 
-      store.saveTagDescription(validatedRepoPath, 'feature', 'Repo1 feature');
-      store.saveTagDescription(validatedRepo2Path, 'feature', 'Repo2 feature');
+      store.saveTagDescription('feature', 'Repo1 feature');
+      store2.saveTagDescription('feature', 'Repo2 feature');
 
-      const repo1Descriptions = store.getTagDescriptions(validatedRepoPath);
-      const repo2Descriptions = store.getTagDescriptions(validatedRepo2Path);
+      const repo1Descriptions = store.getTagDescriptions();
+      const repo2Descriptions = store2.getTagDescriptions();
 
       expect(repo1Descriptions['feature']).toBe('Repo1 feature');
       expect(repo2Descriptions['feature']).toBe('Repo2 feature');

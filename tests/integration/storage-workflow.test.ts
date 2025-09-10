@@ -8,7 +8,11 @@ import { GetRepositoryTagsTool } from '../../src/mcp/tools/GetRepositoryTagsTool
 import { InMemoryFileSystemAdapter } from '../test-adapters/InMemoryFileSystemAdapter';
 import { CodebaseViewsStore } from '../../src/pure-core/stores/CodebaseViewsStore';
 import { MemoryPalace } from '../../src/MemoryPalace';
-import type { ValidatedRepositoryPath, CodebaseView } from '../../src/pure-core/types';
+import type {
+  ValidatedRepositoryPath,
+  ValidatedAlexandriaPath,
+  CodebaseView,
+} from '../../src/pure-core/types';
 
 describe('File Operations Integration', () => {
   const testPath = '/file-ops-test';
@@ -16,15 +20,18 @@ describe('File Operations Integration', () => {
   let fsAdapter: InMemoryFileSystemAdapter;
   let codebaseViewsStore: CodebaseViewsStore;
   let validatedRepoPath: ValidatedRepositoryPath;
+  let alexandriaPath: ValidatedAlexandriaPath;
 
   beforeEach(() => {
     // Initialize in-memory filesystem and stores
     fsAdapter = new InMemoryFileSystemAdapter();
-    codebaseViewsStore = new CodebaseViewsStore(fsAdapter);
 
     // Set up test repository
     fsAdapter.setupTestRepo(testPath);
     validatedRepoPath = MemoryPalace.validateRepositoryPath(fsAdapter, testPath);
+    alexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepoPath, fsAdapter);
+
+    codebaseViewsStore = new CodebaseViewsStore(fsAdapter, alexandriaPath);
 
     // Create a test view
     const testView: CodebaseView = {
@@ -143,7 +150,8 @@ describe('File Operations Integration', () => {
     const validatedPath = MemoryPalace.validateRepositoryPath(fs, testPath);
 
     // Create a test view for the new instance
-    const codebaseViewsStore = new CodebaseViewsStore(fs);
+    const alexandriaPath = MemoryPalace.getAlexandriaPath(validatedPath, fs);
+    const codebaseViewsStore = new CodebaseViewsStore(fs, alexandriaPath);
     const testView: CodebaseView = {
       id: 'test-view',
       version: '1.0.0',

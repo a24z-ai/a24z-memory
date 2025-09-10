@@ -3,7 +3,11 @@ import { AnchoredNotesStore } from '../src/pure-core/stores/AnchoredNotesStore';
 import { InMemoryFileSystemAdapter } from './test-adapters/InMemoryFileSystemAdapter';
 import { CodebaseViewsStore } from '../src/pure-core/stores/CodebaseViewsStore';
 import { MemoryPalace } from '../src/MemoryPalace';
-import type { ValidatedRepositoryPath, CodebaseView } from '../src/pure-core/types';
+import type {
+  ValidatedRepositoryPath,
+  CodebaseView,
+  ValidatedAlexandriaPath,
+} from '../src/pure-core/types';
 
 describe('Configuration System', () => {
   let fs: InMemoryFileSystemAdapter;
@@ -11,16 +15,20 @@ describe('Configuration System', () => {
   let codebaseViewsStore: CodebaseViewsStore;
   const testRepoPath = '/test-repo';
   let validatedRepoPath: ValidatedRepositoryPath;
+  let alexandriaPath: ValidatedAlexandriaPath;
 
   beforeEach(() => {
-    // Initialize in-memory filesystem and stores
+    // Initialize in-memory filesystem
     fs = new InMemoryFileSystemAdapter();
-    store = new AnchoredNotesStore(fs);
-    codebaseViewsStore = new CodebaseViewsStore(fs);
 
     // Set up test repository
     fs.setupTestRepo(testRepoPath);
     validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    alexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepoPath, fs);
+
+    // Initialize stores with alexandria path
+    store = new AnchoredNotesStore(fs, alexandriaPath);
+    codebaseViewsStore = new CodebaseViewsStore(fs, alexandriaPath);
 
     // Create a test view
     const testView: CodebaseView = {
@@ -40,7 +48,7 @@ describe('Configuration System', () => {
   });
 
   it('should create default configuration on first access', () => {
-    const config = store.getConfiguration(validatedRepoPath);
+    const config = store.getConfiguration();
 
     expect(config).toEqual({
       version: 1,
@@ -96,7 +104,7 @@ describe('Configuration System', () => {
     expect(updatedConfig.limits.maxAnchorsPerNote).toBe(10);
 
     // Verify persistence
-    const reloadedConfig = store.getConfiguration(validatedRepoPath);
+    const reloadedConfig = store.getConfiguration();
     expect(reloadedConfig.limits.noteMaxLength).toBe(5000);
   });
 
@@ -246,7 +254,7 @@ describe('Configuration System', () => {
     fs.writeFile(configFile, 'invalid json content');
 
     // Should fall back to defaults
-    const config = store.getConfiguration(validatedRepoPath);
+    const config = store.getConfiguration();
     expect(config.limits.noteMaxLength).toBe(500); // Default value
   });
 

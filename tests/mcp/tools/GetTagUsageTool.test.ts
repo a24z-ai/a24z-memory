@@ -4,7 +4,11 @@ import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSyste
 import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
 import { CodebaseViewsStore } from '../../../src/pure-core/stores/CodebaseViewsStore';
 import { MemoryPalace } from '../../../src/MemoryPalace';
-import type { ValidatedRepositoryPath, CodebaseView } from '../../../src/pure-core/types';
+import type {
+  ValidatedRepositoryPath,
+  CodebaseView,
+  ValidatedAlexandriaPath,
+} from '../../../src/pure-core/types';
 
 interface TagUsageResponse {
   tag: string;
@@ -20,16 +24,19 @@ describe('GetTagUsageTool', () => {
   let fs: InMemoryFileSystemAdapter;
   const testRepoPath = '/test-repo';
   let validatedRepoPath: ValidatedRepositoryPath;
+  let alexandriaPath: ValidatedAlexandriaPath;
 
   beforeEach(() => {
     fs = new InMemoryFileSystemAdapter();
     tool = new GetTagUsageTool(fs);
-    notesStore = new AnchoredNotesStore(fs);
     fs.setupTestRepo(testRepoPath);
     validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    alexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepoPath, fs);
+
+    notesStore = new AnchoredNotesStore(fs, alexandriaPath);
 
     // Create a test view using CodebaseViewsStore
-    const codebaseViewsStore = new CodebaseViewsStore(fs);
+    const codebaseViewsStore = new CodebaseViewsStore(fs, alexandriaPath);
     const testView: CodebaseView = {
       id: 'test-view',
       version: '1.0.0',
@@ -64,8 +71,8 @@ describe('GetTagUsageTool', () => {
 
   it('should identify used and unused tags', async () => {
     // Create tag descriptions
-    notesStore.saveTagDescription(validatedRepoPath, 'used-tag', 'This tag is used');
-    notesStore.saveTagDescription(validatedRepoPath, 'unused-tag', 'This tag is not used');
+    notesStore.saveTagDescription('used-tag', 'This tag is used');
+    notesStore.saveTagDescription('unused-tag', 'This tag is not used');
 
     // Save notes with tags
     const note1WithPath = notesStore.saveNote({
@@ -131,9 +138,9 @@ describe('GetTagUsageTool', () => {
 
   it('should filter tags when filterTags is provided', async () => {
     // Create multiple tags
-    notesStore.saveTagDescription(validatedRepoPath, 'tag1', 'Description 1');
-    notesStore.saveTagDescription(validatedRepoPath, 'tag2', 'Description 2');
-    notesStore.saveTagDescription(validatedRepoPath, 'tag3', 'Description 3');
+    notesStore.saveTagDescription('tag1', 'Description 1');
+    notesStore.saveTagDescription('tag2', 'Description 2');
+    notesStore.saveTagDescription('tag3', 'Description 3');
 
     // Save notes with various tags
     notesStore.saveNote({
@@ -175,7 +182,7 @@ describe('GetTagUsageTool', () => {
 
   it('should exclude descriptions when includeDescriptions is false', async () => {
     // Create tag with description
-    notesStore.saveTagDescription(validatedRepoPath, 'described-tag', 'This is a description');
+    notesStore.saveTagDescription('described-tag', 'This is a description');
 
     // Save note with tag
     notesStore.saveNote({
@@ -280,7 +287,7 @@ describe('GetTagUsageTool', () => {
 
   it('should provide recommendations for unused tags and tags without descriptions', async () => {
     // Create unused tag with description
-    notesStore.saveTagDescription(validatedRepoPath, 'unused', 'Unused tag');
+    notesStore.saveTagDescription('unused', 'Unused tag');
 
     // Save note with tag without description
     notesStore.saveNote({

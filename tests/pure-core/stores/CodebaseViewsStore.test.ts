@@ -9,7 +9,11 @@ import {
   generateViewIdFromName,
 } from '../../../src/pure-core/stores/CodebaseViewsStore';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
-import { CodebaseView, ValidatedRepositoryPath } from '../../../src/pure-core/types';
+import {
+  CodebaseView,
+  ValidatedRepositoryPath,
+  ValidatedAlexandriaPath,
+} from '../../../src/pure-core/types';
 import { MemoryPalace } from '../../../src/MemoryPalace';
 
 describe('Pure CodebaseViewsStore', () => {
@@ -17,16 +21,20 @@ describe('Pure CodebaseViewsStore', () => {
   let fs: InMemoryFileSystemAdapter;
   const testRepoPath = '/test-repo';
   let validatedRepoPath: ValidatedRepositoryPath;
+  let alexandriaPath: ValidatedAlexandriaPath;
 
   beforeEach(() => {
     fs = new InMemoryFileSystemAdapter();
-    store = new CodebaseViewsStore(fs);
 
     // Set up the test repository structure
     fs.setupTestRepo(testRepoPath);
 
     // Validate the repository path
     validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+
+    // Get alexandria path and create store
+    alexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepoPath, fs);
+    store = new CodebaseViewsStore(fs, alexandriaPath);
   });
 
   const sampleView: CodebaseView = {

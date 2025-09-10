@@ -25,7 +25,8 @@ describe('ListCodebaseViewsTool', () => {
     new MemoryPalace(testRepoPath, inMemoryFs);
 
     // Create CodebaseViewsStore for managing views
-    codebaseViewsStore = new CodebaseViewsStore(inMemoryFs);
+    const alexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepoPath, inMemoryFs);
+    codebaseViewsStore = new CodebaseViewsStore(inMemoryFs, alexandriaPath);
 
     // Create the tool with the same in-memory adapter
     tool = new ListCodebaseViewsTool(inMemoryFs);

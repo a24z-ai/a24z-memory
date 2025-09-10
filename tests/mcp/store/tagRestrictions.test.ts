@@ -2,29 +2,36 @@ import { describe, it, expect, beforeEach } from 'bun:test';
 import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
 import { MemoryPalace } from '../../../src/MemoryPalace';
-import type { ValidatedRepositoryPath } from '../../../src/pure-core/types';
+import type {
+  ValidatedRepositoryPath,
+  ValidatedAlexandriaPath,
+} from '../../../src/pure-core/types';
 
 describe('Tag Restrictions', () => {
   let store: AnchoredNotesStore;
   let fs: InMemoryFileSystemAdapter;
   const testRepoPath = '/test-repo';
   let validatedRepoPath: ValidatedRepositoryPath;
+  let alexandriaPath: ValidatedAlexandriaPath;
 
   beforeEach(() => {
     // Initialize in-memory filesystem
     fs = new InMemoryFileSystemAdapter();
-    store = new AnchoredNotesStore(fs);
 
     // Set up the test repository structure
     fs.setupTestRepo(testRepoPath);
 
-    // Validate the repository path
+    // Validate the repository path and get alexandria path
     validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    alexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepoPath, fs);
+
+    // Create store with alexandria path
+    store = new AnchoredNotesStore(fs, alexandriaPath);
   });
 
   describe('Configuration', () => {
     it('should have tag restrictions disabled by default', () => {
-      const config = store.getConfiguration(validatedRepoPath);
+      const config = store.getConfiguration();
 
       expect(config.tags).toBeDefined();
       expect(config.tags?.enforceAllowedTags).toBe(false);
@@ -40,13 +47,13 @@ describe('Tag Restrictions', () => {
       expect(updatedConfig.tags?.enforceAllowedTags).toBe(true);
 
       // Verify it persists
-      const readConfig = store.getConfiguration(validatedRepoPath);
+      const readConfig = store.getConfiguration();
       expect(readConfig.tags?.enforceAllowedTags).toBe(true);
     });
 
     it('should return allowed tags for a repository', () => {
       // Initially no restrictions
-      let allowedTags = store.getAllowedTags(validatedRepoPath);
+      let allowedTags = store.getAllowedTags();
       expect(allowedTags.enforced).toBe(false);
       expect(allowedTags.tags).toEqual([]);
 
@@ -58,11 +65,11 @@ describe('Tag Restrictions', () => {
       });
 
       // Add tag descriptions which will become the allowed tags
-      store.saveTagDescription(validatedRepoPath, 'feature', 'New features');
-      store.saveTagDescription(validatedRepoPath, 'bugfix', 'Bug fixes');
+      store.saveTagDescription('feature', 'New features');
+      store.saveTagDescription('bugfix', 'Bug fixes');
 
       // Check again
-      allowedTags = store.getAllowedTags(validatedRepoPath);
+      allowedTags = store.getAllowedTags();
       expect(allowedTags.enforced).toBe(true);
       expect(allowedTags.tags.sort()).toEqual(['bugfix', 'feature']);
     });
@@ -93,9 +100,9 @@ describe('Tag Restrictions', () => {
       });
 
       // Add tag descriptions which will become the allowed tags
-      store.saveTagDescription(validatedRepoPath, 'feature', 'New features');
-      store.saveTagDescription(validatedRepoPath, 'bugfix', 'Bug fixes');
-      store.saveTagDescription(validatedRepoPath, 'documentation', 'Documentation changes');
+      store.saveTagDescription('feature', 'New features');
+      store.saveTagDescription('bugfix', 'Bug fixes');
+      store.saveTagDescription('documentation', 'Documentation changes');
 
       const note = {
         note: 'Test note with invalid tags',
@@ -123,9 +130,9 @@ describe('Tag Restrictions', () => {
       });
 
       // Add tag descriptions which will become the allowed tags
-      store.saveTagDescription(validatedRepoPath, 'feature', 'New features');
-      store.saveTagDescription(validatedRepoPath, 'bugfix', 'Bug fixes');
-      store.saveTagDescription(validatedRepoPath, 'documentation', 'Documentation changes');
+      store.saveTagDescription('feature', 'New features');
+      store.saveTagDescription('bugfix', 'Bug fixes');
+      store.saveTagDescription('documentation', 'Documentation changes');
 
       const note = {
         note: 'Test note with valid tags',
@@ -152,8 +159,8 @@ describe('Tag Restrictions', () => {
       });
 
       // Add tag descriptions which will become the allowed tags
-      store.saveTagDescription(validatedRepoPath, 'feature', 'New features');
-      store.saveTagDescription(validatedRepoPath, 'bugfix', 'Bug fixes');
+      store.saveTagDescription('feature', 'New features');
+      store.saveTagDescription('bugfix', 'Bug fixes');
 
       const note = {
         note: 'Test note with required tag',
@@ -200,8 +207,8 @@ describe('Tag Restrictions', () => {
       });
 
       // Add tag descriptions which will become the allowed tags
-      store.saveTagDescription(validatedRepoPath, 'feature', 'New features');
-      store.saveTagDescription(validatedRepoPath, 'bugfix', 'Bug fixes');
+      store.saveTagDescription('feature', 'New features');
+      store.saveTagDescription('bugfix', 'Bug fixes');
 
       const invalidNote = {
         note: 'Test note',
@@ -232,9 +239,9 @@ describe('Tag Restrictions', () => {
       });
 
       // Add tag descriptions which will become the allowed tags
-      store.saveTagDescription(validatedRepoPath, 'feature', 'New features');
-      store.saveTagDescription(validatedRepoPath, 'bugfix', 'Bug fixes');
-      store.saveTagDescription(validatedRepoPath, 'testing', 'Testing code');
+      store.saveTagDescription('feature', 'New features');
+      store.saveTagDescription('bugfix', 'Bug fixes');
+      store.saveTagDescription('testing', 'Testing code');
 
       // First note with valid tags
       const note1 = {
@@ -304,8 +311,8 @@ describe('Tag Restrictions', () => {
       });
 
       // Add tag descriptions which will become the allowed tags
-      store.saveTagDescription(validatedRepoPath, 'feature', 'New features');
-      store.saveTagDescription(validatedRepoPath, 'bugfix', 'Bug fixes');
+      store.saveTagDescription('feature', 'New features');
+      store.saveTagDescription('bugfix', 'Bug fixes');
 
       // Now should reject custom tags
       expect(() => store.saveNote(note)).toThrow('Validation failed');

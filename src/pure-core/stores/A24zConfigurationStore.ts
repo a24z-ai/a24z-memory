@@ -66,10 +66,13 @@ export class A24zConfigurationStore {
     const current = this.getConfiguration();
     const updated = {
       ...current,
-      ...updates,
-      limits: { ...current.limits, ...updates.limits },
-      storage: { ...current.storage, ...updates.storage },
-      tags: { ...current.tags, ...updates.tags },
+      version: updates && updates.version !== undefined ? updates.version : current.version,
+      limits: updates?.limits ? { ...current.limits, ...updates.limits } : current.limits,
+      storage: updates?.storage ? { ...current.storage, ...updates.storage } : current.storage,
+      tags: updates?.tags ? { ...current.tags, ...updates.tags } : current.tags,
+      enabled_mcp_tools: updates?.enabled_mcp_tools
+        ? { ...current.enabled_mcp_tools, ...updates.enabled_mcp_tools }
+        : current.enabled_mcp_tools,
     };
 
     const configPath = this.configPath;

@@ -8,6 +8,7 @@ import { MemoryPalace } from '../../../src/MemoryPalace';
 import type {
   ValidatedRepositoryPath,
   ValidatedRelativePath,
+  ValidatedAlexandriaPath,
   CodebaseView,
 } from '../../../src/pure-core/types';
 
@@ -17,16 +18,19 @@ describe('ReplaceTagTool', () => {
   let tool: ReplaceTagTool;
   const testRepoPath = '/test-repo';
   let validatedRepoPath: ValidatedRepositoryPath;
+  let alexandriaPath: ValidatedAlexandriaPath;
 
   beforeEach(() => {
     fs = new InMemoryFileSystemAdapter();
-    notesStore = new AnchoredNotesStore(fs);
     tool = new ReplaceTagTool(fs);
     fs.setupTestRepo(testRepoPath);
     validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    alexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepoPath, fs);
+
+    notesStore = new AnchoredNotesStore(fs, alexandriaPath);
 
     // Create a test view using CodebaseViewsStore
-    const codebaseViewsStore = new CodebaseViewsStore(fs);
+    const codebaseViewsStore = new CodebaseViewsStore(fs, alexandriaPath);
     const testView: CodebaseView = {
       id: 'test-view',
       version: '1.0.0',
@@ -41,7 +45,7 @@ describe('ReplaceTagTool', () => {
 
   it('should require confirmation to replace a tag', async () => {
     // Create a tag description
-    notesStore.saveTagDescription(validatedRepoPath, 'old-tag', 'Old tag description');
+    notesStore.saveTagDescription('old-tag', 'Old tag description');
 
     // Attempt to replace without confirmation
     const result = await tool.execute({
@@ -61,7 +65,7 @@ describe('ReplaceTagTool', () => {
     expect(response.newTag).toBe('new-tag');
 
     // Verify tag still exists
-    const tags = notesStore.getTagDescriptions(validatedRepoPath);
+    const tags = notesStore.getTagDescriptions();
     expect(tags['old-tag']).toBe('Old tag description');
   });
 
@@ -83,7 +87,7 @@ describe('ReplaceTagTool', () => {
 
   it('should replace tag in notes and transfer description', async () => {
     // Create a tag description
-    notesStore.saveTagDescription(validatedRepoPath, 'old-feature', 'Feature tag description');
+    notesStore.saveTagDescription('old-feature', 'Feature tag description');
 
     // Save notes with the tag
     const note1WithPath = notesStore.saveNote({
@@ -154,15 +158,15 @@ describe('ReplaceTagTool', () => {
     expect(updatedNote3?.note.tags).toEqual(['keep-me']);
 
     // Verify tag description is transferred
-    const tags = notesStore.getTagDescriptions(validatedRepoPath);
+    const tags = notesStore.getTagDescriptions();
     expect(tags['old-feature']).toBeUndefined();
     expect(tags['new-feature']).toBe('Feature tag description');
   });
 
   it('should handle replacement when new tag already has a description', async () => {
     // Create tag descriptions for both tags
-    notesStore.saveTagDescription(validatedRepoPath, 'old-tag', 'Old description');
-    notesStore.saveTagDescription(validatedRepoPath, 'new-tag', 'Existing new description');
+    notesStore.saveTagDescription('old-tag', 'Old description');
+    notesStore.saveTagDescription('new-tag', 'Existing new description');
 
     // Save a note with the old tag
     notesStore.saveNote({
@@ -195,14 +199,14 @@ describe('ReplaceTagTool', () => {
     expect(response.descriptions.existingNewTagDescription).toBe('Existing new description');
 
     // Verify new tag's description is preserved
-    const tags = notesStore.getTagDescriptions(validatedRepoPath);
+    const tags = notesStore.getTagDescriptions();
     expect(tags['old-tag']).toBeUndefined();
     expect(tags['new-tag']).toBe('Existing new description');
   });
 
   it('should handle replacement without transferring description', async () => {
     // Create a tag description
-    notesStore.saveTagDescription(validatedRepoPath, 'old-tag', 'Description to delete');
+    notesStore.saveTagDescription('old-tag', 'Description to delete');
 
     // Save a note with the tag
     notesStore.saveNote({
@@ -232,7 +236,7 @@ describe('ReplaceTagTool', () => {
     expect(response.results.descriptionAction).toBe('deleted');
 
     // Verify descriptions
-    const tags = notesStore.getTagDescriptions(validatedRepoPath);
+    const tags = notesStore.getTagDescriptions();
     expect(tags['old-tag']).toBeUndefined();
     expect(tags['new-tag']).toBeUndefined();
   });

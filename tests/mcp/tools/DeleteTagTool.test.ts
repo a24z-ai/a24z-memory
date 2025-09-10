@@ -8,6 +8,7 @@ import type {
   ValidatedRepositoryPath,
   ValidatedRelativePath,
   CodebaseView,
+  ValidatedAlexandriaPath,
 } from '../../../src/pure-core/types';
 
 describe('DeleteTagTool', () => {
@@ -16,16 +17,19 @@ describe('DeleteTagTool', () => {
   let fs: InMemoryFileSystemAdapter;
   const testRepoPath = '/test-repo';
   let validatedRepoPath: ValidatedRepositoryPath;
+  let alexandriaPath: ValidatedAlexandriaPath;
 
   beforeEach(() => {
     fs = new InMemoryFileSystemAdapter();
     tool = new DeleteTagTool(fs);
-    notesStore = new AnchoredNotesStore(fs);
     fs.setupTestRepo(testRepoPath);
     validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testRepoPath);
+    alexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepoPath, fs);
+
+    notesStore = new AnchoredNotesStore(fs, alexandriaPath);
 
     // Create a test view using CodebaseViewsStore
-    const codebaseViewsStore = new CodebaseViewsStore(fs);
+    const codebaseViewsStore = new CodebaseViewsStore(fs, alexandriaPath);
     const testView: CodebaseView = {
       id: 'test-view',
       version: '1.0.0',
@@ -40,7 +44,7 @@ describe('DeleteTagTool', () => {
 
   it('should require confirmation to delete a tag', async () => {
     // Create a tag description
-    notesStore.saveTagDescription(validatedRepoPath, 'test-tag', 'Test description');
+    notesStore.saveTagDescription('test-tag', 'Test description');
 
     // Attempt to delete without confirmation
     const result = await tool.execute({
@@ -58,13 +62,13 @@ describe('DeleteTagTool', () => {
     expect(response.tagToDelete).toBe('test-tag');
 
     // Verify tag still exists
-    const tags = notesStore.getTagDescriptions(validatedRepoPath);
+    const tags = notesStore.getTagDescriptions();
     expect(tags['test-tag']).toBe('Test description');
   });
 
   it('should delete tag from notes and remove description', async () => {
     // Create a tag description
-    notesStore.saveTagDescription(validatedRepoPath, 'delete-me', 'This tag will be deleted');
+    notesStore.saveTagDescription('delete-me', 'This tag will be deleted');
 
     // Save notes with the tag
     const note1WithPath = notesStore.saveNote({
@@ -131,7 +135,7 @@ describe('DeleteTagTool', () => {
     expect(updatedNote3?.note.tags).toEqual(['keep-me']);
 
     // Verify tag description is deleted
-    const tags = notesStore.getTagDescriptions(validatedRepoPath);
+    const tags = notesStore.getTagDescriptions();
     expect(tags['delete-me']).toBeUndefined();
   });
 
@@ -176,7 +180,7 @@ describe('DeleteTagTool', () => {
 
   it('should handle deletion of unused tag with description', async () => {
     // Create a tag description but don't use it in any notes
-    notesStore.saveTagDescription(validatedRepoPath, 'unused-tag', 'This tag is not used');
+    notesStore.saveTagDescription('unused-tag', 'This tag is not used');
 
     // Delete the tag
     const result = await tool.execute({
@@ -196,7 +200,7 @@ describe('DeleteTagTool', () => {
     expect(response.deletedDescription).toBe('This tag is not used');
 
     // Verify tag description is deleted
-    const tags = notesStore.getTagDescriptions(validatedRepoPath);
+    const tags = notesStore.getTagDescriptions();
     expect(tags['unused-tag']).toBeUndefined();
   });
 

@@ -3,7 +3,11 @@ import { CreateRepositoryAnchoredNoteTool } from '../src/mcp/tools/CreateReposit
 import { InMemoryFileSystemAdapter } from './test-adapters/InMemoryFileSystemAdapter';
 import { CodebaseViewsStore } from '../src/pure-core/stores/CodebaseViewsStore';
 import { MemoryPalace } from '../src/MemoryPalace';
-import type { ValidatedRepositoryPath, CodebaseView } from '../src/pure-core/types';
+import type {
+  ValidatedRepositoryPath,
+  CodebaseView,
+  ValidatedAlexandriaPath,
+} from '../src/pure-core/types';
 
 describe('Default View Auto-Creation', () => {
   let tool: CreateRepositoryAnchoredNoteTool;
@@ -11,15 +15,19 @@ describe('Default View Auto-Creation', () => {
   let fs: InMemoryFileSystemAdapter;
   const testPath = '/default-view-test-repo';
   let validatedRepoPath: ValidatedRepositoryPath;
+  let alexandriaPath: ValidatedAlexandriaPath;
 
   beforeEach(() => {
     fs = new InMemoryFileSystemAdapter();
     tool = new CreateRepositoryAnchoredNoteTool(fs);
-    viewsStore = new CodebaseViewsStore(fs);
 
     // Set up test repository
     fs.setupTestRepo(testPath);
     validatedRepoPath = MemoryPalace.validateRepositoryPath(fs, testPath);
+    alexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepoPath, fs);
+
+    // Initialize stores with alexandria path
+    viewsStore = new CodebaseViewsStore(fs, alexandriaPath);
 
     // Create some test files to anchor to
     const srcDir = fs.join(testPath, 'src');

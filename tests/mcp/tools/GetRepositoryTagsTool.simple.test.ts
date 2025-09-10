@@ -3,7 +3,11 @@ import { GetRepositoryTagsTool } from '../../../src/mcp/tools/GetRepositoryTagsT
 import { MemoryPalace } from '../../../src/MemoryPalace';
 import { InMemoryFileSystemAdapter } from '../../test-adapters/InMemoryFileSystemAdapter';
 import { AnchoredNotesStore } from '../../../src/pure-core/stores/AnchoredNotesStore';
-import type { ValidatedRepositoryPath, ValidatedRelativePath } from '../../../src/pure-core/types';
+import type {
+  ValidatedRepositoryPath,
+  ValidatedRelativePath,
+  ValidatedAlexandriaPath,
+} from '../../../src/pure-core/types';
 
 describe('GetRepositoryTagsTool (Simple)', () => {
   let tool: GetRepositoryTagsTool;
@@ -12,6 +16,7 @@ describe('GetRepositoryTagsTool (Simple)', () => {
   let notesStore: AnchoredNotesStore;
   const testPath = '/test-repo';
   let validatedRepoPath: ValidatedRepositoryPath;
+  let alexandriaPath: ValidatedAlexandriaPath;
 
   beforeEach(() => {
     // Set up in-memory filesystem
@@ -20,6 +25,7 @@ describe('GetRepositoryTagsTool (Simple)', () => {
     // Set up repository structure
     inMemoryFs.setupTestRepo(testPath);
     validatedRepoPath = MemoryPalace.validateRepositoryPath(inMemoryFs, testPath);
+    alexandriaPath = MemoryPalace.getAlexandriaPath(validatedRepoPath, inMemoryFs);
 
     // Create the tool with in-memory adapter
     tool = new GetRepositoryTagsTool(inMemoryFs);
@@ -28,7 +34,7 @@ describe('GetRepositoryTagsTool (Simple)', () => {
     memoryPalace = new MemoryPalace(testPath, inMemoryFs);
 
     // Create AnchoredNotesStore for querying notes
-    notesStore = new AnchoredNotesStore(inMemoryFs);
+    notesStore = new AnchoredNotesStore(inMemoryFs, alexandriaPath);
 
     // Create a test view directory structure
     const viewsDir = inMemoryFs.join(testPath, '.a24z', 'views');
