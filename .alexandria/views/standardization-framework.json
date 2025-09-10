@@ -15,7 +15,7 @@
         "src/pure-core/config/defaultConfig.ts",
         "src/pure-core/types/index.ts",
         "src/pure-core/types/validation.ts",
-        ".a24z/configuration.json"
+        ".alexandria/configuration.json"
       ],
       "priority": 10,
       "color": "#4CAF50"
@@ -26,10 +26,10 @@
         1
       ],
       "files": [
-        "src/memory-palace-cli.ts",
-        "src/cli-memory-palace/commands/validate.ts",
-        "src/cli-memory-palace/commands/validate-all.ts",
-        "src/cli-memory-palace/commands/auto-create-views.ts"
+        "src/alexandria-cli.ts",
+        "src/cli-alexandria/commands/validate.ts",
+        "src/cli-alexandria/commands/validate-all.ts",
+        "src/cli-alexandria/commands/add-all-docs.ts"
       ],
       "priority": 10,
       "color": "#2196F3"
@@ -102,7 +102,7 @@
       ],
       "files": [
         "build/build-cli.js",
-        "build/build-memory-palace-cli.js",
+        "build/build-alexandria-cli.js",
         "build/fix-esm-imports.js"
       ],
       "priority": 5,
@@ -121,7 +121,7 @@
     }
   },
   "overviewPath": "STANDARDIZATION_ROADMAP.md",
-  "category": "other",
+  "category": "roadmap",
   "displayOrder": 0,
   "timestamp": "2025-09-09T06:08:25.373Z",
   "metadata": {

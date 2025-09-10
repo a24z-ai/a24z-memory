@@ -93,31 +93,33 @@ Alexandria Framework
 #### Default Configuration (.alexandriarc.json)
 ```json
 {
-  "extends": "@alexandria/recommended",
-  "rules": {
-    "require-view-association": "error",
-    "max-unreviewed-docs": ["warn", 10],
-    "stale-documentation": ["error", { "days": 90 }],
-    "missing-code-references": "warn",
-    "orphaned-views": "error",
-    "dead-code-context": "error"
-  },
-  "integrations": {
-    "knip": {
-      "enabled": true,
-      "removeDeadContext": true
-    }
-  },
-  "views": {
-    "autoCreate": true,
-    "defaultCategory": "unreviewed",
-    "requireDescription": true
-  },
-  "ignore": [
-    "**/node_modules/**",
-    "**/dist/**",
-    "**/*.test.md"
-  ]
+  "version": "1.0.0",
+  "context": {
+    "useGitignore": true,
+    "patterns": {
+      "exclude": ["**/node_modules/**", "**/dist/**", "**/*.test.md"]
+    },
+    "rules": [
+      {
+        "id": "require-view-association",
+        "severity": "warning",
+        "enabled": true
+      },
+      {
+        "id": "orphaned-references",
+        "severity": "warning",
+        "enabled": true
+      },
+      {
+        "id": "stale-context",
+        "severity": "info",
+        "enabled": true,
+        "options": {
+          "maxAgeDays": 90
+        }
+      }
+    ]
+  }
 }
 ```
 
@@ -133,22 +135,42 @@ npm install @alexandria/config-enterprise
 ```bash
 # Basic linting
 alexandria lint                    # Check context quality
-alexandria lint --fix             # Auto-fix issues
-alexandria lint --with-knip       # Include dead code analysis
+alexandria lint --errors-only      # Only fail on errors, not warnings
+alexandria lint --fix             # Auto-fix issues (planned)
 
 # Initialization
-alexandria init                   # Interactive setup
-alexandria init --config strict   # Use preset config
+alexandria init                   # Interactive setup with agents & hooks
+alexandria init --no-agents       # Skip agents.md setup
+alexandria init --no-hooks        # Skip pre-commit hooks
 
-# CI/CD Integration
+# Validation
+alexandria validate <view>        # Validate specific view
+alexandria validate-all           # Validate all views
+alexandria validate-all --errors-only  # CI-friendly validation
+
+# Document Management
+alexandria add-doc <file>         # Add document to library
+alexandria add-doc <file> --skip-guidance  # Skip interactive prompt
+alexandria add-doc <file> --dry-run  # Preview without creating
+alexandria add-all-docs           # Add all untracked docs
+
+# Hooks Management
+alexandria hooks --add            # Add pre-commit hooks
+alexandria hooks --remove         # Remove pre-commit hooks
+alexandria hooks --check          # Check hook status
+
+# Agents Guidance
+alexandria agents --add           # Add guidance to AGENTS.md
+alexandria agents --remove        # Remove guidance from AGENTS.md
+alexandria agents --check         # Check if guidance exists
+
+# Status & Info
+alexandria status                 # Show configuration status
+alexandria list                   # List all views
+
+# CI/CD Integration (planned)
 alexandria lint --format json     # For CI pipelines
-alexandria lint --max-warnings 0  # Strict mode
-
-# Watch mode
-alexandria watch                  # Real-time validation
-
-# Holistic analysis
-alexandria analyze                # Run full suite: context + dead code
+alexandria watch                  # Real-time validation (planned)
 ```
 
 ### 3. Rules Engine
@@ -204,19 +226,23 @@ warning: docs/api.md context has not been updated in 120 days
 ✅ Core MCP server functionality
 ✅ Basic CodebaseView system
 ✅ CLI tools for view management
-⚡ Basic configuration system
+✅ Configuration system (.alexandriarc.json)
+✅ Rules engine with configurable severity levels
+✅ Lint command with --errors-only flag
+✅ Pre-commit hooks integration
+✅ GitHub Actions workflow template
 
 ### Phase 2: Standardization (Q1 2025)
-- [ ] Implement rules engine
-- [ ] Create .alexandriarc.json configuration
+- [x] Implement rules engine
+- [x] Create .alexandriarc.json configuration
 - [ ] Build shareable config packages
 - [ ] Add --fix capability for auto-remediation
 - [ ] Integrate Knip for dead code detection
 
 ### Phase 3: Developer Experience (Q2 2025)
 - [ ] VS Code extension for real-time linting
-- [ ] GitHub Actions integration
-- [ ] Pre-commit hooks
+- [x] GitHub Actions integration
+- [x] Pre-commit hooks
 - [ ] Badge system for repos
 
 ### Phase 4: Ecosystem (Q3 2025)
@@ -234,22 +260,22 @@ warning: docs/api.md context has not been updated in 120 days
 ## Implementation Priorities
 
 ### Immediate (Next 2 Weeks)
-1. Standardize configuration format (.alexandriarc.json)
-2. Implement basic rules engine with 3-5 core rules
-3. Add `lint` command with error/warning/info levels
+1. ✅ Standardize configuration format (.alexandriarc.json)
+2. ✅ Implement basic rules engine with 3-5 core rules
+3. ✅ Add `lint` command with error/warning/info levels
 4. Create `@alexandria/recommended` config package
 
 ### Short Term (Next Month)
 1. Build --fix capability for auto-association
-2. Add GitHub Actions workflow template
-3. Create installation wizard (`alexandria init`)
+2. ✅ Add GitHub Actions workflow template
+3. ✅ Create installation wizard (`alexandria init`)
 4. Implement watch mode for development
 
 ### Medium Term (Next Quarter)
 1. VS Code extension with inline warnings
 2. Create enterprise config presets
 3. Build metrics dashboard
-4. Add pre-commit hook support
+4. ✅ Add pre-commit hook support
 
 ## Success Metrics
 
@@ -285,13 +311,17 @@ jobs:
 ```
 
 ### Pre-commit Hook
-```json
-{
-  "husky": {
-    "hooks": {
-      "pre-commit": "alexandria lint --max-warnings 0"
-    }
-  }
+```bash
+# .husky/pre-commit
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Alexandria pre-commit validation
+echo "Running Alexandria validation..."
+npx alexandria validate-all --errors-only || {
+  echo "❌ Alexandria validation failed (errors found)"
+  echo "   Run 'alexandria validate-all' to see details"
+  exit 1
 }
 ```
 
