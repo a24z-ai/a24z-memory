@@ -1,9 +1,9 @@
 {
   "id": "project-readme",
   "version": "1.0.0",
-  "name": "project-readme",
-  "description": "Main project README documentation",
-  "displayOrder": 3,
+  "name": "Welcome",
+  "description": "Welcome to Alexandria - Main project overview and getting started",
+  "displayOrder": 0,
   "rows": 3,
   "cols": 3,
   "cells": {
@@ -79,7 +79,7 @@
     }
   },
   "overviewPath": "README.md",
-  "category": "other",
+  "category": "product",
   "timestamp": "2025-09-09T21:38:45.697Z",
   "metadata": {
     "generationType": "user",
