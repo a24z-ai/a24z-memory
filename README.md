@@ -3,7 +3,7 @@
 **Context Managment for your whole suite:** CLI for AI agents • VS Code for developers • Alexandria web for teams
 
 
-## For Your Agent: CLI + MCP
+## For Your Agent: [![npm version](https://badge.fury.io/js/a24z-memory.svg)](https://www.npmjs.com/package/a24z-memory)
 ```bash
 # Download alexandria cli
 npm install -g a24z-memory
@@ -16,14 +16,13 @@ alexandria init
 https://github.com/user-attachments/assets/8bf7b277-c6e9-4fbf-8fc8-10857d5bdac7
 
 
-## For Your Team
+## For Your Team: [![Documentation](https://img.shields.io/badge/docs-a24z.ai-blue.svg)](https://a24z-ai.github.io/Alexandria)
 
 
 https://github.com/user-attachments/assets/89892c54-8b26-4cdb-ac17-12299c1e97a6
 
 
-[![npm version](https://badge.fury.io/js/a24z-memory.svg)](https://www.npmjs.com/package/a24z-memory)
-[![Documentation](https://img.shields.io/badge/docs-a24z.ai-blue.svg)](https://a24z-ai.github.io/Alexandria)
+
 
 ## One Platform, Three Experiences
 
