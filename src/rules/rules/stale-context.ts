@@ -68,15 +68,33 @@ export const staleContext: LibraryRule = {
         }
 
         if (newestFileModification && newestFileModification > overviewLastModified) {
-          const daysSinceUpdate = Math.floor(
-            (newestFileModification.getTime() - overviewLastModified.getTime()) /
-              (1000 * 60 * 60 * 24)
+          const hoursSinceUpdate = Math.floor(
+            (newestFileModification.getTime() - overviewLastModified.getTime()) / (1000 * 60 * 60)
           );
+
+          let timeMessage: string;
+          if (hoursSinceUpdate < 24) {
+            if (hoursSinceUpdate === 0) {
+              timeMessage = 'was modified after';
+            } else if (hoursSinceUpdate === 1) {
+              timeMessage = 'has not been updated for 1 hour since';
+            } else {
+              timeMessage = `has not been updated for ${hoursSinceUpdate} hours since`;
+            }
+          } else {
+            const daysSinceUpdate = Math.floor(hoursSinceUpdate / 24);
+            if (daysSinceUpdate === 1) {
+              timeMessage = 'has not been updated for 1 day since';
+            } else {
+              timeMessage = `has not been updated for ${daysSinceUpdate} days since`;
+            }
+          }
+
           violations.push({
             ruleId: this.id,
             severity: this.severity,
             file: view.overviewPath,
-            message: `Overview "${view.overviewPath}" has not been updated for ${daysSinceUpdate} days since "${newestFile}" changed`,
+            message: `Overview "${view.overviewPath}" ${timeMessage} "${newestFile}" changed`,
             impact: this.impact,
             fixable: this.fixable,
           });
@@ -105,14 +123,33 @@ export const staleContext: LibraryRule = {
         }
 
         if (newestFileModification && newestFileModification > noteLastModified) {
-          const daysSinceUpdate = Math.floor(
-            (newestFileModification.getTime() - noteLastModified.getTime()) / (1000 * 60 * 60 * 24)
+          const hoursSinceUpdate = Math.floor(
+            (newestFileModification.getTime() - noteLastModified.getTime()) / (1000 * 60 * 60)
           );
+
+          let timeMessage: string;
+          if (hoursSinceUpdate < 24) {
+            if (hoursSinceUpdate === 0) {
+              timeMessage = 'was modified after';
+            } else if (hoursSinceUpdate === 1) {
+              timeMessage = 'has not been updated for 1 hour since';
+            } else {
+              timeMessage = `has not been updated for ${hoursSinceUpdate} hours since`;
+            }
+          } else {
+            const daysSinceUpdate = Math.floor(hoursSinceUpdate / 24);
+            if (daysSinceUpdate === 1) {
+              timeMessage = 'has not been updated for 1 day since';
+            } else {
+              timeMessage = `has not been updated for ${daysSinceUpdate} days since`;
+            }
+          }
+
           violations.push({
             ruleId: this.id,
             severity: this.severity,
             file: `notes/${noteWithPath.note.id}.json`,
-            message: `Note "${noteWithPath.note.id}" has not been updated for ${daysSinceUpdate} days since "${newestFile}" changed`,
+            message: `Note "${noteWithPath.note.id}" ${timeMessage} "${newestFile}" changed`,
             impact: this.impact,
             fixable: this.fixable,
           });

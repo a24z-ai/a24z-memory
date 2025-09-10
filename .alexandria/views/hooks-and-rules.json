@@ -5,6 +5,7 @@
   "description": "Comprehensive guide for Alexandria hooks, lint rules, and configuration",
   "displayOrder": 5,
   "overviewPath": "docs/HOOKS_AND_RULES.md",
+  "category": "product",
   "rows": 2,
   "cols": 3,
   "cells": {
