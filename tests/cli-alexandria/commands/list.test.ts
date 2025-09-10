@@ -133,7 +133,7 @@ describe('CLI - list command', () => {
 
     // Verify output
     expect(output.join('\n')).toContain('No codebase views found in this repository');
-    expect(output.join('\n')).toContain('.a24z/views');
+    expect(output.join('\n')).toContain('.alexandria/views');
   });
 
   it('should handle repository path option', () => {

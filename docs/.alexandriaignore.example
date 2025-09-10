@@ -1,4 +1,4 @@
-# .a24zignore - Exclude files from note coverage calculation
+# .alexandriaignore - Exclude files from note coverage calculation
 # This file works in addition to .gitignore (both must pass)
 # Files matching these patterns won't count towards coverage metrics
 

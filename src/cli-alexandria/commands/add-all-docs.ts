@@ -4,6 +4,7 @@
 
 import { Command } from 'commander';
 import { getRepositoryRoot } from '../utils/repository.js';
+import { ALEXANDRIA_DIRS } from '../../constants/paths.js';
 import {
   findUntrackedDocuments,
   createViewsFromDocuments,
@@ -116,7 +117,9 @@ export function createAddAllDocsCommand(): Command {
           console.log(`\n💡 Next steps:`);
           console.log(`   - Review created views: alexandria list`);
           console.log(`   - Validate all views: alexandria validate-all`);
-          console.log(`   - Edit view configurations in .a24z/views/ as needed`);
+          console.log(
+            `   - Edit view configurations in ${ALEXANDRIA_DIRS.PRIMARY}/${ALEXANDRIA_DIRS.VIEWS}/ as needed`
+          );
 
           if (stats.totalIssues > 0) {
             console.log(`   - Address validation issues by updating documentation or view files`);

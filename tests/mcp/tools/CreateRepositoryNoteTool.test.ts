@@ -124,7 +124,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
 
       await tool.execute(input);
 
-      const notesDir = fs.join(testRepoPath, '.a24z', 'notes');
+      const notesDir = fs.join(testRepoPath, '.alexandria', 'notes');
 
       expect(fs.exists(notesDir)).toBe(true);
 
@@ -179,7 +179,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
       expect(savedNote.metadata).toHaveProperty('createdBy', 'create_repository_note_tool');
     });
 
-    it('should write notes to the git root .a24z directory', async () => {
+    it('should write notes to the git root .alexandria directory', async () => {
       // Create a subdirectory structure
       const subDir = fs.join(testRepoPath, 'src', 'components');
       fs.createDir(subDir);
@@ -194,12 +194,12 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
 
       await tool.execute(input);
 
-      // Verify the note is stored in the git root's .a24z directory
-      const gitRootNotesDir = fs.join(testRepoPath, '.a24z', 'notes');
+      // Verify the note is stored in the git root's .alexandria directory
+      const gitRootNotesDir = fs.join(testRepoPath, '.alexandria', 'notes');
       expect(fs.exists(gitRootNotesDir)).toBe(true);
 
-      // Verify no .a24z directory was created in subdirectories
-      const subDirA24z = fs.join(subDir, '.a24z');
+      // Verify no .alexandria directory was created in subdirectories
+      const subDirA24z = fs.join(subDir, '.alexandria');
       expect(fs.exists(subDirA24z)).toBe(false);
 
       // Verify the note can be retrieved
@@ -328,7 +328,7 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
       expect(saved.metadata.complexity).toBe('high');
     });
 
-    it('should store notes in separate .a24z directories for different repositories', async () => {
+    it('should store notes in separate .alexandria directories for different repositories', async () => {
       // Create a second repository
       const repo2Path = '/test-repo-2';
       fs.setupTestRepo(repo2Path);
@@ -368,9 +368,9 @@ describe('CreateRepositoryAnchoredNoteTool', () => {
       };
       await tool.execute(input2);
 
-      // Verify each repository has its own .a24z directory with the correct note
-      const repo1NotesDir = fs.join(testRepoPath, '.a24z', 'notes');
-      const repo2NotesDir = fs.join(repo2Path, '.a24z', 'notes');
+      // Verify each repository has its own .alexandria directory with the correct note
+      const repo1NotesDir = fs.join(testRepoPath, '.alexandria', 'notes');
+      const repo2NotesDir = fs.join(repo2Path, '.alexandria', 'notes');
 
       expect(fs.exists(repo1NotesDir)).toBe(true);
       expect(fs.exists(repo2NotesDir)).toBe(true);

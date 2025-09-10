@@ -69,7 +69,7 @@ describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
     expect(saved.note.id).toBeTruthy();
 
     // Verify the note was actually saved to disk with date-based directory structure
-    const notesDir = path.join(gitRepoPath, '.a24z', 'notes');
+    const notesDir = path.join(gitRepoPath, '.alexandria', 'notes');
     expect(fs.existsSync(notesDir)).toBe(true);
 
     // Check that year directory was created
@@ -116,7 +116,7 @@ describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
     expect(updated.limits.noteMaxLength).toBe(8000);
 
     // Verify config file was created
-    const configPath = path.join(gitRepoPath, '.a24z', 'config.json');
+    const configPath = path.join(gitRepoPath, '.alexandria', 'config.json');
     expect(fs.existsSync(configPath)).toBe(true);
 
     // Create a new store instance to verify persistence
@@ -169,7 +169,7 @@ describe('Pure AnchoredNotesStore with Node.js FileSystem', () => {
     const saved = store.saveNote(noteInput);
 
     // Verify it exists on disk in the date-based structure
-    const notesDir = path.join(gitRepoPath, '.a24z', 'notes');
+    const notesDir = path.join(gitRepoPath, '.alexandria', 'notes');
     const yearDirs = fs.readdirSync(notesDir);
     expect(yearDirs.length).toBe(1);
 

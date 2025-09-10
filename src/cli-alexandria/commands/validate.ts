@@ -6,6 +6,7 @@ import { Command } from 'commander';
 import * as path from 'node:path';
 import { createMemoryPalace, getRepositoryRoot } from '../utils/repository.js';
 import { formatValidationResult, formatValidationSummary } from '../utils/formatting.js';
+import { ALEXANDRIA_DIRS } from '../../constants/paths';
 
 export function createValidateCommand(): Command {
   const command = new Command('validate');
@@ -92,7 +93,12 @@ export function createValidateCommand(): Command {
             console.log(`   - Edit the file: ${viewNameOrPath}`);
             console.log(`   - Re-run: alexandria validate ${viewNameOrPath}`);
           } else {
-            const viewPath = path.join(repoPath, '.a24z', 'views', `${view.id}.json`);
+            const viewPath = path.join(
+              repoPath,
+              ALEXANDRIA_DIRS.PRIMARY,
+              ALEXANDRIA_DIRS.VIEWS,
+              `${view.id}.json`
+            );
             console.log(`   - Edit: ${path.relative(process.cwd(), viewPath)}`);
             console.log(`   - Re-run: alexandria validate ${view.id}`);
           }

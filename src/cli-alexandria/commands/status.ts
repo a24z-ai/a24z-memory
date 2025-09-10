@@ -8,6 +8,7 @@ import * as path from 'node:path';
 import { execSync } from 'node:child_process';
 import { CONFIG_FILENAME } from '../../config/schema.js';
 import { createMemoryPalace, getRepositoryRoot } from '../utils/repository.js';
+import { ALEXANDRIA_DIRS } from '../../constants/paths';
 import { NodeFileSystemAdapter } from '../../node-adapters/NodeFileSystemAdapter.js';
 import { MemoryPalace } from '../../MemoryPalace.js';
 
@@ -122,7 +123,7 @@ function getUntrackedDocs(repoPath: string): string[] {
       if (entry.isDirectory()) {
         // Skip common directories that shouldn't be tracked
         if (
-          !['node_modules', '.git', '.a24z', '.alexandria', 'dist', 'build'].includes(entry.name)
+          !['node_modules', '.git', ALEXANDRIA_DIRS.PRIMARY, 'dist', 'build'].includes(entry.name)
         ) {
           findMarkdownFiles(fullPath, relativePath);
         }

@@ -82,7 +82,7 @@ describe('Configuration System', () => {
     });
 
     // Check that configuration file was created
-    const configFile = fs.join(testRepoPath, '.a24z', 'config.json');
+    const configFile = fs.join(testRepoPath, '.alexandria', 'config.json');
     // The configuration file might not be created until first write
     // Let's trigger a configuration update to ensure it's created
     store.updateConfiguration(validatedRepoPath, {});
@@ -248,8 +248,8 @@ describe('Configuration System', () => {
 
   it('should handle corrupted configuration gracefully', () => {
     // Create a corrupted config file
-    const configFile = fs.join(testRepoPath, '.a24z', 'config.json');
-    const configDir = fs.join(testRepoPath, '.a24z');
+    const configFile = fs.join(testRepoPath, '.alexandria', 'config.json');
+    const configDir = fs.join(testRepoPath, '.alexandria');
     fs.createDir(configDir);
     fs.writeFile(configFile, 'invalid json content');
 
@@ -278,8 +278,8 @@ describe('Configuration System', () => {
 
   // it('should merge enabled_mcp_tools with defaults', () => {
   //   // Create config with only some tools specified
-  //   const configFile = fs.join(testRepoPath, '.a24z', 'configuration.json');
-  //   const configDir = fs.join(testRepoPath, '.a24z');
+  //   const configFile = fs.join(testRepoPath, '.alexandria', 'configuration.json');
+  //   const configDir = fs.join(testRepoPath, '.alexandria');
   //   fs.createDir(configDir);
   //   fs.writeFile(
   //     configFile,

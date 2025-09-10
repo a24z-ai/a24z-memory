@@ -5,12 +5,13 @@
 
 import { FileSystemAdapter } from '../abstractions/filesystem';
 import { ValidationMessageOverrides, DEFAULT_VALIDATION_MESSAGES } from '../types/validation';
+import { ALEXANDRIA_DIRS } from '../../constants/paths';
 
 /**
  * Get the validation messages file path
  */
 export function getValidationMessagesPath(fs: FileSystemAdapter, repositoryPath: string): string {
-  return fs.join(repositoryPath, '.a24z', 'validation-messages.json');
+  return fs.join(repositoryPath, ALEXANDRIA_DIRS.PRIMARY, 'validation-messages.json');
 }
 
 /**
@@ -71,10 +72,10 @@ export function saveValidationMessages(
 ): void {
   const messagesPath = getValidationMessagesPath(fs, repositoryPath);
 
-  // Ensure .a24z directory exists
-  const a24zDir = fs.join(repositoryPath, '.a24z');
-  if (!fs.exists(a24zDir)) {
-    fs.createDir(a24zDir);
+  // Ensure alexandria directory exists
+  const alexandriaDir = fs.join(repositoryPath, ALEXANDRIA_DIRS.PRIMARY);
+  if (!fs.exists(alexandriaDir)) {
+    fs.createDir(alexandriaDir);
   }
 
   // Convert function overrides to string templates for storage

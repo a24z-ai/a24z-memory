@@ -5,6 +5,7 @@
 import { Command } from 'commander';
 import * as path from 'node:path';
 import { createMemoryPalace, getRepositoryRoot } from '../utils/repository.js';
+import { ALEXANDRIA_DIRS } from '../../constants/paths';
 
 export function createListCommand(): Command {
   const command = new Command('list');
@@ -22,7 +23,9 @@ export function createListCommand(): Command {
 
         if (views.length === 0) {
           console.log('No codebase views found in this repository.');
-          console.log(`Views would be stored in: ${path.join(repoPath, '.a24z', 'views')}/`);
+          console.log(
+            `Views would be stored in: ${path.join(repoPath, ALEXANDRIA_DIRS.PRIMARY, ALEXANDRIA_DIRS.VIEWS)}/`
+          );
           return;
         }
 

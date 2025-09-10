@@ -57,7 +57,11 @@ export class CodebaseViewValidator {
   /**
    * Validate a CodebaseView for essential requirements
    */
-  validate(repositoryPath: ValidatedRepositoryPath, view: CodebaseView): ValidationResult {
+  validate(
+    repositoryPath: ValidatedRepositoryPath,
+    view: CodebaseView,
+    existingViews?: CodebaseView[]
+  ): ValidationResult {
     const issues: ValidationIssue[] = [];
     let validatedView = { ...view };
 
@@ -86,21 +90,13 @@ export class CodebaseViewValidator {
 
     // If displayOrder is missing, calculate suggested next value
     if (displayOrderInfo.current === undefined || displayOrderInfo.current === null) {
-      // Get all views in the same category to calculate next order
-      const viewsDir = this.fs.join(repositoryPath, '.a24z', 'views');
-      if (this.fs.exists(viewsDir)) {
-        const files = this.fs.readDir(viewsDir).filter((f) => f.endsWith('.json'));
+      // Use provided existing views to calculate next order
+      if (existingViews && existingViews.length > 0) {
         let maxOrder = -1;
 
-        for (const file of files) {
-          try {
-            const content = this.fs.readFile(this.fs.join(viewsDir, file));
-            const otherView = JSON.parse(content) as CodebaseView;
-            if ((otherView.category || 'other') === displayOrderInfo.category) {
-              maxOrder = Math.max(maxOrder, otherView.displayOrder || 0);
-            }
-          } catch {
-            // Ignore parse errors
+        for (const otherView of existingViews) {
+          if ((otherView.category || 'other') === displayOrderInfo.category) {
+            maxOrder = Math.max(maxOrder, otherView.displayOrder || 0);
           }
         }
 

@@ -1,4 +1,5 @@
 import { LibraryRule, LibraryRuleViolation, LibraryRuleContext } from '../types';
+import { ALEXANDRIA_DIRS } from '../../constants/paths';
 
 export const requireViewAssociation: LibraryRule = {
   id: 'require-view-association',
@@ -58,7 +59,7 @@ export const requireViewAssociation: LibraryRule = {
       const relativePath = mdFile.relativePath;
 
       // Skip alexandria's own files
-      if (relativePath.startsWith('.alexandria/') || relativePath.startsWith('.a24z/')) {
+      if (relativePath.startsWith(`${ALEXANDRIA_DIRS.PRIMARY}/`)) {
         continue;
       }
 

@@ -15,7 +15,7 @@ on:
   # Trigger on pull requests that modify views
   pull_request:
     paths:
-      - '.a24z/views/**'
+      - '.alexandria/views/**'
     types: [opened, synchronize, reopened]
   
   # Trigger on pushes to the default branch
@@ -23,7 +23,7 @@ on:
     branches:
       - main
     paths:
-      - '.a24z/views/**'
+      - '.alexandria/views/**'
 
 jobs:
   register-alexandria:
@@ -72,18 +72,18 @@ jobs:
           echo "  - Is Default: $IS_DEFAULT"
           echo "  - Update Context: $UPDATE_CONTEXT"
 
-      - name: Check for .a24z/views directory
+      - name: Check for .alexandria/views directory
         id: check-views
         run: |
-          if [ -d ".a24z/views" ]; then
+          if [ -d ".alexandria/views" ]; then
             echo "has_views=true" >> $GITHUB_OUTPUT
-            VIEW_COUNT=$(find .a24z/views -name "*.json" -type f | wc -l)
+            VIEW_COUNT=$(find .alexandria/views -name "*.json" -type f | wc -l)
             echo "view_count=$VIEW_COUNT" >> $GITHUB_OUTPUT
-            echo "✅ Found .a24z/views/ directory with $VIEW_COUNT view(s)"
+            echo "✅ Found .alexandria/views/ directory with $VIEW_COUNT view(s)"
           else
             echo "has_views=false" >> $GITHUB_OUTPUT
             echo "view_count=0" >> $GITHUB_OUTPUT
-            echo "ℹ️ No .a24z/views/ directory found"
+            echo "ℹ️ No .alexandria/views/ directory found"
           fi
 
       - name: Register with Alexandria

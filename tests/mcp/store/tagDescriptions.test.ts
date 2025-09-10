@@ -75,7 +75,7 @@ describe('Tag Descriptions', () => {
         '# Feature Tag\n\nThis tag is used for new functionality.'
       );
 
-      const tagFile = fs.join(testRepoPath, '.a24z', 'tags', 'feature.md');
+      const tagFile = fs.join(testRepoPath, '.alexandria', 'tags', 'feature.md');
       expect(fs.exists(tagFile)).toBe(true);
 
       const content = fs.readFile(tagFile);
@@ -102,12 +102,12 @@ describe('Tag Descriptions', () => {
   });
 
   describe('File Storage', () => {
-    it('should create individual markdown files in .a24z/tags directory', () => {
+    it('should create individual markdown files in .alexandria/tags directory', () => {
       store.saveTagDescription('feature', 'Test description');
       store.saveTagDescription('bugfix', 'Bug fixes');
 
-      const featureFile = fs.join(testRepoPath, '.a24z', 'tags', 'feature.md');
-      const bugfixFile = fs.join(testRepoPath, '.a24z', 'tags', 'bugfix.md');
+      const featureFile = fs.join(testRepoPath, '.alexandria', 'tags', 'feature.md');
+      const bugfixFile = fs.join(testRepoPath, '.alexandria', 'tags', 'bugfix.md');
 
       expect(fs.exists(featureFile)).toBe(true);
       expect(fs.exists(bugfixFile)).toBe(true);
@@ -118,7 +118,7 @@ describe('Tag Descriptions', () => {
 
     it('should remove individual markdown files when deleted', () => {
       store.saveTagDescription('feature', 'Test description');
-      const tagFile = fs.join(testRepoPath, '.a24z', 'tags', 'feature.md');
+      const tagFile = fs.join(testRepoPath, '.alexandria', 'tags', 'feature.md');
 
       expect(fs.exists(tagFile)).toBe(true);
 
@@ -129,7 +129,7 @@ describe('Tag Descriptions', () => {
 
     it('should remove tag file when deleted', () => {
       store.saveTagDescription('feature', 'Test');
-      const tagFile = fs.join(testRepoPath, '.a24z', 'tags', 'feature.md');
+      const tagFile = fs.join(testRepoPath, '.alexandria', 'tags', 'feature.md');
       expect(fs.exists(tagFile)).toBe(true);
 
       store.deleteTagDescription('feature');

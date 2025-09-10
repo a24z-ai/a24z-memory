@@ -1,4 +1,5 @@
 import { FileSystemAdapter } from '../pure-core/abstractions/filesystem';
+import { ALEXANDRIA_DIRS } from '../constants/paths';
 
 /**
  * Check if a project has the Alexandria workflow installed
@@ -12,12 +13,12 @@ export function hasAlexandriaWorkflow(fs: FileSystemAdapter, projectPath: string
 }
 
 /**
- * Check if a project has .a24z memory notes
+ * Check if a project has alexandria memory notes
  * @param fs - File system adapter
  * @param projectPath - The path to the git repository
- * @returns True if .a24z directory exists with notes
+ * @returns True if alexandria directory exists with notes
  */
 export function hasMemoryNotes(fs: FileSystemAdapter, projectPath: string): boolean {
-  const notesPath = fs.join(projectPath, '.a24z', 'notes');
+  const notesPath = fs.join(projectPath, ALEXANDRIA_DIRS.PRIMARY, ALEXANDRIA_DIRS.NOTES);
   return fs.exists(notesPath);
 }

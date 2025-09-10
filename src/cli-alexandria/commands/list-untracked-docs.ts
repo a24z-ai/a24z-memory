@@ -8,6 +8,7 @@ import * as fs from 'node:fs';
 import { globby } from 'globby';
 import ignore from 'ignore';
 import { createMemoryPalace, getRepositoryRoot } from '../utils/repository.js';
+import { ALEXANDRIA_DIRS } from '../../constants/paths';
 
 export function createListUntrackedDocsCommand(): Command {
   const command = new Command('list-untracked-docs');
@@ -40,8 +41,10 @@ export function createListUntrackedDocsCommand(): Command {
         // Filter out files that are gitignored
         const gitFilteredFiles = allMarkdownFiles.filter((file) => !ig.ignores(file));
 
-        // Filter out files in .a24z directory
-        const nonA24zFiles = gitFilteredFiles.filter((file) => !file.startsWith('.a24z/'));
+        // Filter out files in alexandria directory
+        const nonAlexandriaFiles = gitFilteredFiles.filter(
+          (file) => !file.startsWith(`${ALEXANDRIA_DIRS.PRIMARY}/`)
+        );
 
         // Get all views and collect their overview paths
         const views = palace.listViews();
@@ -56,7 +59,7 @@ export function createListUntrackedDocsCommand(): Command {
         });
 
         // Filter out files that are part of CodebaseViews
-        const untrackedFiles = nonA24zFiles.filter((file) => !overviewPaths.has(file));
+        const untrackedFiles = nonAlexandriaFiles.filter((file) => !overviewPaths.has(file));
 
         // Sort files by directory for better organization
         untrackedFiles.sort((a, b) => {
@@ -73,7 +76,7 @@ export function createListUntrackedDocsCommand(): Command {
           console.log('No untracked markdown documents found.');
           if (options.verbose) {
             console.log(`\nSummary:`);
-            console.log(`  Total markdown files found: ${nonA24zFiles.length}`);
+            console.log(`  Total markdown files found: ${nonAlexandriaFiles.length}`);
             console.log(`  Files in CodebaseViews: ${overviewPaths.size}`);
             console.log(`  Untracked markdown files: 0`);
           }
@@ -105,7 +108,7 @@ export function createListUntrackedDocsCommand(): Command {
 
         if (options.verbose) {
           console.log(`\nSummary:`);
-          console.log(`  Total markdown files found: ${nonA24zFiles.length}`);
+          console.log(`  Total markdown files found: ${nonAlexandriaFiles.length}`);
           console.log(`  Files in CodebaseViews: ${overviewPaths.size}`);
           console.log(`  Untracked markdown files: ${untrackedFiles.length}`);
         }

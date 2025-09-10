@@ -95,7 +95,7 @@ describe('Note Management Functions', () => {
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const notePath = fs.join(
         testRepoPath,
-        '.a24z',
+        '.alexandria',
         'notes',
         year.toString(),
         month,

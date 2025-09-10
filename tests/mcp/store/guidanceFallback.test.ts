@@ -29,7 +29,7 @@ describe('Repository Guidance Fallback Logic', () => {
   describe('getRepositoryGuidance', () => {
     it('should return repository-specific guidance when it exists', () => {
       // Create repository-specific guidance
-      const a24zDir = fs.join(testRepoPath, '.a24z');
+      const a24zDir = fs.join(testRepoPath, '.alexandria');
       fs.createDir(a24zDir);
 
       const customGuidance = '# Custom Repository Guidance\n\nThis is project-specific guidance.';
@@ -62,7 +62,7 @@ describe('Repository Guidance Fallback Logic', () => {
 
     it('should handle path normalization correctly', () => {
       // Create guidance at repository root
-      const a24zDir = fs.join(testRepoPath, '.a24z');
+      const a24zDir = fs.join(testRepoPath, '.alexandria');
       fs.createDir(a24zDir);
 
       const customGuidance = '# Root Level Guidance';
@@ -86,7 +86,7 @@ describe('Repository Guidance Fallback Logic', () => {
       expect(result1).toBeNull();
 
       // Create guidance at repository root
-      const a24zDir = fs.join(testRepoPath, '.a24z');
+      const a24zDir = fs.join(testRepoPath, '.alexandria');
       fs.createDir(a24zDir);
       const customGuidance = '# Custom Root Guidance';
       fs.writeFile(fs.join(a24zDir, 'note-guidance.md'), customGuidance);

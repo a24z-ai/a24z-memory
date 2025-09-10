@@ -3,11 +3,8 @@
  */
 
 export const ALEXANDRIA_DIRS = {
-  // Primary directory name (future standard)
+  // Primary directory name
   PRIMARY: '.alexandria',
-
-  // Legacy directory name (for backwards compatibility)
-  LEGACY: '.a24z',
 
   // Subdirectories
   VIEWS: 'views',

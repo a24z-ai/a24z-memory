@@ -67,7 +67,7 @@ describe('notesStore', () => {
       const saved = savedWithPath.note;
 
       // Check that data directory was created
-      const dataDir = fs.join(testRepoPath, '.a24z');
+      const dataDir = fs.join(testRepoPath, '.alexandria');
       expect(fs.exists(dataDir)).toBe(true);
 
       // Check that notes directory structure was created
@@ -90,7 +90,7 @@ describe('notesStore', () => {
       const savedWithPath = store.saveNote({ ...testNote, directoryPath: validatedRepoPath });
       const saved = savedWithPath.note;
 
-      const dataDir = fs.join(testRepoPath, '.a24z');
+      const dataDir = fs.join(testRepoPath, '.alexandria');
       const date = new Date(saved.timestamp);
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -116,7 +116,7 @@ describe('notesStore', () => {
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const noteFile = fs.join(
         testRepoPath,
-        '.a24z',
+        '.alexandria',
         'notes',
         year.toString(),
         month,
@@ -145,7 +145,7 @@ describe('notesStore', () => {
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const noteFile = fs.join(
         testRepoPath,
-        '.a24z',
+        '.alexandria',
         'notes',
         year.toString(),
         month,

@@ -3,7 +3,7 @@ dist
 *.log
 .DS_Store
 .history
-.a24z/lancedb
+.alexandria/lancedb
 
 
 .env.local

@@ -3,6 +3,7 @@ import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
 import { MemoryPalace } from '../../MemoryPalace';
 import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
+import { ALEXANDRIA_DIRS } from '../../constants/paths';
 
 export class GetRepositoryTagsTool extends BaseTool {
   name = 'get_repository_tags';
@@ -34,7 +35,7 @@ export class GetRepositoryTagsTool extends BaseTool {
       .optional()
       .default(true)
       .describe(
-        'Include repository-specific note guidance. Shows either custom guidance from .a24z/note-guidance.md or falls back to default guidance.'
+        `Include repository-specific note guidance. Shows either custom guidance from ${ALEXANDRIA_DIRS.PRIMARY}/note-guidance.md or falls back to default guidance.`
       ),
   });
 
@@ -97,8 +98,7 @@ export class GetRepositoryTagsTool extends BaseTool {
       if (guidance) {
         result.repositoryGuidance = guidance;
       } else {
-        result.guidanceNote =
-          'No repository-specific guidance found. Consider creating a note-guidance.md file in your .a24z directory to help team members understand what types of notes are most valuable for this project.';
+        result.guidanceNote = `No repository-specific guidance found. Consider creating a note-guidance.md file in your ${ALEXANDRIA_DIRS.PRIMARY} directory to help team members understand what types of notes are most valuable for this project.`;
       }
     }
 

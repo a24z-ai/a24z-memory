@@ -191,7 +191,7 @@ describe('Pure CodebaseViewsStore', () => {
 
     // Check that files were created through the adapter
     const files = fs.getFiles();
-    const viewFilePath = '/test-repo/.a24z/views/test-view.json';
+    const viewFilePath = '/test-repo/.alexandria/views/test-view.json';
 
     expect(files.has(viewFilePath)).toBe(true);
 

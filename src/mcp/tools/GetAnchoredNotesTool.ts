@@ -156,13 +156,20 @@ export class GetAnchoredNotesTool extends BaseTool {
       };
     }
 
-    // Create MemoryPalace instance for this repository
-    const memoryPalace = new MemoryPalace(repoRoot, this.fs);
+    // Validate and create MemoryPalace instance for this repository
+    const validatedRepoPath = MemoryPalace.validateRepositoryPath(this.fs, repoRoot);
+    const memoryPalace = new MemoryPalace(validatedRepoPath, this.fs);
 
-    // Fetch all notes for the path (using static method for repository discovery)
-    let allNotesWithPath: AnchoredNoteWithPath[] = MemoryPalace.getNotesForPath(
+    // Convert absolute path to relative path from repository root
+    const validatedRelativePath = MemoryPalace.validateRelativePath(
+      validatedRepoPath,
       parsed.path,
-      this.fs,
+      this.fs
+    );
+
+    // Fetch all notes for the path using public method
+    let allNotesWithPath: AnchoredNoteWithPath[] = memoryPalace.getNotesForPath(
+      validatedRelativePath,
       parsed.includeParentNotes
     );
     let allNotes: StoredAnchoredNote[] = allNotesWithPath.map((noteWithPath) => noteWithPath.note);

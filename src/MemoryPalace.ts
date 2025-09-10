@@ -14,6 +14,7 @@ import {
   CodebaseViewValidator,
   ValidationResult,
 } from './pure-core/validation/CodebaseViewValidator';
+import { ALEXANDRIA_DIRS } from './constants/paths';
 import type {
   StoredAnchoredNote,
   AnchoredNoteWithPath,
@@ -62,44 +63,29 @@ export class MemoryPalace {
   }
 
   /**
-   * Get the Alexandria data directory path (.alexandria or .a24z)
-   * Checks for existing directories and creates if needed
+   * Get the Alexandria data directory path
+   * Checks for existing directory and creates if needed
    */
   static getAlexandriaPath(
     repositoryPath: ValidatedRepositoryPath,
     fs: FileSystemAdapter
   ): ValidatedAlexandriaPath {
-    const alexandriaPath = fs.join(repositoryPath, '.alexandria');
-    const legacyPath = fs.join(repositoryPath, '.a24z');
-
-    // Check if legacy exists
-    if (fs.exists(legacyPath)) {
-      // For now, continue using legacy if it exists
-      // TODO: In future, we could migrate from .a24z to .alexandria here
-      return legacyPath as ValidatedAlexandriaPath;
-    }
+    const alexandriaPath = fs.join(repositoryPath, ALEXANDRIA_DIRS.PRIMARY);
 
     // Check if alexandria exists
     if (fs.exists(alexandriaPath)) {
       return alexandriaPath as ValidatedAlexandriaPath;
     }
 
-    // Neither exists, create the new standard (.alexandria)
+    // Create the alexandria directory
     try {
       fs.createDir(alexandriaPath);
       return alexandriaPath as ValidatedAlexandriaPath;
-    } catch {
-      // If we can't create .alexandria, try .a24z for compatibility
-      try {
-        fs.createDir(legacyPath);
-        return legacyPath as ValidatedAlexandriaPath;
-      } catch {
-        throw new Error(
-          `Cannot create Alexandria data directory. ` +
-            `Tried both ${alexandriaPath} and ${legacyPath}. ` +
-            `Make sure the repository path is writable.`
-        );
-      }
+    } catch (error) {
+      throw new Error(
+        `Cannot create Alexandria data directory at ${alexandriaPath}. ` +
+          `Make sure the repository path is writable. Error: ${error}`
+      );
     }
   }
 
@@ -197,48 +183,6 @@ export class MemoryPalace {
   }
 
   /**
-   * Get notes for any path by discovering the repository root.
-   * This is a migration helper for code that needs repository discovery.
-   * @param anyPath - Any path within a repository
-   * @param fileSystem - FileSystemAdapter instance
-   * @param includeParentNotes - Whether to include notes from parent directories
-   * @returns Array of notes or empty array if no repository found
-   */
-  static getNotesForPath(
-    anyPath: string,
-    fileSystem: FileSystemAdapter,
-    includeParentNotes = true
-  ): AnchoredNoteWithPath[] {
-    // Walk up the directory tree to find .a24z directory
-    let currentPath = anyPath;
-
-    while (currentPath && currentPath !== '/' && currentPath !== fileSystem.dirname(currentPath)) {
-      if (fileSystem.exists(fileSystem.join(currentPath, '.a24z'))) {
-        // Found repository root - create instance and get notes for the specific path
-        try {
-          const validatedRepoPath = MemoryPalace.validateRepositoryPath(fileSystem, currentPath);
-          const validatedRelativePath = MemoryPalace.validateRelativePath(
-            validatedRepoPath,
-            anyPath,
-            fileSystem
-          );
-          const memoryPalace = new MemoryPalace(validatedRepoPath, fileSystem);
-          return memoryPalace.notesStore.getNotesForPath(
-            validatedRepoPath,
-            validatedRelativePath,
-            includeParentNotes
-          );
-        } catch {
-          return []; // Validation failed
-        }
-      }
-      currentPath = fileSystem.dirname(currentPath);
-    }
-
-    return []; // No repository found
-  }
-
-  /**
    * Get a specific note by ID
    */
   getNoteById(noteId: string): StoredAnchoredNote | null {
@@ -259,6 +203,16 @@ export class MemoryPalace {
     // Get all notes from the repository root (empty string = repository root)
     const rootPath = '' as ValidatedRelativePath; // Root is represented as empty string
     return this.notesStore.getNotesForPath(this.repositoryRoot, rootPath, includeParentNotes);
+  }
+
+  /**
+   * Get notes for a specific path within the repository
+   */
+  getNotesForPath(
+    relativePath: ValidatedRelativePath,
+    includeParentNotes = true
+  ): AnchoredNoteWithPath[] {
+    return this.notesStore.getNotesForPath(this.repositoryRoot, relativePath, includeParentNotes);
   }
 
   /**
@@ -361,7 +315,8 @@ export class MemoryPalace {
    * Validate a codebase view
    */
   validateView(view: CodebaseView): ValidationResult {
-    return this.validator.validate(this.repositoryRoot, view);
+    const existingViews = this.viewsStore.listViews(this.repositoryRoot);
+    return this.validator.validate(this.repositoryRoot, view, existingViews);
   }
 
   /**
@@ -370,7 +325,8 @@ export class MemoryPalace {
    */
   saveViewWithValidation(view: CodebaseView): ValidationResult {
     // Validate and get potentially modified view (e.g., scope removal)
-    const validationResult = this.validator.validate(this.repositoryRoot, view);
+    const existingViews = this.viewsStore.listViews(this.repositoryRoot);
+    const validationResult = this.validator.validate(this.repositoryRoot, view, existingViews);
 
     // Add default version if missing
     let viewToSave = validationResult.validatedView;

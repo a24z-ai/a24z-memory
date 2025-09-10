@@ -7,7 +7,7 @@ import type { CodebaseViewSummary } from './summary';
 import type { ValidatedRepositoryPath } from './index';
 
 /**
- * A validated Alexandria data directory path (.alexandria or .a24z)
+ * A validated Alexandria data directory path (.alexandria)
  * This type ensures the path has been validated to exist and be writable
  */
 export type ValidatedAlexandriaPath = string & { __alexandriaPath: true };
@@ -71,10 +71,10 @@ export interface AlexandriaRepository {
   /** GitHub metadata when available */
   github?: GithubRepository;
 
-  /** Whether repository has .a24z/views directory */
+  /** Whether repository has .alexandria/views directory */
   hasViews: boolean;
 
-  /** Number of CodebaseView files in .a24z/views/ */
+  /** Number of CodebaseView files in .alexandria/views/ */
   viewCount: number;
 
   /** Summary information about each CodebaseView */

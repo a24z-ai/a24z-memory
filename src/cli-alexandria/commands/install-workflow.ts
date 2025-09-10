@@ -7,6 +7,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { getRepositoryRoot } from '../utils/repository.js';
 import { getAlexandriaWorkflowTemplate } from '../templates/alexandria-workflow.js';
+import { ALEXANDRIA_DIRS } from '../../constants/paths';
 
 export function createInstallWorkflowCommand(): Command {
   const command = new Command('install-workflow');
@@ -51,12 +52,14 @@ export function createInstallWorkflowCommand(): Command {
           `✅ Installed Alexandria workflow to ${path.relative(process.cwd(), workflowPath)}`
         );
 
-        // Check if .a24z/views directory exists
-        const viewsDir = path.join(repoPath, '.a24z', 'views');
+        // Check if alexandria views directory exists
+        const viewsDir = path.join(repoPath, ALEXANDRIA_DIRS.PRIMARY, ALEXANDRIA_DIRS.VIEWS);
         const hasViews = fs.existsSync(viewsDir);
 
         if (!hasViews) {
-          console.log('\n⚠️  Note: No .a24z/views/ directory found');
+          console.log(
+            `\n⚠️  Note: No ${ALEXANDRIA_DIRS.PRIMARY}/${ALEXANDRIA_DIRS.VIEWS}/ directory found`
+          );
           console.log('   Create codebase views first using:');
           console.log('   alexandria add-doc <documentation-file>');
         }
@@ -70,7 +73,9 @@ export function createInstallWorkflowCommand(): Command {
         console.log('3. Push to your repository:');
         console.log('   git push');
         console.log('\nThe workflow will automatically register your repository with Alexandria');
-        console.log('whenever you push changes to .a24z/views/ files.');
+        console.log(
+          `whenever you push changes to ${ALEXANDRIA_DIRS.PRIMARY}/${ALEXANDRIA_DIRS.VIEWS}/ files.`
+        );
       } catch (error) {
         console.error('Error:', error instanceof Error ? error.message : String(error));
         process.exit(1);

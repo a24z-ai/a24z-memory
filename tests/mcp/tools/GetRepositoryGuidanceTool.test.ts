@@ -30,7 +30,7 @@ describe('GetRepositoryGuidanceTool', () => {
   describe('execute', () => {
     it('should return comprehensive configuration including guidance', async () => {
       // Create a repository-specific guidance file
-      const a24zDir = fs.join(testRepoPath, '.a24z');
+      const a24zDir = fs.join(testRepoPath, '.alexandria');
       fs.createDir(a24zDir);
 
       const customGuidance = '# Custom Repository Guidance\n\nThis is project-specific guidance.';
@@ -71,7 +71,7 @@ describe('GetRepositoryGuidanceTool', () => {
       fs.createDir(nestedDir);
 
       // Create guidance at repository root
-      const a24zDir = fs.join(testRepoPath, '.a24z');
+      const a24zDir = fs.join(testRepoPath, '.alexandria');
       fs.createDir(a24zDir);
 
       const customGuidance = '# Repo Guidance from Root';
@@ -87,7 +87,7 @@ describe('GetRepositoryGuidanceTool', () => {
 
     it('should include tag descriptions when available', async () => {
       // Create tag descriptions as markdown files
-      const a24zDir = fs.join(testRepoPath, '.a24z');
+      const a24zDir = fs.join(testRepoPath, '.alexandria');
       const tagsDir = fs.join(a24zDir, 'tags');
       fs.createDir(tagsDir);
 

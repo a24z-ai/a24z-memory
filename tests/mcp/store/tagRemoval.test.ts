@@ -109,7 +109,7 @@ describe('Tag Removal from Notes', () => {
       store.saveTagDescription('bugfix', 'Bug fix related changes');
 
       // Verify it exists
-      const tagPath = fsAdapter.join(testRepoPath, '.a24z', 'tags', 'bugfix.md');
+      const tagPath = fsAdapter.join(testRepoPath, '.alexandria', 'tags', 'bugfix.md');
       expect(fsAdapter.exists(tagPath)).toBe(true);
 
       // Delete the tag description

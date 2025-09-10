@@ -6,12 +6,12 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 /**
- * Create basic .a24z directory structure for testing
+ * Create basic .alexandria directory structure for testing
  */
 export function createTestRepositoryStructure(repositoryPath: string): void {
-  // Create the .a24z directory structure
-  const a24zDir = path.join(repositoryPath, '.a24z');
-  fs.mkdirSync(a24zDir, { recursive: true });
+  // Create the .alexandria directory structure
+  const alexandriaDir = path.join(repositoryPath, '.alexandria');
+  fs.mkdirSync(alexandriaDir, { recursive: true });
 
   // Create a basic note-guidance.md file
   const guidanceContent = `# Repository Guidance
@@ -25,14 +25,14 @@ This is test guidance for ${repositoryPath}.
 
 This guidance was created for testing purposes.`;
 
-  fs.writeFileSync(path.join(a24zDir, 'note-guidance.md'), guidanceContent);
+  fs.writeFileSync(path.join(alexandriaDir, 'note-guidance.md'), guidanceContent);
 }
 
 /**
  * Create a default test view for testing
  */
 export function createTestView(repositoryPath: string, viewId: string = 'test-view'): void {
-  const viewsDir = path.join(repositoryPath, '.a24z', 'views');
+  const viewsDir = path.join(repositoryPath, '.alexandria', 'views');
   fs.mkdirSync(viewsDir, { recursive: true });
 
   const testView = {

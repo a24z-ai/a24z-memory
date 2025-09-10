@@ -70,7 +70,7 @@ describe('File Operations Integration', () => {
     expect(createResult.content[0].text).toContain('Note saved successfully');
 
     // Step 2: Verify note was written to filesystem
-    const notesDir = fsAdapter.join(testPath, '.a24z', 'notes');
+    const notesDir = fsAdapter.join(testPath, '.alexandria', 'notes');
     expect(fsAdapter.exists(notesDir)).toBe(true);
 
     // Step 3: Retrieve notes

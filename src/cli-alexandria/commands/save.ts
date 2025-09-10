@@ -8,6 +8,7 @@ import * as path from 'node:path';
 import { createMemoryPalace, getRepositoryRoot } from '../utils/repository.js';
 import { generateViewIdFromName } from '../../pure-core/stores/CodebaseViewsStore.js';
 import { formatValidationResult } from '../utils/formatting.js';
+import { ALEXANDRIA_DIRS } from '../../constants/paths';
 import type { CodebaseView } from '../../pure-core/types/index.js';
 
 export function createSaveCommand(): Command {
@@ -59,7 +60,7 @@ export function createSaveCommand(): Command {
         const validationResult = palace.saveViewWithValidation(view);
 
         // Success message with saved location
-        const viewsDir = path.join(repoPath, '.a24z', 'views');
+        const viewsDir = path.join(repoPath, ALEXANDRIA_DIRS.PRIMARY, ALEXANDRIA_DIRS.VIEWS);
         const savedPath = path.join(viewsDir, `${validationResult.validatedView.id}.json`);
 
         console.log(
@@ -70,7 +71,7 @@ export function createSaveCommand(): Command {
         try {
           fs.unlinkSync(viewFilePath);
           console.log(
-            `📄 Original file '${viewFile}' has been removed (now stored in .a24z/views/)`
+            `📄 Original file '${viewFile}' has been removed (now stored in ${ALEXANDRIA_DIRS.PRIMARY}/${ALEXANDRIA_DIRS.VIEWS}/)`
           );
         } catch (error) {
           console.log(

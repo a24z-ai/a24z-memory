@@ -12,6 +12,7 @@ import { ProjectRegistryStore } from '../../projects-core/ProjectRegistryStore.j
 import { MemoryPalace } from '../../MemoryPalace.js';
 import { getGitRemoteUrl } from '../../projects-core/utils.js';
 import { getAlexandriaWorkflowTemplate } from '../templates/alexandria-workflow.js';
+import { ALEXANDRIA_DIRS } from '../../constants/paths';
 
 function prompt(question: string): Promise<string> {
   const rl = readline.createInterface({
@@ -65,7 +66,7 @@ export function createInitCommand(): Command {
           context: {
             useGitignore: true,
             patterns: {
-              exclude: ['.a24z/**', '.alexandria/**'],
+              exclude: [`${ALEXANDRIA_DIRS.PRIMARY}/**`],
             },
           },
         };
@@ -74,7 +75,7 @@ export function createInitCommand(): Command {
         fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n', 'utf8');
 
         console.log(`✅ Created ${CONFIG_FILENAME}`);
-        console.log('📝 Using .gitignore patterns + .a24z/ + .alexandria/ exclusions\n');
+        console.log(`📝 Using .gitignore patterns + ${ALEXANDRIA_DIRS.PRIMARY}/ exclusions\n`);
 
         // Setup global registry if not opted out
         if (options.register !== false) {

@@ -171,7 +171,7 @@ export class InMemoryFileSystemAdapter implements FileSystemAdapter {
   setupTestRepo(repoPath: string): void {
     this.createDir(repoPath);
     this.createDir(this.join(repoPath, '.git'));
-    this.createDir(this.join(repoPath, '.a24z'));
+    this.createDir(this.join(repoPath, '.alexandria'));
   }
 
   // Helper to debug what's in the filesystem

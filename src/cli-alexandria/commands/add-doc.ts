@@ -127,7 +127,7 @@ Press Enter to continue, or Ctrl+C to exit...
         }
 
         // Success message with saved location
-        const viewsDir = path.join(repoPath, ALEXANDRIA_DIRS.LEGACY, ALEXANDRIA_DIRS.VIEWS);
+        const viewsDir = path.join(repoPath, ALEXANDRIA_DIRS.PRIMARY, ALEXANDRIA_DIRS.VIEWS);
         const savedPath = path.join(viewsDir, `${result.viewId}.json`);
 
         console.log('');

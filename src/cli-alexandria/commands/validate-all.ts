@@ -6,6 +6,7 @@ import { Command } from 'commander';
 import { getRepositoryRoot } from '../utils/repository.js';
 import { formatValidationResult, formatValidationSummary } from '../utils/formatting.js';
 import { validateAllViews, validateSpecificViews, getViewsByStatus } from '../utils/validation.js';
+import { ALEXANDRIA_DIRS } from '../../constants/paths';
 
 export function createValidateAllCommand(): Command {
   const command = new Command('validate-all');
@@ -146,7 +147,9 @@ export function createValidateAllCommand(): Command {
         // Show guidance if there are issues
         if (summary.invalidViews > 0 || summary.totalIssues > 0) {
           console.log(`\n💡 Next steps:`);
-          console.log(`   - Edit view files in .a24z/views/ to fix errors`);
+          console.log(
+            `   - Edit view files in ${ALEXANDRIA_DIRS.PRIMARY}/${ALEXANDRIA_DIRS.VIEWS}/ to fix errors`
+          );
           console.log(`   - Update documentation files to fix missing file references`);
           console.log(
             `   - Use 'alexandria validate <view-id>' for detailed validation of specific views`

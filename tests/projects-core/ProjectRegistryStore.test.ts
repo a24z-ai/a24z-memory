@@ -222,8 +222,8 @@ describe('ProjectRegistryStore', () => {
 
     it('should handle corrupted registry file gracefully', () => {
       // Write invalid JSON to registry file
-      const registryPath = '/home/user/.a24z-memory/projects.json';
-      fs.createDir('/home/user/.a24z-memory');
+      const registryPath = '/home/user/.alexandria-memory/projects.json';
+      fs.createDir('/home/user/.alexandria-memory');
       fs.writeFile(registryPath, 'invalid json content');
 
       // Should start with empty registry

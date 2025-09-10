@@ -37,7 +37,7 @@ describe('GetRepositoryTagsTool (Simple)', () => {
     notesStore = new AnchoredNotesStore(inMemoryFs, alexandriaPath);
 
     // Create a test view directory structure
-    const viewsDir = inMemoryFs.join(testPath, '.a24z', 'views');
+    const viewsDir = inMemoryFs.join(testPath, '.alexandria', 'views');
     inMemoryFs.createDir(viewsDir);
     const testViewDir = inMemoryFs.join(viewsDir, 'test-view');
     inMemoryFs.createDir(testViewDir);
@@ -106,7 +106,7 @@ describe('GetRepositoryTagsTool (Simple)', () => {
     }
 
     // Debug readDir
-    const notesDir = inMemoryFs.join(testPath, '.a24z', 'notes');
+    const notesDir = inMemoryFs.join(testPath, '.alexandria', 'notes');
     console.log('readDir of notes:', inMemoryFs.readDir(notesDir));
     const yearDir = inMemoryFs.join(notesDir, '2025');
     if (inMemoryFs.exists(yearDir)) {
@@ -164,7 +164,10 @@ describe('GetRepositoryTagsTool (Simple)', () => {
   it('should include custom repository guidance when it exists', async () => {
     // Create a custom guidance file
     const customGuidance = '# Custom Guidance\n\nThis is custom guidance for notes.';
-    inMemoryFs.writeFile(inMemoryFs.join(testPath, '.a24z', 'note-guidance.md'), customGuidance);
+    inMemoryFs.writeFile(
+      inMemoryFs.join(testPath, '.alexandria', 'note-guidance.md'),
+      customGuidance
+    );
 
     const result = await tool.execute({
       path: testPath,

@@ -97,15 +97,15 @@ describe('CLI - list-untracked-docs command', () => {
     expect(fullOutput).not.toContain('architecture.md');
   });
 
-  it('should exclude files in .a24z directory', async () => {
+  it('should exclude files in .alexandria directory', async () => {
     // Create markdown files
     fs.writeFileSync('README.md', '# Test Readme');
 
-    // Create markdown files in .a24z directory
-    fs.mkdirSync('.a24z', { recursive: true });
-    fs.writeFileSync('.a24z/internal.md', '# Internal');
-    fs.mkdirSync('.a24z/notes', { recursive: true });
-    fs.writeFileSync('.a24z/notes/note1.md', '# Note 1');
+    // Create markdown files in .alexandria directory
+    fs.mkdirSync('.alexandria', { recursive: true });
+    fs.writeFileSync('.alexandria/internal.md', '# Internal');
+    fs.mkdirSync('.alexandria/notes', { recursive: true });
+    fs.writeFileSync('.alexandria/notes/note1.md', '# Note 1');
 
     // Capture console output
     const originalLog = console.log;
@@ -123,7 +123,7 @@ describe('CLI - list-untracked-docs command', () => {
     const fullOutput = output.join('\n');
     expect(fullOutput).toContain('Found 1 untracked markdown document');
     expect(fullOutput).toContain('README.md');
-    // Files in .a24z should NOT be in the list
+    // Files in .alexandria should NOT be in the list
     expect(fullOutput).not.toContain('internal.md');
     expect(fullOutput).not.toContain('note1.md');
   });

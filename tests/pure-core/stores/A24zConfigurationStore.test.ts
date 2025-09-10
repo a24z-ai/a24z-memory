@@ -34,16 +34,16 @@ describe('Pure A24zConfigurationStore', () => {
   });
 
   describe('Repository Validation', () => {
-    it('should create .a24z directory when it does not exist', () => {
+    it('should create .alexandria directory when it does not exist', () => {
       // Create a new fs and store without setupTestRepo to test directory creation
       const cleanFs = new InMemoryFileSystemAdapter();
 
-      // Set up just the git repo without .a24z
+      // Set up just the git repo without .alexandria
       cleanFs.createDir('/clean-repo');
       cleanFs.createDir('/clean-repo/.git');
 
-      // Initially no .a24z directory
-      expect(cleanFs.exists('/clean-repo/.a24z')).toBe(false);
+      // Initially no .alexandria directory
+      expect(cleanFs.exists('/clean-repo/.alexandria')).toBe(false);
 
       // Validate and use the path
       const cleanValidatedPath = MemoryPalace.validateRepositoryPath(cleanFs, '/clean-repo');
@@ -59,9 +59,9 @@ describe('Pure A24zConfigurationStore', () => {
       expect(config.limits.noteMaxLength).toBe(500);
     });
 
-    it('should work when .a24z directory already exists', () => {
-      // Pre-create .a24z directory
-      fs.createDir('/test-repo/.a24z');
+    it('should work when .alexandria directory already exists', () => {
+      // Pre-create .alexandria directory
+      fs.createDir('/test-repo/.alexandria');
 
       const config = store.getConfiguration();
       expect(config).toBeTruthy();
@@ -79,7 +79,7 @@ describe('Pure A24zConfigurationStore', () => {
 
       expect(() => {
         // Create store with invalid alexandria path to test error handling
-        const invalidAlexandriaPath = '/invalid/path/.a24z' as ValidatedAlexandriaPath;
+        const invalidAlexandriaPath = '/invalid/path/.alexandria' as ValidatedAlexandriaPath;
         const invalidStore = new A24zConfigurationStore(fs, invalidAlexandriaPath);
         // updateConfiguration should trigger directory creation and fail
         invalidStore.updateConfiguration({ storage: { compressionEnabled: true } });
@@ -150,8 +150,8 @@ describe('Pure A24zConfigurationStore', () => {
 
     it('should handle malformed configuration files', () => {
       // Create invalid JSON config file
-      fs.createDir('/test-repo/.a24z');
-      fs.writeFile('/test-repo/.a24z/config.json', 'invalid json {');
+      fs.createDir('/test-repo/.alexandria');
+      fs.writeFile('/test-repo/.alexandria/config.json', 'invalid json {');
 
       // Should return default config when parsing fails
       const config = store.getConfiguration();
@@ -236,7 +236,7 @@ describe('Pure A24zConfigurationStore', () => {
 
       // Check that files were created through the adapter
       const files = fs.getFiles();
-      const configPath = '/test-repo/.a24z/config.json';
+      const configPath = '/test-repo/.alexandria/config.json';
 
       expect(files.has(configPath)).toBe(true);
 

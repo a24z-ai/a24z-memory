@@ -15,6 +15,7 @@ import {
 } from '../types';
 import { ValidatedAlexandriaPath } from '../types/repository';
 import { A24zConfigurationStore } from './A24zConfigurationStore';
+import { ALEXANDRIA_DIRS } from '../../constants/paths';
 
 // ============================================================================
 // Types and Interfaces
@@ -356,8 +357,8 @@ export class AnchoredNotesStore {
    */
   private readAllNotes(repositoryRootPath: ValidatedRepositoryPath): AnchoredNoteWithPath[] {
     // Calculate the notes directory for the specific repository
-    const repositoryAlexandriaPath = this.fs.join(repositoryRootPath, '.a24z');
-    const notesDir = this.fs.join(repositoryAlexandriaPath, 'notes');
+    const repositoryAlexandriaPath = this.fs.join(repositoryRootPath, ALEXANDRIA_DIRS.PRIMARY);
+    const notesDir = this.fs.join(repositoryAlexandriaPath, ALEXANDRIA_DIRS.NOTES);
     const notes: AnchoredNoteWithPath[] = [];
 
     if (!this.fs.exists(notesDir)) {
@@ -690,7 +691,11 @@ export class AnchoredNotesStore {
    */
   getRepositoryGuidance(repositoryPath: ValidatedRepositoryPath): string | null {
     try {
-      const guidanceFile = this.fs.join(repositoryPath, '.a24z', 'note-guidance.md');
+      const guidanceFile = this.fs.join(
+        repositoryPath,
+        ALEXANDRIA_DIRS.PRIMARY,
+        'note-guidance.md'
+      );
 
       // Try to read repository-specific guidance first
       if (this.fs.exists(guidanceFile)) {

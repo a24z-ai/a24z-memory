@@ -91,19 +91,6 @@ export const DEFAULT_A24Z_MEMORY_CONFIG: A24zMemoryConfig = {
 };
 
 /**
- * File paths and patterns
- */
-export const DEFAULT_PATH_CONFIG = {
-  dataDir: '.a24z',
-  notesDir: 'notes',
-  handoffsDir: 'handoffs',
-  configFile: 'configuration.json',
-  guidanceFile: 'note-guidance.md',
-  tagDescriptionsDir: 'tag-descriptions',
-  typeDescriptionsDir: 'type-descriptions',
-};
-
-/**
  * Default tag suggestions based on common categories
  */
 export const DEFAULT_TAG_CATEGORIES = {
@@ -122,7 +109,6 @@ export function getAllDefaultConfigs() {
     noteFetching: DEFAULT_NOTE_FETCHING_CONFIG,
     responseStyle: DEFAULT_RESPONSE_STYLE_CONFIG,
     a24zMemory: DEFAULT_A24Z_MEMORY_CONFIG,
-    paths: DEFAULT_PATH_CONFIG,
     tagCategories: DEFAULT_TAG_CATEGORIES,
   };
 }

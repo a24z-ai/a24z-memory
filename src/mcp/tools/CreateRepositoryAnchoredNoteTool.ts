@@ -112,7 +112,7 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
           `💡 To use new tags, either:\n` +
           `1. Use one of the existing tags above\n` +
           `2. Ask an administrator to create the tag with a proper description\n` +
-          `3. Disable tag enforcement in .a24z/configuration.json`
+          `3. Disable tag enforcement in the repository configuration`
       );
     }
 
@@ -244,7 +244,7 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
           priority: 5,
         },
       },
-      overviewPath: `.a24z/overviews/${viewId}.md`,
+      overviewPath: `docs/${viewId}.md`,
       metadata: {
         generationType: 'user',
       },
@@ -306,9 +306,9 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
    * Generate or update the markdown overview file for a codebase view
    */
   private generateOverviewFile(repositoryPath: ValidatedRepositoryPath, view: CodebaseView): void {
-    // Create the overview directory if it doesn't exist
-    const overviewDir = this.fs.join(repositoryPath, '.a24z', 'overviews');
-    this.fs.createDir(overviewDir);
+    // Create the docs directory if it doesn't exist
+    const docsDir = this.fs.join(repositoryPath, 'docs');
+    this.fs.createDir(docsDir);
 
     // Generate markdown content
     const content = this.generateOverviewContent(view);

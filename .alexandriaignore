@@ -1,4 +1,4 @@
-# a24z-Memory repository .a24zignore
+# a24z-Memory repository .alexandriaignore
 # Files matching these patterns won't count towards coverage metrics
 
 # Documentation (already IS documentation, doesn't need notes)

@@ -183,7 +183,7 @@ describe('Default View Auto-Creation', () => {
     await tool.execute(input);
 
     // Check that overview file was created
-    const overviewPath = fs.join(testPath, '.a24z', 'overviews', 'default-explorer-log.md');
+    const overviewPath = fs.join(testPath, 'docs', 'default-explorer-log.md');
     expect(fs.exists(overviewPath)).toBe(true);
 
     // Check overview content
@@ -204,7 +204,7 @@ describe('Default View Auto-Creation', () => {
     await tool.execute(input1);
 
     // Check initial overview
-    const overviewPath = fs.join(testPath, '.a24z', 'overviews', 'default-explorer-log.md');
+    const overviewPath = fs.join(testPath, 'docs', 'default-explorer-log.md');
     expect(fs.exists(overviewPath)).toBe(true);
 
     const initialContent = fs.readFile(overviewPath);
@@ -252,7 +252,7 @@ describe('Default View Auto-Creation', () => {
     }
 
     // Check that overview was updated
-    const overviewPath = fs.join(testPath, '.a24z', 'overviews', 'default-explorer-log.md');
+    const overviewPath = fs.join(testPath, 'docs', 'default-explorer-log.md');
     expect(fs.exists(overviewPath)).toBe(true);
 
     const content = fs.readFile(overviewPath);
@@ -272,7 +272,7 @@ describe('Default View Auto-Creation', () => {
     await tool.execute(input);
 
     // Check that overview directory exists
-    const overviewDir = fs.join(testPath, '.a24z', 'overviews');
+    const overviewDir = fs.join(testPath, 'docs');
     expect(fs.exists(overviewDir)).toBe(true);
 
     // Check that overview file exists

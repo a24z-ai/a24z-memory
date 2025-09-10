@@ -46,8 +46,8 @@ describe('Path Validation for MemoryPalace', () => {
     const memoryPalace = new MemoryPalace(gitRepoPath, fsAdapter);
     expect(memoryPalace).toBeDefined();
 
-    // Verify the .a24z directory was created
-    const a24zDir = fsAdapter.join(gitRepoPath, '.a24z');
+    // Verify the .alexandria directory was created
+    const a24zDir = fsAdapter.join(gitRepoPath, '.alexandria');
     expect(fsAdapter.exists(a24zDir)).toBe(true);
   });
 

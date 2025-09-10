@@ -8,6 +8,7 @@ import { globby } from 'globby';
 import ignore from 'ignore';
 import { MemoryPalace } from '../../MemoryPalace.js';
 import { NodeFileSystemAdapter } from '../../node-adapters/NodeFileSystemAdapter.js';
+import { ALEXANDRIA_DIRS } from '../../constants/paths';
 import { generateViewIdFromName } from '../../pure-core/stores/CodebaseViewsStore.js';
 import { extractStructureFromMarkdown } from './documentParser.js';
 import type { CodebaseView, ValidatedRepositoryPath } from '../../pure-core/types/index.js';
@@ -61,8 +62,10 @@ export async function findUntrackedDocuments(
   // Filter out files that are gitignored
   const gitFilteredFiles = allMarkdownFiles.filter((file) => !ig.ignores(file));
 
-  // Filter out files in .a24z directory
-  const nonA24zFiles = gitFilteredFiles.filter((file) => !file.startsWith('.a24z/'));
+  // Filter out files in alexandria directory
+  const nonAlexandriaFiles = gitFilteredFiles.filter(
+    (file) => !file.startsWith(`${ALEXANDRIA_DIRS.PRIMARY}/`)
+  );
 
   // Get existing views to find which docs are already tracked
   const fileSystemAdapter = new NodeFileSystemAdapter();
@@ -79,7 +82,7 @@ export async function findUntrackedDocuments(
   });
 
   // Filter out files that are part of CodebaseViews
-  const untrackedFiles = nonA24zFiles.filter((file) => !overviewPaths.has(file));
+  const untrackedFiles = nonAlexandriaFiles.filter((file) => !overviewPaths.has(file));
 
   return untrackedFiles.map((file) => ({
     filePath: file,
