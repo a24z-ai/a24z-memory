@@ -21,6 +21,7 @@ https://github.com/user-attachments/assets/8bf7b277-c6e9-4fbf-8fc8-10857d5bdac7
 
 
 ## For Your Team: [![Documentation](https://img.shields.io/badge/docs-a24z.ai-blue.svg)](https://a24z-ai.github.io/Alexandria)
+![Demo Video](https://github.com/user-attachments/assets/89892c54-8b26-4cdb-ac17-12299c1e97a6)
 
 
 https://github.com/user-attachments/assets/89892c54-8b26-4cdb-ac17-12299c1e97a6
