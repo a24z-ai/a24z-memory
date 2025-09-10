@@ -1,8 +1,8 @@
 <img width="1024" height="559" alt="image" src="https://github.com/user-attachments/assets/55678688-7739-46d1-8e9f-66b4fc9efb3d" />
 
 <div align="center">
-<h1>Context Management as Easy as Linting and Typechecking</h1>
-<p>We make managing context as easy as linting and typechecking, in two steps: During onboarding we add references to the documentation and our reference system maintains it as your code changes with hooks and configurable validations.</p>
+<h1>Context Engineering Should be as Easy as Linting</h1>
+<p>This is how you do it: During onboarding we add references to the documentation and our reference system maintains it as your code changes with hooks and configurable validations.</p>
 </div>
 
 <div align="center">
