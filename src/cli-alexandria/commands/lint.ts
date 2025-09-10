@@ -36,14 +36,23 @@ export const lintCommand = new Command('lint')
     // Format output similar to ESLint
     const { violations, errorCount, warningCount, infoCount, fixableCount } = result;
 
-    if (violations.length === 0) {
-      console.log(chalk.green('✨ No issues found!'));
+    // Filter violations based on --errors-only flag
+    const displayViolations = options.errorsOnly
+      ? violations.filter((v) => v.severity === 'error')
+      : violations;
+
+    if (displayViolations.length === 0) {
+      if (options.errorsOnly && violations.length > 0) {
+        console.log(chalk.green('✨ No errors found! (warnings and info suppressed)'));
+      } else {
+        console.log(chalk.green('✨ No issues found!'));
+      }
       process.exit(0);
     }
 
     // Group violations by file
     const violationsByFile = new Map<string, typeof violations>();
-    for (const violation of violations) {
+    for (const violation of displayViolations) {
       const file = violation.file || 'General';
       if (!violationsByFile.has(file)) {
         violationsByFile.set(file, []);
@@ -79,19 +88,23 @@ export const lintCommand = new Command('lint')
 
     // Summary
     const parts = [];
-    if (errorCount > 0) {
-      parts.push(chalk.red(`${errorCount} error${errorCount !== 1 ? 's' : ''}`));
+    const displayedErrors = options.errorsOnly ? errorCount : errorCount;
+    const displayedWarnings = options.errorsOnly ? 0 : warningCount;
+    const displayedInfo = options.errorsOnly ? 0 : infoCount;
+
+    if (displayedErrors > 0) {
+      parts.push(chalk.red(`${displayedErrors} error${displayedErrors !== 1 ? 's' : ''}`));
     }
-    if (warningCount > 0) {
-      parts.push(chalk.yellow(`${warningCount} warning${warningCount !== 1 ? 's' : ''}`));
+    if (displayedWarnings > 0) {
+      parts.push(chalk.yellow(`${displayedWarnings} warning${displayedWarnings !== 1 ? 's' : ''}`));
     }
-    if (infoCount > 0 && !options.quiet) {
-      parts.push(chalk.blue(`${infoCount} info`));
+    if (displayedInfo > 0 && !options.quiet) {
+      parts.push(chalk.blue(`${displayedInfo} info`));
     }
 
     console.log(
       chalk.bold(
-        `✖ ${violations.length} problem${violations.length !== 1 ? 's' : ''} (${parts.join(', ')})`
+        `✖ ${displayViolations.length} problem${displayViolations.length !== 1 ? 's' : ''} (${parts.join(', ')})`
       )
     );
 
