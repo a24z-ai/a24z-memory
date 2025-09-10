@@ -6,7 +6,7 @@
 </div>
 
 <div align="center">
-<h2>For Your Agents, Developers, and Organization</h2>
+<h2>Try it Now</h2>
 </div>
 
 ```bash
