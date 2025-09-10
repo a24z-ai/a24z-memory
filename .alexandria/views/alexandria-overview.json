@@ -1,7 +1,7 @@
 {
   "id": "alexandria-overview",
   "version": "1.0.0",
-  "name": "alexandria-overview",
+  "name": "Welcome",
   "description": "Alexandria Development Agent Orchestration Platform overview",
   "rows": 3,
   "cols": 3,
@@ -88,7 +88,7 @@
     }
   },
   "overviewPath": "README.md",
-  "category": "other",
+  "category": "Product",
   "displayOrder": 0,
   "timestamp": "2025-09-09T22:22:58.797Z",
   "metadata": {

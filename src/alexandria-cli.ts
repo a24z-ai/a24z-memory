@@ -24,6 +24,7 @@ import { createUpdateCommand } from './cli-alexandria/commands/update.js';
 import { createStatusCommand } from './cli-alexandria/commands/status.js';
 import { createAgentsCommand } from './cli-alexandria/commands/agents.js';
 import { createHooksCommand } from './cli-alexandria/commands/hooks.js';
+import { createCoverageCommand } from './cli-alexandria/commands/coverage.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -54,6 +55,7 @@ program.addCommand(createInstallWorkflowCommand());
 program.addCommand(createProjectsCommand());
 program.addCommand(createListUntrackedDocsCommand());
 program.addCommand(createUpdateCommand());
+program.addCommand(createCoverageCommand());
 
 // Parse command line arguments
 program.parse(process.argv);
