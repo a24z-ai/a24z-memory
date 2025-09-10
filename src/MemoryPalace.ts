@@ -22,6 +22,7 @@ import type {
   ValidatedRepositoryPath,
   ValidatedRelativePath,
 } from './pure-core/types';
+import type { ValidatedAlexandriaPath } from './pure-core/types/repository';
 
 export interface SaveNoteOptions {
   note: string;
@@ -51,12 +52,55 @@ export class MemoryPalace {
   constructor(repositoryRoot: string, fileSystem: FileSystemAdapter) {
     this.fs = fileSystem;
     this.repositoryRoot = MemoryPalace.validateRepositoryPath(fileSystem, repositoryRoot);
+    const alexandriaPath = MemoryPalace.getAlexandriaPath(this.repositoryRoot, fileSystem);
 
-    // Initialize stores and validator with the file system adapter
-    this.notesStore = new AnchoredNotesStore(fileSystem);
-    this.viewsStore = new CodebaseViewsStore(fileSystem);
-    this.configStore = new A24zConfigurationStore(fileSystem);
+    // Initialize stores with the validated Alexandria path
+    this.notesStore = new AnchoredNotesStore(fileSystem, alexandriaPath);
+    this.viewsStore = new CodebaseViewsStore(fileSystem, alexandriaPath);
+    this.configStore = new A24zConfigurationStore(fileSystem, alexandriaPath);
     this.validator = new CodebaseViewValidator(fileSystem);
+  }
+
+  /**
+   * Get the Alexandria data directory path (.alexandria or .a24z)
+   * Checks for existing directories and creates if needed
+   */
+  static getAlexandriaPath(
+    repositoryPath: ValidatedRepositoryPath,
+    fs: FileSystemAdapter
+  ): ValidatedAlexandriaPath {
+    const alexandriaPath = fs.join(repositoryPath, '.alexandria');
+    const legacyPath = fs.join(repositoryPath, '.a24z');
+
+    // Check if legacy exists
+    if (fs.exists(legacyPath)) {
+      // For now, continue using legacy if it exists
+      // TODO: In future, we could migrate from .a24z to .alexandria here
+      return legacyPath as ValidatedAlexandriaPath;
+    }
+
+    // Check if alexandria exists
+    if (fs.exists(alexandriaPath)) {
+      return alexandriaPath as ValidatedAlexandriaPath;
+    }
+
+    // Neither exists, create the new standard (.alexandria)
+    try {
+      fs.createDir(alexandriaPath);
+      return alexandriaPath as ValidatedAlexandriaPath;
+    } catch {
+      // If we can't create .alexandria, try .a24z for compatibility
+      try {
+        fs.createDir(legacyPath);
+        return legacyPath as ValidatedAlexandriaPath;
+      } catch {
+        throw new Error(
+          `Cannot create Alexandria data directory. ` +
+            `Tried both ${alexandriaPath} and ${legacyPath}. ` +
+            `Make sure the repository path is writable.`
+        );
+      }
+    }
   }
 
   /**
@@ -243,14 +287,14 @@ export class MemoryPalace {
    * Get repository configuration
    */
   getConfiguration(): MemoryPalaceConfiguration {
-    return this.notesStore.getConfiguration(this.repositoryRoot);
+    return this.notesStore.getConfiguration();
   }
 
   /**
    * Get tag descriptions
    */
   getTagDescriptions(): Record<string, string> {
-    return this.notesStore.getTagDescriptions(this.repositoryRoot);
+    return this.notesStore.getTagDescriptions();
   }
 
   /**
@@ -297,6 +341,13 @@ export class MemoryPalace {
    */
   listViews(): CodebaseView[] {
     return this.viewsStore.listViews(this.repositoryRoot);
+  }
+
+  /**
+   * Get a specific codebase view by ID
+   */
+  getView(viewId: string): CodebaseView | null {
+    return this.viewsStore.getView(this.repositoryRoot, viewId);
   }
 
   /**
@@ -358,14 +409,14 @@ export class MemoryPalace {
    * Save a tag description
    */
   saveTagDescription(tag: string, description: string): void {
-    return this.notesStore.saveTagDescription(this.repositoryRoot, tag, description);
+    return this.notesStore.saveTagDescription(tag, description);
   }
 
   /**
    * Delete a tag description
    */
   deleteTagDescription(tag: string): boolean {
-    return this.notesStore.deleteTagDescription(this.repositoryRoot, tag);
+    return this.notesStore.deleteTagDescription(tag);
   }
 
   /**

@@ -13,6 +13,7 @@ import {
   ValidatedRepositoryPath,
   ValidatedRelativePath,
 } from '../types';
+import { ValidatedAlexandriaPath } from '../types/repository';
 import { A24zConfigurationStore } from './A24zConfigurationStore';
 
 // ============================================================================
@@ -59,38 +60,17 @@ export interface SaveNoteInput {
 export class AnchoredNotesStore {
   private fs: FileSystemAdapter;
   private configStore: A24zConfigurationStore;
+  private alexandriaPath: ValidatedAlexandriaPath;
+  private notesDir: string;
 
-  constructor(fileSystemAdapter: FileSystemAdapter) {
+  constructor(fileSystemAdapter: FileSystemAdapter, alexandriaPath: ValidatedAlexandriaPath) {
     this.fs = fileSystemAdapter;
-    this.configStore = new A24zConfigurationStore(fileSystemAdapter);
-  }
-
-  // ============================================================================
-  // Repository Validation
-  // ============================================================================
-
-  /**
-   * Validate that we have a proper repository root path
-   * The .a24z directory should exist or be creatable at this path
-   */
-  private validateRepositoryRoot(repositoryRootPath: ValidatedRepositoryPath): void {
-    const a24zPath = this.fs.join(repositoryRootPath, '.a24z');
-
-    // If .a24z already exists, we're good
-    if (this.fs.exists(a24zPath)) {
-      return;
-    }
-
-    // Try to create .a24z directory - this validates we can write here
-    try {
-      this.fs.createDir(a24zPath);
-    } catch {
-      throw new Error(
-        `Invalid repository root path: ${repositoryRootPath}. ` +
-          `Expected a repository root where .a24z directory can be created. ` +
-          `Make sure the path exists and is writable.`
-      );
-    }
+    this.alexandriaPath = alexandriaPath;
+    this.notesDir = this.fs.join(alexandriaPath, 'notes');
+    // Pass the same alexandriaPath to config store
+    this.configStore = new A24zConfigurationStore(fileSystemAdapter, alexandriaPath);
+    // Ensure notes directory exists
+    this.fs.createDir(this.notesDir);
   }
 
   // ============================================================================
@@ -98,24 +78,18 @@ export class AnchoredNotesStore {
   // ============================================================================
 
   /**
-   * Get the .a24z directory path for a repository
-   */
-  private getA24zDir(repositoryRootPath: ValidatedRepositoryPath): string {
-    return this.fs.join(repositoryRootPath, '.a24z');
-  }
-
-  /**
    * Get the notes directory path
    */
-  private getNotesDir(repositoryRootPath: ValidatedRepositoryPath): string {
-    return this.fs.join(this.getA24zDir(repositoryRootPath), 'notes');
+  private getNotesDir(): string {
+    // Use the pre-computed notes directory
+    return this.notesDir;
   }
 
   /**
    * Get the tags directory path
    */
-  private getTagsDir(repositoryRootPath: ValidatedRepositoryPath): string {
-    return this.fs.join(this.getA24zDir(repositoryRootPath), 'tags');
+  private getTagsDir(): string {
+    return this.fs.join(this.alexandriaPath, 'tags');
   }
 
   /**
@@ -129,7 +103,7 @@ export class AnchoredNotesStore {
     const date = new Date(timestamp);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
-    const noteDir = this.fs.join(this.getNotesDir(repositoryRootPath), year.toString(), month);
+    const noteDir = this.fs.join(this.getNotesDir(), year.toString(), month);
     return this.fs.join(noteDir, `${noteId}.json`);
   }
 
@@ -140,7 +114,7 @@ export class AnchoredNotesStore {
     const date = new Date(timestamp);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
-    const noteDir = this.fs.join(this.getNotesDir(repositoryRootPath), year.toString(), month);
+    const noteDir = this.fs.join(this.getNotesDir(), year.toString(), month);
     this.fs.createDir(noteDir);
   }
 
@@ -160,8 +134,8 @@ export class AnchoredNotesStore {
   /**
    * Get repository configuration
    */
-  getConfiguration(repositoryRootPath: ValidatedRepositoryPath): MemoryPalaceConfiguration {
-    return this.configStore.getConfiguration(repositoryRootPath);
+  getConfiguration(): MemoryPalaceConfiguration {
+    return this.configStore.getConfiguration();
   }
 
   /**
@@ -171,14 +145,14 @@ export class AnchoredNotesStore {
     repositoryRootPath: ValidatedRepositoryPath,
     updates: Partial<MemoryPalaceConfiguration>
   ): MemoryPalaceConfiguration {
-    return this.configStore.updateConfiguration(repositoryRootPath, updates);
+    return this.configStore.updateConfiguration(updates);
   }
 
   /**
    * Enable or disable allowed tags enforcement
    */
   setEnforceAllowedTags(repositoryRootPath: ValidatedRepositoryPath, enforce: boolean): void {
-    return this.configStore.setEnforceAllowedTags(repositoryRootPath, enforce);
+    return this.configStore.setEnforceAllowedTags(enforce);
   }
 
   // ============================================================================
@@ -233,7 +207,7 @@ export class AnchoredNotesStore {
     repositoryRootPath: ValidatedRepositoryPath,
     noteId: string
   ): StoredAnchoredNote | null {
-    const notesDir = this.getNotesDir(repositoryRootPath);
+    const notesDir = this.getNotesDir();
 
     if (!this.fs.exists(notesDir)) {
       return null;
@@ -269,7 +243,7 @@ export class AnchoredNotesStore {
    * Delete a note by its ID (searches through date-based directory structure)
    */
   deleteNoteById(repositoryRootPath: ValidatedRepositoryPath, noteId: string): boolean {
-    const notesDir = this.getNotesDir(repositoryRootPath);
+    const notesDir = this.getNotesDir();
 
     if (!this.fs.exists(notesDir)) {
       return false;
@@ -381,7 +355,7 @@ export class AnchoredNotesStore {
    * Read all notes from a repository
    */
   private readAllNotes(repositoryRootPath: ValidatedRepositoryPath): AnchoredNoteWithPath[] {
-    const notesDir = this.getNotesDir(repositoryRootPath);
+    const notesDir = this.getNotesDir();
     const notes: AnchoredNoteWithPath[] = [];
 
     if (!this.fs.exists(notesDir)) {
@@ -470,7 +444,7 @@ export class AnchoredNotesStore {
     repositoryRootPath: ValidatedRepositoryPath
   ): ValidationError[] {
     const errors: ValidationError[] = [];
-    const config = this.getConfiguration(repositoryRootPath);
+    const config = this.getConfiguration();
 
     // Check note length
     if (note.note.length > config.limits.noteMaxLength) {
@@ -534,7 +508,7 @@ export class AnchoredNotesStore {
 
     // Check for invalid tags if enforcement is enabled
     if (config.tags?.enforceAllowedTags) {
-      const allowedTags = this.getAllowedTags(repositoryRootPath);
+      const allowedTags = this.getAllowedTags();
       if (allowedTags.enforced && allowedTags.tags.length > 0) {
         const invalidTags = note.tags.filter((tag) => !allowedTags.tags.includes(tag));
         if (invalidTags.length > 0) {
@@ -557,9 +531,8 @@ export class AnchoredNotesStore {
   /**
    * Get all tag descriptions for a repository
    */
-  getTagDescriptions(repositoryRootPath: ValidatedRepositoryPath): Record<string, string> {
-    this.validateRepositoryRoot(repositoryRootPath);
-    const tagsDir = this.getTagsDir(repositoryRootPath);
+  getTagDescriptions(): Record<string, string> {
+    const tagsDir = this.getTagsDir();
     const descriptions: Record<string, string> = {};
 
     if (!this.fs.exists(tagsDir)) {
@@ -590,13 +563,8 @@ export class AnchoredNotesStore {
   /**
    * Save a tag description
    */
-  saveTagDescription(
-    repositoryRootPath: ValidatedRepositoryPath,
-    tag: string,
-    description: string
-  ): void {
-    this.validateRepositoryRoot(repositoryRootPath);
-    const config = this.getConfiguration(repositoryRootPath);
+  saveTagDescription(tag: string, description: string): void {
+    const config = this.getConfiguration();
 
     // Check description length against tagDescriptionMaxLength
     if (description.length > config.limits.tagDescriptionMaxLength) {
@@ -607,7 +575,7 @@ export class AnchoredNotesStore {
     }
 
     // Ensure tags directory exists
-    const tagsDir = this.getTagsDir(repositoryRootPath);
+    const tagsDir = this.getTagsDir();
     this.fs.createDir(tagsDir);
 
     // Write the description to a markdown file
@@ -618,9 +586,8 @@ export class AnchoredNotesStore {
   /**
    * Delete a tag description
    */
-  deleteTagDescription(repositoryRootPath: ValidatedRepositoryPath, tag: string): boolean {
-    this.validateRepositoryRoot(repositoryRootPath);
-    const tagsDir = this.getTagsDir(repositoryRootPath);
+  deleteTagDescription(tag: string): boolean {
+    const tagsDir = this.getTagsDir();
     const tagFile = this.fs.join(tagsDir, `${tag}.md`);
 
     if (this.fs.exists(tagFile)) {
@@ -639,7 +606,6 @@ export class AnchoredNotesStore {
    * Remove a tag from all notes in the repository
    */
   removeTagFromNotes(repositoryRootPath: ValidatedRepositoryPath, tag: string): number {
-    this.validateRepositoryRoot(repositoryRootPath);
     const notesWithPaths = this.readAllNotes(repositoryRootPath);
     let modifiedCount = 0;
 
@@ -666,7 +632,6 @@ export class AnchoredNotesStore {
     oldTag: string,
     newTag: string
   ): number {
-    this.validateRepositoryRoot(repositoryRootPath);
     const notesWithPaths = this.readAllNotes(repositoryRootPath);
     let modifiedCount = 0;
 
@@ -705,8 +670,8 @@ export class AnchoredNotesStore {
   /**
    * Get all tags with their descriptions (tags that have description files)
    */
-  getTagsWithDescriptions(repositoryRootPath: ValidatedRepositoryPath): TagInfo[] {
-    const descriptions = this.getTagDescriptions(repositoryRootPath);
+  getTagsWithDescriptions(): TagInfo[] {
+    const descriptions = this.getTagDescriptions();
     const tags: TagInfo[] = [];
 
     // Return all tags that have descriptions (these are the available/allowed tags)
@@ -722,7 +687,6 @@ export class AnchoredNotesStore {
    */
   getRepositoryGuidance(repositoryPath: ValidatedRepositoryPath): string | null {
     try {
-      this.validateRepositoryRoot(repositoryPath);
       const guidanceFile = this.fs.join(repositoryPath, '.a24z', 'note-guidance.md');
 
       // Try to read repository-specific guidance first
@@ -741,14 +705,13 @@ export class AnchoredNotesStore {
   /**
    * Get allowed tags configuration
    */
-  getAllowedTags(repositoryPath: ValidatedRepositoryPath): { enforced: boolean; tags: string[] } {
-    this.validateRepositoryRoot(repositoryPath);
-    const config = this.getConfiguration(repositoryPath);
+  getAllowedTags(): { enforced: boolean; tags: string[] } {
+    const config = this.getConfiguration();
     const enforced = config.tags?.enforceAllowedTags || false;
 
     if (enforced) {
       // Auto-populate from tags directory
-      const tagDescriptions = this.getTagDescriptions(repositoryPath);
+      const tagDescriptions = this.getTagDescriptions();
       const tags = Object.keys(tagDescriptions);
       return { enforced, tags };
     }
@@ -773,7 +736,6 @@ export class AnchoredNotesStore {
    * Mark a note as reviewed by its ID
    */
   markNoteReviewed(repositoryPath: ValidatedRepositoryPath, noteId: string): boolean {
-    this.validateRepositoryRoot(repositoryPath);
     const note = this.getNoteById(repositoryPath, noteId);
 
     if (!note) {
@@ -794,7 +756,6 @@ export class AnchoredNotesStore {
    * Mark all notes as reviewed for a given path
    */
   markAllNotesReviewed(repositoryPath: ValidatedRepositoryPath): number {
-    this.validateRepositoryRoot(repositoryPath);
     const rootPath = '' as ValidatedRelativePath;
     const notes = this.getNotesForPath(repositoryPath, rootPath, true);
 
@@ -834,8 +795,6 @@ export class AnchoredNotesStore {
     mergedNote: StoredAnchoredNote;
     deletedCount: number;
   } {
-    this.validateRepositoryRoot(repositoryPath);
-
     // Create the merged note with metadata about the merge
     const mergedNoteData: SaveNoteInput = {
       note: input.note,

@@ -6,12 +6,8 @@ import { Command } from 'commander';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { createMemoryPalace, getRepositoryRoot } from '../utils/repository.js';
-import { generateViewIdFromName } from '../../pure-core/stores/CodebaseViewsStore.js';
-import { formatValidationResult } from '../utils/formatting.js';
-import { extractStructureFromMarkdown } from '../utils/documentParser.js';
-import { MemoryPalace } from '../../MemoryPalace.js';
-import { NodeFileSystemAdapter } from '../../node-adapters/NodeFileSystemAdapter.js';
-import type { CodebaseView, ValidatedRepositoryPath } from '../../pure-core/types/index.js';
+import { createViewFromDocument, type UntrackedDocumentInfo } from '../utils/viewCreation.js';
+import { ALEXANDRIA_DIRS } from '../../constants/paths.js';
 
 export function createAddDocCommand(): Command {
   const command = new Command('add-doc');
@@ -90,113 +86,82 @@ Press Enter to continue, or Ctrl+C to exit...
       try {
         const palace = createMemoryPalace(options.path);
         const repoPath = getRepositoryRoot(options.path);
-        const fileSystemAdapter = new NodeFileSystemAdapter();
 
         // Read and validate the documentation file
         const docFilePath = path.resolve(docFile);
 
-        // Validate the documentation file is within the repository
-        let relativePath: string;
-        try {
-          const validatedRelPath = MemoryPalace.validateRelativePath(
-            repoPath as ValidatedRepositoryPath,
-            docFilePath,
-            fileSystemAdapter
-          );
-          relativePath = validatedRelPath;
-        } catch (error) {
-          console.error(`Error: Documentation file must be within the repository`);
-          console.error((error as Error).message);
-          process.exit(1);
-        }
-
-        if (!fileSystemAdapter.exists(docFilePath)) {
+        // Check if file exists
+        if (!fs.existsSync(docFilePath)) {
           console.error(`Error: Documentation file not found: ${docFile}`);
           process.exit(1);
         }
 
-        let docContent: string;
-        try {
-          docContent = fs.readFileSync(docFilePath, 'utf8');
-        } catch (error) {
-          console.error(
-            `Error: Cannot read documentation file: ${error instanceof Error ? error.message : String(error)}`
-          );
+        // Get relative path for the doc
+        const relativePath = path.relative(repoPath, docFilePath);
+
+        // Check if file is within repository
+        if (relativePath.startsWith('..')) {
+          console.error(`Error: Documentation file must be within the repository`);
           process.exit(1);
         }
 
-        // Extract structure from the markdown
-        const extracted = extractStructureFromMarkdown(docContent);
-
-        // Create the codebase view
-        const viewName = options.name || extracted.name;
-        const view: CodebaseView = {
-          id: generateViewIdFromName(viewName),
-          version: '1.0.0',
-          name: viewName,
-          description: options.description || extracted.description,
-          rows: extracted.rows,
-          cols: extracted.cols,
-          cells: extracted.cells,
-          overviewPath: relativePath,
-          category: 'other', // Default category for CLI-generated views
-          displayOrder: 0, // Will be auto-assigned when saved
-          timestamp: new Date().toISOString(),
-          metadata: {
-            generationType: 'user',
-            ui: {
-              enabled: true,
-              rows: extracted.rows,
-              cols: extracted.cols,
-              showCellLabels: true,
-              cellLabelPosition: 'top',
-            },
-          },
+        // Create document info for the centralized function
+        const docInfo: UntrackedDocumentInfo = {
+          filePath: relativePath,
+          relativePath: relativePath,
+          fullPath: docFilePath,
         };
 
-        // Save view with validation
-        const validationResult = palace.saveViewWithValidation(view);
+        // Use centralized function to create view
+        const result = createViewFromDocument(repoPath, docInfo, {
+          category: 'other',
+          skipValidation: false,
+          dryRun: false,
+          name: options.name,
+          description: options.description,
+        });
+
+        if (!result.success) {
+          console.error(`Error: ${result.error}`);
+          process.exit(1);
+        }
 
         // Success message with saved location
-        const viewsDir = path.join(repoPath, '.a24z', 'views');
-        const savedPath = path.join(viewsDir, `${validationResult.validatedView.id}.json`);
+        const viewsDir = path.join(repoPath, ALEXANDRIA_DIRS.LEGACY, ALEXANDRIA_DIRS.VIEWS);
+        const savedPath = path.join(viewsDir, `${result.viewId}.json`);
 
         console.log('');
         console.log(`✅ Documentation added to the Alexandria library!`);
         console.log('');
         console.log(`📍 View Details:`);
-        console.log(`   Name: ${validationResult.validatedView.name}`);
-        console.log(`   ID: ${validationResult.validatedView.id}`);
+        console.log(`   Name: ${result.viewName}`);
+        console.log(`   ID: ${result.viewId}`);
         console.log(`   Location: ${path.relative(process.cwd(), savedPath)}`);
-        console.log(`   Overview: ${validationResult.validatedView.overviewPath}`);
+        console.log(`   Overview: ${result.view!.overviewPath}`);
         console.log('');
         console.log(`📊 Structure Extracted:`);
-        console.log(`   Grid: ${extracted.rows} rows × ${extracted.cols} columns`);
-        console.log(`   Cells: ${Object.keys(extracted.cells).length} sections`);
+        console.log(`   Grid: ${result.view!.rows} rows × ${result.view!.cols} columns`);
+        console.log(`   Cells: ${Object.keys(result.view!.cells).length} sections`);
 
         let totalFiles = 0;
-        for (const cell of Object.values(extracted.cells)) {
+        for (const cell of Object.values(result.view!.cells)) {
           totalFiles += cell.files.length;
         }
         console.log(`   Files: ${totalFiles} files referenced`);
         console.log('');
         console.log(`📝 How to Modify:`);
         console.log(`   1. Edit the view: ${path.relative(process.cwd(), savedPath)}`);
-        console.log(
-          `   2. Validate changes: alexandria validate ${validationResult.validatedView.id}`
-        );
+        console.log(`   2. Validate changes: alexandria validate ${result.viewId}`);
         console.log(`   3. List all views: alexandria list`);
 
         // Set as default if requested
         if (options.default) {
           try {
             const defaultView = {
-              ...validationResult.validatedView,
+              ...result.view!,
               id: 'default',
-              name: validationResult.validatedView.name,
-              description:
-                validationResult.validatedView.description ||
-                `Default view based on ${validationResult.validatedView.id}`,
+              name: result.viewName!,
+              description: result.view!.description || `Default view based on ${result.viewId}`,
             };
             palace.saveView(defaultView);
             console.log('');
@@ -209,9 +174,11 @@ Press Enter to continue, or Ctrl+C to exit...
         }
 
         // Display validation results if there are issues
-        if (validationResult.issues.length > 0) {
+        if (result.issues && result.issues > 0) {
           console.log('');
-          console.log(formatValidationResult(validationResult));
+          console.log(
+            `⚠️  ${result.issues} validation issue${result.issues === 1 ? '' : 's'} found`
+          );
         }
 
         console.log('');
@@ -224,11 +191,6 @@ Press Enter to continue, or Ctrl+C to exit...
         console.log('');
         console.log(`⚠️  Remember: It's GOOD to update stale documentation!`);
         console.log(`   This ensures your CodebaseView remains useful over time.`);
-
-        // Exit with error code if there were critical issues
-        if (!validationResult.isValid) {
-          process.exit(1);
-        }
       } catch (error) {
         console.error('Error:', error instanceof Error ? error.message : String(error));
         process.exit(1);

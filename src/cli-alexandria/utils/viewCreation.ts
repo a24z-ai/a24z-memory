@@ -32,6 +32,8 @@ export interface ViewCreationOptions {
   category?: string;
   skipValidation?: boolean;
   dryRun?: boolean;
+  name?: string;
+  description?: string;
 }
 
 /**
@@ -154,21 +156,27 @@ export function createViewFromDocument(
       };
     }
 
-    // Extract structure from the markdown
-    const extracted = extractStructureFromMarkdown(docContent);
+    // Extract structure from the markdown with file validation
+    const extracted = extractStructureFromMarkdown(docContent, repositoryPath);
 
-    // Create view name from file path if extraction didn't yield a good name
-    let viewName = extracted.name;
+    // Use provided name or extract from document
+    let viewName = options.name || extracted.name;
     if (viewName === 'Codebase View' || !viewName) {
       viewName = generateViewNameFromPath(docInfo.filePath);
     }
+
+    // Use provided description or extract from document
+    const description =
+      options.description ||
+      extracted.description ||
+      `Documentation-based view for ${docInfo.filePath}`;
 
     // Create the codebase view
     const view: CodebaseView = {
       id: generateViewIdFromName(viewName),
       version: '1.0.0',
       name: viewName,
-      description: extracted.description || `Documentation-based view for ${docInfo.filePath}`,
+      description: description,
       rows: extracted.rows || 1,
       cols: extracted.cols || 1,
       cells: extracted.cells,

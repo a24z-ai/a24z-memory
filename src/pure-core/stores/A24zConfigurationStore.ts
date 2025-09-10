@@ -6,7 +6,8 @@
  */
 
 import { FileSystemAdapter } from '../abstractions/filesystem';
-import { MemoryPalaceConfiguration, ValidatedRepositoryPath } from '../types';
+import { MemoryPalaceConfiguration } from '../types';
+import { ValidatedAlexandriaPath } from '../types/repository';
 import { DEFAULT_REPOSITORY_CONFIG } from '../config/defaultConfig';
 
 // ============================================================================
@@ -15,55 +16,13 @@ import { DEFAULT_REPOSITORY_CONFIG } from '../config/defaultConfig';
 
 export class A24zConfigurationStore {
   private fs: FileSystemAdapter;
+  private alexandriaPath: ValidatedAlexandriaPath;
+  private configPath: string;
 
-  constructor(fileSystemAdapter: FileSystemAdapter) {
+  constructor(fileSystemAdapter: FileSystemAdapter, alexandriaPath: ValidatedAlexandriaPath) {
     this.fs = fileSystemAdapter;
-  }
-
-  // ============================================================================
-  // Repository Validation
-  // ============================================================================
-
-  /**
-   * Validate that we have a proper repository root path
-   * The .a24z directory should exist or be creatable at this path
-   */
-  private validateRepositoryRoot(repositoryRootPath: ValidatedRepositoryPath): void {
-    const a24zPath = this.fs.join(repositoryRootPath, '.a24z');
-
-    // If .a24z already exists, we're good
-    if (this.fs.exists(a24zPath)) {
-      return;
-    }
-
-    // Try to create .a24z directory - this validates we can write here
-    try {
-      this.fs.createDir(a24zPath);
-    } catch {
-      throw new Error(
-        `Invalid repository root path: ${repositoryRootPath}. ` +
-          `Expected a repository root where .a24z directory can be created. ` +
-          `Make sure the path exists and is writable.`
-      );
-    }
-  }
-
-  // ============================================================================
-  // Path Utilities
-  // ============================================================================
-
-  /**
-   * Get the .a24z directory path for a repository
-   */
-  private getA24zDir(repositoryRootPath: ValidatedRepositoryPath): string {
-    return this.fs.join(repositoryRootPath, '.a24z');
-  }
-
-  /**
-   * Get the config file path
-   */
-  private getConfigPath(repositoryRootPath: ValidatedRepositoryPath): string {
-    return this.fs.join(this.getA24zDir(repositoryRootPath), 'config.json');
+    this.alexandriaPath = alexandriaPath;
+    this.configPath = this.fs.join(alexandriaPath, 'config.json');
   }
 
   // ============================================================================
@@ -75,10 +34,8 @@ export class A24zConfigurationStore {
   /**
    * Get repository configuration
    */
-  getConfiguration(repositoryRootPath: ValidatedRepositoryPath): MemoryPalaceConfiguration {
-    this.validateRepositoryRoot(repositoryRootPath);
-
-    const configPath = this.getConfigPath(repositoryRootPath);
+  getConfiguration(): MemoryPalaceConfiguration {
+    const configPath = this.configPath;
 
     if (!this.fs.exists(configPath)) {
       return { ...this.DEFAULT_CONFIG };
@@ -105,13 +62,8 @@ export class A24zConfigurationStore {
   /**
    * Update repository configuration
    */
-  updateConfiguration(
-    repositoryRootPath: ValidatedRepositoryPath,
-    updates: Partial<MemoryPalaceConfiguration>
-  ): MemoryPalaceConfiguration {
-    this.validateRepositoryRoot(repositoryRootPath);
-
-    const current = this.getConfiguration(repositoryRootPath);
+  updateConfiguration(updates: Partial<MemoryPalaceConfiguration>): MemoryPalaceConfiguration {
+    const current = this.getConfiguration();
     const updated = {
       ...current,
       ...updates,
@@ -120,7 +72,7 @@ export class A24zConfigurationStore {
       tags: { ...current.tags, ...updates.tags },
     };
 
-    const configPath = this.getConfigPath(repositoryRootPath);
+    const configPath = this.configPath;
     this.fs.writeFile(configPath, JSON.stringify(updated, null, 2));
 
     return updated;
@@ -129,10 +81,8 @@ export class A24zConfigurationStore {
   /**
    * Reset configuration to defaults
    */
-  resetConfiguration(repositoryRootPath: ValidatedRepositoryPath): MemoryPalaceConfiguration {
-    this.validateRepositoryRoot(repositoryRootPath);
-
-    const configPath = this.getConfigPath(repositoryRootPath);
+  resetConfiguration(): MemoryPalaceConfiguration {
+    const configPath = this.configPath;
     const defaultConfig = { ...this.DEFAULT_CONFIG };
 
     this.fs.writeFile(configPath, JSON.stringify(defaultConfig, null, 2));
@@ -142,20 +92,16 @@ export class A24zConfigurationStore {
   /**
    * Check if custom configuration exists
    */
-  hasCustomConfiguration(repositoryRootPath: ValidatedRepositoryPath): boolean {
-    this.validateRepositoryRoot(repositoryRootPath);
-
-    const configPath = this.getConfigPath(repositoryRootPath);
+  hasCustomConfiguration(): boolean {
+    const configPath = this.configPath;
     return this.fs.exists(configPath);
   }
 
   /**
    * Delete configuration file (revert to defaults)
    */
-  deleteConfiguration(repositoryRootPath: ValidatedRepositoryPath): boolean {
-    this.validateRepositoryRoot(repositoryRootPath);
-
-    const configPath = this.getConfigPath(repositoryRootPath);
+  deleteConfiguration(): boolean {
+    const configPath = this.configPath;
     if (this.fs.exists(configPath)) {
       this.fs.deleteFile(configPath);
       return true;
@@ -182,12 +128,11 @@ export class A24zConfigurationStore {
   /**
    * Get allowed tags info (enforcement status and tag list)
    */
-  getAllowedTags(repositoryRootPath: ValidatedRepositoryPath): {
+  getAllowedTags(): {
     enforced: boolean;
     tags: string[];
   } {
-    this.validateRepositoryRoot(repositoryRootPath);
-    const config = this.getConfiguration(repositoryRootPath);
+    const config = this.getConfiguration();
     const enforced = config.tags?.enforceAllowedTags || false;
 
     if (enforced) {
@@ -206,11 +151,10 @@ export class A24zConfigurationStore {
   /**
    * Set tag enforcement on/off
    */
-  setEnforceAllowedTags(repositoryRootPath: ValidatedRepositoryPath, enforce: boolean): void {
-    this.validateRepositoryRoot(repositoryRootPath);
-    const currentConfig = this.getConfiguration(repositoryRootPath);
+  setEnforceAllowedTags(enforce: boolean): void {
+    const currentConfig = this.getConfiguration();
 
-    this.updateConfiguration(repositoryRootPath, {
+    this.updateConfiguration({
       tags: {
         ...currentConfig.tags,
         enforceAllowedTags: enforce,
@@ -221,8 +165,8 @@ export class A24zConfigurationStore {
   /**
    * Check if tag enforcement is enabled
    */
-  isTagEnforcementEnabled(repositoryRootPath: ValidatedRepositoryPath): boolean {
-    const config = this.getConfiguration(repositoryRootPath);
+  isTagEnforcementEnabled(): boolean {
+    const config = this.getConfiguration();
     return config.tags?.enforceAllowedTags || false;
   }
 }

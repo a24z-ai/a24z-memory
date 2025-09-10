@@ -30,7 +30,6 @@ import {
 } from '../tools';
 import { McpServerConfig, McpTool, McpResource } from '../types';
 import { NodeFileSystemAdapter } from '../../node-adapters/NodeFileSystemAdapter';
-import { AnchoredNotesStore } from '../../pure-core/stores/AnchoredNotesStore';
 import { MemoryPalace } from '../../MemoryPalace';
 
 export class McpServer {
@@ -71,10 +70,10 @@ export class McpServer {
     // 2. Looking for .git directory to find the repository root
     // 3. Using an environment variable
     const fs = new NodeFileSystemAdapter();
-    const notesStore = new AnchoredNotesStore(fs);
-    // Use MemoryPalace to validate the repository path first
-    const validatedRepo = MemoryPalace.validateRepositoryPath(fs, process.cwd());
-    const config = notesStore.getConfiguration(validatedRepo);
+
+    // Create MemoryPalace instance to get configuration
+    const palace = new MemoryPalace(process.cwd(), fs);
+    const config = palace.getConfiguration();
     const enabledTools = config.enabled_mcp_tools || {};
 
     // Add tools based on configuration (default to true if not specified)

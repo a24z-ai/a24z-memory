@@ -1,5 +1,5 @@
 /**
- * Auto-create views command - Create codebase views from all untracked documentation
+ * Add all docs command - Add all untracked documentation as codebase views
  */
 
 import { Command } from 'commander';
@@ -11,11 +11,11 @@ import {
   type ViewCreationOptions,
 } from '../utils/viewCreation.js';
 
-export function createAutoCreateViewsCommand(): Command {
-  const command = new Command('auto-create-views');
+export function createAddAllDocsCommand(): Command {
+  const command = new Command('add-all-docs');
 
   command
-    .description('Automatically create codebase views from all untracked documentation')
+    .description('Add all untracked documentation files as codebase views')
     .option('-p, --path <path>', 'Repository path (defaults to current directory)')
     .option('--dry-run', 'Show what would be created without actually creating views')
     .option('--category <category>', 'Category to assign to created views (default: "docs")')

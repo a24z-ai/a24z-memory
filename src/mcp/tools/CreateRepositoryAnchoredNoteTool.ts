@@ -2,9 +2,6 @@ import { z } from 'zod';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
 import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
-import { AnchoredNotesStore } from '../../pure-core/stores/AnchoredNotesStore';
-import { CodebaseViewsStore } from '../../pure-core/stores/CodebaseViewsStore';
-import { A24zConfigurationStore } from '../../pure-core/stores/A24zConfigurationStore';
 import { CodebaseView, ValidatedRepositoryPath } from '../../pure-core/types';
 import { MemoryPalace } from '../../MemoryPalace';
 
@@ -14,16 +11,10 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
     'Document tribal knowledge, architectural decisions, implementation patterns, and important lessons learned. This tool creates searchable notes that help future developers understand context and avoid repeating mistakes. Notes are stored locally in your repository and can be retrieved using the get_notes tool.';
 
   private fs: FileSystemAdapter;
-  private notesStore: AnchoredNotesStore;
-  private codebaseViewsStore: CodebaseViewsStore;
-  private configStore: A24zConfigurationStore;
 
   constructor(fs: FileSystemAdapter) {
     super();
     this.fs = fs;
-    this.notesStore = new AnchoredNotesStore(this.fs);
-    this.codebaseViewsStore = new CodebaseViewsStore(this.fs);
-    this.configStore = new A24zConfigurationStore(this.fs);
   }
 
   schema = z.object({
@@ -85,17 +76,16 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
       );
     }
 
-    // Validate repository path using MemoryPalace
+    // Create MemoryPalace instance for this repository
+    const palace = new MemoryPalace(parsed.directoryPath, this.fs);
     const repositoryRoot = MemoryPalace.validateRepositoryPath(this.fs, parsed.directoryPath);
 
-    // Use the notes store for this repository
-
     // Check configuration for tag/type enforcement
-    const config = this.configStore.getConfiguration(repositoryRoot);
+    const config = palace.getConfiguration();
     const tagEnforcement = config.tags?.enforceAllowedTags || false;
 
     // Check for new tags that don't have descriptions
-    const existingTagDescriptions = this.notesStore.getTagDescriptions(repositoryRoot);
+    const existingTagDescriptions = palace.getTagDescriptions();
     const existingTags = Object.keys(existingTagDescriptions);
     const newTags = parsed.tags.filter((tag) => !existingTags.includes(tag));
 
@@ -133,7 +123,7 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
       // Auto-create empty descriptions for new tags
       for (const tag of newTags) {
         try {
-          this.notesStore.saveTagDescription(repositoryRoot, tag, '');
+          palace.saveTagDescription(tag, '');
           autoCreatedTags.push(tag);
         } catch (error) {
           console.error(`Failed to auto-create tag description for "${tag}":`, error);
@@ -147,12 +137,12 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
 
     if (parsed.codebaseViewId) {
       // User provided a view ID - validate it exists
-      view = this.codebaseViewsStore.getView(repositoryRoot, parsed.codebaseViewId);
+      view = palace.getView(parsed.codebaseViewId);
       if (!view) {
-        const availableViews = this.codebaseViewsStore.listViews(repositoryRoot);
+        const availableViews = palace.listViews();
         const viewsList =
           availableViews.length > 0
-            ? availableViews.map((v) => `• ${v.id}: ${v.name}`).join('\n')
+            ? availableViews.map((v: CodebaseView) => `• ${v.id}: ${v.name}`).join('\n')
             : 'No views found. Please create a view first.';
 
         throw new Error(
@@ -168,12 +158,11 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
       actualCodebaseViewId = defaultViewId;
     }
 
-    const savedWithPath = this.notesStore.saveNote({
+    const savedWithPath = palace.saveNote({
       note: parsed.note,
       anchors: parsed.anchors,
       tags: parsed.tags,
       codebaseViewId: actualCodebaseViewId,
-      directoryPath: repositoryRoot,
       metadata: {
         ...(parsed.metadata || {}),
         toolVersion: '2.0.0',
@@ -185,25 +174,30 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
 
     // Handle catchall view creation/update AFTER saving the note (so we have normalized anchors)
     if (!parsed.codebaseViewId) {
-      view = this.codebaseViewsStore.getView(repositoryRoot, actualCodebaseViewId);
+      view = palace.getView(actualCodebaseViewId);
 
       if (!view) {
         // Create the catchall view using the saved note's normalized anchors
         view = this.createCatchallView(repositoryRoot, actualCodebaseViewId, saved.anchors);
-        this.codebaseViewsStore.saveView(repositoryRoot, view);
+        palace.saveView(view);
         // Generate the initial markdown overview
         this.generateOverviewFile(repositoryRoot, view);
       } else {
         // Update the view to include a new time-based cell if needed, using normalized anchors
-        this.updateCatchallViewWithTimeCell(repositoryRoot, actualCodebaseViewId, saved.anchors);
+        this.updateCatchallViewWithTimeCell(
+          repositoryRoot,
+          actualCodebaseViewId,
+          saved.anchors,
+          palace
+        );
         // Re-fetch the updated view
-        view = this.codebaseViewsStore.getView(repositoryRoot, actualCodebaseViewId)!;
+        view = palace.getView(actualCodebaseViewId)!;
         // Update the markdown overview
         this.generateOverviewFile(repositoryRoot, view);
       }
     } else {
       // Get the existing view that was specified
-      view = this.codebaseViewsStore.getView(repositoryRoot, actualCodebaseViewId)!;
+      view = palace.getView(actualCodebaseViewId)!;
     }
 
     // Build response message with guidance about auto-created tags/types
@@ -263,9 +257,10 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
   private updateCatchallViewWithTimeCell(
     repositoryPath: ValidatedRepositoryPath,
     viewId: string,
-    anchors: string[]
+    anchors: string[],
+    palace: MemoryPalace
   ): void {
-    const view = this.codebaseViewsStore.getView(repositoryPath, viewId);
+    const view = palace.getView(viewId);
     if (!view) return;
 
     const now = new Date();
@@ -304,7 +299,7 @@ export class CreateRepositoryAnchoredNoteTool extends BaseTool {
     }
 
     // Update the view
-    this.codebaseViewsStore.saveView(repositoryPath, view);
+    palace.saveView(view);
   }
 
   /**

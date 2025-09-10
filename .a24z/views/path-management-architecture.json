@@ -1,0 +1,23 @@
+{
+  "id": "path-management-architecture",
+  "version": "1.0.0",
+  "name": "Path Management Architecture",
+  "description": "Centralized path validation and management system design",
+  "rows": 1,
+  "cols": 1,
+  "cells": {},
+  "overviewPath": "docs/architecture/path-management.md",
+  "category": "other",
+  "displayOrder": 0,
+  "timestamp": "2025-09-10T04:19:18.201Z",
+  "metadata": {
+    "generationType": "user",
+    "ui": {
+      "enabled": true,
+      "rows": 1,
+      "cols": 1,
+      "showCellLabels": true,
+      "cellLabelPosition": "top"
+    }
+  }
+}

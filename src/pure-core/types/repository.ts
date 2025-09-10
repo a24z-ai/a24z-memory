@@ -7,6 +7,12 @@ import type { CodebaseViewSummary } from './summary';
 import type { ValidatedRepositoryPath } from './index';
 
 /**
+ * A validated Alexandria data directory path (.alexandria or .a24z)
+ * This type ensures the path has been validated to exist and be writable
+ */
+export type ValidatedAlexandriaPath = string & { __alexandriaPath: true };
+
+/**
  * Pure GitHub repository metadata
  * Standard fields from GitHub API
  */

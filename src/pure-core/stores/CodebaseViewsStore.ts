@@ -7,6 +7,7 @@
 
 import { FileSystemAdapter } from '../abstractions/filesystem';
 import { CodebaseView, ValidatedRepositoryPath, CodebaseViewCell } from '../types';
+import { ValidatedAlexandriaPath } from '../types/repository';
 
 /**
  * Compute grid dimensions from cell coordinates.
@@ -34,9 +35,15 @@ export function computeGridDimensions(cells: Record<string, CodebaseViewCell>): 
  */
 export class CodebaseViewsStore {
   private fs: FileSystemAdapter;
+  private alexandriaPath: ValidatedAlexandriaPath;
+  private viewsDir: string;
 
-  constructor(fileSystemAdapter: FileSystemAdapter) {
+  constructor(fileSystemAdapter: FileSystemAdapter, alexandriaPath: ValidatedAlexandriaPath) {
     this.fs = fileSystemAdapter;
+    this.alexandriaPath = alexandriaPath;
+    this.viewsDir = this.fs.join(alexandriaPath, 'views');
+    // Ensure views directory exists
+    this.fs.createDir(this.viewsDir);
   }
 
   // ============================================================================
@@ -45,25 +52,26 @@ export class CodebaseViewsStore {
 
   /**
    * Get the directory where view configurations are stored.
-   * Views are stored in .a24z/views/ for consistency with other a24z data.
    */
-  private getViewsDirectory(repositoryRootPath: ValidatedRepositoryPath): string {
-    return this.fs.join(repositoryRootPath, '.a24z', 'views');
+  private getViewsDirectory(): string {
+    return this.viewsDir;
   }
 
   /**
    * Ensure the views directory exists.
    */
-  private ensureViewsDirectory(repositoryRootPath: ValidatedRepositoryPath): void {
-    const viewsDir = this.getViewsDirectory(repositoryRootPath);
-    this.fs.createDir(viewsDir);
+  private ensureViewsDirectory(): void {
+    // Already ensured in constructor, but keep for compatibility
+    if (!this.fs.exists(this.viewsDir)) {
+      this.fs.createDir(this.viewsDir);
+    }
   }
 
   /**
    * Get the file path for a specific view.
    */
   private getViewFilePath(repositoryRootPath: ValidatedRepositoryPath, viewId: string): string {
-    return this.fs.join(this.getViewsDirectory(repositoryRootPath), `${viewId}.json`);
+    return this.fs.join(this.getViewsDirectory(), `${viewId}.json`);
   }
 
   // ============================================================================
@@ -92,7 +100,7 @@ export class CodebaseViewsStore {
    * Save a view configuration to storage.
    */
   saveView(repositoryRootPath: ValidatedRepositoryPath, view: CodebaseView): void {
-    this.ensureViewsDirectory(repositoryRootPath);
+    this.ensureViewsDirectory();
 
     const filePath = this.getViewFilePath(repositoryRootPath, view.id);
 
@@ -136,7 +144,7 @@ export class CodebaseViewsStore {
    * List all available views in a repository.
    */
   listViews(repositoryRootPath: ValidatedRepositoryPath): CodebaseView[] {
-    const viewsDir = this.getViewsDirectory(repositoryRootPath);
+    const viewsDir = this.getViewsDirectory();
 
     if (!this.fs.exists(viewsDir)) {
       return [];

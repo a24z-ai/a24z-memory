@@ -2,6 +2,8 @@
  * Document Parser - Extract codebase structure from documentation files
  */
 
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import type { CodebaseViewFileCell } from '../../pure-core/types/index.js';
 
 export interface ExtractedStructure {
@@ -14,9 +16,13 @@ export interface ExtractedStructure {
 
 /**
  * Extract codebase structure from a markdown documentation file
- * This can be refined and improved over time
+ * @param content - The markdown content
+ * @param repositoryPath - The repository root path for validating file existence
  */
-export function extractStructureFromMarkdown(content: string): ExtractedStructure {
+export function extractStructureFromMarkdown(
+  content: string,
+  repositoryPath?: string
+): ExtractedStructure {
   const lines = content.split('\n');
   const cells: Record<string, CodebaseViewFileCell> = {};
 
@@ -89,16 +95,17 @@ export function extractStructureFromMarkdown(content: string): ExtractedStructur
         // For markdown links, the file path is in the second capture group
         const filePath = match[2] || match[1];
         if (filePath && !filePath.startsWith('http') && !filePath.startsWith('//')) {
-          // Clean up the path
-          let cleanPath = filePath.trim();
-          // Remove leading ./ if present
-          if (cleanPath.startsWith('./')) {
-            cleanPath = cleanPath.substring(2);
+          const cleanPath = filePath.trim();
+
+          // If repository path is provided, validate file existence
+          if (repositoryPath) {
+            const fullPath = path.join(repositoryPath, cleanPath);
+            if (!fs.existsSync(fullPath)) {
+              // Skip files that don't exist
+              continue;
+            }
           }
-          // Remove leading / if present (paths should be relative to repo root)
-          if (cleanPath.startsWith('/')) {
-            cleanPath = cleanPath.substring(1);
-          }
+
           // Don't add duplicates
           if (!currentFiles.includes(cleanPath)) {
             currentFiles.push(cleanPath);
