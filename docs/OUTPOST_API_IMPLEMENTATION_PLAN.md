@@ -55,11 +55,11 @@ This plan outlines the implementation of the local API server to support the Ale
 
 ### Phase 2: Data Layer
 
-#### 2. Repository Registry Adapter
-**Location**: `src/cli-alexandria/api/adapters/`
+#### 2. Alexandria Outpost Manager
+**Location**: `src/cli-alexandria/api/`
 
 **Files to create**:
-- `src/cli-alexandria/api/adapters/RepositoryAdapter.ts`
+- `src/cli-alexandria/api/AlexandriaOutpostManager.ts`
 
 **Features**:
 - Uses existing `ProjectRegistryStore` from `projects-core`
@@ -69,12 +69,12 @@ This plan outlines the implementation of the local API server to support the Ale
 
 **Implementation**:
 ```typescript
-import { ProjectRegistryStore } from '../../../projects-core/ProjectRegistryStore';
-import { CodebaseViewsStore } from '../../../pure-core/stores/CodebaseViewsStore';
-import { FileSystemAdapter } from '../../../pure-core/abstractions/filesystem';
-import type { AlexandriaRepository } from '../../../pure-core/types/repository';
+import { ProjectRegistryStore } from '../../projects-core/ProjectRegistryStore';
+import { CodebaseViewsStore } from '../../pure-core/stores/CodebaseViewsStore';
+import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
+import type { AlexandriaRepository } from '../../pure-core/types/repository';
 
-class RepositoryAdapter {
+export class AlexandriaOutpostManager {
   constructor(
     private readonly projectRegistry: ProjectRegistryStore,
     private readonly fsAdapter: FileSystemAdapter,
@@ -158,7 +158,7 @@ class RepositoryAdapter {
 **Implementation**:
 ```typescript
 router.get('/api/alexandria/repos', async (req, res) => {
-  const repos = await repositoryAdapter.getAllRepositories();
+  const repos = await outpostManager.getAllRepositories();
   res.json({
     repositories: repos,
     total: repos.length,
@@ -173,7 +173,7 @@ router.get('/api/alexandria/repos', async (req, res) => {
 **Implementation**:
 ```typescript
 router.get('/api/alexandria/repos/:name', async (req, res) => {
-  const repo = await repositoryAdapter.getRepository(req.params.name);
+  const repo = await outpostManager.getRepository(req.params.name);
   if (!repo) {
     return res.status(404).json({ 
       error: { code: 'REPO_NOT_FOUND', message: 'Repository not found' }
@@ -192,7 +192,7 @@ router.post('/api/alexandria/repos', async (req, res) => {
   const { name, path } = req.body;
   
   try {
-    const repo = await repositoryAdapter.registerRepository(name, path);
+    const repo = await outpostManager.registerRepository(name, path);
     res.json({
       success: true,
       repository: {
@@ -248,15 +248,15 @@ if (options.local) {
   // Use existing ProjectRegistryStore
   const projectRegistry = new ProjectRegistryStore(fsAdapter, os.homedir());
   
-  // Create adapter to transform for API
-  const repositoryAdapter = new RepositoryAdapter(
+  // Create manager to handle outpost operations
+  const outpostManager = new AlexandriaOutpostManager(
     projectRegistry,
     fsAdapter
   );
   
   const apiServer = new LocalAPIServer({
     port: apiPort,
-    repositoryAdapter
+    outpostManager
   });
   
   await apiServer.start();
@@ -431,7 +431,7 @@ app.use((err, req, res, next) => {
 
 ### Week 1
 - [ ] Core server infrastructure
-- [ ] Repository adapter using existing ProjectRegistryStore
+- [ ] AlexandriaOutpostManager using existing ProjectRegistryStore
 - [ ] API endpoints implementation
 
 ### Week 2
