@@ -14,6 +14,10 @@ import { homedir } from 'os';
 import chalk from 'chalk';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { LocalAPIServer } from '../api/server.js';
+import { AlexandriaOutpostManager } from '../api/AlexandriaOutpostManager.js';
+import { ProjectRegistryStore } from '../../projects-core/ProjectRegistryStore.js';
+import { NodeFileSystemAdapter } from '../../node-adapters/NodeFileSystemAdapter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -126,6 +130,8 @@ function createServeCommand() {
     .option('-a, --api-url <url>', 'API endpoint URL', 'https://git-gallery.com')
     .option('-d, --detached', 'Run server in background (detached mode)')
     .option('--no-open', 'Do not open browser automatically')
+    .option('--local', 'Start local API server for serving local repositories')
+    .option('--api-port <port>', 'Port for the local API server', '3002')
     .action(async (options) => {
       // Check if already running
       const status = isOutpostRunning();
@@ -139,9 +145,51 @@ function createServeCommand() {
       }
 
       const port = parseInt(options.port);
-      const apiUrl = options.apiUrl;
+      let apiUrl = options.apiUrl;
+      let apiServer: LocalAPIServer | undefined;
 
-      console.log(chalk.blue('🚀 Starting Alexandria Outpost server...'));
+      // Start local API server if --local flag is set
+      if (options.local) {
+        const apiPort = parseInt(options.apiPort);
+        
+        console.log(chalk.blue('🚀 Starting local API server...'));
+        console.log(chalk.dim(`   API Port: ${apiPort}`));
+        
+        try {
+          // Create filesystem adapter
+          const fsAdapter = new NodeFileSystemAdapter();
+          
+          // Use existing ProjectRegistryStore
+          const projectRegistry = new ProjectRegistryStore(fsAdapter, homedir());
+          
+          // Note: MemoryPalace is used within AlexandriaOutpostManager for loading views
+          
+          // Create manager to handle outpost operations
+          const outpostManager = new AlexandriaOutpostManager(
+            projectRegistry,
+            fsAdapter
+          );
+          
+          // Create and start API server
+          apiServer = new LocalAPIServer({
+            port: apiPort,
+            outpostManager,
+            corsOrigins: [`http://localhost:${port}`]
+          });
+          
+          await apiServer.start();
+          apiUrl = `http://localhost:${apiPort}`;
+          
+          const projects = projectRegistry.listProjects();
+          console.log(chalk.green(`✅ Local API server started`));
+          console.log(chalk.dim(`   Serving ${projects.length} registered repositories`));
+        } catch (error) {
+          console.error(chalk.red(`❌ Failed to start local API server: ${error}`));
+          process.exit(1);
+        }
+      }
+
+      console.log(chalk.blue('🚀 Starting Alexandria Outpost UI server...'));
       console.log(chalk.dim(`   Port: ${port}`));
       console.log(chalk.dim(`   API: ${apiUrl}`));
 
@@ -193,7 +241,13 @@ function createServeCommand() {
           });
 
           // Handle process termination
-          child.on('exit', (code) => {
+          child.on('exit', async (code) => {
+            // Stop API server if running
+            if (apiServer) {
+              console.log(chalk.blue('🛑 Stopping local API server...'));
+              await apiServer.stop();
+            }
+            
             if (code !== 0) {
               console.error(chalk.red(`❌ Outpost server exited with code ${code}`));
             }
@@ -201,10 +255,20 @@ function createServeCommand() {
           });
 
           // Handle signals for graceful shutdown
-          process.on('SIGINT', () => {
+          process.on('SIGINT', async () => {
+            // Stop API server if running
+            if (apiServer) {
+              console.log(chalk.blue('🛑 Stopping local API server...'));
+              await apiServer.stop();
+            }
             child.kill('SIGINT');
           });
-          process.on('SIGTERM', () => {
+          process.on('SIGTERM', async () => {
+            // Stop API server if running
+            if (apiServer) {
+              console.log(chalk.blue('🛑 Stopping local API server...'));
+              await apiServer.stop();
+            }
             child.kill('SIGTERM');
           });
         }
