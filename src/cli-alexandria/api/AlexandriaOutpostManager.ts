@@ -71,29 +71,28 @@ export class AlexandriaOutpostManager {
       }
     }
     
-    // Extract owner from remote URL or use 'local'
-    const owner = this.extractOwner(entry.remoteUrl) || 'local';
+    // Extract owner from remote URL if available
+    const owner = this.extractOwner(entry.remoteUrl);
     
-    // Return the transformed repository data compatible with AlexandriaRepository
+    // Build the repository data according to AlexandriaRepository type
     const repo: AlexandriaRepository = {
       name: entry.name,
       remoteUrl: entry.remoteUrl,
       registeredAt: entry.registeredAt,
-      github: entry.github,
       hasViews: views.length > 0,
       viewCount: views.length,
-      views
+      views,
+      // Only include github if we have github data or can construct it
+      github: entry.github || (owner ? {
+        id: `${owner}/${entry.name}`,
+        owner: owner,
+        name: entry.name,
+        stars: 0,
+        lastUpdated: new Date().toISOString()
+      } : undefined)
     };
     
-    // Add additional properties for the API response
-    return {
-      ...repo,
-      owner,
-      path: entry.path,
-      description: '', // Could be loaded from package.json or README
-      stars: 0,
-      tags: []
-    } as AlexandriaRepository & { owner: string; path: string; description: string; stars: number; tags: string[] };
+    return repo;
   }
 
   private extractOwner(remoteUrl?: string): string | null {

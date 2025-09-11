@@ -27,11 +27,14 @@ export class LocalAPIServer {
   }
 
   private setupMiddleware(corsOrigins?: string[]): void {
-    // Enable CORS
+    // Enable CORS with explicit OPTIONS handling
     this.app.use(cors({
       origin: corsOrigins || ['http://localhost:3003', 'http://localhost:3000'],
-      methods: ['GET', 'POST'],
-      credentials: true
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      credentials: true,
+      preflightContinue: false,
+      optionsSuccessStatus: 204
     }));
 
     // Enable compression

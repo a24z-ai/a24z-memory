@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import type { AlexandriaOutpostManager } from '../AlexandriaOutpostManager.js';
-import type { AlexandriaRepository } from '../../pure-core/types/repository.js';
+import type { AlexandriaRepository } from '../../../pure-core/types/repository.js';
 import { existsSync, createReadStream } from 'fs';
 import { join } from 'path';
 
@@ -21,7 +21,27 @@ export function createRoutes(outpostManager: AlexandriaOutpostManager): Router {
     }
   });
 
-  // GET /api/alexandria/repos/:name - Get a specific repository
+  // GET /api/alexandria/repos/:owner/:name - Get a specific repository (with owner)
+  router.get('/repos/:owner/:name', async (req, res, next) => {
+    try {
+      // For local repos, we ignore the owner param and just use the name
+      // This supports the frontend's expectation of owner/repo pattern
+      const repo = await outpostManager.getRepository(req.params.name);
+      if (!repo) {
+        return res.status(404).json({ 
+          error: { 
+            code: 'REPO_NOT_FOUND', 
+            message: `Repository '${req.params.name}' not found` 
+          }
+        });
+      }
+      res.json(repo);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // GET /api/alexandria/repos/:name - Get a specific repository (without owner)
   router.get('/repos/:name', async (req, res, next) => {
     try {
       const repo = await outpostManager.getRepository(req.params.name);
