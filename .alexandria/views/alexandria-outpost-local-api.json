@@ -1,0 +1,23 @@
+{
+  "id": "alexandria-outpost-local-api",
+  "version": "1.0.0",
+  "name": "Alexandria Outpost Local API",
+  "description": "Codebase view extracted from documentation",
+  "rows": 1,
+  "cols": 1,
+  "cells": {},
+  "overviewPath": "docs/ALEXANDRIA_OUTPOST_API.md",
+  "category": "other",
+  "displayOrder": 0,
+  "timestamp": "2025-09-11T04:28:40.990Z",
+  "metadata": {
+    "generationType": "user",
+    "ui": {
+      "enabled": true,
+      "rows": 1,
+      "cols": 1,
+      "showCellLabels": true,
+      "cellLabelPosition": "top"
+    }
+  }
+}
