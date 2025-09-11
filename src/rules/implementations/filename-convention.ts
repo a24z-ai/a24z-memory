@@ -64,9 +64,10 @@ export const filenameConvention: LibraryRule = {
     };
 
     // Determine which files to check based on extensions
-    let filesToCheck = options.extensions.includes('.md') || options.extensions.includes('.mdx')
+    const extensions = options.extensions || DEFAULT_EXTENSIONS;
+    let filesToCheck = extensions.includes('.md') || extensions.includes('.mdx')
       ? markdownFiles
-      : files.filter(f => options.extensions.some(ext => f.relativePath.endsWith(ext)));
+      : files.filter(f => extensions.some(ext => f.relativePath.endsWith(ext)));
 
     for (const fileInfo of filesToCheck) {
       const fileName = path.basename(fileInfo.relativePath);
@@ -152,9 +153,6 @@ export const filenameConvention: LibraryRule = {
       throw error;
     }
   },
-
-  convertToConvention,
-  getStyleName,
 };
 
 // Helper method to convert filename to specified convention

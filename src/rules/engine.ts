@@ -6,11 +6,11 @@ import {
   LibraryRuleSet,
   FileInfo,
 } from './types';
-import { requireReferences } from './rules/require-references';
-import { orphanedReferences } from './rules/orphaned-references';
-import { staleReferences } from './rules/stale-references';
-import { documentOrganization } from './rules/document-organization';
-import { filenameConvention } from './rules/filename-convention';
+import { requireReferences } from './implementations/require-references';
+import { orphanedReferences } from './implementations/orphaned-references';
+import { staleReferences } from './implementations/stale-references';
+import { documentOrganization } from './implementations/document-organization';
+import { filenameConvention } from './implementations/filename-convention';
 import { statSync, readdirSync } from 'fs';
 import { join, relative } from 'path';
 import { AlexandriaConfig, RuleSeverity } from '../config/types';

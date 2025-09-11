@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { filenameConvention, convertToConvention } from '../../src/rules/rules/filename-convention';
+import { filenameConvention, convertToConvention } from '../../src/rules/implementations/filename-convention';
 import { LibraryRuleContext, FileInfo } from '../../src/rules/types';
 import { FilenameConventionOptions } from '../../src/config/types';
 import { ValidatedRepositoryPath } from '../../src/pure-core/types';
