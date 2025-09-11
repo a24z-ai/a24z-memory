@@ -11,9 +11,6 @@ import {
   AutoFixSuggestion,
   AutoFixResult,
   AutoFixIssue,
-  AutoFixChange,
-  AutoFixPreview,
-  AutoFixSeverity,
 } from './types';
 
 export interface OverviewPathAutoFixOptions {

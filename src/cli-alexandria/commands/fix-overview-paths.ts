@@ -100,7 +100,7 @@ export function createFixOverviewPathsCommand(): Command {
           let successCount = 0;
           let failureCount = 0;
 
-          results.forEach((result, index) => {
+          results.forEach((result) => {
             if (result.success) {
               console.log(chalk.green(`✓ ${result.message}`));
               successCount++;

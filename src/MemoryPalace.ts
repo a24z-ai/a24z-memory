@@ -421,8 +421,6 @@ export class MemoryPalace {
    * Delete a file
    */
   deleteFile(path: string): void {
-    // FileSystemAdapter doesn't have deleteFile yet, so we need to add it
-    // For now, throw an error indicating this needs to be implemented
-    throw new Error('deleteFile not yet implemented in FileSystemAdapter');
+    return this.fs.deleteFile(path);
   }
 }
