@@ -15,6 +15,9 @@ npm install -g a24z-memory
 
 # To Configure Your Project
 alexandria init
+
+# View Your Local Repositories in the Web UI (NEW!)
+alexandria outpost serve --local
 ```
 
 <div align="center">
