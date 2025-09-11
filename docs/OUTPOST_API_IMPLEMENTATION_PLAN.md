@@ -70,15 +70,14 @@ This plan outlines the implementation of the local API server to support the Ale
 **Implementation**:
 ```typescript
 import { ProjectRegistryStore } from '../../projects-core/ProjectRegistryStore';
-import { CodebaseViewsStore } from '../../pure-core/stores/CodebaseViewsStore';
-import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
+import { MemoryPalace } from '../../mcp-core/MemoryPalace';
 import type { AlexandriaRepository } from '../../pure-core/types/repository';
+import type { AlexandriaEntry } from '../../pure-core/types/repository';
 
 export class AlexandriaOutpostManager {
   constructor(
     private readonly projectRegistry: ProjectRegistryStore,
-    private readonly fsAdapter: FileSystemAdapter,
-    private readonly viewsStore?: CodebaseViewsStore
+    private readonly memoryPalace: MemoryPalace
   ) {}
   
   async getAllRepositories(): Promise<AlexandriaRepository[]> {
@@ -110,15 +109,15 @@ export class AlexandriaOutpostManager {
   }
   
   private async transformToRepository(entry: AlexandriaEntry): Promise<AlexandriaRepository> {
-    // Load views if not already loaded
+    // Use MemoryPalace to load views properly
     let views = entry.views || [];
-    if (views.length === 0 && this.fsAdapter.exists(`${entry.path}/.alexandria`)) {
-      const viewsPath = `${entry.path}/.alexandria/views.json`;
-      if (this.fsAdapter.exists(viewsPath)) {
-        const content = this.fsAdapter.readFile(viewsPath);
-        const data = JSON.parse(content);
-        views = data.views || [];
-      }
+    if (views.length === 0) {
+      // Set the repository path for MemoryPalace
+      this.memoryPalace.setRepositoryPath(entry.path);
+      
+      // Get views from CodebaseViewsStore
+      const viewsStore = this.memoryPalace.getViewsStore();
+      views = await viewsStore.getViews();
     }
     
     // Extract owner from remote URL or use 'local'
@@ -248,10 +247,13 @@ if (options.local) {
   // Use existing ProjectRegistryStore
   const projectRegistry = new ProjectRegistryStore(fsAdapter, os.homedir());
   
+  // Create MemoryPalace for proper view loading
+  const memoryPalace = new MemoryPalace(fsAdapter);
+  
   // Create manager to handle outpost operations
   const outpostManager = new AlexandriaOutpostManager(
     projectRegistry,
-    fsAdapter
+    memoryPalace
   );
   
   const apiServer = new LocalAPIServer({
