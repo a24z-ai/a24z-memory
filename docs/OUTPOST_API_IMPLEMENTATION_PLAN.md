@@ -55,109 +55,97 @@ This plan outlines the implementation of the local API server to support the Ale
 
 ### Phase 2: Data Layer
 
-#### 2. Repository Registry Store
-**Location**: `src/cli-alexandria/api/stores/`
+#### 2. Repository Registry Adapter
+**Location**: `src/cli-alexandria/api/adapters/`
 
 **Files to create**:
-- `src/cli-alexandria/api/stores/RepositoryRegistry.ts`
-- `src/cli-alexandria/api/services/cache.ts` - Caching layer
+- `src/cli-alexandria/api/adapters/RepositoryAdapter.ts`
 
 **Features**:
-- In-memory store for registered repositories
-- Simple repository registration via paths
-- Query methods for filtering/searching
-- Uses FileSystemAdapter for abstraction (like MemoryPalace)
-- Can leverage existing MemoryPalace functionality for enhanced context
+- Uses existing `ProjectRegistryStore` from `projects-core`
+- Transforms `AlexandriaEntry` to `AlexandriaRepository` format for API
+- Loads views from filesystem when needed
+- No duplicate registry - reuses existing infrastructure
 
-**Interface**:
+**Implementation**:
 ```typescript
-interface RepositoryRegistry {
-  constructor(fsAdapter: FileSystemAdapter, memoryPalace?: MemoryPalace);
-  getAllRepositories(): AlexandriaRepository[];
-  getRepository(owner: string, name: string): AlexandriaRepository | null;
-  registerRepository(path: string): Promise<AlexandriaRepository>;
-  // Leverage MemoryPalace for repository notes/context when available
-  getRepositoryNotes(owner: string, name: string): Promise<RepositoryNote[]>;
-}
-```
+import { ProjectRegistryStore } from '../../../projects-core/ProjectRegistryStore';
+import { CodebaseViewsStore } from '../../../pure-core/stores/CodebaseViewsStore';
+import { FileSystemAdapter } from '../../../pure-core/abstractions/filesystem';
+import type { AlexandriaRepository } from '../../../pure-core/types/repository';
 
-**FileSystem Adapter Pattern**:
-```typescript
-class RepositoryRegistry {
-  private repositories: Map<string, AlexandriaRepository> = new Map();
-  
+class RepositoryAdapter {
   constructor(
+    private readonly projectRegistry: ProjectRegistryStore,
     private readonly fsAdapter: FileSystemAdapter,
-    private readonly memoryPalace?: MemoryPalace
-  ) {
-    // Use the same filesystem abstraction as MemoryPalace
-    // Enables testing with InMemoryFileSystemAdapter
-    // Production uses NodeFileSystemAdapter
+    private readonly viewsStore?: CodebaseViewsStore
+  ) {}
+  
+  async getAllRepositories(): Promise<AlexandriaRepository[]> {
+    // Get all registered projects from existing registry
+    const entries = this.projectRegistry.listProjects();
+    
+    // Transform each to API format
+    const repositories = await Promise.all(
+      entries.map(entry => this.transformToRepository(entry))
+    );
+    
+    return repositories.filter(repo => repo !== null);
   }
   
-  async getAllRepositories(): AlexandriaRepository[] {
-    return Array.from(this.repositories.values());
+  async getRepository(name: string): Promise<AlexandriaRepository | null> {
+    const entry = this.projectRegistry.getProject(name);
+    if (!entry) return null;
+    
+    return this.transformToRepository(entry);
   }
   
-  async getRepository(owner: string, name: string): AlexandriaRepository | null {
-    return this.repositories.get(`${owner}/${name}`) || null;
+  async registerRepository(name: string, path: string): Promise<AlexandriaRepository> {
+    // Use existing registry's register method
+    this.projectRegistry.registerProject(name, path);
+    
+    // Return the transformed repository
+    const entry = this.projectRegistry.getProject(name);
+    return this.transformToRepository(entry);
   }
   
-  async registerRepository(path: string): Promise<AlexandriaRepository> {
-    const repository = await this.loadRepository(path);
-    if (repository) {
-      this.repositories.set(`${repository.owner}/${repository.name}`, repository);
-      return repository;
+  private async transformToRepository(entry: AlexandriaEntry): Promise<AlexandriaRepository> {
+    // Load views if not already loaded
+    let views = entry.views || [];
+    if (views.length === 0 && this.fsAdapter.exists(`${entry.path}/.alexandria`)) {
+      const viewsPath = `${entry.path}/.alexandria/views.json`;
+      if (this.fsAdapter.exists(viewsPath)) {
+        const content = this.fsAdapter.readFile(viewsPath);
+        const data = JSON.parse(content);
+        views = data.views || [];
+      }
     }
-    throw new Error(`Could not load repository from ${path}`);
-  }
-  
-  private async loadRepository(repoPath: string): Promise<AlexandriaRepository | null> {
-    const alexandriaPath = join(repoPath, '.alexandria');
     
-    // Check if .alexandria directory exists
-    if (!this.fsAdapter.exists(alexandriaPath)) {
-      return null;
-    }
+    // Extract owner from remote URL or use 'local'
+    const owner = this.extractOwner(entry.remoteUrl) || 'local';
     
-    // Load views from the views.json file
-    const viewsPath = join(alexandriaPath, 'views.json');
-    let views: CodebaseViewSummary[] = [];
-    
-    if (this.fsAdapter.exists(viewsPath)) {
-      const content = this.fsAdapter.readFile(viewsPath);
-      const viewsData = JSON.parse(content);
-      views = viewsData.views || [];
-    }
-    
-    // Extract owner and name from path
-    const pathParts = repoPath.split('/');
-    const name = pathParts[pathParts.length - 1];
-    const owner = pathParts[pathParts.length - 2] || 'local';
-    
-    // Map to AlexandriaRepository structure
     return {
-      id: `${owner}/${name}`,
+      id: `${owner}/${entry.name}`,
       owner,
-      name,
-      description: '',
+      name: entry.name,
+      description: '', // Could be loaded from package.json or README
       stars: 0,
       hasViews: views.length > 0,
       viewCount: views.length,
       views,
       tags: [],
-      metadata: {}
+      metadata: {
+        registeredAt: entry.registeredAt,
+        path: entry.path
+      }
     };
   }
   
-  async getRepositoryNotes(owner: string, name: string): Promise<any[]> {
-    // If MemoryPalace is available, use it for notes
-    if (this.memoryPalace) {
-      // MemoryPalace would have its own method to get notes
-      // This is just a placeholder for when that's implemented
-      return [];
-    }
-    return [];
+  private extractOwner(remoteUrl?: string): string | null {
+    if (!remoteUrl) return null;
+    // Extract owner from git URL
+    const match = remoteUrl.match(/github\.com[:/]([^/]+)/);
+    return match ? match[1] : null;
   }
 }
 ```
@@ -170,7 +158,7 @@ class RepositoryRegistry {
 **Implementation**:
 ```typescript
 router.get('/api/alexandria/repos', async (req, res) => {
-  const repos = await registry.getAllRepositories();
+  const repos = await repositoryAdapter.getAllRepositories();
   res.json({
     repositories: repos,
     total: repos.length,
@@ -180,12 +168,12 @@ router.get('/api/alexandria/repos', async (req, res) => {
 ```
 
 #### 4. Get Repository Endpoint
-**Route**: `GET /api/alexandria/repos/:owner/:name`
+**Route**: `GET /api/alexandria/repos/:name`
 
 **Implementation**:
 ```typescript
-router.get('/api/alexandria/repos/:owner/:name', async (req, res) => {
-  const repo = await registry.getRepository(req.params.owner, req.params.name);
+router.get('/api/alexandria/repos/:name', async (req, res) => {
+  const repo = await repositoryAdapter.getRepository(req.params.name);
   if (!repo) {
     return res.status(404).json({ 
       error: { code: 'REPO_NOT_FOUND', message: 'Repository not found' }
@@ -201,16 +189,26 @@ router.get('/api/alexandria/repos/:owner/:name', async (req, res) => {
 **Implementation**:
 ```typescript
 router.post('/api/alexandria/repos', async (req, res) => {
-  const { owner, name, path } = req.body;
-  const repo = await registry.registerRepository(path);
-  res.json({
-    success: true,
-    repository: {
-      ...repo,
-      status: 'registered',
-      message: 'Repository registered successfully'
-    }
-  });
+  const { name, path } = req.body;
+  
+  try {
+    const repo = await repositoryAdapter.registerRepository(name, path);
+    res.json({
+      success: true,
+      repository: {
+        ...repo,
+        status: 'registered',
+        message: 'Repository registered successfully'
+      }
+    });
+  } catch (error) {
+    res.status(400).json({
+      error: { 
+        code: 'REGISTRATION_FAILED', 
+        message: error.message 
+      }
+    });
+  }
 });
 ```
 
@@ -239,31 +237,33 @@ router.get('/raw/:owner/:repo/:branch/*', (req, res) => {
 - Add `--local` flag to serve local API
 - Start both UI server and API server
 - Configure UI to use local API endpoint
-- Initialize with FileSystemAdapter and optional MemoryPalace
+- Use existing ProjectRegistryStore
 
 ```typescript
 // In serve command
 if (options.local) {
-  // Create filesystem adapter (can be swapped for testing)
+  // Create filesystem adapter
   const fsAdapter = new NodeFileSystemAdapter();
   
-  // Optionally create MemoryPalace for enhanced functionality
-  let memoryPalace: MemoryPalace | undefined;
-  if (options.useMemoryPalace) {
-    memoryPalace = new MemoryPalace(fsAdapter);
-  }
+  // Use existing ProjectRegistryStore
+  const projectRegistry = new ProjectRegistryStore(fsAdapter, os.homedir());
   
-  // Create registry with adapter pattern
-  const registry = new RepositoryRegistry(fsAdapter, memoryPalace);
+  // Create adapter to transform for API
+  const repositoryAdapter = new RepositoryAdapter(
+    projectRegistry,
+    fsAdapter
+  );
   
   const apiServer = new LocalAPIServer({
     port: apiPort,
-    registry,
-    registryPaths: options.paths || getDefaultPaths()
+    repositoryAdapter
   });
   
   await apiServer.start();
   apiUrl = `http://localhost:${apiPort}`;
+  
+  console.log(`API server running at ${apiUrl}`);
+  console.log(`Serving ${projectRegistry.listProjects().length} registered repositories`);
 }
 ```
 
@@ -431,8 +431,8 @@ app.use((err, req, res, next) => {
 
 ### Week 1
 - [ ] Core server infrastructure
-- [ ] Repository registry store with built-in discovery
-- [ ] Basic caching layer
+- [ ] Repository adapter using existing ProjectRegistryStore
+- [ ] API endpoints implementation
 
 ### Week 2
 - [ ] API endpoints implementation
@@ -475,12 +475,9 @@ app.use((err, req, res, next) => {
 ```
 
 ### Internal Dependencies
+- **ProjectRegistryStore** from `projects-core/` - The existing registry we'll use directly
 - Existing Alexandria types from `pure-core/types/`
-- FileSystemAdapter abstraction from `pure-core/adapters/`
-- MemoryPalace and its stores:
-  - `CodebaseViewsStore` for view management
-  - `AnchoredNotesStore` for repository notes
-  - `A24zConfigurationStore` for configuration
+- FileSystemAdapter abstraction from `pure-core/abstractions/`
 - NodeFileSystemAdapter for production
 - InMemoryFileSystemAdapter for testing
 
