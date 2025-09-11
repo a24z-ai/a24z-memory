@@ -16,19 +16,24 @@ This plan outlines the implementation of the local API server to support the Ale
 │                  ┌──────────────┐                       │
 │                  │   Express    │                       │
 │                  └──────┬───────┘                       │
-│        ┌────────────────┼────────────────┐              │
-│        ▼                ▼                ▼              │
-│  ┌──────────┐   ┌──────────┐   ┌──────────┐           │
-│  │ Registry │   │  Views   │   │   Raw    │           │
-│  │  Store   │   │  Store   │   │  Files   │           │
-│  └──────────┘   └──────────┘   └──────────┘           │
+│                         │                                │
+│          ┌──────────────▼──────────────┐                │
+│          │ AlexandriaOutpostManager    │                │
+│          └──────────┬──────────────────┘                │
+│                     │                                    │
+│        ┌────────────┼────────────────┐                  │
+│        ▼                             ▼                  │
+│  ┌──────────────┐           ┌──────────────┐          │
+│  │ProjectRegistry│           │ MemoryPalace │          │
+│  │    Store     │           │              │          │
+│  └──────────────┘           └──────────────┘          │
 └─────────────────────────────────────────────────────────┘
                          │
                          ▼
               ┌─────────────────────┐
               │   Local Filesystem  │
               │  ~/.alexandria/     │
-              │  ~/repos/           │
+              │     projects.json   │
               └─────────────────────┘
 ```
 
@@ -279,12 +284,11 @@ if (options.local) {
 
 **Schema**:
 ```typescript
-interface OutpostConfig {
-  registryPaths: string[];
+interface AlexandriaOutpostConfig {
   port: number;
-  scanInterval: number;
-  enableCache: boolean;
   corsOrigins: string[];
+  apiUrl?: string;
+  // Note: registryPaths not needed - we use ProjectRegistryStore
 }
 ```
 
@@ -386,15 +390,22 @@ describe('RepositoryRegistry', () => {
 
 ### File Path Resolution
 ```typescript
-function resolveRepositoryPath(owner: string, name: string): string {
-  // Search in configured registry paths
-  for (const basePath of config.registryPaths) {
-    const repoPath = join(basePath, owner, name);
-    if (existsSync(join(repoPath, '.alexandria'))) {
-      return repoPath;
-    }
-  }
-  return null;
+// Use MemoryPalace's static methods for path resolution
+function resolveRepositoryPath(name: string): string {
+  const entry = projectRegistry.getProject(name);
+  if (!entry) return null;
+  
+  // MemoryPalace handles all path normalization
+  return MemoryPalace.normalizePath(entry.path);
+}
+
+// For raw file access
+function resolveRawFilePath(repoName: string, filePath: string): string {
+  const entry = projectRegistry.getProject(repoName);
+  if (!entry) return null;
+  
+  // Use MemoryPalace's path joining utilities
+  return MemoryPalace.joinPath(entry.path, filePath);
 }
 ```
 
