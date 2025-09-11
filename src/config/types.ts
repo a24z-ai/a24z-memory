@@ -54,10 +54,34 @@ export interface RequireReferencesOptions {
   excludeFiles?: string[];
 }
 
+export type FilenameStyle = 'snake_case' | 'kebab-case' | 'camelCase' | 'PascalCase' | 'lowercase' | 'UPPERCASE';
+export type FilenameSeparator = '_' | '-' | ' ' | '.';
+export type FilenameCaseStyle = 'lower' | 'upper' | 'mixed';
+
+export interface FilenameConventionOptions {
+  /** Naming style to enforce */
+  style?: FilenameStyle;
+  /** Custom separator character (overrides style) */
+  separator?: FilenameSeparator;
+  /** Additional case enforcement */
+  caseStyle?: FilenameCaseStyle;
+  /** File extensions to check */
+  extensions?: string[];
+  /** Glob patterns to exclude from checking */
+  exclude?: string[];
+  /** Exact filenames to allow as exceptions */
+  exceptions?: string[];
+  /** Only check files in documentation folders */
+  documentFoldersOnly?: boolean;
+  /** Enable auto-fix by renaming files */
+  autoFix?: boolean;
+}
+
 export type RuleOptions =
   | DocumentOrganizationOptions
   | StaleReferencesOptions
   | RequireReferencesOptions
+  | FilenameConventionOptions
   | Record<string, string | number | boolean | string[]>;
 
 export interface ContextRule {

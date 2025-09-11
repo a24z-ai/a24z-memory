@@ -48,6 +48,86 @@ src/components/Button.md
 - Update any references to the moved files
 - Consider creating a logical folder structure within your docs directory
 
+### `filename-convention`
+
+**Purpose:** Enforces consistent filename conventions for documentation files
+
+**Default Severity:** `warning`
+
+**How it works:**
+- Scans documentation files (default: `.md`, `.mdx`) in the repository
+- Validates filenames against specified naming conventions
+- Supports multiple styles: `snake_case`, `kebab-case`, `camelCase`, `PascalCase`, `lowercase`, `UPPERCASE`
+- Allows custom separators and case enforcement
+- Can auto-fix violations by renaming files (when `autoFix: true`)
+
+**Configuration Options:**
+- `style`: Naming style to enforce (`kebab-case`, `snake_case`, `camelCase`, `PascalCase`, `lowercase`, `UPPERCASE`) (default: `kebab-case`)
+- `separator`: Custom separator character (`_`, `-`, ` `, `.`) - overrides style
+- `caseStyle`: Additional case enforcement (`lower`, `upper`, `mixed`)
+- `extensions`: File extensions to check (default: `['.md', '.mdx']`)
+- `exclude`: Glob patterns to exclude from checking
+- `exceptions`: Exact filenames to allow as exceptions (default: common files like `README.md`)
+- `documentFoldersOnly`: Only check files in documentation folders (default: `false`)
+- `autoFix`: Enable auto-fix by renaming files (default: `false`)
+
+**Impact:** Inconsistent filename conventions make it harder to locate and reference documentation, reducing maintainability and professional appearance.
+
+**Example Violation:**
+```
+docs/api_reference.md
+    ⚠ File "api_reference.md" should be named "api-reference.md" to match kebab-case convention
+      rule: filename-convention
+```
+
+**How to Fix:**
+- Rename files to match the specified convention
+- Add files to the exceptions list if they should keep their current names
+- Adjust the configuration to match your preferred naming style
+- Enable `autoFix: true` for automatic renaming (use with caution)
+
+**Configuration Examples:**
+
+Strict kebab-case for documentation:
+```json
+{
+  "id": "filename-convention",
+  "severity": "error",
+  "options": {
+    "style": "kebab-case",
+    "documentFoldersOnly": true,
+    "exceptions": ["README.md", "API.md"]
+  }
+}
+```
+
+Snake case with uppercase:
+```json
+{
+  "id": "filename-convention",
+  "severity": "warning",
+  "options": {
+    "style": "snake_case",
+    "caseStyle": "upper",
+    "extensions": [".md", ".txt", ".doc"]
+  }
+}
+```
+
+Custom separator with auto-fix:
+```json
+{
+  "id": "filename-convention",
+  "severity": "warning",
+  "options": {
+    "separator": "_",
+    "caseStyle": "lower",
+    "autoFix": true,
+    "exclude": ["legacy/**", "vendor/**"]
+  }
+}
+```
+
 ## Document Validation Rules
 
 ### `require-references`

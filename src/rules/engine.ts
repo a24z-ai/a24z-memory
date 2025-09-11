@@ -10,6 +10,7 @@ import { requireReferences } from './rules/require-references';
 import { orphanedReferences } from './rules/orphaned-references';
 import { staleReferences } from './rules/stale-references';
 import { documentOrganization } from './rules/document-organization';
+import { filenameConvention } from './rules/filename-convention';
 import { statSync, readdirSync } from 'fs';
 import { join, relative } from 'path';
 import { AlexandriaConfig, RuleSeverity } from '../config/types';
@@ -33,6 +34,7 @@ export class LibraryRulesEngine {
     this.registerRule(orphanedReferences);
     this.registerRule(staleReferences);
     this.registerRule(documentOrganization);
+    this.registerRule(filenameConvention);
   }
 
   registerRule(rule: LibraryRule): void {
