@@ -381,4 +381,48 @@ export class MemoryPalace {
   removeTagFromNotes(tag: string): number {
     return this.notesStore.removeTagFromNotes(this.repositoryRoot, tag);
   }
+
+  /**
+   * Get the repository root path
+   */
+  getRepositoryPath(): string {
+    return this.repositoryRoot;
+  }
+
+  /**
+   * Check if a file exists
+   */
+  fileExists(path: string): boolean {
+    return this.fs.exists(path);
+  }
+
+  /**
+   * Read a file
+   */
+  readFile(path: string): string {
+    return this.fs.readFile(path);
+  }
+
+  /**
+   * Write a file
+   */
+  writeFile(path: string, content: string): void {
+    return this.fs.writeFile(path, content);
+  }
+
+  /**
+   * Create a directory
+   */
+  createDirectory(path: string): void {
+    return this.fs.createDir(path);
+  }
+
+  /**
+   * Delete a file
+   */
+  deleteFile(path: string): void {
+    // FileSystemAdapter doesn't have deleteFile yet, so we need to add it
+    // For now, throw an error indicating this needs to be implemented
+    throw new Error('deleteFile not yet implemented in FileSystemAdapter');
+  }
 }
