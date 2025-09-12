@@ -232,6 +232,16 @@ Configure rules in your `.alexandriarc.json` file:
         }
       },
       {
+        "id": "filename-convention",
+        "name": "Filename Convention",
+        "severity": "warning",
+        "enabled": true,
+        "options": {
+          "style": "kebab-case",
+          "exceptions": ["README.md", "LICENSE.md", "CONTRIBUTING.md", "CHANGELOG.md"]
+        }
+      },
+      {
         "id": "require-references",
         "name": "Require View Association",
         "severity": "error",
@@ -374,6 +384,16 @@ For mature projects with established documentation practices:
       "options": {
         "documentFolders": ["docs", "guides", "wiki"],
         "checkNested": true
+      }
+    },
+    {
+      "id": "filename-convention",
+      "severity": "warning",
+      "enabled": true,
+      "options": {
+        "style": "kebab-case",
+        "documentFoldersOnly": true,
+        "exceptions": ["README.md", "LICENSE.md", "CONTRIBUTING.md", "CHANGELOG.md", "CODE_OF_CONDUCT.md"]
       }
     },
     {

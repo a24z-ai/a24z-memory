@@ -362,7 +362,7 @@ export function createStatusCommand(): Command {
               console.log(`  ... and ${status.untrackedDocs.length - 10} more`);
             }
           }
-          console.log(`\n  💡 Add all documents: alexandria auto-create-views`);
+          console.log(`\n  💡 Add all documents: alexandria add-all-docs`);
         }
         console.log('');
 
@@ -374,7 +374,7 @@ export function createStatusCommand(): Command {
         } else if (status.viewsCount === 0) {
           console.log('🚀 Next step: Create your first view');
           console.log('   • Add a document: alexandria add-doc README.md');
-          console.log('   • Add all docs: alexandria auto-create-views');
+          console.log('   • Add all docs: alexandria add-all-docs');
         } else {
           console.log('✨ Alexandria is configured and ready!');
           if (status.untrackedDocsCount > 0) {
