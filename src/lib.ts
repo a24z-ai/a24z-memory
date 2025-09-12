@@ -43,6 +43,15 @@ export {
   extractCodebaseViewSummaries,
 } from './pure-core/types/summary';
 
+// Validation types
+export type { 
+  ValidationResult as CodebaseValidationResult,
+  ValidationIssue 
+} from './pure-core/validation/CodebaseViewValidator';
+
+// Config types
+export type { ValidationResult as ConfigValidationResult } from './config/types';
+
 // Filesystem adapter for dependency injection
 export type { FileSystemAdapter } from './pure-core/abstractions/filesystem';
 export { NodeFileSystemAdapter } from './node-adapters/NodeFileSystemAdapter';
@@ -50,3 +59,20 @@ export { NodeFileSystemAdapter } from './node-adapters/NodeFileSystemAdapter';
 // Primary API classes
 export { MemoryPalace } from './MemoryPalace';
 export { AlexandriaOutpostManager } from './cli-alexandria/api/AlexandriaOutpostManager';
+
+// Project management
+export { ProjectRegistryStore } from './projects-core/ProjectRegistryStore';
+
+// CLI utilities (for alexandria-cli package)
+export { LibraryRulesEngine } from './rules';
+export { OverviewPathAutoFix } from './pure-core/autofixes/OverviewPathAutoFix';
+export { generateViewIdFromName } from './pure-core/stores/CodebaseViewsStore';
+export { ConfigValidator } from './config/validator';
+
+// Constants
+export { ALEXANDRIA_DIRS } from './constants/paths';
+export { CONFIG_FILENAME } from './config/schema';
+
+// Project utilities
+export { getGitRemoteUrl } from './projects-core/utils';
+export { hasAlexandriaWorkflow, hasMemoryNotes } from './projects-core/workflow-utils';
