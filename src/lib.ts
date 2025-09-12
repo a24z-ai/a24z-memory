@@ -27,6 +27,11 @@ export type {
   FileListValidationResult,
 } from './pure-core/types';
 
+// Repository and Alexandria types
+export type {
+  ValidatedAlexandriaPath,
+} from './pure-core/types/repository';
+
 // CodebaseView summary types
 export type { CodebaseViewSummary } from './pure-core/types/summary';
 export {
