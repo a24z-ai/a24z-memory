@@ -1,0 +1,81 @@
+{
+  "name": "@a24z/alexandria-cli",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Alexandria CLI - Advanced codebase memory and knowledge management",
+  "main": "cli-alexandria/index.js",
+  "types": "cli-alexandria/index.d.ts",
+  "bin": {
+    "alexandria": "alexandria-cli.js"
+  },
+  "type": "module",
+  "scripts": {
+    "prepublishOnly": "echo 'Please use npm run publish:alexandria from the main package.json'",
+    "test": "bun test tests/cli-alexandria",
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/a24z-ai/a24z-memory.git",
+    "directory": "/"
+  },
+  "keywords": [
+    "alexandria",
+    "cli",
+    "codebase",
+    "memory",
+    "knowledge",
+    "management",
+    "a24z",
+    "development",
+    "tools"
+  ],
+  "author": "a24z Team",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/a24z-ai/a24z-memory/issues"
+  },
+  "homepage": "https://github.com/a24z-ai/a24z-memory#alexandria-cli",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@a24z/alexandria-outpost": "^0.1.7",
+    "@a24z/markdown-utils": "^0.1.1",
+    "chalk": "^5.6.0",
+    "commander": "^14.0.0",
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "globby": "^14.1.0",
+    "gpt-tokenizer": "^3.0.1",
+    "ignore": "^7.0.5",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/compression": "^1.8.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^22.15.26",
+    "esbuild": "^0.25.9",
+    "typescript": "^5.6.3"
+  },
+  "files": [
+    "alexandria-cli.js",
+    "cli-alexandria/**/*",
+    "pure-core/**/*",
+    "projects-core/**/*",
+    "config/**/*",
+    "utils/**/*",
+    "constants/**/*",
+    "branding.*",
+    "MemoryPalace.*",
+    "templates",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}

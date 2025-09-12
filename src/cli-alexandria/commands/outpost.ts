@@ -16,7 +16,6 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { LocalAPIServer } from '../api/server.js';
 import { AlexandriaOutpostManager } from '../api/AlexandriaOutpostManager.js';
-import { ProjectRegistryStore } from '../../projects-core/ProjectRegistryStore.js';
 import { NodeFileSystemAdapter } from '../../node-adapters/NodeFileSystemAdapter.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -159,16 +158,10 @@ function createServeCommand() {
           // Create filesystem adapter
           const fsAdapter = new NodeFileSystemAdapter();
           
-          // Use existing ProjectRegistryStore
-          const projectRegistry = new ProjectRegistryStore(fsAdapter, homedir());
-          
           // Note: MemoryPalace is used within AlexandriaOutpostManager for loading views
           
-          // Create manager to handle outpost operations
-          const outpostManager = new AlexandriaOutpostManager(
-            projectRegistry,
-            fsAdapter
-          );
+          // Create manager to handle outpost operations (it creates ProjectRegistryStore internally)
+          const outpostManager = new AlexandriaOutpostManager(fsAdapter);
           
           // Create and start API server
           apiServer = new LocalAPIServer({
@@ -180,9 +173,9 @@ function createServeCommand() {
           await apiServer.start();
           apiUrl = `http://localhost:${apiPort}`;
           
-          const projects = projectRegistry.listProjects();
+          const projectCount = outpostManager.getRepositoryCount();
           console.log(chalk.green(`✅ Local API server started`));
-          console.log(chalk.dim(`   Serving ${projects.length} registered repositories`));
+          console.log(chalk.dim(`   Serving ${projectCount} registered repositories`));
         } catch (error) {
           console.error(chalk.red(`❌ Failed to start local API server: ${error}`));
           process.exit(1);

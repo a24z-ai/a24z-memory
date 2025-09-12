@@ -30,6 +30,10 @@ export type {
 // Repository and Alexandria types
 export type {
   ValidatedAlexandriaPath,
+  AlexandriaRepository,
+  AlexandriaEntry,
+  AlexandriaRepositoryRegistry,
+  GithubRepository,
 } from './pure-core/types/repository';
 
 // CodebaseView summary types
@@ -43,5 +47,6 @@ export {
 export type { FileSystemAdapter } from './pure-core/abstractions/filesystem';
 export { NodeFileSystemAdapter } from './node-adapters/NodeFileSystemAdapter';
 
-// Primary API class
+// Primary API classes
 export { MemoryPalace } from './MemoryPalace';
+export { AlexandriaOutpostManager } from './cli-alexandria/api/AlexandriaOutpostManager';

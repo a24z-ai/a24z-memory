@@ -4,14 +4,19 @@ import type { AlexandriaRepository, AlexandriaEntry } from '../../pure-core/type
 import type { CodebaseViewSummary } from '../../pure-core/types/summary.js';
 import { extractCodebaseViewSummary } from '../../pure-core/types/summary.js';
 import type { ValidatedRepositoryPath } from '../../pure-core/types/index.js';
+import { homedir } from 'os';
 
 import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem.js';
 
 export class AlexandriaOutpostManager {
+  private readonly projectRegistry: ProjectRegistryStore;
+
   constructor(
-    private readonly projectRegistry: ProjectRegistryStore,
     private readonly fsAdapter: FileSystemAdapter
-  ) {}
+  ) {
+    // Create the ProjectRegistryStore internally with the user's home directory
+    this.projectRegistry = new ProjectRegistryStore(fsAdapter, homedir());
+  }
 
   async getAllRepositories(): Promise<AlexandriaRepository[]> {
     // Get all registered projects from existing registry
@@ -51,6 +56,10 @@ export class AlexandriaOutpostManager {
     
     if (!entry) return null;
     return this.transformToRepository(entry);
+  }
+
+  getRepositoryCount(): number {
+    return this.projectRegistry.listProjects().length;
   }
 
   private async transformToRepository(entry: AlexandriaEntry): Promise<AlexandriaRepository> {
