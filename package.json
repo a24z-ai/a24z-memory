@@ -30,7 +30,9 @@
     "test:mcp": "./tests/test-mcp-build.sh",
     "test:mcp-server": "bun test tests/mcp-server.test.ts",
     "test:mcp-integration": "bun test tests/mcp-integration.test.ts",
-    "test:mcp-all": "bun test tests/mcp-*.test.ts"
+    "test:mcp-all": "bun test tests/mcp-*.test.ts",
+    "test:prerelease": "./scripts/test-prerelease.sh",
+    "test:local-npx": "./scripts/test-local-npx.sh"
   },
   "repository": {
     "type": "git",
