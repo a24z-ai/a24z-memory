@@ -19,7 +19,7 @@
     "fix:imports": "bun build/fix-esm-imports.js",
     "prepare": "husky",
     "release": "semantic-release",
-    "test": "echo 'No tests - functionality migrated to external packages'",
+    "test": "bun test",
     "test:coverage": "bun test --coverage",
     "test:watch": "bun test --watch",
     "lint": "bunx eslint . --ext .ts,.js --max-warnings 0",
@@ -27,7 +27,10 @@
     "format": "bunx prettier --write .",
     "format:check": "bunx prettier --check .",
     "typecheck": "tsc --noEmit",
-    "test:mcp": "./tests/test-mcp-build.sh"
+    "test:mcp": "./tests/test-mcp-build.sh",
+    "test:mcp-server": "bun test tests/mcp-server.test.ts",
+    "test:mcp-integration": "bun test tests/mcp-integration.test.ts",
+    "test:mcp-all": "bun test tests/mcp-*.test.ts"
   },
   "repository": {
     "type": "git",

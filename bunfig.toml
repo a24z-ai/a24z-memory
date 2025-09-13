@@ -1,7 +1,7 @@
 # Bun configuration
 
 [test]
-preload = ["./tests/setup.ts"]
+# preload = ["./tests/setup.ts"]
 root = "./"
 
 # Use TypeScript for tests

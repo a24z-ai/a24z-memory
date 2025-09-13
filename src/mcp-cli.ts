@@ -37,8 +37,8 @@ function installCursor(): void {
   if (!config.mcpServers) config.mcpServers = {};
 
   config.mcpServers['a24z-memory'] = {
-    command: 'npx',
-    args: ['a24z-memory'],
+    command: 'npx -y a24z-memory',
+    env: {},
   };
 
   writeFileEnsured(configPath, JSON.stringify(config, null, 2));
@@ -70,8 +70,8 @@ function installClaude(): void {
   if (!config.mcpServers) config.mcpServers = {};
 
   config.mcpServers['a24z-memory'] = {
-    command: 'npx',
-    args: ['a24z-memory'],
+    command: 'npx -y a24z-memory',
+    env: {},
   };
 
   writeFileEnsured(target, JSON.stringify(config, null, 2));
