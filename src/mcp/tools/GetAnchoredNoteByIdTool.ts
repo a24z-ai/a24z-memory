@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
-import { MemoryPalace } from '../../MemoryPalace';
-import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
-import { NodeFileSystemAdapter } from '../../node-adapters/NodeFileSystemAdapter';
+import { MemoryPalace } from '@a24z/core-library';
+import { FileSystemAdapter } from '@a24z/core-library';
+import { NodeFileSystemAdapter } from '@a24z/core-library';
 
 export class GetAnchoredNoteByIdTool extends BaseTool {
   name = 'get_repository_note';

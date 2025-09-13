@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { BaseTool } from './base-tool';
-import { MemoryPalace } from '../../MemoryPalace';
-import { NodeFileSystemAdapter, findGitRoot } from '../../node-adapters/NodeFileSystemAdapter';
-import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
+import { MemoryPalace } from '@a24z/core-library';
+import { NodeFileSystemAdapter } from '@a24z/core-library';
+import { FileSystemAdapter } from '@a24z/core-library';
 import { McpToolResult } from '../types';
 import path from 'path';
 import { existsSync } from 'fs';
@@ -118,14 +118,14 @@ export class ReplaceTagTool extends BaseTool {
         throw new Error(`Path does not exist: ${normalizedPath}`);
       }
 
-      // Find the git root
-      const foundRoot = findGitRoot(normalizedPath);
-      if (!foundRoot) {
+      // Find the git root using the filesystem adapter
+      try {
+        repoRoot = nodeFs.normalizeRepositoryPath(normalizedPath);
+      } catch {
         throw new Error(
           `Not a git repository: ${normalizedPath}. This tool requires a git repository.`
         );
       }
-      repoRoot = foundRoot;
     }
 
     // Create MemoryPalace instance

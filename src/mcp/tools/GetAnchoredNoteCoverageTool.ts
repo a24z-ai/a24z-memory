@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { BaseTool } from './base-tool';
 import { McpToolResult } from '../types';
-import { MemoryPalace } from '../../MemoryPalace';
-import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
+import { MemoryPalace } from '@a24z/core-library';
+import { FileSystemAdapter } from '@a24z/core-library';
 
 const inputSchema = z.object({
   path: z

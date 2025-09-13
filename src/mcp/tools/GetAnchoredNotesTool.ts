@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
-import { MemoryPalace } from '../../MemoryPalace';
-import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
-import type { AnchoredNoteWithPath, StoredAnchoredNote } from '../../pure-core/types';
+import { MemoryPalace } from '@a24z/core-library';
+import { FileSystemAdapter } from '@a24z/core-library';
+import type { AnchoredNoteWithPath, StoredAnchoredNote } from '@a24z/core-library';
 
 type NoteResponse = {
   id: string;

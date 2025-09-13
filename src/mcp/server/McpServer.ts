@@ -29,8 +29,7 @@ import {
   ListCodebaseViewsTool,
 } from '../tools';
 import { McpServerConfig, McpTool, McpResource } from '../types';
-import { NodeFileSystemAdapter } from '../../node-adapters/NodeFileSystemAdapter';
-import { MemoryPalace } from '../../MemoryPalace';
+import { NodeFileSystemAdapter, MemoryPalace } from '@a24z/core-library';
 
 export class McpServer {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

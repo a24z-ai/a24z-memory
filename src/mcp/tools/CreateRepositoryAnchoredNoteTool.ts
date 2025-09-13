@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
-import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
-import { CodebaseView, ValidatedRepositoryPath } from '../../pure-core/types';
-import { MemoryPalace } from '../../MemoryPalace';
+import { FileSystemAdapter } from '@a24z/core-library';
+import { CodebaseView, ValidatedRepositoryPath } from '@a24z/core-library';
+import { MemoryPalace } from '@a24z/core-library';
 
 export class CreateRepositoryAnchoredNoteTool extends BaseTool {
   name = 'create_repository_note';

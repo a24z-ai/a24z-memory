@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
-import { MemoryPalace } from '../../MemoryPalace';
-import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
-import type { CodebaseViewSummary } from '../../pure-core/types/summary';
-import { extractCodebaseViewSummary } from '../../pure-core/types/summary';
+import { MemoryPalace } from '@a24z/core-library';
+import { FileSystemAdapter } from '@a24z/core-library';
+import type { CodebaseViewSummary } from '@a24z/core-library';
+import { extractCodebaseViewSummary } from '@a24z/core-library';
 
 /**
  * Response type for the ListCodebaseViewsTool.

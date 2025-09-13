@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { BaseTool } from './base-tool';
-import { MemoryPalace } from '../../MemoryPalace';
-import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
-import { StaleAnchoredNote } from '../../pure-core/stores/AnchoredNotesStore';
+import { MemoryPalace } from '@a24z/core-library';
+import { FileSystemAdapter } from '@a24z/core-library';
+import { StaleAnchoredNote } from '@a24z/core-library';
 import { McpToolResult } from '../types';
 
 const GetStaleAnchoredNotesSchema = z.object({

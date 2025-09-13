@@ -17,6 +17,8 @@ await esbuild.build({
   external: [
     // Keep node built-ins external
     'node:*',
+    // Keep the alexandria-cli package external since we're just re-exporting it
+    '@a24z/alexandria-cli',
     // Keep problematic packages external to avoid dynamic require issues
     'fast-glob',
     'glob',

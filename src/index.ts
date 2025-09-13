@@ -1,6 +1,6 @@
 /**
  * Standalone a24z Memory MCP server
- * Re-exports the local server and provides a run() helper.
+ * Provides the MCP server functionality and re-exports types from core-library
  */
 
 import { McpServer } from './mcp/server/McpServer';
@@ -9,8 +9,9 @@ import { BRANDING } from './branding';
 
 export { McpServer } from './mcp/server/McpServer';
 
-// CodebaseView types (pure)
+// Re-export types from @a24z/core-library for convenience
 export type {
+  // CodebaseView types
   CodebaseView,
   CodebaseViewCell,
   CodebaseViewFileCell,
@@ -19,25 +20,22 @@ export type {
   ViewValidationResult,
   PatternValidationResult,
   FileListValidationResult,
-} from './pure-core/types';
-
-// CodebaseView summary types
-export type { CodebaseViewSummary } from './pure-core/types/summary';
-export {
-  extractCodebaseViewSummary,
-  extractCodebaseViewSummaries,
-} from './pure-core/types/summary';
-
-// Repository types
-export type {
+  CodebaseViewSummary,
+  
+  // Repository types
   GithubRepository,
   AlexandriaRepository,
   AlexandriaEntry,
   AlexandriaRepositoryRegistry,
-} from './pure-core/types/repository';
+} from '@a24z/core-library';
 
-// CodebaseView exports for VS Code extension integration
-export { CodebaseViewsStore, generateViewIdFromName } from './pure-core/stores/CodebaseViewsStore';
+// Re-export functions from @a24z/core-library
+export {
+  extractCodebaseViewSummary,
+  extractCodebaseViewSummaries,
+  CodebaseViewsStore,
+  generateViewIdFromName,
+} from '@a24z/core-library';
 
 export function run(config?: Partial<McpServerConfig>): Promise<void> {
   const resolved: McpServerConfig = {
@@ -49,6 +47,3 @@ export function run(config?: Partial<McpServerConfig>): Promise<void> {
   const server = new McpServer(resolved);
   return server.start();
 }
-
-// This check is for when index.js is run directly (not typical for ESM)
-// The actual CLI entry point is cli.ts

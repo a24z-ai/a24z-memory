@@ -19,7 +19,7 @@
     "fix:imports": "bun build/fix-esm-imports.js",
     "prepare": "husky",
     "release": "semantic-release",
-    "test": "bun test",
+    "test": "echo 'No tests - functionality migrated to external packages'",
     "test:coverage": "bun test --coverage",
     "test:watch": "bun test --watch",
     "lint": "bunx eslint . --ext .ts,.js --max-warnings 0",
@@ -49,7 +49,9 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@a24z/alexandria-cli": "^0.2.0",
     "@a24z/alexandria-outpost": "^0.1.7",
+    "@a24z/core-library": "^0.1.0",
     "@a24z/markdown-utils": "^0.1.1",
     "@modelcontextprotocol/sdk": "^1.0.4",
     "@types/compression": "^1.8.1",

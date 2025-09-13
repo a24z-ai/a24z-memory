@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import type { McpToolResult } from '../types';
 import { BaseTool } from './base-tool';
-import { MemoryPalace } from '../../MemoryPalace';
-import { FileSystemAdapter } from '../../pure-core/abstractions/filesystem';
-import { ALEXANDRIA_DIRS } from '../../constants/paths';
+import { MemoryPalace } from '@a24z/core-library';
+import { FileSystemAdapter } from '@a24z/core-library';
+import { ALEXANDRIA_DIRS } from '@a24z/core-library';
 
 export class GetRepositoryTagsTool extends BaseTool {
   name = 'get_repository_tags';
